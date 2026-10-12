@@ -282,7 +282,6 @@ CardSlot* FindNextAvailableSlot(CardBattleWork* work, u8 listIndex, u16* index) 
 
     i = *index;
 
-    // @bug slots[listIndex] is NULL for an empty list (NULL read).
     if (work->slots[listIndex][i].unk_06 == 0 && !work->slots[listIndex][i].stocked) {
         if (!work->slots[listIndex][i].used && !work->slots[listIndex][i].removed) {
             return &work->slots[listIndex][(s16)*index];
@@ -325,7 +324,6 @@ CardSlot* FindPrevAvailableSlot(CardBattleWork* work, u8 listIndex, u16* index) 
 
     i = *index;
 
-    // @bug slots[listIndex] is NULL for an empty list (NULL read).
     if (work->slots[listIndex][i].unk_06 == 0 && !work->slots[listIndex][i].stocked) {
         if (!work->slots[listIndex][i].used && !work->slots[listIndex][i].removed) {
             return &work->slots[listIndex][(s16)*index];
@@ -4040,7 +4038,6 @@ void SoraCardInit(CardDisplayWork* work, CardDisplayArgs* args) {
     work->palette2 = NULL;
     work->palette = NULL;
     work->children = NULL;
-    // @bug args can be NULL (NULL read).
     work->args = *args;
     work->flags = 0;
     index = work->args.index;
