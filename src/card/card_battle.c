@@ -2374,7 +2374,11 @@ void TrySoraCardBreak(CardBattleWork* work) {
     }
 }
 
+#ifdef PLATFORM_PC
+extern BtlWork* gBtlWorkAlias __asm__(PORT_ASM_SYMBOL("gBtlWork"));
+#else
 extern BtlWork* gBtlWorkAlias __asm__("gBtlWork");
+#endif
 
 s32 UseSoraCard(CardBattleWork* work) {
     CardDisplayArgs args;

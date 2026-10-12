@@ -7,8 +7,20 @@ typedef unsigned int u32;
 typedef signed char s8;
 typedef signed short s16;
 typedef signed int s32;
+#ifdef PLATFORM_PC
+/* ARM (APCS) aligns 64-bit integers to 4 bytes inside structs; x86 MinGW uses 8.
+   Keep the GBA layout so struct sizes, save data and ROM tables stay compatible. */
+typedef unsigned long long __attribute__((aligned(4))) u64;
+typedef signed long long __attribute__((aligned(4))) s64;
+
+#define PORT_STRINGIFY_(x) #x
+#define PORT_STRINGIFY(x) PORT_STRINGIFY_(x)
+/* Assembler name of a C symbol (i686 COFF prefixes C names with an underscore). */
+#define PORT_ASM_SYMBOL(name) PORT_STRINGIFY(__USER_LABEL_PREFIX__) name
+#else
 typedef unsigned long long u64;
 typedef signed long long s64;
+#endif
 
 typedef volatile u8 vu8;
 typedef volatile u16 vu16;

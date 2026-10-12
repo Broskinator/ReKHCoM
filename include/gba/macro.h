@@ -25,6 +25,10 @@
     CpuFastSet((void*)&tmp, dest, CPU_FAST_SET_SRC_FIXED | (((size) / 4) & 0x1FFFFF));        \
 }
 
+#ifdef PLATFORM_PC
+void PortDmaSet(u32 dmaNum, const void* src, void* dest, u32 control);
+#define DmaSet(dmaNum, src, dest, control) PortDmaSet(dmaNum, (const void*)(src), (void*)(dest), (u32)(control))
+#else
 #define DmaSet(dmaNum, src, dest, control)       \
 {                                                \
     vu32* dmaRegs = (vu32*)REG_ADDR_DMA##dmaNum; \
@@ -33,6 +37,7 @@
     dmaRegs[2] = (vu32)(control);                \
     dmaRegs[2];                                  \
 }
+#endif
 
 #define DmaStop(dmaNum)                                         \
 {                                                               \

@@ -91,6 +91,10 @@ void m4aSoundInit() {
     for (i = 0; i < NUM_MUSIC_PLAYERS; i++) {
         MusicPlayerInfo* mplayInfo = gMPlayTable[i].info;
         MPlayOpen(mplayInfo, gMPlayTable[i].track, gMPlayTable[i].numTracks);
+#ifdef PLATFORM_PC
+        if (mplayInfo == NULL) /* writes land in the BIOS area on hardware */
+            continue;
+#endif
         // @bug Entries 13-15 of gMPlayTable have no player (NULL write).
         mplayInfo->checkSongPriority = gMPlayTable[i].checkSongPriority;
         mplayInfo->memAccArea = gMPlayMemAccArea;
@@ -478,11 +482,15 @@ void m4aSoundVSyncOn() {
     soundInfo->pcmDmaCounter = 0;
     soundInfo->ident = ident - 10;
 
+#ifndef PLATFORM_PC
+    /* Sync the sample timer to the end of the frame. The PC build mixes
+       per frame, and VCOUNT only changes while a frame is drawn. */
     while (*(vu8*)REG_ADDR_VCOUNT == 159)
         ;
 
     while (*(vu8*)REG_ADDR_VCOUNT != 159)
         ;
+#endif
 
     REG_TM0CNT_L = -(280896 / soundInfo->pcmSamplesPerVBlank);
     REG_TM0CNT_H = TIMER_ENABLE;

@@ -45,3 +45,9 @@ tools/gbagfx/
 # Local-only MovieOpen encoder RE (not matching path)
 tools/gfx/movie_open_re.py
 tools/_tmp_movie_encode_re.md
+
+# PC port local files
+*.sav
+kh_com.ini
+kh_com.log
+shot_*.bmp

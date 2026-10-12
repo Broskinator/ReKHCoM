@@ -1,0 +1,741 @@
+/*
+ * Software GBA PPU.
+ *
+ * Renders the picture described by the I/O registers, palette, VRAM and OAM
+ * into a 32-bit frame buffer. The output can be larger than the GBA's
+ * 240x160: GBA pixel (0,0) is placed at (originX, originY) and background
+ * layers, sprites and full-screen windows continue past the original edges
+ * when the current scene supports a wide view (gPortScreen.wide).
+ *
+ * Per-line state changes (HBlank interrupts and HBlank DMA) are honoured for
+ * the 160 original lines; lines added above and below reuse the state of the
+ * nearest original line.
+ */
+#include <math.h>
+#include <string.h>
+
+#include "port/port.h"
+
+PortScreen gPortScreen = { GBA_SCREEN_W, GBA_SCREEN_H, 0, 0, 0 };
+uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
+
+#define PLTT16 ((const uint16_t*)(uintptr_t)GBA_PLTT)
+#define VRAM8 ((const uint8_t*)(uintptr_t)GBA_VRAM)
+#define OAM16 ((const uint16_t*)(uintptr_t)GBA_OAM)
+
+/* Line buffers hold BGR555 colours; bit 15 marks a transparent pixel. */
+#define TRANSPARENT 0x8000
+
+enum {
+    LAYER_BG0,
+    LAYER_BG1,
+    LAYER_BG2,
+    LAYER_BG3,
+    LAYER_OBJ,
+    LAYER_BD,
+};
+
+#define WIN_BG(n) (1 << (n))
+#define WIN_OBJ 0x10
+#define WIN_SFX 0x20
+
+static uint16_t sBgLine[4][PORT_MAX_W];
+static uint16_t sObjLine[PORT_MAX_W];
+static uint8_t sObjPrio[PORT_MAX_W];
+static uint8_t sObjSemi[PORT_MAX_W];
+static uint8_t sObjWin[PORT_MAX_W];
+static uint8_t sWinMask[PORT_MAX_W];
+
+/* Affine background reference points (internal registers). */
+static int32_t sAffX[2], sAffY[2];
+static uint32_t sAffLatchX[2], sAffLatchY[2];
+
+static uint32_t sColorLut[0x8000];
+static int sLutMode = -1;
+
+/* Visible span of the current frame in GBA coordinates. */
+static int sLeft, sRight, sTop, sBottom;
+
+static int32_t Sext28(uint32_t v) {
+    return (int32_t)(v << 4) >> 4;
+}
+
+static void BuildLut(void) {
+    int c;
+
+    if (sLutMode == gPortConfig.colorCorrection)
+        return;
+    sLutMode = gPortConfig.colorCorrection;
+    for (c = 0; c < 0x8000; c++) {
+        int r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
+        int R, G, B;
+
+        if (sLutMode) {
+            /* Approximation of the GBA's darker, desaturated LCD. */
+            double lr = r / 31.0, lg = g / 31.0, lb = b / 31.0;
+            double gr = lr * lr * 0.84 + lg * lg * 0.18 + lb * lb * 0.0;
+            double gg = lr * lr * 0.09 + lg * lg * 0.67 + lb * lb * 0.26;
+            double gb = lr * lr * 0.15 + lg * lg * 0.10 + lb * lb * 0.73;
+            R = (int)(255.0 * (gr > 1 ? 1 : gr) + 0.5);
+            G = (int)(255.0 * (gg > 1 ? 1 : gg) + 0.5);
+            B = (int)(255.0 * (gb > 1 ? 1 : gb) + 0.5);
+            /* gamma back up so the result is not overly dark */
+            {
+                R = (int)(sqrt(R / 255.0) * 255.0 + 0.5);
+                G = (int)(sqrt(G / 255.0) * 255.0 + 0.5);
+                B = (int)(sqrt(B / 255.0) * 255.0 + 0.5);
+            }
+        } else {
+            R = (r << 3) | (r >> 2);
+            G = (g << 3) | (g >> 2);
+            B = (b << 3) | (b >> 2);
+        }
+        sColorLut[c] = 0xFF000000u | ((uint32_t)R << 16) | ((uint32_t)G << 8) | (uint32_t)B;
+    }
+}
+
+void PortPpuSetResolution(int w, int h) {
+    if (w > PORT_MAX_W)
+        w = PORT_MAX_W;
+    if (h > PORT_MAX_H)
+        h = PORT_MAX_H;
+    if (w < GBA_SCREEN_W)
+        w = GBA_SCREEN_W;
+    if (h < GBA_SCREEN_H)
+        h = GBA_SCREEN_H;
+    gPortScreen.width = w;
+    gPortScreen.height = h;
+    gPortScreen.originX = (w - GBA_SCREEN_W) / 2;
+    gPortScreen.originY = (h - GBA_SCREEN_H) / 2;
+}
+
+/* ---- backgrounds --------------------------------------------------------- */
+
+static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
+    uint16_t cnt = IO16(0x08 + bg * 2);
+    int hofs = IO16(0x10 + bg * 4) & 0x1FF;
+    int vofs = IO16(0x12 + bg * 4) & 0x1FF;
+    const uint8_t* chars = VRAM8 + ((cnt >> 2) & 3) * 0x4000;
+    const uint16_t* screen = (const uint16_t*)(VRAM8 + ((cnt >> 8) & 31) * 0x800);
+    int size = cnt >> 14;
+    int wmask = (size & 1) ? 511 : 255;
+    int hmask = (size & 2) ? 511 : 255;
+    int bpp8 = (cnt >> 7) & 1;
+    int mosaic = (cnt >> 6) & 1;
+    int mosH = mosaic ? (IO16(0x4C) & 15) + 1 : 1;
+    int mosV = mosaic ? ((IO16(0x4C) >> 4) & 15) + 1 : 1;
+    uint16_t* out = sBgLine[bg];
+    int x, py, ty, fy;
+    int w = gPortScreen.width;
+
+    (void)dispcnt;
+    if (mosV > 1)
+        gy -= ((gy % mosV) + mosV) % mosV;
+    py = (gy + vofs) & hmask;
+    ty = py >> 3;
+    fy = py & 7;
+
+    for (x = 0; x < w; x++) {
+        int gx = x - gPortScreen.originX;
+        int px, tx, block, entry, tile, pal, fx, fyy, ci;
+        const uint16_t* map;
+
+        if (gx < sLeft || gx >= sRight) {
+            out[x] = TRANSPARENT;
+            continue;
+        }
+        if (mosH > 1)
+            gx -= ((gx % mosH) + mosH) % mosH;
+        px = (gx + hofs) & wmask;
+        tx = px >> 3;
+        block = 0;
+        if (tx >= 32)
+            block += 1;
+        if (ty >= 32)
+            block += (size == 3) ? 2 : 1;
+        map = screen + block * 0x400;
+        entry = map[(ty & 31) * 32 + (tx & 31)];
+        tile = entry & 0x3FF;
+        fx = (entry & 0x400) ? 7 - (px & 7) : (px & 7);
+        fyy = (entry & 0x800) ? 7 - fy : fy;
+        if (bpp8) {
+            uint32_t off = tile * 64 + fyy * 8 + fx;
+            ci = (((cnt >> 2) & 3) * 0x4000 + off < 0x10000) ? chars[off] : 0;
+            out[x] = ci ? (PLTT16[ci] & 0x7FFF) : TRANSPARENT;
+        } else {
+            uint32_t off = tile * 32 + fyy * 4 + (fx >> 1);
+            uint8_t b = (((cnt >> 2) & 3) * 0x4000 + off < 0x10000) ? chars[off] : 0;
+            ci = (fx & 1) ? (b >> 4) : (b & 15);
+            pal = entry >> 12;
+            out[x] = ci ? (PLTT16[pal * 16 + ci] & 0x7FFF) : TRANSPARENT;
+        }
+    }
+}
+
+static void DrawAffineBg(int bg, uint16_t dispcnt) {
+    int a = bg - 2;
+    uint16_t cnt = IO16(0x08 + bg * 2);
+    int16_t pa = (int16_t)IO16(0x20 + a * 0x10);
+    int16_t pc = (int16_t)IO16(0x24 + a * 0x10);
+    const uint8_t* chars = VRAM8 + ((cnt >> 2) & 3) * 0x4000;
+    const uint8_t* screen = VRAM8 + ((cnt >> 8) & 31) * 0x800;
+    int size = 128 << (cnt >> 14);
+    int tiles = size >> 3;
+    int wrap = (cnt >> 13) & 1;
+    uint16_t* out = sBgLine[bg];
+    int x, w = gPortScreen.width;
+    int32_t rx = sAffX[a] + (int32_t)pa * (-gPortScreen.originX);
+    int32_t ry = sAffY[a] + (int32_t)pc * (-gPortScreen.originX);
+
+    (void)dispcnt;
+    for (x = 0; x < w; x++, rx += pa, ry += pc) {
+        int gx = x - gPortScreen.originX;
+        int px = rx >> 8, py = ry >> 8;
+        int tile, ci;
+
+        if (gx < sLeft || gx >= sRight) {
+            out[x] = TRANSPARENT;
+            continue;
+        }
+        if (wrap) {
+            px &= size - 1;
+            py &= size - 1;
+        } else if (px < 0 || py < 0 || px >= size || py >= size) {
+            out[x] = TRANSPARENT;
+            continue;
+        }
+        tile = screen[(py >> 3) * tiles + (px >> 3)];
+        ci = chars[tile * 64 + (py & 7) * 8 + (px & 7)];
+        out[x] = ci ? (PLTT16[ci] & 0x7FFF) : TRANSPARENT;
+    }
+}
+
+static void DrawBitmapBg(int mode, uint16_t dispcnt) {
+    int16_t pa = (int16_t)IO16(0x20);
+    int16_t pc = (int16_t)IO16(0x24);
+    uint16_t* out = sBgLine[2];
+    int x, w = gPortScreen.width;
+    int bw = (mode == 5) ? 160 : 240;
+    int bh = (mode == 5) ? 128 : 160;
+    uint32_t page = (mode != 3 && (dispcnt & 0x10)) ? 0xA000 : 0;
+    int32_t rx = sAffX[0] + (int32_t)pa * (-gPortScreen.originX);
+    int32_t ry = sAffY[0] + (int32_t)pc * (-gPortScreen.originX);
+
+    for (x = 0; x < w; x++, rx += pa, ry += pc) {
+        int gx = x - gPortScreen.originX;
+        int px = rx >> 8, py = ry >> 8;
+
+        if (gx < sLeft || gx >= sRight || px < 0 || py < 0 || px >= bw || py >= bh) {
+            out[x] = TRANSPARENT;
+            continue;
+        }
+        if (mode == 4) {
+            int ci = VRAM8[page + py * 240 + px];
+            out[x] = ci ? (PLTT16[ci] & 0x7FFF) : TRANSPARENT;
+        } else {
+            out[x] = *(const uint16_t*)(VRAM8 + page + (py * bw + px) * 2) & 0x7FFF;
+        }
+    }
+}
+
+/* ---- sprites --------------------------------------------------------------- */
+
+static const uint8_t sObjSize[3][4][2] = {
+    { { 8, 8 }, { 16, 16 }, { 32, 32 }, { 64, 64 } },
+    { { 16, 8 }, { 32, 8 }, { 32, 16 }, { 64, 32 } },
+    { { 8, 16 }, { 8, 32 }, { 16, 32 }, { 32, 64 } },
+};
+
+static void DrawObjs(int gy, uint16_t dispcnt) {
+    int i, w = gPortScreen.width;
+    int mapping1d = (dispcnt >> 6) & 1;
+    int bitmapMode = (dispcnt & 7) >= 3;
+    uint16_t mosaic = IO16(0x4C);
+    int mosH = ((mosaic >> 8) & 15) + 1;
+    int mosV = ((mosaic >> 12) & 15) + 1;
+
+    for (i = 0; i < w; i++) {
+        sObjLine[i] = TRANSPARENT;
+        sObjPrio[i] = 4;
+        sObjSemi[i] = 0;
+        sObjWin[i] = 0;
+    }
+    if (!(dispcnt & 0x1000))
+        return;
+
+    for (i = 0; i < 128; i++) {
+        uint16_t a0 = OAM16[i * 4 + 0];
+        uint16_t a1 = OAM16[i * 4 + 1];
+        uint16_t a2 = OAM16[i * 4 + 2];
+        int affine = (a0 >> 8) & 1;
+        int dbl = (a0 >> 9) & 1;
+        int mode = (a0 >> 10) & 3;
+        int shape = (a0 >> 14) & 3;
+        int size = (a1 >> 14) & 3;
+        int ow, oh, bw, bh, ox, oy, line, sx, x;
+        int bpp8 = (a0 >> 13) & 1;
+        int prio = (a2 >> 10) & 3;
+        int tileBase = a2 & 0x3FF;
+        int palBank = a2 >> 12;
+        int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
+        int objMosaic = (a0 >> 12) & 1;
+
+        if (!affine && dbl)
+            continue; /* disabled */
+        if (shape == 3 || mode == 3)
+            continue;
+        ow = sObjSize[shape][size][0];
+        oh = sObjSize[shape][size][1];
+        bw = ow << (affine && dbl);
+        bh = oh << (affine && dbl);
+
+        /* Decode the 8-bit Y and 9-bit X against the visible span. */
+        oy = a0 & 0xFF;
+        if (oy >= sBottom)
+            oy -= 256;
+        ox = a1 & 0x1FF;
+        if (ox >= sRight)
+            ox -= 512;
+        if (ox >= sRight || ox + bw <= sLeft)
+            continue;
+
+        line = gy - oy;
+        if (objMosaic && mosV > 1)
+            line -= line % mosV;
+        if (line < 0 || line >= bh)
+            continue;
+        if (bitmapMode && tileBase < 512)
+            continue;
+
+        if (affine) {
+            const uint16_t* p = OAM16 + ((a1 >> 9) & 31) * 16;
+            pa = (int16_t)p[3];
+            pb = (int16_t)p[7];
+            pc = (int16_t)p[11];
+            pd = (int16_t)p[15];
+        }
+
+        for (sx = 0; sx < bw; sx++) {
+            int gx = ox + sx;
+            int fx = gx;
+            int tx, ty, tile, ci, col;
+            uint32_t off;
+
+            if (gx < sLeft || gx >= sRight)
+                continue;
+            x = gx + gPortScreen.originX;
+            if (x < 0 || x >= w)
+                continue;
+            if (objMosaic && mosH > 1)
+                fx = gx - (((gx % mosH) + mosH) % mosH);
+            fx -= ox;
+
+            if (affine) {
+                int cx = fx - bw / 2, cy = line - bh / 2;
+                tx = ((pa * cx + pb * cy) >> 8) + ow / 2;
+                ty = ((pc * cx + pd * cy) >> 8) + oh / 2;
+                if (tx < 0 || ty < 0 || tx >= ow || ty >= oh)
+                    continue;
+            } else {
+                tx = (a1 & 0x1000) ? ow - 1 - fx : fx;
+                ty = (a1 & 0x2000) ? oh - 1 - line : line;
+            }
+
+            if (bpp8) {
+                if (mapping1d)
+                    tile = tileBase + ((ty >> 3) * (ow >> 3) + (tx >> 3)) * 2;
+                else
+                    tile = tileBase + (ty >> 3) * 32 + (tx >> 3) * 2;
+                off = 0x10000 + (tile & 0x3FF) * 32 + (ty & 7) * 8 + (tx & 7);
+                ci = VRAM8[off];
+                col = ci ? (PLTT16[256 + ci] & 0x7FFF) : -1;
+            } else {
+                if (mapping1d)
+                    tile = tileBase + (ty >> 3) * (ow >> 3) + (tx >> 3);
+                else
+                    tile = tileBase + (ty >> 3) * 32 + (tx >> 3);
+                off = 0x10000 + (tile & 0x3FF) * 32 + (ty & 7) * 4 + ((tx & 7) >> 1);
+                ci = (tx & 1) ? (VRAM8[off] >> 4) : (VRAM8[off] & 15);
+                col = ci ? (PLTT16[256 + palBank * 16 + ci] & 0x7FFF) : -1;
+            }
+            if (col < 0)
+                continue;
+            if (mode == 2) {
+                sObjWin[x] = 1;
+                continue;
+            }
+            if (sObjLine[x] == TRANSPARENT || prio < sObjPrio[x]) {
+                sObjLine[x] = (uint16_t)col;
+                sObjPrio[x] = (uint8_t)prio;
+                sObjSemi[x] = (mode == 1);
+            }
+        }
+    }
+}
+
+/* ---- windows --------------------------------------------------------------- */
+
+static void WinSpan(uint16_t reg, int limit, int lo, int hi, int* a, int* b, int* wrapped) {
+    int s = reg >> 8, e = reg & 0xFF;
+
+    *wrapped = 0;
+    if (e > limit || s > e) {
+        if (s > e && e <= limit) {
+            *wrapped = 1; /* covers [s, limit) and [0, e) */
+        } else {
+            e = limit;
+        }
+    }
+    /* A window spanning the whole original screen spans the wide view too. */
+    if (!*wrapped && s == 0 && e >= limit) {
+        s = lo;
+        e = hi;
+    }
+    *a = s;
+    *b = e;
+}
+
+static int InWin(int v, int a, int b, int wrapped, int limit, int lo, int hi) {
+    if (wrapped)
+        return (v >= a && v < hi) || (v < b && v >= lo) || (a >= limit && v >= limit);
+    return v >= a && v < b;
+}
+
+static void BuildWindows(int gy, uint16_t dispcnt) {
+    int w = gPortScreen.width;
+    int x;
+    uint16_t winin = IO16(0x48), winout = IO16(0x4A);
+    int win0 = (dispcnt >> 13) & 1, win1 = (dispcnt >> 14) & 1, winObj = (dispcnt >> 15) & 1;
+    int in0 = 0, in1 = 0;
+    int a0 = 0, b0 = 0, w0 = 0, a1 = 0, b1 = 0, w1 = 0;
+
+    if (!win0 && !win1 && !winObj) {
+        memset(sWinMask, 0x3F, w);
+        return;
+    }
+    if (win0) {
+        int ya, yb, yw;
+        WinSpan(IO16(0x44), GBA_SCREEN_H, sTop, sBottom, &ya, &yb, &yw);
+        in0 = InWin(gy, ya, yb, yw, GBA_SCREEN_H, sTop, sBottom);
+        WinSpan(IO16(0x40), GBA_SCREEN_W, sLeft, sRight, &a0, &b0, &w0);
+    }
+    if (win1) {
+        int ya, yb, yw;
+        WinSpan(IO16(0x46), GBA_SCREEN_H, sTop, sBottom, &ya, &yb, &yw);
+        in1 = InWin(gy, ya, yb, yw, GBA_SCREEN_H, sTop, sBottom);
+        WinSpan(IO16(0x42), GBA_SCREEN_W, sLeft, sRight, &a1, &b1, &w1);
+    }
+    for (x = 0; x < w; x++) {
+        int gx = x - gPortScreen.originX;
+        uint8_t m = winout & 0x3F;
+
+        if (winObj && sObjWin[x])
+            m = (winout >> 8) & 0x3F;
+        if (in1 && InWin(gx, a1, b1, w1, GBA_SCREEN_W, sLeft, sRight))
+            m = (winin >> 8) & 0x3F;
+        if (in0 && InWin(gx, a0, b0, w0, GBA_SCREEN_W, sLeft, sRight))
+            m = winin & 0x3F;
+        sWinMask[x] = m;
+    }
+}
+
+/* ---- composition ----------------------------------------------------------- */
+
+static uint16_t Blend(uint16_t a, uint16_t b, int ea, int eb) {
+    int r = ((a & 31) * ea + (b & 31) * eb) >> 4;
+    int g = (((a >> 5) & 31) * ea + ((b >> 5) & 31) * eb) >> 4;
+    int bl = (((a >> 10) & 31) * ea + ((b >> 10) & 31) * eb) >> 4;
+
+    if (r > 31)
+        r = 31;
+    if (g > 31)
+        g = 31;
+    if (bl > 31)
+        bl = 31;
+    return (uint16_t)(r | (g << 5) | (bl << 10));
+}
+
+static uint16_t Brighten(uint16_t c, int ey) {
+    int r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
+
+    r += ((31 - r) * ey) >> 4;
+    g += ((31 - g) * ey) >> 4;
+    b += ((31 - b) * ey) >> 4;
+    return (uint16_t)(r | (g << 5) | (b << 10));
+}
+
+static uint16_t Darken(uint16_t c, int ey) {
+    int r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
+
+    r -= (r * ey) >> 4;
+    g -= (g * ey) >> 4;
+    b -= (b * ey) >> 4;
+    return (uint16_t)(r | (g << 5) | (b << 10));
+}
+
+static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgPrio) {
+    int w = gPortScreen.width;
+    uint32_t* dst = gPortFrame + y * w;
+    uint16_t bldcnt = IO16(0x50);
+    uint16_t bldalpha = IO16(0x52);
+    int eva = bldalpha & 31, evb = (bldalpha >> 8) & 31;
+    int evy = IO16(0x54) & 31;
+    int effect = (bldcnt >> 6) & 3;
+    uint16_t backdrop = PLTT16[0] & 0x7FFF;
+    int order[4], n = 0, p, b, x;
+
+    if (eva > 16)
+        eva = 16;
+    if (evb > 16)
+        evb = 16;
+    if (evy > 16)
+        evy = 16;
+
+    /* Backgrounds sorted by priority, lower index first on ties. */
+    for (p = 0; p < 4; p++)
+        for (b = 0; b < 4; b++)
+            if (bgOn[b] && bgPrio[b] == p)
+                order[n++] = b;
+
+    for (x = 0; x < w; x++) {
+        int gx = x - gPortScreen.originX;
+        uint8_t mask = sWinMask[x];
+        uint16_t top = backdrop, second = backdrop;
+        int topLayer = LAYER_BD, secondLayer = LAYER_BD;
+        int found = 0, i, objDone = 0;
+        uint16_t col;
+
+        if (gx < sLeft || gx >= sRight) {
+            dst[x] = 0xFF000000u;
+            continue;
+        }
+        for (i = 0; i <= n && found < 2; i++) {
+            int prio = (i < n) ? bgPrio[order[i]] : 4;
+
+            if (!objDone && (mask & WIN_OBJ) && sObjLine[x] != TRANSPARENT && sObjPrio[x] <= prio) {
+                objDone = 1;
+                if (found == 0) {
+                    top = sObjLine[x];
+                    topLayer = LAYER_OBJ;
+                } else {
+                    second = sObjLine[x];
+                    secondLayer = LAYER_OBJ;
+                }
+                found++;
+                if (found == 2)
+                    break;
+            }
+            if (i < n) {
+                int bg = order[i];
+                if ((mask & WIN_BG(bg)) && sBgLine[bg][x] != TRANSPARENT) {
+                    if (found == 0) {
+                        top = sBgLine[bg][x];
+                        topLayer = bg;
+                    } else {
+                        second = sBgLine[bg][x];
+                        secondLayer = bg;
+                    }
+                    found++;
+                }
+            }
+        }
+
+        col = top;
+        if (topLayer == LAYER_OBJ && sObjSemi[x] && (bldcnt & (0x100 << secondLayer))) {
+            col = Blend(top, second, eva, evb);
+        } else if ((mask & WIN_SFX) && (bldcnt & (1 << topLayer))) {
+            switch (effect) {
+                case 1:
+                    if (bldcnt & (0x100 << secondLayer))
+                        col = Blend(top, second, eva, evb);
+                    break;
+                case 2:
+                    col = Brighten(top, evy);
+                    break;
+                case 3:
+                    col = Darken(top, evy);
+                    break;
+            }
+        }
+        dst[x] = sColorLut[col];
+    }
+}
+
+/* ---- frame ------------------------------------------------------------------ */
+
+static void LatchAffine(int force) {
+    int a;
+
+    for (a = 0; a < 2; a++) {
+        uint32_t rx = IO32(0x28 + a * 0x10), ry = IO32(0x2C + a * 0x10);
+        if (force || rx != sAffLatchX[a]) {
+            sAffLatchX[a] = rx;
+            sAffX[a] = Sext28(rx);
+        }
+        if (force || ry != sAffLatchY[a]) {
+            sAffLatchY[a] = ry;
+            sAffY[a] = Sext28(ry);
+        }
+    }
+}
+
+static void StepAffine(int lines) {
+    int a;
+
+    for (a = 0; a < 2; a++) {
+        sAffX[a] += (int16_t)IO16(0x22 + a * 0x10) * lines;
+        sAffY[a] += (int16_t)IO16(0x26 + a * 0x10) * lines;
+    }
+}
+
+static void RenderLine(int y, int gy) {
+    uint16_t dispcnt = IO16(0x00);
+    int mode = dispcnt & 7;
+    int bgOn[4] = { 0, 0, 0, 0 }, bgPrio[4];
+    int b, w = gPortScreen.width;
+
+    if (dispcnt & 0x80) {
+        uint32_t* dst = gPortFrame + y * w;
+        int x;
+        for (x = 0; x < w; x++) {
+            int gx = x - gPortScreen.originX;
+            dst[x] = (gx < sLeft || gx >= sRight) ? 0xFF000000u : 0xFFFFFFFFu;
+        }
+        return;
+    }
+
+    for (b = 0; b < 4; b++) {
+        bgPrio[b] = IO16(0x08 + b * 2) & 3;
+        if (!(dispcnt & (0x100 << b)))
+            continue;
+        switch (mode) {
+            case 0:
+                bgOn[b] = 1;
+                break;
+            case 1:
+                bgOn[b] = b <= 2;
+                break;
+            case 2:
+                bgOn[b] = b >= 2;
+                break;
+            default:
+                bgOn[b] = b == 2;
+                break;
+        }
+    }
+
+    for (b = 0; b < 4; b++) {
+        if (!bgOn[b])
+            continue;
+        if (mode >= 3)
+            DrawBitmapBg(mode, dispcnt);
+        else if (b >= 2 && (mode == 2 || (mode == 1 && b == 2)))
+            DrawAffineBg(b, dispcnt);
+        else
+            DrawTextBg(b, gy, dispcnt);
+    }
+    DrawObjs(gy, dispcnt);
+    BuildWindows(gy, dispcnt);
+    ComposeLine(y, dispcnt, bgOn, bgPrio);
+}
+
+/* Start of a line: VCOUNT and the V-counter match flag. */
+static void LineStart(int line) {
+    uint16_t dispstat = IO16(0x04);
+
+    IO16(0x06) = (uint16_t)line;
+    IO16(0x04) = (dispstat & ~6) | (((dispstat >> 8) == line) ? 4 : 0);
+}
+
+/* End of a line's drawing period. The V-counter interrupt is delivered here
+   rather than at the start of the line: handlers typically wait for HBlank
+   anyway, and either way their writes take effect from the next line. */
+static void HBlank(int line) {
+    uint16_t dispstat;
+
+    IO16(0x04) |= 2;
+    dispstat = IO16(0x04);
+    if ((dispstat & 4) && (dispstat & 0x20))
+        PortRaiseIrq(0x0004);
+    if (line < GBA_SCREEN_H)
+        PortDmaHBlank();
+    if (dispstat & 0x10)
+        PortRaiseIrq(0x0002);
+    IO16(0x04) &= ~2;
+}
+
+void PortPpuBeginFrame(void) {
+    BuildLut();
+    if (gPortScreen.wide) {
+        sLeft = -gPortScreen.originX;
+        sRight = gPortScreen.width - gPortScreen.originX;
+        sTop = -gPortScreen.originY;
+        sBottom = gPortScreen.height - gPortScreen.originY;
+    } else {
+        sLeft = 0;
+        sRight = GBA_SCREEN_W;
+        sTop = 0;
+        sBottom = GBA_SCREEN_H;
+    }
+}
+
+/* Draw the visible lines, running the per-line hardware events in between. */
+void PortPpuRenderFrame(void) {
+    int y, gy;
+    int w = gPortScreen.width;
+
+    PortPpuBeginFrame();
+    LatchAffine(1);
+
+    /* Lines above the original picture: state of line 0. */
+    for (y = 0; y < gPortScreen.originY; y++) {
+        gy = y - gPortScreen.originY;
+        if (gy < sTop) {
+            memset(gPortFrame + y * w, 0, w * 4);
+            continue;
+        }
+        {
+            int32_t sx[2] = { sAffX[0], sAffX[1] }, sy[2] = { sAffY[0], sAffY[1] };
+            int a;
+            for (a = 0; a < 2; a++) {
+                sAffX[a] += (int16_t)IO16(0x22 + a * 0x10) * gy;
+                sAffY[a] += (int16_t)IO16(0x26 + a * 0x10) * gy;
+            }
+            RenderLine(y, gy);
+            for (a = 0; a < 2; a++) {
+                sAffX[a] = sx[a];
+                sAffY[a] = sy[a];
+            }
+        }
+    }
+
+    for (gy = 0; gy < GBA_SCREEN_H; gy++) {
+        LineStart(gy);
+        LatchAffine(0);
+        RenderLine(gy + gPortScreen.originY, gy);
+        StepAffine(1);
+        HBlank(gy);
+    }
+
+    /* Lines below the original picture: state after line 159. */
+    for (y = gPortScreen.originY + GBA_SCREEN_H; y < gPortScreen.height; y++) {
+        gy = y - gPortScreen.originY;
+        if (gy >= sBottom) {
+            memset(gPortFrame + y * w, 0, w * 4);
+            continue;
+        }
+        RenderLine(y, gy);
+        StepAffine(1);
+    }
+}
+
+/* Remaining lines of the frame (VBlank period) after the VBlank interrupt. */
+void PortPpuVBlankLines(void) {
+    int line;
+
+    for (line = GBA_SCREEN_H + 1; line < 228; line++) {
+        LineStart(line);
+        HBlank(line);
+    }
+    IO16(0x06) = 0;
+}

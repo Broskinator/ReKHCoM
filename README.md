@@ -1,78 +1,63 @@
-# Kingdom Hearts: Chain of Memories (GBA)
+# OpenKHCoM
 
-[![Build Status]][actions] [![us]][progress] [![jp]][progress] [![eu]][progress]
+Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
+on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
-[Build Status]: https://github.com/pheenoh/khcom/actions/workflows/build.yml/badge.svg
-[actions]: https://github.com/pheenoh/khcom/actions/workflows/build.yml
+> **Resumen (ES):** port nativo para PC basado en la decompilación. El código del juego
+> corre tal cual en x86; una capa de plataforma (SDL3) sustituye al hardware de la GBA:
+> vídeo, sonido, BIOS, DMA, interrupciones y guardado. Incluye vista panorámica 16:9 que
+> conserva el pixel art a escala 1:1 y opciones gráficas.
 
-[us]: https://decomp.dev/pheenoh/khcom/us.svg?mode=shield&label=us
-[jp]: https://decomp.dev/pheenoh/khcom/jp.svg?mode=shield&label=jp
-[eu]: https://decomp.dev/pheenoh/khcom/eu.svg?mode=shield&label=eu
-[progress]: https://decomp.dev/pheenoh/khcom
+![progress](port/progress/progress.svg)
 
-<!-- markdownlint-disable MD033 -->
-[<img src="https://decomp.dev/pheenoh/khcom/us.svg?w=512&h=256" width="512" height="256" alt="Progress graph for the us version">][progress]
-<!-- markdownlint-enable MD033 -->
-
-A matching decompilation of *Kingdom Hearts: Chain of Memories*
-for the Game Boy Advance.
+See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
 
 > [!IMPORTANT]
-> This repository does **not** contain any game assets or ROMs. An existing
-> copy of the game is required to build.
+> This repository contains **no game assets and no ROM**. You need your own dump of the
+> European cartridge (`B8CP`, SHA-1 `8db73586cdb11b3795907edebf43228dbcd3e6b2`).
 
-The project can target the following versions:
+## How it works
 
-| Version | Code | SHA-1 |
-|---------|------|-------|
-| `us`    | B8CE | `10729bd884f8fdca7a310b6d606c52e46657aa48` |
-| `jp`    | B8CJ | `59ec0a0a4ccd1e6acb3bbd7bfb21d63988958cfa` |
-| `eu`    | B8CP | `8db73586cdb11b3795907edebf43228dbcd3e6b2` |
+- The 269 decompiled C units are compiled for 32-bit x86, so pointers keep their GBA size.
+- The GBA address space (work RAM, I/O, palette, VRAM, OAM, ROM, SRAM) lives at its original
+  addresses inside the executable image; register writes and ROM pointers work unchanged.
+- Asset data is read straight from your ROM: 61k data symbols are pinned to their ROM
+  addresses, and the few ROM tables that point at code are patched at start-up.
+- `port/` holds the platform layer: software PPU (all modes, affine, windows, blending,
+  mosaic, HBlank effects), m4a sequencer/mixer in C, PSG emulation, BIOS, DMA, input,
+  settings and the wide-view renderer.
 
-## Dependencies
+## Building (Windows)
 
-- git
-- ninja
-- python3
-- PyYAML (`python3 -m pip install pyyaml`)
-- `binutils-arm-none-eabi`
-- [agbcc](https://github.com/pret/agbcc):
+Requirements: Python 3 with PyYAML, [llvm-mingw](https://github.com/mstorsjo/llvm-mingw),
+[SDL3 mingw devel](https://github.com/libsdl-org/SDL/releases) and [ninja](https://ninja-build.org).
+By default the tools are looked up in `../toolchain/`.
 
-  ```sh
-  git clone https://github.com/pret/agbcc
-  cd agbcc && ./build.sh && ./install.sh ../khcom
-  ```
+```sh
+cp /path/to/your/dump.gba roms/B8CP.gba
+python tools/extract_assets.py eu        # optional; text is extracted on configure
+python port/configure_pc.py              # --debug for a console build
+ninja -f build/pc/build.ninja
+build/pc/khcom.exe
+```
 
-## Building
+Put `baserom.gba` next to `khcom.exe` when distributing the build.
 
-- Clone the repository:
+## Controls
 
-  ```sh
-  git clone https://github.com/pheenoh/khcom.git
-  ```
+| GBA | Keyboard | Gamepad |
+|---|---|---|
+| A | X / K | A (south), Y |
+| B | Z / J | B (east), X |
+| L / R | A / S | LB / RB, triggers |
+| Start / Select | Enter / Backspace | Start / Back |
+| D-pad | Arrows, W | D-pad, left stick |
 
-- Copy your legally dumped ROM(s) into `roms/` as `<code>.gba` (e.g. `roms/B8CE.gba`).
+F11 or Alt+Enter toggles fullscreen.
 
-- Extract assets:
+## Credits
 
-  ```sh
-  python3 tools/extract_assets.py
-  ```
+- Decompilation: [Pheenoh/khcom](https://github.com/Pheenoh/khcom) and contributors (CC0).
+- PC port: OpenKHCoM contributors.
 
-- Configure:
-
-  ```sh
-  python3 configure.py
-  ```
-
-  To use a version other than `us`, specify it with `--version`.
-
-- Build:
-
-  ```sh
-  ninja
-  ```
-
-## License
-
-This project is released under the [CC0 1.0 Universal](LICENSE.md) license.
+The original decompilation README is kept in [README.decomp.md](README.decomp.md).

@@ -10,8 +10,15 @@
 
 #define STATIC_ASSERT(expr, id) typedef char id[(expr) ? 1 : -1];
 
+#ifdef PLATFORM_PC
+/* The PC build keeps work RAM variables as ordinary native globals. */
+#define EWRAM_COMMON(align) __attribute__((aligned(align))) = {0}
+#define IWRAM_DATA(align) __attribute__((aligned(align))) = {0}
+#define IWRAM_COMMON(align) __attribute__((aligned(align))) = {0}
+#else
 #define EWRAM_COMMON(align) __attribute__((section(".ewram_common." STRINGIFY(__LINE__)), aligned(align))) = {0}
 #define IWRAM_DATA(align) __attribute__((section(".iwram." STRINGIFY(__LINE__)), aligned(align))) = {0}
 #define IWRAM_COMMON(align) __attribute__((section(".iwram_common." STRINGIFY(__LINE__)), aligned(align))) = {0}
+#endif
 
 #endif /* GUARD_MACROS_H */

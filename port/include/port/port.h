@@ -1,0 +1,142 @@
+#ifndef GUARD_PORT_PORT_H
+#define GUARD_PORT_PORT_H
+
+/*
+ * Kingdom Hearts: Chain of Memories - native PC platform layer.
+ *
+ * The decompiled game code runs unmodified in a 32-bit process. The GBA
+ * address space (work RAM, I/O, palette, VRAM, OAM, cartridge ROM and SRAM)
+ * is mapped at its original addresses, so hardware registers and ROM pointers
+ * keep working; this layer stands in for the BIOS, DMA, the PPU, the sound
+ * hardware and the interrupt controller.
+ */
+
+#include <stdint.h>
+#include <stddef.h>
+
+#define GBA_EWRAM 0x02000000u
+#define GBA_EWRAM_SIZE 0x40000u
+#define GBA_IWRAM 0x03000000u
+#define GBA_IWRAM_SIZE 0x8000u
+#define GBA_IO 0x04000000u
+#define GBA_IO_SIZE 0x400u
+#define GBA_PLTT 0x05000000u
+#define GBA_PLTT_SIZE 0x400u
+#define GBA_VRAM 0x06000000u
+#define GBA_VRAM_SIZE 0x18000u
+#define GBA_OAM 0x07000000u
+#define GBA_OAM_SIZE 0x400u
+#define GBA_ROM 0x08000000u
+#define GBA_ROM_SIZE 0x02000000u
+#define GBA_SRAM 0x0E000000u
+#define GBA_SRAM_SIZE 0x10000u
+
+#define GBA_SCREEN_W 240
+#define GBA_SCREEN_H 160
+#define GBA_FPS 59.7275
+
+/* Largest internal resolution the renderer supports. */
+#define PORT_MAX_W 512
+#define PORT_MAX_H 288
+
+#define IO8(off) (*(volatile uint8_t*)(uintptr_t)(GBA_IO + (off)))
+#define IO16(off) (*(volatile uint16_t*)(uintptr_t)(GBA_IO + (off)))
+#define IO32(off) (*(volatile uint32_t*)(uintptr_t)(GBA_IO + (off)))
+
+/* ---- configuration (port_config.c) ------------------------------------ */
+
+enum PortViewMode {
+    PORT_VIEW_ORIGINAL,   /* 240x160, the GBA picture */
+    PORT_VIEW_WIDE,       /* 16:9 at the original height */
+    PORT_VIEW_EXTENDED,   /* 16:9, more of the world in both directions */
+    PORT_VIEW_MAXIMUM,    /* 16:9, as far out as the engine allows */
+    PORT_VIEW_COUNT
+};
+
+enum PortScaleMode {
+    PORT_SCALE_INTEGER,   /* sharpest: largest whole-number multiple */
+    PORT_SCALE_FIT,       /* fill the window, keep aspect ratio */
+    PORT_SCALE_STRETCH,   /* fill the window */
+    PORT_SCALE_COUNT
+};
+
+enum PortFilter {
+    PORT_FILTER_NEAREST,
+    PORT_FILTER_SHARP,    /* nearest at integer scale, then smooth to fit */
+    PORT_FILTER_LINEAR,
+    PORT_FILTER_COUNT
+};
+
+typedef struct PortConfig {
+    int viewMode;
+    int scaleMode;
+    int filter;
+    int fullscreen;
+    int vsync;
+    int scanlines;        /* 0..100 % intensity */
+    int colorCorrection;  /* emulate the GBA LCD colours */
+    int frameSkip;        /* reserved */
+    int showFps;
+    int windowScale;
+    int masterVolume;     /* 0..100 */
+    int musicVolume;
+    int sfxVolume;
+} PortConfig;
+
+extern PortConfig gPortConfig;
+
+void PortConfigLoad(void);
+void PortConfigSave(void);
+void PortConfigView(int mode, int* w, int* h);
+const char* PortConfigPath(const char* name);
+
+/* ---- memory (port_memory.c) -------------------------------------------- */
+
+int PortMemoryInit(void);
+int PortRomLoad(void);
+void PortSramLoad(void);
+void PortSramSyncIfDirty(void);
+
+/* ---- system / frame loop (port_main.c) --------------------------------- */
+
+void PortFrame(void);
+void PortRaiseIrq(uint16_t flag);
+void PortFatal(const char* fmt, ...);
+void PortLog(const char* fmt, ...);
+uint32_t PortTicks(void);
+
+/* ---- DMA (port_dma.c) ---------------------------------------------------- */
+
+void PortDmaHBlank(void);
+void PortDmaVBlank(void);
+
+/* ---- video (port_ppu.c) -------------------------------------------------- */
+
+typedef struct PortScreen {
+    int width;            /* internal resolution */
+    int height;
+    int originX;          /* where GBA pixel (0,0) lands in the frame */
+    int originY;
+    int wide;             /* the current scene draws beyond 240x160 */
+} PortScreen;
+
+extern PortScreen gPortScreen;
+extern uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
+
+void PortPpuSetResolution(int w, int h);
+void PortPpuRenderFrame(void);
+void PortPpuVBlankLines(void);
+
+/* ---- audio (port_audio.c) ------------------------------------------------ */
+
+int PortAudioInit(void);
+void PortAudioFrame(void);
+void PortAudioShutdown(void);
+
+/* ---- input (port_input.c) ------------------------------------------------ */
+
+void PortInputInit(void);
+uint16_t PortInputKeys(void);
+void PortInputHandleEvent(const void* sdlEvent);
+
+#endif

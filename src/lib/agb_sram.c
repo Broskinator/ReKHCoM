@@ -35,6 +35,15 @@ u32 VerifySramFast_Core(const u8* src, u8* dest, u32 size) {
     return 0;
 }
 
+#ifdef PLATFORM_PC
+/* The original copies the Thumb routines into work RAM and runs them from
+   there; natively the routines are simply called in place. */
+void SetSramFastFunc() {
+    ReadSramFast = ReadSramFast_Core;
+    VerifySramFast = VerifySramFast_Core;
+    REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
+}
+#else
 void SetSramFastFunc() {
     u16* src;
     u16* dest;
@@ -66,6 +75,7 @@ void SetSramFastFunc() {
 
     REG_WAITCNT = (REG_WAITCNT & ~WAITCNT_SRAM_MASK) | WAITCNT_SRAM_8;
 }
+#endif
 
 u32 WriteAndVerifySramFast(const u8* src, u8* dest, u32 size) {
     u8 i;
