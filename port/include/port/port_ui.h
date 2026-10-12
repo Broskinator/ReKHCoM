@@ -11,5 +11,7 @@ int PortUiHandleEvent(const void* sdlEvent);
 /* Non-zero while an overlay owns the input. */
 int PortUiActive(void);
 void PortUiOpenOptions(void);
+/* Called by the title screen while the options hint should be shown. */
+void PortUiTitleHint(void);
 
 #endif

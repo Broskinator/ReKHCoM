@@ -56,6 +56,13 @@ static const GlyphWidthTable sLatinGlyphWidths = {
     },
 };
 
+#ifdef PLATFORM_PC
+/* Used by the PC options overlay, which draws with this font. */
+const u16* PortLatinGlyphWidths(void) {
+    return sLatinGlyphWidths.widths;
+}
+#endif
+
 void InitSpriteTextLines() {
     u8 i;
     u8 j;

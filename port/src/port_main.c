@@ -35,6 +35,7 @@ static uint64_t sNextFrame;
 static uint64_t sPerfFreq;
 static uint32_t sFrameCount;
 static int sInIrq;
+static uint32_t sComposite[PORT_MAX_W * PORT_MAX_H];
 static FILE* sLog;
 static int sPacedByVsync;
 static float sFps;
@@ -151,12 +152,11 @@ int PortVideoListModes(int* w, int* h, int max) {
     return count;
 }
 
-void PortVideoApplyConfig(void) {
-    int w, h;
+static void UpdateResolution(void);
 
-    PortConfigView(gPortConfig.viewMode, &w, &h);
-    PortPpuSetResolution(w, h);
+void PortVideoApplyConfig(void) {
     ApplyWindowMode();
+    UpdateResolution();
 }
 
 static void EnsureTexture(void) {
@@ -253,13 +253,16 @@ static void DrawScanlines(const SDL_FRect* dst) {
     }
 }
 
+
 static void Present(void) {
     int outW, outH;
     SDL_FRect dst;
 
     EnsureTexture();
-    PortUiDraw(gPortFrame, gPortScreen.width, gPortScreen.height);
-    SDL_UpdateTexture(sTexture, NULL, gPortFrame, gPortScreen.width * 4);
+    /* Overlays go on a copy so the game picture survives while paused. */
+    memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
+    PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
+    SDL_UpdateTexture(sTexture, NULL, sComposite, gPortScreen.width * 4);
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
     OutputRect(outW, outH, &dst);
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
@@ -330,9 +333,26 @@ static uint16_t HarnessKeys(uint32_t frame) {
     return keys;
 }
 
+static void Present(void);
+
 static void HarnessFrame(void) {
     const char* shots = SDL_getenv("KHCOM_SHOTS");
     const char* quit = SDL_getenv("KHCOM_QUIT");
+    const char* ui = SDL_getenv("KHCOM_OPTIONS_SHOT");
+
+    if (ui && HarnessListHas(ui, sFrameCount)) {
+        extern void PortUiForceClose(void);
+        SDL_Surface* s;
+        PortUiOpenOptions();
+        Present();
+        s = SDL_CreateSurfaceFrom(gPortScreen.width, gPortScreen.height, SDL_PIXELFORMAT_XRGB8888, sComposite,
+                                  gPortScreen.width * 4);
+        if (s) {
+            SDL_SaveBMP(s, PortConfigPath("shot_options.bmp"));
+            SDL_DestroySurface(s);
+        }
+        PortUiForceClose();
+    }
 
     if (shots && HarnessListHas(shots, sFrameCount)) {
         SDL_Surface* s = SDL_CreateSurfaceFrom(gPortScreen.width, gPortScreen.height, SDL_PIXELFORMAT_XRGB8888,
@@ -445,6 +465,18 @@ void PortFrame(void) {
     PortAudioFrame();
     Present();
     PumpEvents();
+
+    /* Options overlay: the game is paused until it closes. */
+    while (PortUiActive()) {
+        int w = gPortScreen.width, h = gPortScreen.height;
+
+        UpdateResolution();
+        if (w != gPortScreen.width || h != gPortScreen.height)
+            PortPpuRenderFrame();
+        Present();
+        PumpEvents();
+        Pace();
+    }
     IO16(0x130) = (uint16_t)(~(PortInputKeys() | HarnessKeys(sFrameCount)) & 0x3FF);
     HarnessFrame();
     Pace();

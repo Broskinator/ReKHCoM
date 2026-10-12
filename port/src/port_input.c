@@ -33,6 +33,13 @@ static const KeyBind sKeyBinds[] = {
 };
 
 static uint16_t sKeyboard;
+static int sSuppress;
+
+/* After closing an overlay, ignore buttons still held until released so the
+   confirming press does not reach the game. */
+void PortInputSuppressUntilRelease(void) {
+    sSuppress = 1;
+}
 
 void PortInputInit(void) {
     SDL_SetGamepadEventsEnabled(true);
@@ -132,5 +139,10 @@ uint16_t PortInputKeys(void) {
         keys &= ~(KEY_LEFT | KEY_RIGHT);
     if ((keys & (KEY_UP | KEY_DOWN)) == (KEY_UP | KEY_DOWN))
         keys &= ~(KEY_UP | KEY_DOWN);
+    if (sSuppress) {
+        if (keys != 0)
+            return 0;
+        sSuppress = 0;
+    }
     return keys;
 }

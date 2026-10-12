@@ -220,7 +220,20 @@ void mode_title_0() {
     sTitleTimer = 0x1E;
 }
 
+#ifdef PLATFORM_PC
+void PortUiTitleHint(void);
+void PortUiOpenOptions(void);
+#endif
+
 void mode_title_1() {
+#ifdef PLATFORM_PC
+    /* PC options: offered on the "press start" and menu screens. */
+    if (sTitleState == TITLE_STATE_PRESS_START || sTitleState == TITLE_STATE_MENU) {
+        PortUiTitleHint();
+        if (GetKeysPressed() & SELECT_BUTTON)
+            PortUiOpenOptions();
+    }
+#endif
     switch (sTitleState) {
     case TITLE_STATE_FADE_IN:
         if (FadeIsActive()) {

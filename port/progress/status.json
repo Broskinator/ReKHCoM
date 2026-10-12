@@ -117,8 +117,8 @@
     {
       "name": "Graphics options menu",
       "weight": 5,
-      "done": 15,
-      "notes": "back end: view modes, scaling, filters, fullscreen resolution"
+      "done": 85,
+      "notes": "overlay with the game font, 5 languages, live changes; opened from title (SELECT), F1/Esc, Back+Start"
     },
     {
       "name": "Gameplay verification",
@@ -158,7 +158,7 @@
     },
     {
       "name": "Graphics options menu in game",
-      "done": false
+      "done": true
     },
     {
       "name": "Opening movie plays",
