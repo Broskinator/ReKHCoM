@@ -113,15 +113,20 @@ int PortWideMarginY(void) {
 }
 
 /* Anchors nest (a HUD task may draw child tasks), so keep a small stack. */
-static int sHudStack[16][2];
+static int sHudStack[16][4];
 static int sHudDepth;
+static int sHudAx, sHudAy;
 
 void PortHudBegin(int ax, int ay) {
     if (sHudDepth < 16) {
         sHudStack[sHudDepth][0] = gPortSpriteShiftX;
         sHudStack[sHudDepth][1] = gPortSpriteShiftY;
+        sHudStack[sHudDepth][2] = sHudAx;
+        sHudStack[sHudDepth][3] = sHudAy;
     }
     sHudDepth++;
+    sHudAx = ax;
+    sHudAy = ay;
     gPortSpriteShiftX = ax * PortWideMarginX();
     gPortSpriteShiftY = ay * PortWideMarginY();
 }
@@ -132,7 +137,49 @@ void PortHudEnd(void) {
     if (sHudDepth < 16) {
         gPortSpriteShiftX = sHudStack[sHudDepth][0];
         gPortSpriteShiftY = sHudStack[sHudDepth][1];
+        sHudAx = sHudStack[sHudDepth][2];
+        sHudAy = sHudStack[sHudDepth][3];
     }
+}
+
+/* Pointers/highlights that refer to HUD elements: anchor by screen zone,
+   matching the corners the HUD itself is docked to. */
+void PortHudBeginAt(int x, int y) {
+    int ax = x < 80 ? -1 : (x >= 160 ? 1 : 0);
+    int ay = y < 54 ? -1 : (y >= 80 ? 1 : 0);
+
+    PortHudBegin(ax, ay);
+}
+
+/* Which sprite entries / OAM slots belong to the HUD, and their anchor. */
+typedef struct SpriteTag {
+    uint8_t hud;
+    int8_t ax;
+    int8_t ay;
+} SpriteTag;
+static SpriteTag sEntryTag[128];
+static SpriteTag sOamTag[128];
+static int sHudLayer;
+
+int gPortHudScale;
+int gPortHudW;
+int gPortHudH;
+
+void PortSpriteTag(int entry) {
+    if (entry >= 0 && entry < 128) {
+        sEntryTag[entry].hud = sHudDepth > 0;
+        sEntryTag[entry].ax = (int8_t)sHudAx;
+        sEntryTag[entry].ay = (int8_t)sHudAy;
+    }
+}
+
+void PortOamSetSource(int oamIndex, int entry) {
+    if (oamIndex >= 0 && oamIndex < 128 && entry >= 0 && entry < 128)
+        sOamTag[oamIndex] = sEntryTag[entry];
+}
+
+int PortPpuHudActive(void) {
+    return sHudLayer;
 }
 uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
 
@@ -560,6 +607,8 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
             continue; /* disabled */
         if (shape == 3 || mode == 3)
             continue;
+        if (sHudLayer && sOamTag[i].hud)
+            continue; /* drawn by PortPpuRenderHud */
         ow = sObjSize[shape][size][0];
         oh = sObjSize[shape][size][1];
         bw = ow << (affine && dbl);
@@ -972,6 +1021,7 @@ void PortPpuBeginFrame(void) {
     }
     gPortScreen.wide = any && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
                        && !(dispcnt & 0x80);
+    sHudLayer = gPortScreen.wide && gPortHudScale > 0 && gPortHudW >= GBA_SCREEN_W;
     if (gPortScreen.wide) {
         sLeft = -gPortScreen.originX;
         sRight = gPortScreen.width - gPortScreen.originX;
@@ -1044,4 +1094,111 @@ void PortPpuVBlankLines(void) {
         HBlank(line);
     }
     IO16(0x06) = 0;
+}
+
+/* ---- HUD layer ----------------------------------------------------------------
+ * HUD sprites (drawn between PortHudBegin/End) are rendered into their own
+ * ARGB buffer, gPortHudW x gPortHudH, which the presenter scales by
+ * gPortHudScale: larger than the world while staying pixel-exact. Each
+ * sprite keeps its distance to the screen edge it is anchored to.
+ */
+static int ObjColor(uint16_t a0, uint16_t a2, int tx, int ty, int ow, int mapping1d) {
+    int bpp8 = (a0 >> 13) & 1;
+    int tileBase = a2 & 0x3FF;
+    int tile, ci;
+    uint32_t off;
+
+    if (bpp8) {
+        tile = mapping1d ? tileBase + ((ty >> 3) * (ow >> 3) + (tx >> 3)) * 2 : tileBase + (ty >> 3) * 32 + (tx >> 3) * 2;
+        off = 0x10000 + (tile & 0x3FF) * 32 + (ty & 7) * 8 + (tx & 7);
+        ci = VRAM8[off];
+        return ci ? (PLTT16[256 + ci] & 0x7FFF) : -1;
+    }
+    tile = mapping1d ? tileBase + (ty >> 3) * (ow >> 3) + (tx >> 3) : tileBase + (ty >> 3) * 32 + (tx >> 3);
+    off = 0x10000 + (tile & 0x3FF) * 32 + (ty & 7) * 4 + ((tx & 7) >> 1);
+    ci = (tx & 1) ? (VRAM8[off] >> 4) : (VRAM8[off] & 15);
+    return ci ? (PLTT16[256 + (a2 >> 12) * 16 + ci] & 0x7FFF) : -1;
+}
+
+void PortPpuRenderHud(uint32_t* buf) {
+    uint16_t dispcnt = IO16(0x00);
+    uint16_t bldcnt = IO16(0x50);
+    int effect = (bldcnt >> 6) & 3, evy = IO16(0x54) & 31;
+    int mapping1d = (dispcnt >> 6) & 1;
+    int w = gPortHudW, h = gPortHudH;
+    int i;
+
+    memset(buf, 0, (size_t)w * h * 4);
+    if (!sHudLayer || (dispcnt & 0x80) || !(dispcnt & 0x1000))
+        return;
+    if (evy > 16)
+        evy = 16;
+
+    for (i = 127; i >= 0; i--) {
+        uint16_t a0 = OAM16[i * 4 + 0], a1 = OAM16[i * 4 + 1], a2 = OAM16[i * 4 + 2];
+        int affine = (a0 >> 8) & 1, dbl = (a0 >> 9) & 1, mode = (a0 >> 10) & 3;
+        int shape = (a0 >> 14) & 3, size = (a1 >> 14) & 3;
+        int ow, oh, bw, bh, ox, oy, xg, yg, hx, hy, sx, sy;
+        int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
+        const SpriteTag* tag = &sOamTag[i];
+
+        if (!tag->hud || (!affine && dbl) || shape == 3 || mode >= 2)
+            continue;
+        ow = sObjSize[shape][size][0];
+        oh = sObjSize[shape][size][1];
+        bw = ow << (affine && dbl);
+        bh = oh << (affine && dbl);
+        oy = a0 & 0xFF;
+        ox = a1 & 0x1FF;
+        if ((sOamExt[i].x & 0x1FF) == ox && (sOamExt[i].y & 0xFF) == oy) {
+            ox = sOamExt[i].x;
+            oy = sOamExt[i].y;
+        }
+        /* back to GBA-screen coordinates, then onto the HUD canvas */
+        xg = ox - tag->ax * gPortScreen.originX;
+        yg = oy - tag->ay * gPortScreen.originY;
+        hx = tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
+        hy = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) : yg + (h - GBA_SCREEN_H) / 2);
+        if (affine) {
+            const uint16_t* p = OAM16 + ((a1 >> 9) & 31) * 16;
+            pa = (int16_t)p[3];
+            pb = (int16_t)p[7];
+            pc = (int16_t)p[11];
+            pd = (int16_t)p[15];
+        }
+        for (sy = 0; sy < bh; sy++) {
+            int py = hy + sy;
+            if (py < 0 || py >= h)
+                continue;
+            for (sx = 0; sx < bw; sx++) {
+                int px = hx + sx, tx, ty, col;
+                uint32_t argb;
+                if (px < 0 || px >= w)
+                    continue;
+                if (affine) {
+                    int cx = sx - bw / 2, cy = sy - bh / 2;
+                    tx = ((pa * cx + pb * cy) >> 8) + ow / 2;
+                    ty = ((pc * cx + pd * cy) >> 8) + oh / 2;
+                    if (tx < 0 || ty < 0 || tx >= ow || ty >= oh)
+                        continue;
+                } else {
+                    tx = (a1 & 0x1000) ? ow - 1 - sx : sx;
+                    ty = (a1 & 0x2000) ? oh - 1 - sy : sy;
+                }
+                col = ObjColor(a0, a2, tx, ty, ow, mapping1d);
+                if (col < 0)
+                    continue;
+                if (bldcnt & 0x10) {
+                    if (effect == 2)
+                        col = Brighten((uint16_t)col, evy);
+                    else if (effect == 3)
+                        col = Darken((uint16_t)col, evy);
+                }
+                argb = sColorLut[col];
+                if (mode == 1)
+                    argb = (argb & 0x00FFFFFFu) | 0xA0000000u;
+                buf[py * w + px] = argb;
+            }
+        }
+    }
 }

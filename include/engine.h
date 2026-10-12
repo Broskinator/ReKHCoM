@@ -47,6 +47,13 @@ int PortWideMarginY(void);
 /* Anchor what is drawn until PortHudEnd() to a side of the wide view:
    ax/ay are -1 (left/top), 0 (stay) or 1 (right/bottom). */
 void PortHudBegin(int ax, int ay);
+/* Same, choosing the side from where (x, y) lies on the GBA screen: for
+   pointers and highlights that refer to an anchored HUD element. */
+void PortHudBeginAt(int x, int y);
+/* Bookkeeping for the HUD layer: the sprite entry just queued, and which
+   entry an OAM slot was built from. */
+void PortSpriteTag(int entry);
+void PortOamSetSource(int oamIndex, int entry);
 void PortHudEnd(void);
 /* Wide view for tilemaps the game streams into VRAM from its own world data:
    fn returns the screen entry of world tile (tx, ty) of a background whose

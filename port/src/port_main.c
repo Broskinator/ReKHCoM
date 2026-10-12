@@ -46,6 +46,8 @@ static int HarnessListHas(const char* list, uint32_t frame);
 static FILE* sLog;
 static int sPacedByVsync;
 static float sFps;
+static float sLogicFps;      /* game main-loop updates per second */
+static uint32_t sLogicLast;
 static uint64_t sFpsTime;
 static uint32_t sFpsFrames;
 
@@ -194,6 +196,12 @@ filter:
 }
 
 static int sAutoScale;
+static SDL_Texture* sHudTexture;
+static int sHudTexW, sHudTexH;
+static uint32_t sHudBuf[PORT_MAX_W * PORT_MAX_H];
+
+int gPortIntroRequested;
+int gPortStartupLanguage = -1;
 
 /* Auto view: size the canvas to the window every frame. */
 static void UpdateResolution(void) {
@@ -206,6 +214,19 @@ static void UpdateResolution(void) {
         if (!SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH) || outW <= 0 || outH <= 0)
             return;
         PortConfigAutoView(outW, outH, &w, &h, &sAutoScale);
+    }
+    /* HUD layer: a larger whole-number scale, keeping at least 144 lines and
+       the GBA width so corner-anchored elements never collide. */
+    gPortHudScale = 0;
+    if (gPortConfig.viewMode == PORT_VIEW_AUTO && sAutoScale > 0 && gPortConfig.hudSize > 0) {
+        int hs = sAutoScale + gPortConfig.hudSize;
+        while (hs > sAutoScale && (outH / hs < 144 || outW / hs < GBA_SCREEN_W))
+            hs--;
+        if (hs > sAutoScale) {
+            gPortHudScale = hs;
+            gPortHudW = SDL_min((outW + hs - 1) / hs, PORT_MAX_W);
+            gPortHudH = SDL_min((outH + hs - 1) / hs, PORT_MAX_H);
+        }
     }
     if (w != gPortScreen.width || h != gPortScreen.height)
         PortPpuSetResolution(w, h);
@@ -290,10 +311,30 @@ static void Present(void) {
         OutputRect(outW, outH, &dst);
         SDL_RenderTexture(sRenderer, sTexture, NULL, &dst);
     }
+    if (PortPpuHudActive()) {
+        SDL_FRect hd;
+        if (sHudTexture == NULL || sHudTexW != gPortHudW || sHudTexH != gPortHudH) {
+            if (sHudTexture != NULL)
+                SDL_DestroyTexture(sHudTexture);
+            sHudTexW = gPortHudW;
+            sHudTexH = gPortHudH;
+            sHudTexture = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+                                            sHudTexW, sHudTexH);
+            SDL_SetTextureBlendMode(sHudTexture, SDL_BLENDMODE_BLEND);
+            SDL_SetTextureScaleMode(sHudTexture, SDL_SCALEMODE_NEAREST);
+        }
+        PortPpuRenderHud(sHudBuf);
+        SDL_UpdateTexture(sHudTexture, NULL, sHudBuf, sHudTexW * 4);
+        hd.w = (float)(sHudTexW * gPortHudScale);
+        hd.h = (float)(sHudTexH * gPortHudScale);
+        hd.x = (float)((outW - (int)hd.w) / 2);
+        hd.y = (float)((outH - (int)hd.h) / 2);
+        SDL_RenderTexture(sRenderer, sHudTexture, NULL, &hd);
+    }
     DrawScanlines(&dst);
     if (gPortConfig.showFps) {
-        char text[32];
-        SDL_snprintf(text, sizeof(text), "%.1f FPS", sFps);
+        char text[48];
+        SDL_snprintf(text, sizeof(text), "%.1f FPS  logic %.1f", sFps, sLogicFps);
         SDL_SetRenderDrawColor(sRenderer, 255, 255, 0, 255);
         SDL_SetRenderScale(sRenderer, 2.0f, 2.0f);
         SDL_RenderDebugText(sRenderer, 4, 4, text);
@@ -505,9 +546,17 @@ static void Pace(void) {
 
     sFpsFrames++;
     if (now - sFpsTime >= sPerfFreq) {
-        sFps = (float)(sFpsFrames * (double)sPerfFreq / (double)(now - sFpsTime));
+        extern volatile uint32_t gFrameCounter; /* main-loop updates (main.c) */
+        uint32_t logic = gFrameCounter;
+        double secs = (double)(now - sFpsTime) / (double)sPerfFreq;
+
+        sFps = (float)(sFpsFrames / secs);
+        sLogicFps = (float)((uint32_t)(logic - sLogicLast) / secs);
+        sLogicLast = logic;
         sFpsFrames = 0;
         sFpsTime = now;
+        if (SDL_getenv("KHCOM_FPSLOG"))
+            PortLog("fps: display %.2f logic %.2f", sFps, sLogicFps);
     }
 }
 
@@ -563,9 +612,12 @@ static void VBlankCycle(void) {
             extern void* gSoundInfoPtr;
             const uint8_t* m = (const uint8_t*)gMPlayInfo_BGM;
             const uint8_t* si = (const uint8_t*)gSoundInfoPtr;
-            PortLog("bgm: song %08x clock %u tempoD %u tempoI %u | mix freq %d spv %d", *(uint32_t*)m,
-                    *(uint32_t*)(m + 0x0C), *(uint16_t*)(m + 0x1C), *(uint16_t*)(m + 0x20),
-                    si ? *(int32_t*)(si + 0x14) : 0, si ? *(int32_t*)(si + 0x10) : 0);
+            PortLog("bgm: song %08x clock %u tempoD %u tempoI %u status %08x ident %08x | sound ident %08x mix freq %d"
+                    " spv %d | dma1 %08x cnt %08x tm0 %04x",
+                    *(uint32_t*)m, *(uint32_t*)(m + 0x0C), *(uint16_t*)(m + 0x1C), *(uint16_t*)(m + 0x20),
+                    *(uint32_t*)(m + 0x04), *(uint32_t*)(m + 0x34), si ? *(uint32_t*)si : 0,
+                    si ? *(int32_t*)(si + 0x14) : 0, si ? *(int32_t*)(si + 0x10) : 0, IO32(0xBC), IO32(0xC4),
+                    IO16(0x102));
         }
         if (last)
             PortLog("timing: 300 frames in %.3f s (%.2f Hz), vblanks %u, game updates %u",
@@ -576,22 +628,12 @@ static void VBlankCycle(void) {
 }
 
 /*
- * The cartridge's main loop updates the game once per VBlank only when the
- * update finishes within the frame. In play the CPU load makes it take two
- * frames, so logic and picture advance at ~30 fps while sound and the VBlank
- * handlers keep running every frame. "Original" speed reproduces that by
- * inserting a VBlank in which the new frame is not ready yet.
+ * One frame per vertical blank, like the cartridge: measured on hardware-
+ * accurate timing (port/tools/bizhawk_timing.lua), the game's
+ * main loop makes one update per VBlank in every scene, at 59.7275 Hz.
  */
-extern volatile unsigned short gFrameSyncFlags;
-#define FRAME_SYNC_FRAME_READY 0x4
-
 void PortFrame(void) {
     PortStateService();
-    if (gPortConfig.gameSpeed == 0 && (gFrameSyncFlags & FRAME_SYNC_FRAME_READY)) {
-        gFrameSyncFlags &= ~FRAME_SYNC_FRAME_READY;
-        VBlankCycle();
-        gFrameSyncFlags |= FRAME_SYNC_FRAME_READY;
-    }
     VBlankCycle();
 }
 
@@ -613,8 +655,23 @@ void PortSoftReset(void) {
 int main(int argc, char** argv) {
     int winW, winH;
 
-    (void)argc;
-    (void)argv;
+    {
+        int i;
+        for (i = 1; i < argc; i++) {
+            if (strcmp(argv[i], "--intro") == 0)
+                gPortIntroRequested = 1;
+            else if (strcmp(argv[i], "--data-dir") == 0 && i + 1 < argc)
+                PortConfigSetDataPath(argv[++i]);
+            else if (strcmp(argv[i], "--language") == 0 && i + 1 < argc) {
+                const char* language = argv[++i];
+                if (strcmp(language, "es") == 0) gPortStartupLanguage = 4;
+                else if (strcmp(language, "en") == 0) gPortStartupLanguage = 0;
+                else if (strcmp(language, "fr") == 0) gPortStartupLanguage = 1;
+                else if (strcmp(language, "de") == 0) gPortStartupLanguage = 2;
+                else if (strcmp(language, "it") == 0) gPortStartupLanguage = 3;
+            }
+        }
+    }
 
     /* Claim the GBA address range before anything else can land there. */
     if (!PortMemoryInit())

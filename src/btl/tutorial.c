@@ -22,6 +22,7 @@
 #include <stddef.h>
 #include "taskpool.h"
 #include "types.h"
+#include "engine.h"
 #include "sprite_palettes.h"
 #include "card_message_data.h"
 
@@ -688,7 +689,14 @@ void task_tutorial_2(TutorialWork* work) {
             y = work->arrowY;
         }
 
+#ifdef PLATFORM_PC
+        /* The arrow points at HUD elements: follow their anchored corner. */
+        PortHudBeginAt(work->arrowX, work->arrowY);
+#endif
         DrawSprite(x, y, gfx, work->tiles, work->palette, NULL, SPRITE_FLAG_NO_MOSAIC, 0);
+#ifdef PLATFORM_PC
+        PortHudEnd();
+#endif
     }
 }
 

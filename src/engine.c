@@ -124,6 +124,7 @@ u8 DrawSpriteAllocatedTiles(s16 x, s16 y, void* sprite, void* obj, void* palette
     work = gSpriteWork;
 #ifdef PLATFORM_PC
     work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+    PortSpriteTag(work->entryCount);
 #else
     work->entries[work->entryCount].x = x;
 #endif
@@ -174,6 +175,7 @@ u8 DrawSpriteFrameTiles(s16 x, s16 y, void* obj, void* palette, ObjAffine* affin
         work = gSpriteWork;
 #ifdef PLATFORM_PC
         work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+        PortSpriteTag(work->entryCount);
 #else
         work->entries[work->entryCount].x = x;
 #endif
@@ -228,6 +230,7 @@ void DrawSpriteUnsorted(s16 x, s16 y, void* sprite, void* tiles, void* palette, 
 
 #ifdef PLATFORM_PC
     work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+    PortSpriteTag(work->entryCount);
 #else
     work->entries[work->entryCount].x = x;
 #endif
@@ -260,6 +263,7 @@ void DrawSpriteUnsortedAffine(u16 x, u16 y, void* sprite, void* tiles, void* pal
 
 #ifdef PLATFORM_PC
     work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+    PortSpriteTag(work->entryCount);
 #else
     work->entries[work->entryCount].x = x;
 #endif
@@ -920,6 +924,7 @@ void UpdateSpriteOam() {
 #ifdef PLATFORM_PC
             /* Full-range position for the wide view (OAM keeps 9/8 bits). */
             PortOamSetPosition(emitted, x, y);
+            PortOamSetSource(emitted, (int)(entry - gSpriteWork->entries));
 #endif
             tiles = entry->tiles;
 

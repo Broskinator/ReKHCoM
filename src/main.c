@@ -27,6 +27,13 @@
 #include "gba/defines.h"
 #include "gba/macro.h"
 #include "types.h"
+#ifdef PLATFORM_PC
+#include "game_state.h"
+#include "registration_data.h"
+#include "mode_movie.h"
+extern int gPortIntroRequested;
+extern int gPortStartupLanguage;
+#endif
 
 vu16 gFrameSyncFlags;
 u16 gVBlankEndVCount;
@@ -156,6 +163,15 @@ void InitSystem() {
     ScanlineDmaReset();
 #ifdef VERSION_EU
     ModeInit(softReset);
+#ifdef PLATFORM_PC
+    if (gPortStartupLanguage >= 0)
+        gLanguage = gPortStartupLanguage;
+    if (gPortIntroRequested) {
+        gPortIntroRequested = 0;
+        SetupSoraNewGame();
+        ModeRequestHeapReset(&gModeMovie, MOVIE_OPENING);
+    }
+#endif
 #else
     ModeInit();
 #endif

@@ -160,6 +160,7 @@ u8 DrawSpriteSharedTiles(s16 x, s16 y, void* sprite, void* obj, void* palette, O
         work = gSpriteWork;
 #ifdef PLATFORM_PC
         work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+        PortSpriteTag(work->entryCount);
 #else
         work->entries[work->entryCount].x = x;
 #endif

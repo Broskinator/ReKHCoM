@@ -75,7 +75,7 @@ typedef struct PortConfig {
     int filter;
     int fullscreen;
     int vsync;
-    int gameSpeed;        /* 0: original (logic every other VBlank), 1: 60 fps */
+    int hudSize;          /* wide view: HUD drawn this many pixel-scale steps larger (0 = same) */
     int narrowFit;        /* scenes without a wide view: 1 fill the height, 0 exact pixels */
     int scanlines;        /* 0..100 % intensity */
     int colorCorrection;  /* emulate the GBA LCD colours */
@@ -92,6 +92,7 @@ typedef struct PortConfig {
 extern PortConfig gPortConfig;
 
 void PortConfigLoad(void);
+void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);
 void PortConfigView(int mode, int* w, int* h);
 /* Internal size and pixel scale that fill an outW x outH output (auto view). */
@@ -139,6 +140,12 @@ extern uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
 void PortPpuSetResolution(int w, int h);
 void PortPpuRenderFrame(void);
 void PortPpuVBlankLines(void);
+/* HUD layer: sprites anchored with PortHudBegin, drawn at their own scale. */
+extern int gPortHudScale;   /* output pixels per HUD pixel; 0 = no separate layer */
+extern int gPortHudW;
+extern int gPortHudH;
+int PortPpuHudActive(void);
+void PortPpuRenderHud(uint32_t* buf);
 
 /* ---- audio (port_audio.c) ------------------------------------------------ */
 
