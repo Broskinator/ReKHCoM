@@ -87,6 +87,9 @@ typedef struct PortConfig {
     int masterVolume;     /* 0..100 */
     int musicVolume;
     int sfxVolume;
+    int dodgeButton;      /* one button for the battle dodge roll */
+    int stockButton;      /* one button for L + R (stock a card / sleight) */
+    int hdText;           /* dialogue text drawn with an outline font at output resolution */
 } PortConfig;
 
 extern PortConfig gPortConfig;
@@ -146,6 +149,15 @@ extern int gPortHudW;
 extern int gPortHudH;
 int PortPpuHudActive(void);
 void PortPpuRenderHud(uint32_t* buf);
+/* HD text: a dialogue glyph the PPU left out of the picture, at its place on
+   the world canvas (hud 0) or the HUD canvas (hud 1), with its colours. */
+typedef struct PortTextGlyph {
+    int x, y;
+    uint16_t code;
+    uint8_t semi;
+    uint32_t face, shadow;
+} PortTextGlyph;
+int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud);
 
 /* ---- audio (port_audio.c) ------------------------------------------------ */
 
@@ -157,6 +169,12 @@ void PortAudioShutdown(void);
 
 void PortInputInit(void);
 uint16_t PortInputKeys(void);
+/* The port's extra buttons, beyond the GBA's ten key bits. */
+#define PORT_KEY_STOCK 0x400
+#define PORT_KEY_DODGE 0x800
+/* Turns the extra buttons into GBA keys and requests; returns the GBA key
+   bits. Called once per frame. */
+uint16_t PortInputResolve(uint16_t keys);
 void PortInputHandleEvent(const void* sdlEvent);
 
 #endif

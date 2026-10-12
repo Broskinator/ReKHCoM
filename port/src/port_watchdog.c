@@ -69,6 +69,14 @@ static LONG WINAPI CrashHandler(EXCEPTION_POINTERS* info) {
             r->NumberParameters > 1 ? (unsigned long)r->ExceptionInformation[1] : 0ul);
     PortLog("  eax=%08lx ebx=%08lx ecx=%08lx edx=%08lx esi=%08lx edi=%08lx ebp=%08lx esp=%08lx",
             c->Eax, c->Ebx, c->Ecx, c->Edx, c->Esi, c->Edi, c->Ebp, c->Esp);
+    {
+        HMODULE mod = NULL;
+        char name[MAX_PATH];
+        if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                               (LPCSTR)(uintptr_t)c->Eip, &mod)
+            && GetModuleFileNameA(mod, name, sizeof(name)))
+            PortLog("  in %s +%08lx", name, (unsigned long)(c->Eip - (uintptr_t)mod));
+    }
     LogStack(c->Eip, c->Ebp);
     return EXCEPTION_CONTINUE_SEARCH;
 }

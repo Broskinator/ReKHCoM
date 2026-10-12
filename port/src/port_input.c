@@ -15,6 +15,11 @@
 #define KEY_DOWN 0x080
 #define KEY_R 0x100
 #define KEY_L 0x200
+#define KEY_STOCK PORT_KEY_STOCK
+#define KEY_DODGE PORT_KEY_DODGE
+
+/* Frames a dodge press waits for the battle code to take it. */
+#define DODGE_PENDING_FRAMES 6
 
 #define STICK_DEADZONE 12000
 #define TRIGGER_THRESHOLD 16000
@@ -29,11 +34,14 @@ static const KeyBind sKeyBinds[] = {
     { SDLK_S, KEY_R },        { SDLK_RETURN, KEY_START }, { SDLK_BACKSPACE, KEY_SELECT },
     { SDLK_RSHIFT, KEY_SELECT }, { SDLK_UP, KEY_UP },     { SDLK_DOWN, KEY_DOWN },
     { SDLK_LEFT, KEY_LEFT },  { SDLK_RIGHT, KEY_RIGHT },  { SDLK_K, KEY_A },
-    { SDLK_J, KEY_B },        { SDLK_W, KEY_UP },
+    { SDLK_J, KEY_B },        { SDLK_W, KEY_UP },         { SDLK_D, KEY_STOCK },
+    { SDLK_C, KEY_DODGE },
 };
 
 static uint16_t sKeyboard;
 static int sSuppress;
+static int sDodgeHeld;
+static int sDodgePending;
 
 /* After closing an overlay, ignore buttons still held until released so the
    confirming press does not reach the game. */
@@ -81,9 +89,9 @@ static uint16_t GamepadKeys(SDL_Gamepad* pad) {
     if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_EAST))
         keys |= KEY_B;
     if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_WEST))
-        keys |= KEY_B;
+        keys |= gPortConfig.dodgeButton ? KEY_DODGE : KEY_B;
     if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_NORTH))
-        keys |= KEY_A;
+        keys |= gPortConfig.stockButton ? KEY_STOCK : KEY_A;
     if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_START))
         keys |= KEY_START;
     if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_BACK))
@@ -145,4 +153,33 @@ uint16_t PortInputKeys(void) {
         sSuppress = 0;
     }
     return keys;
+}
+
+uint16_t PortInputResolve(uint16_t keys) {
+    int dodge = (keys & KEY_DODGE) && gPortConfig.dodgeButton;
+
+    /* Stock button: L and R together, without pressing both shoulders. */
+    if ((keys & KEY_STOCK) && gPortConfig.stockButton)
+        keys |= KEY_L | KEY_R;
+    /* Dodge button: a press is kept for a few frames for the battle code. */
+    if (dodge && !sDodgeHeld)
+        sDodgePending = DODGE_PENDING_FRAMES;
+    else if (sDodgePending > 0)
+        sDodgePending--;
+    sDodgeHeld = dodge;
+    return keys & 0x3FF;
+}
+
+/* Battle code: the dodge button acts as the second tap of a d-pad double tap
+   toward the held direction, or the way the character faces. Returns that
+   direction's key, or 0 without a pending press. */
+int PortTakeDodge(int held, int facingLeft) {
+    if (sDodgePending == 0)
+        return 0;
+    sDodgePending = 0;
+    if (held & KEY_LEFT)
+        return KEY_LEFT;
+    if (held & KEY_RIGHT)
+        return KEY_RIGHT;
+    return facingLeft ? KEY_LEFT : KEY_RIGHT;
 }

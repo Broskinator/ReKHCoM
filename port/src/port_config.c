@@ -26,6 +26,9 @@ PortConfig gPortConfig = {
     100,                /* masterVolume */
     100,                /* musicVolume */
     100,                /* sfxVolume */
+    1,                  /* dodgeButton */
+    1,                  /* stockButton */
+    0,                  /* hdText */
 };
 
 #define CONFIG_VERSION 2
@@ -63,6 +66,9 @@ static const Key sKeys[] = {
     { "master_volume", &gPortConfig.masterVolume, 0, 100 },
     { "music_volume", &gPortConfig.musicVolume, 0, 100 },
     { "sfx_volume", &gPortConfig.sfxVolume, 0, 100 },
+    { "dodge_button", &gPortConfig.dodgeButton, 0, 1 },
+    { "stock_button", &gPortConfig.stockButton, 0, 1 },
+    { "hd_text", &gPortConfig.hdText, 0, 1 },
 };
 
 static char* Trim(char* s) {

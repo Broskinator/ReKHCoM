@@ -282,9 +282,12 @@ static void DrawScanlines(const SDL_FRect* dst) {
 }
 
 
+void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float originY, float scale);
+
 static void Present(void) {
     int outW, outH;
     SDL_FRect dst;
+    float worldX, worldY, worldScale;
 
     EnsureTexture();
     /* Overlays go on a copy so the game picture survives while paused. */
@@ -307,10 +310,18 @@ static void Present(void) {
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
         SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
+        worldScale = scale;
+        worldX = dst.x - src.x * scale;
+        worldY = dst.y - src.y * scale;
     } else {
         OutputRect(outW, outH, &dst);
         SDL_RenderTexture(sRenderer, sTexture, NULL, &dst);
+        worldScale = dst.w / gPortScreen.width;
+        worldX = dst.x;
+        worldY = dst.y;
     }
+    if (!PortUiActive())
+        PortHdTextDraw(sRenderer, 0, worldX, worldY, worldScale);
     if (PortPpuHudActive()) {
         SDL_FRect hd;
         if (sHudTexture == NULL || sHudTexW != gPortHudW || sHudTexH != gPortHudH) {
@@ -330,6 +341,7 @@ static void Present(void) {
         hd.x = (float)((outW - (int)hd.w) / 2);
         hd.y = (float)((outH - (int)hd.h) / 2);
         SDL_RenderTexture(sRenderer, sHudTexture, NULL, &hd);
+        PortHdTextDraw(sRenderer, 1, hd.x, hd.y, (float)gPortHudScale);
     }
     DrawScanlines(&dst);
     if (gPortConfig.showFps) {
@@ -381,6 +393,7 @@ static uint16_t HarnessKeys(uint32_t frame) {
     static const struct { const char* name; uint16_t bit; } names[] = {
         { "A", 1 }, { "B", 2 }, { "SELECT", 4 }, { "START", 8 }, { "RIGHT", 16 },
         { "LEFT", 32 }, { "UP", 64 }, { "DOWN", 128 }, { "R", 256 }, { "L", 512 },
+        { "STOCK", PORT_KEY_STOCK }, { "DODGE", PORT_KEY_DODGE },
     };
     const char* p = SDL_getenv("KHCOM_KEYS");
     uint16_t keys = 0;
@@ -597,7 +610,7 @@ static void VBlankCycle(void) {
         PumpEvents();
         Pace();
     }
-    IO16(0x130) = (uint16_t)(~(PortInputKeys() | HarnessKeys(sFrameCount)) & 0x3FF);
+    IO16(0x130) = (uint16_t)(~PortInputResolve(PortInputKeys() | HarnessKeys(sFrameCount)) & 0x3FF);
     HarnessFrame();
     Pace();
 

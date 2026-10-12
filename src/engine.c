@@ -798,6 +798,9 @@ void UpdateSpriteOam() {
     if (gSpriteWork->oamUpdatesPaused) {
         return;
     }
+#ifdef PLATFORM_PC
+    PortOamTagsReset();
+#endif
 
     oam = (u16*)OAM;
 

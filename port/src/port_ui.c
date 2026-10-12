@@ -32,7 +32,10 @@ enum {
     ITEM_VSYNC,
     ITEM_SCANLINES,
     ITEM_LCD,
+    ITEM_HDTEXT,
     ITEM_FPS,
+    ITEM_DODGE,
+    ITEM_STOCK,
     ITEM_MUSIC,
     ITEM_SFX,
     ITEM_MASTER,
@@ -54,7 +57,12 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "VSync", "VSync", "VSync", "VSync", "VSync" },
     { "Scanlines", "Lignes de balayage", "Scanlines", "Linee di scansione", "Scanlines" },
     { "GBA LCD colours", "Couleurs LCD GBA", "GBA-LCD-Farben", "Colori LCD GBA", "Colores LCD GBA" },
+    { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD" },
     { "Show FPS", "Afficher FPS", "FPS anzeigen", "Mostra FPS", "Mostrar FPS" },
+    { "One-button dodge roll", "Roulade en un bouton", "Ausweichrolle mit einer Taste", "Capriola con un tasto",
+      "Voltereta con un botón" },
+    { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
+      "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)" },
     { "Music volume", "Volume musique", "Musiklautstärke", "Volume musica", "Volumen música" },
     { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos" },
     { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general" },
@@ -321,8 +329,17 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_LCD:
             SDL_strlcpy(out, sOnOff[gPortConfig.colorCorrection != 0][l], size);
             break;
+        case ITEM_HDTEXT:
+            SDL_strlcpy(out, sOnOff[gPortConfig.hdText != 0][l], size);
+            break;
         case ITEM_FPS:
             SDL_strlcpy(out, sOnOff[gPortConfig.showFps != 0][l], size);
+            break;
+        case ITEM_DODGE:
+            SDL_strlcpy(out, sOnOff[gPortConfig.dodgeButton != 0][l], size);
+            break;
+        case ITEM_STOCK:
+            SDL_strlcpy(out, sOnOff[gPortConfig.stockButton != 0][l], size);
             break;
         case ITEM_MUSIC:
             SDL_snprintf(out, size, "%d%%", gPortConfig.musicVolume);
@@ -384,8 +401,17 @@ static void Change(int item, int dir) {
         case ITEM_LCD:
             gPortConfig.colorCorrection = !gPortConfig.colorCorrection;
             break;
+        case ITEM_HDTEXT:
+            gPortConfig.hdText = !gPortConfig.hdText;
+            break;
         case ITEM_FPS:
             gPortConfig.showFps = !gPortConfig.showFps;
+            break;
+        case ITEM_DODGE:
+            gPortConfig.dodgeButton = !gPortConfig.dodgeButton;
+            break;
+        case ITEM_STOCK:
+            gPortConfig.stockButton = !gPortConfig.stockButton;
             break;
         case ITEM_MUSIC:
             gPortConfig.musicVolume = SDL_clamp(gPortConfig.musicVolume + dir * 10, 0, 100);

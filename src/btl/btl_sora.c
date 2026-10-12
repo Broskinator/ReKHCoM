@@ -4,6 +4,7 @@
  */
 
 #include "task_descriptors.h"
+#include "engine.h"
 #include "card_battle.h"
 #include "engine_math.h"
 #include "display.h"
@@ -1030,6 +1031,17 @@ s32 task_btl_sora_1(BtlSoraWork* work) {
     } else {
         held = GetKeysHeld();
         pressed = GetKeysPressed();
+#ifdef PLATFORM_PC
+        {
+            /* Dodge button: the second tap of a d-pad double tap. */
+            u16 dodge = PortTakeDodge(held, (act->flags & BTLOBJ_FLAG_FACING_LEFT) != 0);
+
+            if (dodge != 0) {
+                work->tapTimers[dodge == DPAD_LEFT ? 0 : 1] = 13;
+                pressed |= dodge;
+            }
+        }
+#endif
     }
 
     btlFlags = gBtlWork->flags;

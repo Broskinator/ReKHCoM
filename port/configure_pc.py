@@ -70,7 +70,7 @@ def main():
     quoted = " ".join(f"-iquote {d}" for d in include_dirs + [rel(GEN)])
     port_cflags = (f"{opt} -std=gnu11 -Wall -Wno-unused-function -Wno-missing-braces -mno-ms-bitfields "
                    f"-DVERSION_EU -DPLATFORM_PC {quoted} -Iport/include -I{rel(sdl_arch / 'include')}")
-    ldflags = (f"-L{rel(sdl_arch / 'lib')} -lSDL3 -Wl,--disable-dynamicbase -Wl,--large-address-aware "
+    ldflags = (f"-L{rel(sdl_arch / 'lib')} -lSDL3 -lgdi32 -Wl,--disable-dynamicbase -Wl,--large-address-aware "
                + ("" if args.debug else "-Wl,--subsystem,windows"))
 
     BUILD.mkdir(parents=True, exist_ok=True)

@@ -54,7 +54,13 @@ void PortHudBeginAt(int x, int y);
    entry an OAM slot was built from. */
 void PortSpriteTag(int entry);
 void PortOamSetSource(int oamIndex, int entry);
+/* Start of a new OAM list: forget which entry each slot came from. */
+void PortOamTagsReset(void);
+/* HD text: the pixel-font character of the sprites being drawn (0: none). */
+extern int gPortTextChar;
 void PortHudEnd(void);
+/* One-button dodge roll: the d-pad direction to roll toward, or 0. */
+int PortTakeDodge(int held, int facingLeft);
 /* Wide view for tilemaps the game streams into VRAM from its own world data:
    fn returns the screen entry of world tile (tx, ty) of a background whose
    scroll registers show world pixel (originX, originY) at the screen's

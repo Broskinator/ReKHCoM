@@ -156,10 +156,13 @@ typedef struct SpriteTag {
     uint8_t hud;
     int8_t ax;
     int8_t ay;
+    uint16_t text; /* HD text: pixel-font character, 0 for other sprites */
 } SpriteTag;
 static SpriteTag sEntryTag[128];
 static SpriteTag sOamTag[128];
 static int sHudLayer;
+static int sHdText;
+int gPortTextChar;
 
 int gPortHudScale;
 int gPortHudW;
@@ -170,7 +173,22 @@ void PortSpriteTag(int entry) {
         sEntryTag[entry].hud = sHudDepth > 0;
         sEntryTag[entry].ax = (int8_t)sHudAx;
         sEntryTag[entry].ay = (int8_t)sHudAy;
+        sEntryTag[entry].text = (uint16_t)gPortTextChar;
     }
+}
+
+void PortOamTagsReset(void) {
+    memset(sOamTag, 0, sizeof(sOamTag));
+}
+
+/* Characters the outline font draws: printable Windows-1252 codes. The codes
+   below 0x20 are icons (arrows, button shapes) and stay pixel art. */
+static int HdTextGlyph(int oamIndex) {
+    int c = sOamTag[oamIndex].text;
+
+    if (!sHdText || c <= 0x20 || c > 0xFF || c == 0x7F)
+        return 0;
+    return c != 0x81 && c != 0x8D && c != 0x8F && c != 0x90 && c != 0x9D;
 }
 
 void PortOamSetSource(int oamIndex, int entry) {
@@ -609,6 +627,8 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
             continue;
         if (sHudLayer && sOamTag[i].hud)
             continue; /* drawn by PortPpuRenderHud */
+        if (HdTextGlyph(i))
+            continue; /* drawn by port_hdtext.c */
         ow = sObjSize[shape][size][0];
         oh = sObjSize[shape][size][1];
         bw = ow << (affine && dbl);
@@ -1022,6 +1042,7 @@ void PortPpuBeginFrame(void) {
     gPortScreen.wide = any && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
                        && !(dispcnt & 0x80);
     sHudLayer = gPortScreen.wide && gPortHudScale > 0 && gPortHudW >= GBA_SCREEN_W;
+    sHdText = gPortConfig.hdText;
     if (gPortScreen.wide) {
         sLeft = -gPortScreen.originX;
         sRight = gPortScreen.width - gPortScreen.originX;
@@ -1142,7 +1163,7 @@ void PortPpuRenderHud(uint32_t* buf) {
         int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
         const SpriteTag* tag = &sOamTag[i];
 
-        if (!tag->hud || (!affine && dbl) || shape == 3 || mode >= 2)
+        if (!tag->hud || (!affine && dbl) || shape == 3 || mode >= 2 || HdTextGlyph(i))
             continue;
         ow = sObjSize[shape][size][0];
         oh = sObjSize[shape][size][1];
@@ -1201,4 +1222,66 @@ void PortPpuRenderHud(uint32_t* buf) {
             }
         }
     }
+}
+
+/* HD text glyphs of one layer (world canvas or HUD canvas), front last. */
+int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
+    uint16_t dispcnt = IO16(0x00);
+    uint16_t bldcnt = IO16(0x50);
+    int effect = (bldcnt >> 6) & 3, evy = IO16(0x54) & 31;
+    int n = 0, i;
+
+    if (!sHdText || (dispcnt & 0x80) || !(dispcnt & 0x1000))
+        return 0;
+    if (evy > 16)
+        evy = 16;
+    for (i = 127; i >= 0 && n < max; i--) {
+        uint16_t a0 = OAM16[i * 4 + 0], a1 = OAM16[i * 4 + 1], a2 = OAM16[i * 4 + 2];
+        const SpriteTag* tag = &sOamTag[i];
+        int onHud = sHudLayer && tag->hud;
+        int ox, oy, bank, k;
+        uint16_t col[2];
+
+        if (!HdTextGlyph(i) || onHud != hud || (a0 & 0x300) == 0x200 || ((a0 >> 10) & 3) >= 2)
+            continue;
+        oy = a0 & 0xFF;
+        ox = a1 & 0x1FF;
+        if ((sOamExt[i].x & 0x1FF) == ox && (sOamExt[i].y & 0xFF) == oy) {
+            ox = sOamExt[i].x;
+            oy = sOamExt[i].y;
+        } else {
+            if (oy >= sBottom)
+                oy -= 256;
+            if (ox >= sRight)
+                ox -= 512;
+        }
+        if (onHud) {
+            int w = gPortHudW, h = gPortHudH;
+            int xg = ox - tag->ax * gPortScreen.originX, yg = oy - tag->ay * gPortScreen.originY;
+            out[n].x = tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
+            out[n].y = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) : yg + (h - GBA_SCREEN_H) / 2);
+        } else {
+            if (ox + 16 <= sLeft || ox >= sRight || oy + 16 <= sTop || oy >= sBottom)
+                continue;
+            out[n].x = ox + gPortScreen.originX;
+            out[n].y = oy + gPortScreen.originY;
+        }
+        /* colour 1 is the face, colour 2 the shadow, as the game fades them */
+        bank = a2 >> 12;
+        for (k = 0; k < 2; k++) {
+            col[k] = PLTT16[256 + bank * 16 + 1 + k] & 0x7FFF;
+            if (bldcnt & 0x10) {
+                if (effect == 2)
+                    col[k] = Brighten(col[k], evy);
+                else if (effect == 3)
+                    col[k] = Darken(col[k], evy);
+            }
+        }
+        out[n].code = tag->text;
+        out[n].semi = ((a0 >> 10) & 3) == 1;
+        out[n].face = sColorLut[col[0]];
+        out[n].shadow = sColorLut[col[1]];
+        n++;
+    }
+    return n;
 }

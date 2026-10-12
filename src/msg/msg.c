@@ -19,6 +19,9 @@
 #include <stddef.h>
 #include "sprite_palettes.h"
 #include "macros.h"
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 
 static SpriteTextLine* sSpriteTextLines;
 static TextGlyphSprite* sMsgGlyphSprites;
@@ -58,6 +61,10 @@ static const GlyphWidthTable sLatinGlyphWidths = {
 
 #ifdef PLATFORM_PC
 /* Used by the PC options overlay, which draws with this font. */
+/* HD text: the character each laid-out glyph sprite shows. */
+static u16 sMsgGlyphCodes[128];
+static u16 sCardMsgGlyphCodes[128];
+
 const u16* PortLatinGlyphWidths(void) {
     return sLatinGlyphWidths.widths;
 }
@@ -1617,6 +1624,9 @@ u8 LayoutMsgGlyphsPage(s32 x, s32 y, MsgLatinChar* text, MsgLatinChar** nextText
             }
 
             cx += (s16)sLatinGlyphWidths.widths[glyph] << 8;
+#ifdef PLATFORM_PC
+            sMsgGlyphCodes[sTextEntryCount] = glyph;
+#endif
 
             if (glyph != 32) {
                 glyph = ((u16*)gMsgLatinFontFrames[glyph])[3];
@@ -1743,6 +1753,9 @@ u8 LayoutMsgGlyphs(s32 x, s32 y, const MsgLatinChar* text) {
             }
 
             cx += (s16)sLatinGlyphWidths.widths[glyph] << 8;
+#ifdef PLATFORM_PC
+            sMsgGlyphCodes[sTextEntryCount] = glyph;
+#endif
 
             if (glyph != 32) {
                 glyph = ((u16*)gMsgLatinFontFrames[glyph])[3];
@@ -1997,6 +2010,9 @@ void DrawMsgGlyphs(u8 n) {
             s32 x = sprites[i].x;
             s32 y = sprites[i].y;
 
+#ifdef PLATFORM_PC
+            gPortTextChar = sMsgGlyphCodes[i];
+#endif
             if (sprites[i].useAlternatePalette) {
                 if (sprites[i].tiles != NULL) {
                     DrawSpriteUnsorted(x >> 8, y >> 8, MSG_FONT_FRAMES[0], sprites[i].tiles, sprites[i].alternatePalette, 0);
@@ -2008,6 +2024,9 @@ void DrawMsgGlyphs(u8 n) {
             }
         }
     }
+#ifdef PLATFORM_PC
+    gPortTextChar = 0;
+#endif
 }
 
 void FreeMsgGlyphSprites() {
@@ -6391,6 +6410,9 @@ u8 LayoutCardMsgGlyphsPage(s32 x, s32 y, MsgLatinChar* text, MsgLatinChar** next
             }
 
             cx += (s16)sLatinGlyphWidths.widths[glyph] << 8;
+#ifdef PLATFORM_PC
+            sCardMsgGlyphCodes[sTextEntryCount] = glyph;
+#endif
 
             if (glyph != 32) {
                 glyph = ((u16*)gMsgLatinFontFrames[glyph])[3];
@@ -6655,6 +6677,9 @@ void DrawCardMsgGlyphs(u8 n) {
             s32 x = sprites[i].x;
             s32 y = sprites[i].y;
 
+#ifdef PLATFORM_PC
+            gPortTextChar = sCardMsgGlyphCodes[i];
+#endif
             if (sprites[i].tiles != NULL) {
                 if (!sprites[i].useAlternatePalette) {
                     DrawSprite(x >> 8, y >> 8, MSG_FONT_FRAMES[0], sprites[i].tiles, sprites[i].palette, NULL, 0, 0);
@@ -6664,6 +6689,9 @@ void DrawCardMsgGlyphs(u8 n) {
             }
         }
     }
+#ifdef PLATFORM_PC
+    gPortTextChar = 0;
+#endif
 }
 
 void FreeCardMsgGlyphSprites() {
@@ -6696,6 +6724,9 @@ void DrawMsgGlyphsWithPalette(u8 n, void* palette) {
             s32 x = sprites[i].x;
             s32 y = sprites[i].y;
 
+#ifdef PLATFORM_PC
+            gPortTextChar = sMsgGlyphCodes[i];
+#endif
             if (sprites[i].tiles != NULL) {
                 if (!sprites[i].useAlternatePalette) {
                     DrawSpriteUnsorted(x >> 8, y >> 8, MSG_FONT_FRAMES[0], sprites[i].tiles, palette, 0);
@@ -6706,6 +6737,9 @@ void DrawMsgGlyphsWithPalette(u8 n, void* palette) {
             }
         }
     }
+#ifdef PLATFORM_PC
+    gPortTextChar = 0;
+#endif
 }
 
 u16 FormatSmallFontHex16(s16 value, u16* out) {
