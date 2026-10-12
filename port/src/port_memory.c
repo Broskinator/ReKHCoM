@@ -26,6 +26,19 @@
 
 __attribute__((section(".bss$zgba"), used, aligned(4096))) static uint8_t sGbaSpace[GBA_SPACE_SIZE];
 
+/* Stand-in for the BIOS area behind BIOS_PTR(): reads see the open-bus value
+   left by the BIOS (the opcode after the SWI return), writes are undone every
+   frame. */
+__attribute__((aligned(16))) uint8_t gPortBiosArea[0x10000];
+
+void PortBiosAreaRefresh(void) {
+    uint32_t* p = (uint32_t*)gPortBiosArea;
+    size_t i;
+
+    for (i = 0; i < sizeof(gPortBiosArea) / 4; i++)
+        p[i] = 0xE3A02004;
+}
+
 static uint8_t sSramShadow[GBA_SRAM_SIZE];
 static int sSramLoaded;
 

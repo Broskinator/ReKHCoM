@@ -78,6 +78,8 @@ typedef struct PortConfig {
     int frameSkip;        /* reserved */
     int showFps;
     int windowScale;
+    int fullscreenWidth;  /* 0 = desktop resolution (borderless) */
+    int fullscreenHeight;
     int masterVolume;     /* 0..100 */
     int musicVolume;
     int sfxVolume;
@@ -96,10 +98,13 @@ int PortMemoryInit(void);
 int PortRomLoad(void);
 void PortSramLoad(void);
 void PortSramSyncIfDirty(void);
+void PortBiosAreaRefresh(void);
 
 /* ---- system / frame loop (port_main.c) --------------------------------- */
 
 void PortFrame(void);
+void PortVideoApplyConfig(void);
+int PortVideoListModes(int* w, int* h, int max);
 void PortRaiseIrq(uint16_t flag);
 void PortFatal(const char* fmt, ...);
 void PortLog(const char* fmt, ...);

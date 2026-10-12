@@ -169,7 +169,7 @@ void m4aMPlayAllStop() {
 
     for (i = 0; i < NUM_MUSIC_PLAYERS; i++)
         // @bug Entries 13-15 of gMPlayTable have no player (NULL read).
-        m4aMPlayStop(gMPlayTable[i].info);
+        m4aMPlayStop(BIOS_PTR(gMPlayTable[i].info));
 }
 
 void m4aMPlayContinue(MusicPlayerInfo* mplayInfo) {

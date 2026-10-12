@@ -417,8 +417,8 @@ s32 ResolveLinkActiveCardsMove(s32* out, s32 side) {
 
 u8 GetStockMoveCount() {
     // @bug Still called after the card battle frees gCardBattleState (NULL read).
-    if (gCardBattleState->soraStockActive || gCardBattleState->rikuStockActive) {
-        return gCardBattleState->stockMoveCount;
+    if (BIOS_PTR(gCardBattleState)->soraStockActive || BIOS_PTR(gCardBattleState)->rikuStockActive) {
+        return BIOS_PTR(gCardBattleState)->stockMoveCount;
     }
 
     return 0;

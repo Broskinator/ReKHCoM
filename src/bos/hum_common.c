@@ -1085,7 +1085,7 @@ u8 HumChooseCardAction(HumWork* work, u16 interval, u16 offset, u16 width, u16 d
         }
 
         // @bug stockMoves is NULL for every humanoid boss but Lexaeus (NULL read).
-        if (value == 0 || work->stockMoves[cards] != id) {
+        if (value == 0 || BIOS_PTR(work->stockMoves)[cards] != id) {
             gBtlWork->rikuKeys |= RIKU_KEY_NEXT_CARD;
         } else {
             gBtlWork->rikuKeys |= RIKU_KEY_STOCK;

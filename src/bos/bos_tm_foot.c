@@ -925,7 +925,7 @@ void task_bos_tm_clb_2(TmClbWork* work) {
     DrawSprite(x, y, gBosTmClubHandleFrame0, work->tiles, work->palette, affine, SPRITE_PRIORITY(2),
                -0x1002 - (work->y >> 8) * 4);
     // @bug AllocObjAffineAngle returns NULL at angle 0 (NULL write).
-    affine->doubleSize = TRUE;
+    BIOS_PTR(affine)->doubleSize = TRUE;
     DrawSprite(x, y, work->arg->gfx, work->arg->tiles, work->palette, affine, SPRITE_PRIORITY(2),
                -0x1003 - (work->y >> 8) * 4);
 }

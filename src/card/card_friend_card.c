@@ -747,7 +747,7 @@ void PickupCardDestroy(PickupCardWork* work) {
     ColliderUnregister(&work->collider);
     TaskPoolDestroy(&work->tasks);
     // @bug Leaving a battle frees gCardBattleState before this card is destroyed (NULL write).
-    gCardBattleState->friendCardCount = 0;
+    BIOS_PTR(gCardBattleState)->friendCardCount = 0;
     gBtlWork->prizeCount--;
 }
 

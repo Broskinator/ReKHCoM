@@ -18,6 +18,8 @@ PortConfig gPortConfig = {
     0,                  /* frameSkip */
     0,                  /* showFps */
     4,                  /* windowScale */
+    1920,               /* fullscreenWidth */
+    1080,               /* fullscreenHeight */
     100,                /* masterVolume */
     100,                /* musicVolume */
     100,                /* sfxVolume */
@@ -40,6 +42,8 @@ static const Key sKeys[] = {
     { "color_correction", &gPortConfig.colorCorrection, 0, 1 },
     { "show_fps", &gPortConfig.showFps, 0, 1 },
     { "window_scale", &gPortConfig.windowScale, 1, 8 },
+    { "fullscreen_width", &gPortConfig.fullscreenWidth, 0, 16384 },
+    { "fullscreen_height", &gPortConfig.fullscreenHeight, 0, 16384 },
     { "master_volume", &gPortConfig.masterVolume, 0, 100 },
     { "music_volume", &gPortConfig.musicVolume, 0, 100 },
     { "sfx_volume", &gPortConfig.sfxVolume, 0, 100 },

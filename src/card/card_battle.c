@@ -179,12 +179,12 @@ void SetSoraReloadCharging() {
     // @bug Called before the card battle state exists (NULL write).
     if (sSoraSelectedCard != NULL) {
         if ((sSoraSelectedCard->flags & (CARD_DISP_FLAG_SELECTED | CARD_DISP_FLAG_SETTLED | CARD_DISP_FLAG_RELOAD_GAUGE)) == (CARD_DISP_FLAG_SELECTED | CARD_DISP_FLAG_SETTLED | CARD_DISP_FLAG_RELOAD_GAUGE)) {
-            gCardBattleState->soraReloadCharging = 1;
+            BIOS_PTR(gCardBattleState)->soraReloadCharging = 1;
         } else {
-            gCardBattleState->soraReloadCharging = 0;
+            BIOS_PTR(gCardBattleState)->soraReloadCharging = 0;
         }
     } else {
-        gCardBattleState->soraReloadCharging = 0;
+        BIOS_PTR(gCardBattleState)->soraReloadCharging = 0;
     }
 }
 
@@ -504,7 +504,7 @@ void CreateSoraCardRing(CardBattleWork* work, u8 listIndex) {
 
     while (node != NULL) {
         // @bug A "not have" display has no slot (NULL write).
-        node->args.slot->unk_06 = 0;
+        BIOS_PTR(node->args.slot)->unk_06 = 0;
         node = ListPoolNext(&node->node);
     }
 
@@ -523,7 +523,7 @@ static void cardbattle_0(CardBattleWork* work) {
 
     CpuFill32(0, work, sizeof(CardBattleWork));
     // @bug gCardBattleState is only allocated further down (NULL write).
-    gCardBattleState->soraWork = work;
+    BIOS_PTR(gCardBattleState)->soraWork = work;
     gBtlWork->hcEffect = HC_EFFECT_NONE;
     ResetBossCardValue();
     ClearSoraCardPlayFlags();
@@ -4057,7 +4057,7 @@ void SoraCardInit(CardDisplayWork* work, CardDisplayArgs* args) {
     }
 
     // @bug A "not have" display has no slot (NULL read).
-    if (work->args.slot->cardId & CARD_FLAG_PREMIUM) {
+    if (BIOS_PTR(work->args.slot)->cardId & CARD_FLAG_PREMIUM) {
         work->premium = TRUE;
     } else {
         work->premium = FALSE;
@@ -5480,24 +5480,24 @@ void UpdateSoraCardValue(CardDisplayWork* work) {
             work->value = GetRandom() % 10;
         } else {
             work->valueModified = FALSE;
-            work->value = work->cardDef->value;
+            work->value = BIOS_PTR(work->cardDef)->value;
         }
     } else if (gBtlWork->hcEffect == HC_EFFECT_ALL_ZEROS) {
         work->valueModified = TRUE;
         work->value = 0;
     } else if (gBtlWork->hcEffect == HC_EFFECT_RETROGRADE) {
         work->valueModified = TRUE;
-        work->value = 10 - work->cardDef->value;
+        work->value = 10 - BIOS_PTR(work->cardDef)->value;
 
         if (work->value == 10) {
             work->value = 0;
         }
     } else {
-        work->value = work->cardDef->value;
+        work->value = BIOS_PTR(work->cardDef)->value;
 
         switch (gGameState.roomEffect) {
         case ROOM_EFFECT_SORCEROUS_WAKING:
-            if (work->cardDef->category == CARD_CATEGORY_MAGIC) {
+            if (BIOS_PTR(work->cardDef)->category == CARD_CATEGORY_MAGIC) {
                 work->value += 2;
 
                 if (work->value > 9) {
@@ -5509,7 +5509,7 @@ void UpdateSoraCardValue(CardDisplayWork* work) {
 
             break;
         case ROOM_EFFECT_ALCHEMIC_WAKING:
-            if (work->cardDef->category == CARD_CATEGORY_ITEM && (work->cardDef->flags & CARD_DEF_FLAG_ITEM)) {
+            if (BIOS_PTR(work->cardDef)->category == CARD_CATEGORY_ITEM && (BIOS_PTR(work->cardDef)->flags & CARD_DEF_FLAG_ITEM)) {
                 work->value += 2;
 
                 if (work->value > 9) {
@@ -5521,7 +5521,7 @@ void UpdateSoraCardValue(CardDisplayWork* work) {
 
             break;
         case ROOM_EFFECT_MARTIAL_WAKING:
-            if (work->cardDef->category == CARD_CATEGORY_ATTACK) {
+            if (BIOS_PTR(work->cardDef)->category == CARD_CATEGORY_ATTACK) {
                 work->value += 2;
 
                 if (work->value > 9) {
@@ -5534,7 +5534,7 @@ void UpdateSoraCardValue(CardDisplayWork* work) {
             break;
         default:
             work->valueModified = FALSE;
-            work->value = work->cardDef->value;
+            work->value = BIOS_PTR(work->cardDef)->value;
             break;
         }
     }

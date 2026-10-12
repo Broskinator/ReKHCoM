@@ -386,7 +386,7 @@ s32 GetRikuSelectedMove() {
     if (sRikuSelectedCard != NULL) {
         if (!(sRikuSelectedCard->flags & (CARD_DISP_FLAG_RELOAD_CARD | CARD_DISP_FLAG_RELOAD_GAUGE))) {
             // @bug The opponent's empty slot has no cardDef (NULL read).
-            def = sRikuSelectedCard->cardDef;
+            def = BIOS_PTR(sRikuSelectedCard->cardDef);
 
             if (def->category == CARD_CATEGORY_ENEMY) {
                 return def->move + 0xFFFF;
@@ -403,18 +403,18 @@ void SetRikuReloadCharging() {
     // @bug Called before the card battle state exists (NULL write).
     if (sRikuSelectedCard != NULL) {
         if ((sRikuSelectedCard->flags & (CARD_DISP_FLAG_SELECTED | CARD_DISP_FLAG_SETTLED | CARD_DISP_FLAG_RELOAD_GAUGE)) == (CARD_DISP_FLAG_SELECTED | CARD_DISP_FLAG_SETTLED | CARD_DISP_FLAG_RELOAD_GAUGE)) {
-            gCardBattleState->rikuReloadCharging = 1;
+            BIOS_PTR(gCardBattleState)->rikuReloadCharging = 1;
         } else {
-            gCardBattleState->rikuReloadCharging = 0;
+            BIOS_PTR(gCardBattleState)->rikuReloadCharging = 0;
         }
     } else {
-        gCardBattleState->rikuReloadCharging = 0;
+        BIOS_PTR(gCardBattleState)->rikuReloadCharging = 0;
     }
 }
 
 u8 GetRikuCardsLeft() {
     // @bug Polled before the card battle state exists (NULL read).
-    return gCardBattleState->rikuCardsLeft;
+    return BIOS_PTR(gCardBattleState)->rikuCardsLeft;
 }
 
 u8 IsRikuSelectionEmpty() {
@@ -2689,17 +2689,17 @@ void ApplyRikuHcEffect(CardBattleWork* work) {
 
 u8 func_08081828() {
     // @bug Polled before the card battle state exists (NULL read).
-    return gCardBattleState->unk_0ED;
+    return BIOS_PTR(gCardBattleState)->unk_0ED;
 }
 
 u8 GetRikuCardListIndex() {
     // @bug Polled before the card battle state exists (NULL read).
-    return gCardBattleState->rikuListIndex;
+    return BIOS_PTR(gCardBattleState)->rikuListIndex;
 }
 
 u8 GetActiveCardValue() {
     // @bug Polled before the card battle state exists (NULL read).
-    return gCardBattleState->activeValue;
+    return BIOS_PTR(gCardBattleState)->activeValue;
 }
 
 s32 GetRikuSelectedCardMoveRaw() {
@@ -3974,11 +3974,11 @@ void UpdateRikuCardValue(CardDisplayWork* work) {
             work->value = GetRandom() % 10;
         } else {
             work->valueModified = FALSE;
-            work->value = work->cardDef->value;
+            work->value = BIOS_PTR(work->cardDef)->value;
         }
     } else if (gRikuBtlWork->hcEffect == HC_EFFECT_RETROGRADE) {
         work->valueModified = TRUE;
-        work->value = 10 - work->cardDef->value;
+        work->value = 10 - BIOS_PTR(work->cardDef)->value;
 
         if (work->value == 10) {
             work->value = 0;
@@ -3987,7 +3987,7 @@ void UpdateRikuCardValue(CardDisplayWork* work) {
         work->valueModified = TRUE;
         work->value = 0;
     } else {
-        work->value = work->cardDef->value;
+        work->value = BIOS_PTR(work->cardDef)->value;
         work->valueModified = FALSE;
     }
 }

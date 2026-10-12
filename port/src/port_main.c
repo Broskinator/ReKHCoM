@@ -112,9 +112,43 @@ void PortRaiseIrq(uint16_t flag) {
 
 /* ---- presentation --------------------------------------------------------------- */
 
+/* Fullscreen uses the configured display mode (closest the monitor offers);
+   0x0 selects the desktop resolution without a mode change. */
 static void ApplyWindowMode(void) {
+    SDL_DisplayID display = SDL_GetDisplayForWindow(sWindow);
+    SDL_DisplayMode mode;
+
+    if (gPortConfig.fullscreen && gPortConfig.fullscreenWidth > 0 && gPortConfig.fullscreenHeight > 0
+        && SDL_GetClosestFullscreenDisplayMode(display, gPortConfig.fullscreenWidth, gPortConfig.fullscreenHeight,
+                                               0.0f, true, &mode)) {
+        SDL_SetWindowFullscreenMode(sWindow, &mode);
+    } else {
+        SDL_SetWindowFullscreenMode(sWindow, NULL);
+    }
     SDL_SetWindowFullscreen(sWindow, gPortConfig.fullscreen != 0);
     SDL_SetRenderVSync(sRenderer, gPortConfig.vsync ? 1 : 0);
+}
+
+/* Distinct fullscreen resolutions of the window's display, largest first. */
+int PortVideoListModes(int* w, int* h, int max) {
+    SDL_DisplayMode** modes;
+    int count = 0, n, i, j;
+
+    modes = SDL_GetFullscreenDisplayModes(SDL_GetDisplayForWindow(sWindow), &n);
+    if (modes == NULL)
+        return 0;
+    for (i = 0; i < n && count < max; i++) {
+        for (j = 0; j < count; j++)
+            if (w[j] == modes[i]->w && h[j] == modes[i]->h)
+                break;
+        if (j == count) {
+            w[count] = modes[i]->w;
+            h[count] = modes[i]->h;
+            count++;
+        }
+    }
+    SDL_free(modes);
+    return count;
 }
 
 void PortVideoApplyConfig(void) {
@@ -320,30 +354,36 @@ static void PumpEvents(void) {
     }
 }
 
+/* The frame timer always paces the game; vsync only removes tearing. On a
+   display within ~1.5 Hz of the GBA's rate the game follows the display so
+   every refresh shows exactly one frame (audio is resampled to match). */
 static void Pace(void) {
     uint64_t now = SDL_GetPerformanceCounter();
-    uint64_t period = (uint64_t)(sPerfFreq / GBA_FPS);
     SDL_DisplayID display = SDL_GetDisplayForWindow(sWindow);
     const SDL_DisplayMode* dm = display ? SDL_GetCurrentDisplayMode(display) : NULL;
+    double hz = GBA_FPS;
+    uint64_t period;
 
-    /* On a ~60 Hz display with vsync, presenting already paces the game. */
     if (SDL_getenv("KHCOM_FAST")) {
-        sPacedByVsync = 0;
         sNextFrame = 0;
         return;
     }
     sPacedByVsync = gPortConfig.vsync && dm != NULL && dm->refresh_rate > 58.5f && dm->refresh_rate < 61.5f;
-    if (sPacedByVsync) {
+    if (sPacedByVsync)
+        hz = dm->refresh_rate;
+    period = (uint64_t)(sPerfFreq / hz);
+
+    if (sNextFrame == 0 || now > sNextFrame + period * 4)
         sNextFrame = now;
-    } else {
-        if (sNextFrame == 0 || now > sNextFrame + period * 4)
-            sNextFrame = now;
-        sNextFrame += period;
-        while ((now = SDL_GetPerformanceCounter()) < sNextFrame) {
-            uint64_t left = (sNextFrame - now) * 1000 / sPerfFreq;
-            if (left > 2)
-                SDL_Delay((Uint32)(left - 1));
-        }
+    sNextFrame += period;
+    /* With vsync, presenting already waited for the refresh; leave slack so
+       the timer does not push the next present past it. */
+    if (sPacedByVsync && sNextFrame > now + period / 8)
+        sNextFrame = SDL_max(sNextFrame - period / 8, now);
+    while ((now = SDL_GetPerformanceCounter()) < sNextFrame) {
+        uint64_t left = (sNextFrame - now) * 1000 / sPerfFreq;
+        if (left > 2)
+            SDL_Delay((Uint32)(left - 1));
     }
 
     sFpsFrames++;
@@ -360,6 +400,7 @@ int PortPacedByVsync(void) {
 
 void PortFrame(void) {
     *(volatile uint16_t*)(uintptr_t)0x03007FF8 &= ~1; /* BIOS IntrCheck */
+    PortBiosAreaRefresh();
 
     /* Visible lines (HBlank / VCount events in between). */
     PortPpuRenderFrame();
@@ -435,6 +476,7 @@ int main(int argc, char** argv) {
     PortAudioInit();
     PortUiInit();
 
+    PortBiosAreaRefresh();
     sDataSize = (size_t)(__kh_data_end - __kh_data_start);
     sDataSnapshot = malloc(sDataSize ? sDataSize : 1);
     memcpy(sDataSnapshot, __kh_data_start, sDataSize);

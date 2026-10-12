@@ -1010,7 +1010,7 @@ u16 GetBossCardValue() {
     }
 
     // @bug Oogie Boogie's intro polls this before the card battle state exists (NULL read).
-    return gCardBattleState->nextEnemyCardIndex;
+    return BIOS_PTR(gCardBattleState)->nextEnemyCardIndex;
 }
 
 TaskDesc gTaskDescCardEnemy = {

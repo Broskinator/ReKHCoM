@@ -26,6 +26,19 @@ typedef volatile u8 vu8;
 typedef volatile u16 vu16;
 typedef volatile u32 vu32;
 
+/*
+ * BIOS_PTR(p): the original game dereferences NULL in a few places (marked
+ * "@bug"). On hardware those accesses hit the BIOS area: reads return the
+ * open-bus value and writes are ignored. The PC build redirects them to a
+ * buffer that reproduces that behaviour.
+ */
+#ifdef PLATFORM_PC
+extern unsigned char gPortBiosArea[];
+#define BIOS_PTR(p) ((p) != 0 ? (p) : (__typeof__(p))(void*)gPortBiosArea)
+#else
+#define BIOS_PTR(p) (p)
+#endif
+
 #define TRUE 1
 #define FALSE 0
 

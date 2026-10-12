@@ -1,38 +1,176 @@
 {
   "subsystems": [
-    {"name": "Build system & toolchain", "weight": 4, "done": 100, "notes": "clang i686 + SDL3, ninja, one command"},
-    {"name": "Asset pipeline (ROM symbols)", "weight": 4, "done": 100, "notes": "61k symbols pinned to the ROM, 47 native relocations"},
-    {"name": "GBA memory map & ROM loading", "weight": 4, "done": 100, "notes": "address space embedded in the PE image"},
-    {"name": "BIOS services", "weight": 3, "done": 100, "notes": "CpuSet, CpuFastSet, LZ77, BgAffineSet, Sqrt, reset"},
-    {"name": "DMA controller", "weight": 3, "done": 100, "notes": "immediate, VBlank, HBlank with register latching"},
-    {"name": "Interrupts & frame timing", "weight": 4, "done": 90, "notes": "VBlank/HBlank/VCount, 59.73 Hz pacing, vsync"},
-    {"name": "PPU renderer", "weight": 10, "done": 85, "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window"},
-    {"name": "Input (keyboard / gamepad)", "weight": 3, "done": 80, "notes": "default bindings; remapping pending"},
-    {"name": "m4a sequencer & mixer", "weight": 8, "done": 85, "notes": "full C port of m4a_1.s, 4x oversampled mixing"},
-    {"name": "PSG (CGB) channels", "weight": 3, "done": 75, "notes": "square+sweep, wave, noise, envelopes, NR52"},
-    {"name": "PCM streaming (FIFO)", "weight": 2, "done": 60, "notes": "timer 0 + DMA1/2 streams"},
-    {"name": "Block audio codec transform", "weight": 1, "done": 100, "notes": "transform.s in C"},
-    {"name": "Movie (FMV) decoder", "weight": 6, "done": 0, "notes": "movie_codec.s is self-modifying ARM; needs a C decoder"},
-    {"name": "Save data (SRAM)", "weight": 3, "done": 80, "notes": "kh_com.sav next to the exe, atomic writes"},
-    {"name": "Soft reset", "weight": 1, "done": 70, "notes": "game globals restored from a snapshot"},
-    {"name": "Widescreen: renderer", "weight": 5, "done": 90, "notes": "larger canvas, extended BGs/OBJs/windows"},
-    {"name": "Widescreen: field maps", "weight": 8, "done": 0, "notes": "stream wider BG maps, widen sprite culling, camera"},
-    {"name": "Widescreen: battles", "weight": 6, "done": 0, "notes": "battle BGs, HUD anchoring"},
-    {"name": "Widescreen: menus & events", "weight": 4, "done": 0, "notes": "centre or extend each screen"},
-    {"name": "Graphics options menu", "weight": 5, "done": 5, "notes": "settings back end done; in-game menu pending"},
-    {"name": "Gameplay verification", "weight": 10, "done": 3, "notes": "boot + language select verified"}
+    {
+      "name": "Build system & toolchain",
+      "weight": 4,
+      "done": 100,
+      "notes": "clang i686 + SDL3, ninja, one command"
+    },
+    {
+      "name": "Asset pipeline (ROM symbols)",
+      "weight": 4,
+      "done": 100,
+      "notes": "61k symbols pinned to the ROM, 47 native relocations"
+    },
+    {
+      "name": "GBA memory map & ROM loading",
+      "weight": 4,
+      "done": 100,
+      "notes": "address space embedded in the PE image"
+    },
+    {
+      "name": "BIOS services",
+      "weight": 3,
+      "done": 100,
+      "notes": "CpuSet, CpuFastSet, LZ77, BgAffineSet, Sqrt, reset"
+    },
+    {
+      "name": "DMA controller",
+      "weight": 3,
+      "done": 100,
+      "notes": "immediate, VBlank, HBlank with register latching"
+    },
+    {
+      "name": "Interrupts & frame timing",
+      "weight": 4,
+      "done": 95,
+      "notes": "VBlank/HBlank/VCount, timer pacing (59.73 Hz or display rate), vsync"
+    },
+    {
+      "name": "PPU renderer",
+      "weight": 10,
+      "done": 85,
+      "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window"
+    },
+    {
+      "name": "Input (keyboard / gamepad)",
+      "weight": 3,
+      "done": 80,
+      "notes": "default bindings; remapping pending"
+    },
+    {
+      "name": "m4a sequencer & mixer",
+      "weight": 8,
+      "done": 85,
+      "notes": "full C port of m4a_1.s, 4x oversampled mixing"
+    },
+    {
+      "name": "PSG (CGB) channels",
+      "weight": 3,
+      "done": 75,
+      "notes": "square+sweep, wave, noise, envelopes, NR52"
+    },
+    {
+      "name": "PCM streaming (FIFO)",
+      "weight": 2,
+      "done": 60,
+      "notes": "timer 0 + DMA1/2 streams"
+    },
+    {
+      "name": "Block audio codec transform",
+      "weight": 1,
+      "done": 100,
+      "notes": "transform.s in C"
+    },
+    {
+      "name": "Movie (FMV) decoder",
+      "weight": 6,
+      "done": 0,
+      "notes": "movies skipped cleanly; C decoder for movie_codec.s pending"
+    },
+    {
+      "name": "Save data (SRAM)",
+      "weight": 3,
+      "done": 80,
+      "notes": "kh_com.sav next to the exe, atomic writes"
+    },
+    {
+      "name": "Soft reset",
+      "weight": 1,
+      "done": 70,
+      "notes": "game globals restored from a snapshot"
+    },
+    {
+      "name": "Widescreen: renderer",
+      "weight": 5,
+      "done": 90,
+      "notes": "larger canvas, extended BGs/OBJs/windows"
+    },
+    {
+      "name": "Widescreen: field maps",
+      "weight": 8,
+      "done": 0,
+      "notes": "stream wider BG maps, widen sprite culling, camera"
+    },
+    {
+      "name": "Widescreen: battles",
+      "weight": 6,
+      "done": 0,
+      "notes": "battle BGs, HUD anchoring"
+    },
+    {
+      "name": "Widescreen: menus & events",
+      "weight": 4,
+      "done": 0,
+      "notes": "centre or extend each screen"
+    },
+    {
+      "name": "Graphics options menu",
+      "weight": 5,
+      "done": 15,
+      "notes": "back end: view modes, scaling, filters, fullscreen resolution"
+    },
+    {
+      "name": "Gameplay verification",
+      "weight": 10,
+      "done": 8,
+      "notes": "boot, title, new game, file select, first event scene"
+    }
   ],
   "milestones": [
-    {"name": "All 269 game units compile for x86", "done": true},
-    {"name": "Executable links", "done": true},
-    {"name": "Boots to language select", "done": true},
-    {"name": "Title screen", "done": false},
-    {"name": "New game / first room", "done": false},
-    {"name": "First card battle", "done": false},
-    {"name": "Widescreen field", "done": false},
-    {"name": "Graphics options menu in game", "done": false},
-    {"name": "Opening movie plays", "done": false},
-    {"name": "Full playthrough (Sora)", "done": false},
-    {"name": "Full playthrough (Reverse/Rebirth)", "done": false}
+    {
+      "name": "All 269 game units compile for x86",
+      "done": true
+    },
+    {
+      "name": "Executable links",
+      "done": true
+    },
+    {
+      "name": "Boots to language select",
+      "done": true
+    },
+    {
+      "name": "Title screen",
+      "done": true
+    },
+    {
+      "name": "New game / first room",
+      "done": true
+    },
+    {
+      "name": "First card battle",
+      "done": false
+    },
+    {
+      "name": "Widescreen field",
+      "done": false
+    },
+    {
+      "name": "Graphics options menu in game",
+      "done": false
+    },
+    {
+      "name": "Opening movie plays",
+      "done": false
+    },
+    {
+      "name": "Full playthrough (Sora)",
+      "done": false
+    },
+    {
+      "name": "Full playthrough (Reverse/Rebirth)",
+      "done": false
+    }
   ]
 }

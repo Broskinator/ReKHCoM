@@ -2670,8 +2670,8 @@ u8 InitEventState(EventSeqWork* work) {
     gEventState->bossChara = 0;
 
     // @bug bg is NULL for events without a background (NULL read).
-    if (bg->mapAnim != 5) {
-        gEventState->mapAnim = bg->mapAnim;
+    if (BIOS_PTR(bg)->mapAnim != 5) {
+        gEventState->mapAnim = BIOS_PTR(bg)->mapAnim;
         work->hasMapAnim = TRUE;
     } else {
         gEventState->mapAnim = bg->mapAnim;
@@ -2789,8 +2789,8 @@ u8 event_seq_1(EventSeqWork* work, void* task) {
     gEventState->bossChara = 0;
 
     // @bug bg is NULL for events without a background (NULL read).
-    if (bg->mapAnim != 5) {
-        gEventState->mapAnim = bg->mapAnim;
+    if (BIOS_PTR(bg)->mapAnim != 5) {
+        gEventState->mapAnim = BIOS_PTR(bg)->mapAnim;
         flag = TRUE;
     } else {
         gEventState->mapAnim = 5;

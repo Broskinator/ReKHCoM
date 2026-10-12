@@ -1867,8 +1867,8 @@ void MapPlaceLayer1DecorPiece(s16 x, s16 y, const u8* pieces, u16* base) {
 
             off = (pieces[2] + i) * 64 + (pieces[1] + j) * 4;
             // @bug cell is NULL where the pattern reaches past the room edge (NULL write).
-            cell->bg2Piece = 50;
-            cell->bg2Map = base + off;
+            BIOS_PTR(cell)->bg2Piece = 50;
+            BIOS_PTR(cell)->bg2Map = base + off;
         }
     }
 }
@@ -1879,7 +1879,7 @@ u8 MapPatternFits(s16 x, s16 y, const MapCellPattern* pattern) {
 
     while (pattern->bg3Piece != MAP_PATTERN_END) {
         // @bug MapCellAt returns NULL past the room edge (NULL read).
-        cell = MapCellAt(x + pattern->dx, y + pattern->dy);
+        cell = BIOS_PTR(MapCellAt(x + pattern->dx, y + pattern->dy));
 
         if (cell->lowerZ == MAP_Z_BOTTOM) {
             return FALSE;
@@ -1959,8 +1959,8 @@ void MapPlaceLayer2DecorPiece(s16 x, s16 y, const u8* pieces, u16* base) {
             cell = MapCellAt(x + j, y + i);
             off = (pieces[2] + i) * 64 + (pieces[1] + j) * 4;
             // @bug cell is NULL where the pattern reaches past the room edge (NULL write).
-            cell->bg1Piece = 38;
-            cell->bg1Map = base + off;
+            BIOS_PTR(cell)->bg1Piece = 38;
+            BIOS_PTR(cell)->bg1Map = base + off;
         }
     }
 }

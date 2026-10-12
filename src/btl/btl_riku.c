@@ -634,7 +634,7 @@ void task_btl_riku_0(BtlRikuWork* work, BtlTaskArg* arg) {
     act->vx = act->vy = 0;
 
     // @bug arg is NULL in normal battles (NULL read).
-    if (arg->mainSide) {
+    if (BIOS_PTR(arg)->mainSide) {
         ColliderInit(&act->collider, COLLIDER_TYPE_PLAYER, act->radiusX, act->height);
     } else {
         ColliderInit(&act->collider, COLLIDER_TYPE_OPPONENT, act->radiusX, act->height);

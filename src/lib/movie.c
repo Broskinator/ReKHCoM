@@ -6,6 +6,10 @@
 #include <stddef.h>
 #include "types.h"
 
+#ifdef PLATFORM_PC
+int PortMovieSupported(void);
+#endif
+
 #define MOVIE_TICKS_PER_FRAME 228
 #define MOVIE_SECONDS_PER_TICK 0.000073433f
 
@@ -30,6 +34,12 @@ s32 MovieStart(void* a) {
     s32 i;
     u32 channels;
 
+#ifdef PLATFORM_PC
+    if (!PortMovieSupported()) {
+        gMoviePlayer = NULL; /* no native decoder yet: skip the movie */
+        return 0;
+    }
+#endif
     gMoviePlayer = MovieOpen(a);
 
     if (gMoviePlayer == NULL) {
@@ -130,6 +140,10 @@ void MoviePlay(s32 (*a)(s32), s32 b) {
 }
 
 void MovieClose() {
+#ifdef PLATFORM_PC
+    if (gMoviePlayer == NULL)
+        return;
+#endif
     if (MovieGetChannels(gMoviePlayer)) {
         SndStreamClose();
     }
