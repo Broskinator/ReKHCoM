@@ -50,10 +50,23 @@ static BgLatch sBgLatch[4];
 int gPortSpriteShiftX;
 static int sBgShift[4];
 static int sBgShiftLatched[4];
+static int sBgDocked[4];
+static int sBgDockedLatched[4];
 
+/* A docked layer is screen UI moved toward an edge: it shows only what the
+   hardware would (no world-map continuation), so parked windows stay hidden. */
 void PortSetBgShiftX(int bg, int shift) {
-    if (bg >= 0 && bg < 4)
+    if (bg >= 0 && bg < 4) {
         sBgShift[bg] = shift;
+        sBgDocked[bg] = 0;
+    }
+}
+
+void PortDockBg(int bg, int shift) {
+    if (bg >= 0 && bg < 4) {
+        sBgShift[bg] = shift;
+        sBgDocked[bg] = 1;
+    }
 }
 
 int PortWideMarginX(void) {
@@ -189,6 +202,7 @@ void PortLatchBgMaps(const BgEntry* entries) {
         l->hofs = IO16(0x10 + b * 4) & 0x1FF;
         l->vofs = IO16(0x12 + b * 4) & 0x1FF;
         sBgShiftLatched[b] = sBgShift[b];
+        sBgDockedLatched[b] = sBgDocked[b];
     }
 }
 
@@ -282,7 +296,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             const BgLatch* l = &sBgLatch[bg];
             int we;
 
-            if (!l->valid) {
+            if (!l->valid || sBgDockedLatched[bg]) {
                 out[x] = TRANSPARENT;
                 continue;
             }

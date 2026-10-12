@@ -364,16 +364,33 @@ static void Queue(int n, int rate) {
     }
     SDL_PutAudioStreamData(sStream, sOut, n * 2 * (int)sizeof(float));
 
-    /* Keep ~3 frames queued; nudge the playback rate instead of dropping. */
+    /* Keep ~4 frames queued. The fill level is smoothed and the playback rate
+       corrected by at most 0.3% (about 5 cents), which is inaudible; only a
+       large backlog (e.g. after a pause) is dropped outright. */
     {
-        int queued = SDL_GetAudioStreamQueued(sStream) / (2 * (int)sizeof(float));
-        float target = rate / (float)GBA_FPS * 3.0f;
-        float ratio = 1.0f + (queued - target) / target * 0.01f;
-        if (queued > target * 4) {
+        static float sQueuedAvg = -1.0f;
+        float queued = (float)(SDL_GetAudioStreamQueued(sStream) / (2 * (int)sizeof(float)));
+        float target = rate / (float)GBA_FPS * 4.0f;
+        float ratio;
+
+        if (queued > target * 6) {
             SDL_ClearAudioStream(sStream);
-            ratio = 1.0f;
+            queued = 0;
+            sQueuedAvg = -1.0f;
         }
-        SDL_SetAudioStreamFrequencyRatio(sStream, SDL_clamp(ratio, 0.98f, 1.02f));
+        if (sQueuedAvg < 0)
+            sQueuedAvg = queued;
+        sQueuedAvg += (queued - sQueuedAvg) * 0.02f;
+        /* Production already matches consumption (59.7275 frames x samples per
+           frame = sample rate), so normally play at exactly 1.0. Only a real
+           drift outside the dead band is corrected, by at most 0.15%. */
+        if (sQueuedAvg < target * 0.5f)
+            ratio = 0.9985f;
+        else if (sQueuedAvg > target * 3.0f)
+            ratio = 1.0015f;
+        else
+            ratio = 1.0f;
+        SDL_SetAudioStreamFrequencyRatio(sStream, ratio);
     }
 }
 

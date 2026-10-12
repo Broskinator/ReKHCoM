@@ -6393,7 +6393,7 @@ static void msgwin_2(MsgWinWork* work) {
 
 #ifdef PLATFORM_PC
     gPortSpriteShiftX = MsgwinDockShift();
-    PortSetBgShiftX(work->bg, gPortSpriteShiftX);
+    PortDockBg(work->bg, gPortSpriteShiftX);
 #endif
     if (entry->portraitId != PORTRAIT_NONE) {
         DrawMsgGlyphs(work->shownChars);
@@ -6409,7 +6409,8 @@ static void msgwin_2(MsgWinWork* work) {
 
 static void msgwin_3(MsgWinWork* work) {
 #ifdef PLATFORM_PC
-    PortSetBgShiftX(work->bg, 0);
+    /* The layer keeps the parked window: still no world-map continuation. */
+    PortDockBg(work->bg, 0);
 #endif
     if (work->palette != NULL) {
         ReleaseObjPalette(work->palette);

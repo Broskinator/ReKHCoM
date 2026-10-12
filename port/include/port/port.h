@@ -76,6 +76,7 @@ typedef struct PortConfig {
     int fullscreen;
     int vsync;
     int gameSpeed;        /* 0: original (logic every other VBlank), 1: 60 fps */
+    int narrowFit;        /* scenes without a wide view: 1 fill the height, 0 exact pixels */
     int scanlines;        /* 0..100 % intensity */
     int colorCorrection;  /* emulate the GBA LCD colours */
     int frameSkip;        /* reserved */

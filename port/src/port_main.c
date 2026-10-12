@@ -38,6 +38,7 @@ static uint64_t sPerfFreq;
 static uint32_t sFrameCount;
 static int sInIrq;
 static uint32_t sComposite[PORT_MAX_W * PORT_MAX_H];
+static int HarnessListHas(const char* list, uint32_t frame);
 static FILE* sLog;
 static int sPacedByVsync;
 static float sFps;
@@ -266,10 +267,25 @@ static void Present(void) {
     PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
     SDL_UpdateTexture(sTexture, NULL, sComposite, gPortScreen.width * 4);
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
-    OutputRect(outW, outH, &dst);
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
     SDL_RenderClear(sRenderer);
-    SDL_RenderTexture(sRenderer, sTexture, NULL, &dst);
+    if (!gPortScreen.wide && gPortConfig.narrowFit && !PortUiActive()
+        && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)) {
+        /* Scene without a wide view: show the GBA picture at full height
+           (bars only at the sides), sampled with the pixel-art filter. */
+        SDL_FRect src = { (float)gPortScreen.originX, (float)gPortScreen.originY, GBA_SCREEN_W, GBA_SCREEN_H };
+        float scale = SDL_min(outW / (float)GBA_SCREEN_W, outH / (float)GBA_SCREEN_H);
+        dst.w = GBA_SCREEN_W * scale;
+        dst.h = GBA_SCREEN_H * scale;
+        dst.x = (float)(int)((outW - dst.w) / 2);
+        dst.y = (float)(int)((outH - dst.h) / 2);
+        SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
+                                                                                 : SDL_SCALEMODE_PIXELART);
+        SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
+    } else {
+        OutputRect(outW, outH, &dst);
+        SDL_RenderTexture(sRenderer, sTexture, NULL, &dst);
+    }
     DrawScanlines(&dst);
     if (gPortConfig.showFps) {
         char text[32];
@@ -278,6 +294,19 @@ static void Present(void) {
         SDL_SetRenderScale(sRenderer, 2.0f, 2.0f);
         SDL_RenderDebugText(sRenderer, 4, 4, text);
         SDL_SetRenderScale(sRenderer, 1.0f, 1.0f);
+    }
+    {
+        /* KHCOM_OUTPUT_SHOT=frames: save the presented window image. */
+        const char* out = SDL_getenv("KHCOM_OUTPUT_SHOT");
+        if (out && HarnessListHas(out, sFrameCount)) {
+            SDL_Surface* s = SDL_RenderReadPixels(sRenderer, NULL);
+            char name[64];
+            SDL_snprintf(name, sizeof(name), "out_%05u.bmp", (unsigned)sFrameCount);
+            if (s) {
+                SDL_SaveBMP(s, PortConfigPath(name));
+                SDL_DestroySurface(s);
+            }
+        }
     }
     SDL_RenderPresent(sRenderer);
 }
