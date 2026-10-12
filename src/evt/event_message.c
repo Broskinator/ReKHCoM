@@ -6368,9 +6368,33 @@ u8 MsgwinContinueUpdate(MsgWinWork* work, void* task) {
     return 1;
 }
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+
+/* Message windows are drawn flush with one screen edge (the portrait side);
+   in the wide view they dock to that edge of the larger picture. */
+static int MsgwinDockShift(void) {
+    if (gEventState->msgWinCentered)
+        return 0;
+    switch (gEventState->msgWinPosition) {
+    case MSG_WIN_POSITION_TOP_FACE_RIGHT:
+    case MSG_WIN_POSITION_BOTTOM_FACE_RIGHT:
+        return PortWideMarginX();
+    case MSG_WIN_POSITION_TOP_FACE_LEFT:
+    case MSG_WIN_POSITION_BOTTOM_FACE_LEFT:
+        return -PortWideMarginX();
+    }
+    return 0;
+}
+#endif
+
 static void msgwin_2(MsgWinWork* work) {
     const MessageScriptEntry* entry = &work->script[work->scriptIndex];
 
+#ifdef PLATFORM_PC
+    gPortSpriteShiftX = MsgwinDockShift();
+    PortSetBgShiftX(work->bg, gPortSpriteShiftX);
+#endif
     if (entry->portraitId != PORTRAIT_NONE) {
         DrawMsgGlyphs(work->shownChars);
     } else {
@@ -6378,9 +6402,15 @@ static void msgwin_2(MsgWinWork* work) {
     }
 
     TaskPoolDraw(&work->tasks);
+#ifdef PLATFORM_PC
+    gPortSpriteShiftX = 0;
+#endif
 }
 
 static void msgwin_3(MsgWinWork* work) {
+#ifdef PLATFORM_PC
+    PortSetBgShiftX(work->bg, 0);
+#endif
     if (work->palette != NULL) {
         ReleaseObjPalette(work->palette);
     }
@@ -7106,6 +7136,9 @@ void msgwait_yesno_2(MsgWaitWork* work) {
 
         break;
     case TRUE:
+#ifdef PLATFORM_PC
+        gPortSpriteShiftX = 0; /* the yes/no box is centred */
+#endif
         DrawSprite(120, 80, gMsgBoxFrames[1], work->tiles3, work->palette3, NULL, 0, 10);
         DrawSprite(work->x >> 8, work->y >> 8, work->gfx2, work->tiles2, work->palette2, NULL, SPRITE_FLAG_HFLIP, 9);
         DrawTextSlots((DISPLAY_WIDTH - GetTextSlotsWidth(work->textSlots, work->textSlotCount)) >> 1, 67, work->textSlots, work->palette4, 0, work->textSlotCount);

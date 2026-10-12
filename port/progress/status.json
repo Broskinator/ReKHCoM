@@ -33,8 +33,8 @@
     {
       "name": "Interrupts & frame timing",
       "weight": 4,
-      "done": 95,
-      "notes": "VBlank/HBlank/VCount, timer pacing (59.73 Hz or display rate), vsync"
+      "done": 100,
+      "notes": "exact 59.7275 Hz pacing; original-speed mode (logic every other VBlank, sound every VBlank)"
     },
     {
       "name": "PPU renderer",
@@ -111,8 +111,8 @@
     {
       "name": "Widescreen: menus & events",
       "weight": 4,
-      "done": 40,
-      "notes": "events extend; menus stay centred (pillarbox)"
+      "done": 60,
+      "notes": "events extend; message windows dock to the screen edges; menus centred"
     },
     {
       "name": "Graphics options menu",
@@ -123,8 +123,8 @@
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 8,
-      "notes": "boot, title, new game, file select, first event scene"
+      "done": 12,
+      "notes": "boot to the end of the opening event, in English and Spanish"
     }
   ],
   "milestones": [

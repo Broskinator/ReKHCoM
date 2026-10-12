@@ -45,6 +45,20 @@ typedef struct BgLatch {
     int valid;
 } BgLatch;
 static BgLatch sBgLatch[4];
+
+/* Display offsets requested by the game for docking UI (see engine.h). */
+int gPortSpriteShiftX;
+static int sBgShift[4];
+static int sBgShiftLatched[4];
+
+void PortSetBgShiftX(int bg, int shift) {
+    if (bg >= 0 && bg < 4)
+        sBgShift[bg] = shift;
+}
+
+int PortWideMarginX(void) {
+    return gPortScreen.wide ? gPortScreen.originX : 0;
+}
 uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
 
 #define PLTT16 ((const uint16_t*)(uintptr_t)GBA_PLTT)
@@ -141,6 +155,20 @@ void PortPpuSetResolution(int w, int h) {
     gPortViewBottom = h - gPortScreen.originY;
 }
 
+/* Development aid (KHCOM_OAMDUMP): log the sprites of the current frame. */
+void PortPpuDumpOam(void) {
+    int i;
+
+    for (i = 0; i < 128; i++) {
+        uint16_t a0 = OAM16[i * 4], a1 = OAM16[i * 4 + 1], a2 = OAM16[i * 4 + 2];
+        if ((a0 & 0x300) == 0x200)
+            continue;
+        PortLog("oam %3d ext(%4d,%4d) raw(%3d,%3d) shape %d size %d prio %d pal %2d tile %4d mode %d", i,
+                sOamExt[i].x, sOamExt[i].y, a1 & 0x1FF, a0 & 0xFF, a0 >> 14, a1 >> 14, (a2 >> 10) & 3, a2 >> 12,
+                a2 & 0x3FF, (a0 >> 10) & 3);
+    }
+}
+
 void PortOamSetPosition(int index, int x, int y) {
     if (index >= 0 && index < 128) {
         sOamExt[index].x = (int16_t)x;
@@ -160,6 +188,7 @@ void PortLatchBgMaps(const BgEntry* entries) {
         l->y = entries[b].y;
         l->hofs = IO16(0x10 + b * 4) & 0x1FF;
         l->vofs = IO16(0x12 + b * 4) & 0x1FF;
+        sBgShiftLatched[b] = sBgShift[b];
     }
 }
 
@@ -238,11 +267,11 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     outside = gy < 0 || gy >= GBA_SCREEN_H;
 
     for (x = 0; x < w; x++) {
-        int gx = x - gPortScreen.originX;
+        int gx = x - gPortScreen.originX - sBgShiftLatched[bg];
         int px, tx, block, entry, tile, pal, fx, fyy, ci;
         const uint16_t* map;
 
-        if (gx < sLeft || gx >= sRight) {
+        if (x - gPortScreen.originX < sLeft || x - gPortScreen.originX >= sRight) {
             out[x] = TRANSPARENT;
             continue;
         }

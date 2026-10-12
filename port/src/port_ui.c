@@ -28,6 +28,7 @@ enum {
     ITEM_FULLSCREEN,
     ITEM_FS_RES,
     ITEM_VSYNC,
+    ITEM_SPEED,
     ITEM_SCANLINES,
     ITEM_LCD,
     ITEM_FPS,
@@ -48,6 +49,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Fullscreen resolution", "Résolution plein écran", "Vollbild-Auflösung", "Risoluzione a schermo intero",
       "Resolución completa" },
     { "VSync", "VSync", "VSync", "VSync", "VSync" },
+    { "Game speed", "Vitesse du jeu", "Spieltempo", "Velocità di gioco", "Velocidad del juego" },
     { "Scanlines", "Lignes de balayage", "Scanlines", "Linee di scansione", "Scanlines" },
     { "GBA LCD colours", "Couleurs LCD GBA", "GBA-LCD-Farben", "Colori LCD GBA", "Colores LCD GBA" },
     { "Show FPS", "Afficher FPS", "FPS anzeigen", "Mostra FPS", "Mostrar FPS" },
@@ -93,6 +95,10 @@ static const char* const sFilters[PORT_FILTER_COUNT][LANG_COUNT] = {
     { "Sharp", "Net", "Scharf", "Nitido", "Nítido" },
     { "Pixel art", "Pixel art", "Pixel-Art", "Pixel art", "Pixel art" },
     { "Smooth", "Lisse", "Weich", "Morbido", "Suave" },
+};
+static const char* const sSpeeds[2][LANG_COUNT] = {
+    { "Original (30 FPS)", "Originale (30 IPS)", "Original (30 FPS)", "Originale (30 FPS)", "Original (30 FPS)" },
+    { "Smooth (60 FPS)", "Fluide (60 IPS)", "Flüssig (60 FPS)", "Fluida (60 FPS)", "Fluida (60 FPS)" },
 };
 static const char* const sDesktop[LANG_COUNT] = { "Desktop", "Bureau", "Desktop", "Desktop", "Escritorio" };
 static const char* const sAutoOnly[LANG_COUNT] = { "(Auto view)", "(vue Auto)", "(Auto-Ansicht)", "(vista Auto)",
@@ -291,6 +297,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_VSYNC:
             SDL_strlcpy(out, sOnOff[gPortConfig.vsync != 0][l], size);
             break;
+        case ITEM_SPEED:
+            SDL_strlcpy(out, sSpeeds[gPortConfig.gameSpeed != 0][l], size);
+            break;
         case ITEM_SCANLINES:
             if (gPortConfig.scanlines == 0)
                 SDL_strlcpy(out, sOnOff[0][l], size);
@@ -350,6 +359,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_VSYNC:
             gPortConfig.vsync = !gPortConfig.vsync;
+            break;
+        case ITEM_SPEED:
+            gPortConfig.gameSpeed = !gPortConfig.gameSpeed;
             break;
         case ITEM_SCANLINES:
             gPortConfig.scanlines = Wrap(gPortConfig.scanlines / 25 + dir, 5) * 25;

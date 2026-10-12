@@ -158,7 +158,11 @@ u8 DrawSpriteSharedTiles(s16 x, s16 y, void* sprite, void* obj, void* palette, O
 
     if (palette != NULL && sprite != NULL) {
         work = gSpriteWork;
+#ifdef PLATFORM_PC
+        work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+#else
         work->entries[work->entryCount].x = x;
+#endif
         work->entries[work->entryCount].y = y;
         work->entries[work->entryCount].tiles = obj;
         work->entries[work->entryCount].palette = palette;

@@ -35,6 +35,12 @@ typedef struct BgEntry {
 #ifdef PLATFORM_PC
 void PortLatchBgMaps(const BgEntry* entries);
 void PortOamSetPosition(int index, int x, int y);
+/* Wide view: how far the picture extends left/right of the GBA screen. */
+int PortWideMarginX(void);
+/* Horizontal display offset for a background / for sprites being drawn,
+   used to dock screen-edge UI (message windows) to the wide view's edges. */
+void PortSetBgShiftX(int bg, int shift);
+extern int gPortSpriteShiftX;
 #endif
 
 typedef struct BgWork {

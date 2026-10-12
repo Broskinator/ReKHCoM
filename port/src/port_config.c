@@ -14,6 +14,7 @@ PortConfig gPortConfig = {
     PORT_FILTER_NEAREST, /* filter */
     0,                  /* fullscreen */
     1,                  /* vsync */
+    0,                  /* gameSpeed */
     0,                  /* scanlines */
     0,                  /* colorCorrection */
     0,                  /* frameSkip */
@@ -45,6 +46,7 @@ static const Key sKeys[] = {
     { "filter", &gPortConfig.filter, 0, PORT_FILTER_COUNT - 1 },
     { "fullscreen", &gPortConfig.fullscreen, 0, 1 },
     { "vsync", &gPortConfig.vsync, 0, 1 },
+    { "game_speed", &gPortConfig.gameSpeed, 0, 1 },
     { "scanlines", &gPortConfig.scanlines, 0, 100 },
     { "color_correction", &gPortConfig.colorCorrection, 0, 1 },
     { "show_fps", &gPortConfig.showFps, 0, 1 },

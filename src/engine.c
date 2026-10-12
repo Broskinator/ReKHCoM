@@ -122,7 +122,11 @@ u8 DrawSpriteAllocatedTiles(s16 x, s16 y, void* sprite, void* obj, void* palette
     }
 
     work = gSpriteWork;
+#ifdef PLATFORM_PC
+    work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+#else
     work->entries[work->entryCount].x = x;
+#endif
     work->entries[work->entryCount].y = y;
     work->entries[work->entryCount].tiles = obj;
     work->entries[work->entryCount].palette = palette;
@@ -164,7 +168,11 @@ u8 DrawSpriteFrameTiles(s16 x, s16 y, void* obj, void* palette, ObjAffine* affin
 
     {
         work = gSpriteWork;
+#ifdef PLATFORM_PC
+        work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+#else
         work->entries[work->entryCount].x = x;
+#endif
         work->entries[work->entryCount].y = y;
         work->entries[work->entryCount].tiles = obj;
         work->entries[work->entryCount].palette = palette;
@@ -210,7 +218,11 @@ void DrawSpriteUnsorted(s16 x, s16 y, void* sprite, void* tiles, void* palette, 
         return;
     }
 
+#ifdef PLATFORM_PC
+    work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+#else
     work->entries[work->entryCount].x = x;
+#endif
     z = 0;
     work->entries[work->entryCount].y = y;
     work->entries[work->entryCount].tiles = tiles;
@@ -234,7 +246,11 @@ void DrawSpriteUnsortedAffine(u16 x, u16 y, void* sprite, void* tiles, void* pal
         return;
     }
 
+#ifdef PLATFORM_PC
+    work->entries[work->entryCount].x = x + gPortSpriteShiftX;
+#else
     work->entries[work->entryCount].x = x;
+#endif
     z = 0;
     work->entries[work->entryCount].y = y;
     work->entries[work->entryCount].tiles = tiles;
@@ -2144,6 +2160,9 @@ void* GetBgScreenBase(s32 bg) {
 }
 
 void SetBgMapBlocks(s32 bg, const void* src, u8 w, u8 h) {
+#ifdef PLATFORM_PC
+    PortSetBgShiftX(bg, 0);
+#endif
     if (gDispCnt & DISPCNT_MODE_MASK) {
         if (bg == 2 || bg == 3) {
             return;

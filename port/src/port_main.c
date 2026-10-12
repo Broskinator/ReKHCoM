@@ -16,6 +16,8 @@
 #include "port/port.h"
 #include "port/port_ui.h"
 
+typedef volatile unsigned int vu32;
+
 typedef void (*IntrFunc)(void);
 
 extern void AgbMain(void);
@@ -339,6 +341,13 @@ static void HarnessFrame(void) {
     const char* shots = SDL_getenv("KHCOM_SHOTS");
     const char* quit = SDL_getenv("KHCOM_QUIT");
     const char* ui = SDL_getenv("KHCOM_OPTIONS_SHOT");
+    const char* oam = SDL_getenv("KHCOM_OAMDUMP");
+
+    if (oam && HarnessListHas(oam, sFrameCount)) {
+        extern void PortPpuDumpOam(void);
+        PortLog("frame %u", (unsigned)sFrameCount);
+        PortPpuDumpOam();
+    }
 
     if (ui && HarnessListHas(ui, sFrameCount)) {
         extern void PortUiForceClose(void);
@@ -415,22 +424,19 @@ static void Pace(void) {
         sNextFrame = 0;
         return;
     }
-    sPacedByVsync = gPortConfig.vsync && dm != NULL && dm->refresh_rate > 58.5f && dm->refresh_rate < 61.5f;
-    if (sPacedByVsync)
-        hz = dm->refresh_rate;
+    (void)dm;
+    sPacedByVsync = 0;
     period = (uint64_t)(sPerfFreq / hz);
 
+    /* Exact GBA rate (59.7275 Hz) whatever the display does: sleep most of
+       the wait, then spin for the last fraction of a millisecond. */
     if (sNextFrame == 0 || now > sNextFrame + period * 4)
         sNextFrame = now;
     sNextFrame += period;
-    /* With vsync, presenting already waited for the refresh; leave slack so
-       the timer does not push the next present past it. */
-    if (sPacedByVsync && sNextFrame > now + period / 8)
-        sNextFrame = SDL_max(sNextFrame - period / 8, now);
     while ((now = SDL_GetPerformanceCounter()) < sNextFrame) {
-        uint64_t left = (sNextFrame - now) * 1000 / sPerfFreq;
-        if (left > 2)
-            SDL_Delay((Uint32)(left - 1));
+        uint64_t leftNs = (sNextFrame - now) * 1000000000ull / sPerfFreq;
+        if (leftNs > 1500000)
+            SDL_DelayPrecise(leftNs - 1000000);
     }
 
     sFpsFrames++;
@@ -445,7 +451,8 @@ int PortPacedByVsync(void) {
     return sPacedByVsync;
 }
 
-void PortFrame(void) {
+/* One display frame: draw, vertical blank, present, input, pacing. */
+static void VBlankCycle(void) {
     *(volatile uint16_t*)(uintptr_t)0x03007FF8 &= ~1; /* BIOS IntrCheck */
     PortBiosAreaRefresh();
     UpdateResolution();
@@ -483,6 +490,35 @@ void PortFrame(void) {
 
     if (++sFrameCount % 60 == 0)
         PortSramSyncIfDirty();
+    if (SDL_getenv("KHCOM_TIMING") && sFrameCount % 300 == 0) {
+        static uint64_t last;
+        uint64_t t = SDL_GetPerformanceCounter();
+        extern vu32 gVBlankCounter, gFrameCounter;
+        if (last)
+            PortLog("timing: 300 frames in %.3f s (%.2f Hz), vblanks %u, game updates %u",
+                    (double)(t - last) / sPerfFreq, 300.0 * sPerfFreq / (double)(t - last), (unsigned)gVBlankCounter,
+                    (unsigned)gFrameCounter);
+        last = t;
+    }
+}
+
+/*
+ * The cartridge's main loop updates the game once per VBlank only when the
+ * update finishes within the frame. In play the CPU load makes it take two
+ * frames, so logic and picture advance at ~30 fps while sound and the VBlank
+ * handlers keep running every frame. "Original" speed reproduces that by
+ * inserting a VBlank in which the new frame is not ready yet.
+ */
+extern volatile unsigned short gFrameSyncFlags;
+#define FRAME_SYNC_FRAME_READY 0x4
+
+void PortFrame(void) {
+    if (gPortConfig.gameSpeed == 0 && (gFrameSyncFlags & FRAME_SYNC_FRAME_READY)) {
+        gFrameSyncFlags &= ~FRAME_SYNC_FRAME_READY;
+        VBlankCycle();
+        gFrameSyncFlags |= FRAME_SYNC_FRAME_READY;
+    }
+    VBlankCycle();
 }
 
 /* ---- reset ----------------------------------------------------------------------- */
