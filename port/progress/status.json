@@ -87,8 +87,8 @@
     {
       "name": "Soft reset",
       "weight": 1,
-      "done": 70,
-      "notes": "game globals restored from a snapshot"
+      "done": 90,
+      "notes": "game globals in khdata/khbss sections, restored from a snapshot"
     },
     {
       "name": "Widescreen: renderer",
@@ -99,14 +99,14 @@
     {
       "name": "Widescreen: field maps",
       "weight": 8,
-      "done": 60,
-      "notes": "rooms and events extend with real map data; sprite culling widened; HUD anchoring pending"
+      "done": 85,
+      "notes": "map-block rooms and cell-built rooms extend with the game's own composition; void beyond the world is black"
     },
     {
       "name": "Widescreen: battles",
       "weight": 6,
-      "done": 0,
-      "notes": "battle BGs, HUD anchoring"
+      "done": 70,
+      "notes": "affine arenas extend; HUD anchored to the corners; battle messages docked"
     },
     {
       "name": "Widescreen: menus & events",
@@ -123,8 +123,14 @@
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 12,
-      "notes": "boot to the end of the opening event, in English and Spanish"
+      "done": 15,
+      "notes": "Spanish: opening, Traverse Town, first battle; save states for regression tests"
+    },
+    {
+      "name": "Save states",
+      "weight": 2,
+      "done": 90,
+      "notes": "F5/F9, slots F6/F7; SRAM excluded; validated per build"
     }
   ],
   "milestones": [
@@ -150,7 +156,7 @@
     },
     {
       "name": "First card battle",
-      "done": false
+      "done": true
     },
     {
       "name": "Widescreen field",

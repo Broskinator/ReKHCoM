@@ -127,7 +127,11 @@ u8 DrawSpriteAllocatedTiles(s16 x, s16 y, void* sprite, void* obj, void* palette
 #else
     work->entries[work->entryCount].x = x;
 #endif
+#ifdef PLATFORM_PC
+    work->entries[work->entryCount].y = y + gPortSpriteShiftY;
+#else
     work->entries[work->entryCount].y = y;
+#endif
     work->entries[work->entryCount].tiles = obj;
     work->entries[work->entryCount].palette = palette;
     work->entries[work->entryCount].affine = affine;
@@ -173,7 +177,11 @@ u8 DrawSpriteFrameTiles(s16 x, s16 y, void* obj, void* palette, ObjAffine* affin
 #else
         work->entries[work->entryCount].x = x;
 #endif
+#ifdef PLATFORM_PC
+        work->entries[work->entryCount].y = y + gPortSpriteShiftY;
+#else
         work->entries[work->entryCount].y = y;
+#endif
         work->entries[work->entryCount].tiles = obj;
         work->entries[work->entryCount].palette = palette;
         work->entries[work->entryCount].affine = affine;
@@ -224,7 +232,11 @@ void DrawSpriteUnsorted(s16 x, s16 y, void* sprite, void* tiles, void* palette, 
     work->entries[work->entryCount].x = x;
 #endif
     z = 0;
+#ifdef PLATFORM_PC
+    work->entries[work->entryCount].y = y + gPortSpriteShiftY;
+#else
     work->entries[work->entryCount].y = y;
+#endif
     work->entries[work->entryCount].tiles = tiles;
     work->entries[work->entryCount].palette = palette;
     work->entries[work->entryCount].affine = NULL;
@@ -252,7 +264,11 @@ void DrawSpriteUnsortedAffine(u16 x, u16 y, void* sprite, void* tiles, void* pal
     work->entries[work->entryCount].x = x;
 #endif
     z = 0;
+#ifdef PLATFORM_PC
+    work->entries[work->entryCount].y = y + gPortSpriteShiftY;
+#else
     work->entries[work->entryCount].y = y;
+#endif
     work->entries[work->entryCount].tiles = tiles;
     work->entries[work->entryCount].palette = palette;
     work->entries[work->entryCount].affine = affine;
@@ -2020,6 +2036,15 @@ void CopyBgMapRect(u16 x, u16 y, BgEntry* entry, void* dst, u8 sx, u8 sy, u8 w, 
 }
 
 void BgReset() {
+#ifdef PLATFORM_PC
+    {
+        s32 b;
+        for (b = 0; b < 4; b++) {
+            PortSetBgShiftX(b, 0);
+            PortSetBgWorld(b, NULL, 0, 0);
+        }
+    }
+#endif
 #ifdef VERSION_EU
     CpuFill32(0, gBgWork, sizeof(BgWork));
 #endif
@@ -2162,6 +2187,7 @@ void* GetBgScreenBase(s32 bg) {
 void SetBgMapBlocks(s32 bg, const void* src, u8 w, u8 h) {
 #ifdef PLATFORM_PC
     PortSetBgShiftX(bg, 0);
+    PortSetBgWorld(bg, NULL, 0, 0);
 #endif
     if (gDispCnt & DISPCNT_MODE_MASK) {
         if (bg == 2 || bg == 3) {

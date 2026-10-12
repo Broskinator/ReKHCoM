@@ -35,6 +35,7 @@
 #include "msg_portrait_data.h"
 #include "sprite_palettes.h"
 #include "types.h"
+#include "engine.h"
 #include "gba/macro.h"
 #include <stddef.h>
 #include "card_msgwin.h"
@@ -211,7 +212,33 @@ u8 UpdateCardMsgwinLoadFace(CardMsgWinWork* work, void* task) {
     return 1;
 }
 
+#ifdef PLATFORM_PC
+/* Same layout as the event message windows: dock to the portrait's edge. */
+static int CardMsgwinDockShift(CardMsgWinWork* work) {
+    switch (work->messageDef->positionIndex) {
+    case MSG_WIN_POSITION_TOP_FACE_RIGHT:
+    case MSG_WIN_POSITION_BOTTOM_FACE_RIGHT:
+        return PortWideMarginX();
+    case MSG_WIN_POSITION_TOP_FACE_LEFT:
+    case MSG_WIN_POSITION_BOTTOM_FACE_LEFT:
+        return -PortWideMarginX();
+    }
+    return 0;
+}
+
+static void msgwin_2_Body(CardMsgWinWork* work);
+
 static void msgwin_2(CardMsgWinWork* work) {
+    gPortSpriteShiftX = CardMsgwinDockShift(work);
+    PortDockBg(work->args.bg, gPortSpriteShiftX);
+    msgwin_2_Body(work);
+    gPortSpriteShiftX = 0;
+}
+
+static void msgwin_2_Body(CardMsgWinWork* work) {
+#else
+static void msgwin_2(CardMsgWinWork* work) {
+#endif
     void** frames;
 
     if (work->textVisible) {
@@ -236,6 +263,9 @@ static void msgwin_2(CardMsgWinWork* work) {
     }
 
     if (work->tiles2 != NULL) {
+#ifdef PLATFORM_PC
+        gPortSpriteShiftX = 0; /* the yes/no box is centred */
+#endif
         frames = gMsgBoxFrames;
         DrawSprite(120, 80, frames[1], work->tiles2, work->palette4, NULL, 0, 10);
         DrawTextSlots((DISPLAY_WIDTH - work->textSlotCounts[0] * 10) >> 1, 67, work->textSlots, work->textPalette, 0, work->textSlotCounts[0]);

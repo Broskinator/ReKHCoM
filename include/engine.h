@@ -42,6 +42,18 @@ int PortWideMarginX(void);
 void PortSetBgShiftX(int bg, int shift);
 void PortDockBg(int bg, int shift);
 extern int gPortSpriteShiftX;
+extern int gPortSpriteShiftY;
+int PortWideMarginY(void);
+/* Anchor what is drawn until PortHudEnd() to a side of the wide view:
+   ax/ay are -1 (left/top), 0 (stay) or 1 (right/bottom). */
+void PortHudBegin(int ax, int ay);
+void PortHudEnd(void);
+/* Wide view for tilemaps the game streams into VRAM from its own world data:
+   fn returns the screen entry of world tile (tx, ty) of a background whose
+   scroll registers show world pixel (originX, originY) at the screen's
+   top-left. NULL clears it. */
+typedef int (*PortWorldTileFunc)(int bg, int tx, int ty);
+void PortSetBgWorld(int bg, PortWorldTileFunc fn, int originX, int originY);
 #endif
 
 typedef struct BgWork {

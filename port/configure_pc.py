@@ -41,8 +41,11 @@ def main():
     parser.add_argument("--toolchain", type=Path, help="llvm-mingw directory")
     parser.add_argument("--sdl", type=Path, help="SDL3 mingw development package")
     parser.add_argument("--debug", action="store_true", help="no optimisation, console window")
+    parser.add_argument("--out", default="build/pc", help="output directory (default: build/pc)")
     args = parser.parse_args()
 
+    global BUILD
+    BUILD = ROOT / args.out
     toolchain = args.toolchain or find_default("toolchain", "llvm-mingw-*")
     sdl = args.sdl or find_default("sdl", "SDL3-*")
     sdl_arch = sdl / "i686-w64-mingw32"

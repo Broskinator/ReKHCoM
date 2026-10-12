@@ -49,6 +49,52 @@ static void* sMapBgBuffer;
 static MapRoomDef* sMapRoomDef;
 static MapCell* sMapFixCells;
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+
+/* Screen entry of world tile (tx, ty) for BG1-3 of a cell-built room: the
+   same composition MapBuildBgColumn/Row stream into VRAM, so the wide view
+   can show the room beyond the hardware's 32x32-tile window. */
+static int MapWorldTile(int bg, int tx, int ty) {
+    s16 x = (s16)tx;
+    s16 y = (s16)ty;
+    s16 hx = (x < 0) ? (x - 8) / 4 : x / 4;
+    s16 mx = x % 4;
+    s16 hy = (y < 0) ? (y - 8) / 2 : y / 2;
+    s16 my = y % 2;
+    MapCell* cell;
+
+    if (sMapCells == NULL || sMapRoomDef == NULL)
+        return -1;
+    cell = MapGetCell(hx, hy);
+    if (cell == NULL) {
+        switch (bg) {
+        case 3:
+            return 0;
+        case 2:
+            return sMapRoomDef->map2[0x340];
+        default:
+            return sMapRoomDef->map[0x110];
+        }
+    }
+    switch (bg) {
+    case 3:
+        return cell->bg3Map != NULL ? cell->bg3Map[my * 32 + mx] : 0;
+    case 2:
+        return cell->bg2Map != NULL ? cell->bg2Map[my * 32 + mx] : 0;
+    default:
+        return cell->bg1Map != NULL ? cell->bg1Map[my * 32 + mx] : 0;
+    }
+}
+
+static void MapPortSetWorld(s32 x, s32 y) {
+    PortSetBgWorld(3, MapWorldTile, x, y);
+    PortSetBgWorld(2, MapWorldTile, x, y);
+    if (!(gMapRoomState->flags & ROOM_FLAG_BG1_FROZEN))
+        PortSetBgWorld(1, MapWorldTile, x, y);
+}
+#endif
+
 s32 FieldGroundAt(s32 x, s32 y, s32 z) {
     MapCell* cell = FieldCellAt(x, y);
     s32 ground;
@@ -170,6 +216,9 @@ void MapSnapCamera() {
     SetBgScroll(3, (u16)sx, (u16)sy);
     SetBgScroll(2, (u16)sx, (u16)sy);
     SetBgScroll(1, (u16)sx, (u16)sy);
+#ifdef PLATFORM_PC
+    MapPortSetWorld(sx, sy);
+#endif
 }
 
 void MapUpdateCamera(s32 targetX, s32 targetY) {
@@ -239,6 +288,9 @@ void MapUpdateCamera(s32 targetX, s32 targetY) {
     if (!(gMapRoomState->flags & ROOM_FLAG_BG1_FROZEN)) {
         SetBgScroll(1, (u16)(gFieldState->x >> 8), (u16)(gFieldState->y >> 8));
     }
+#ifdef PLATFORM_PC
+    MapPortSetWorld(gFieldState->x >> 8, gFieldState->y >> 8);
+#endif
 }
 
 void MapSetCameraTarget(s32 x, s32 y) {
@@ -355,6 +407,9 @@ void MapRestoreBg1() {
         MapDrawBg1(x / 8, y / 8);
         SetBgScroll(1, (u16)x, (u16)y);
         gMapRoomState->flags &= ~ROOM_FLAG_BG1_FROZEN;
+#ifdef PLATFORM_PC
+        PortSetBgWorld(1, MapWorldTile, x, y);
+#endif
     }
 }
 
@@ -514,6 +569,7 @@ void DestroyMapField() {
     TaskPoolDestroy(&gFieldState->tasks4);
     TaskPoolDestroy(&gMapRoomState->tasks);
 }
+
 
 MapCell* MapGetCell(s16 x, s16 y) {
     if (y < 0 || y >= sMapRows) {

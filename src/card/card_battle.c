@@ -30,6 +30,7 @@
 #include "obj.h"
 #include "taskpool.h"
 #include "types.h"
+#include "engine.h"
 #include "gba/macro.h"
 #include <stddef.h>
 #include "lockon.h"
@@ -1310,8 +1311,14 @@ static void cardbattle_2(CardBattleWork* work) {
     gCardBattleState->gfx2 = AnimUpdate(&gCardBattleState->anim2);
 
     if (gCardBattleState->cardsOpen && work->stockCount != 0 && work->stockValue != 0) {
+#ifdef PLATFORM_PC
+        PortHudBegin(-1, -1); /* stocked values: top-left, under the HP gauge */
+#endif
         DrawSprite(work->x, 4, gStockValueFrames[0], work->tiles, work->palette, NULL, SPRITE_FLAG_NO_MOSAIC,
                    12);
+#ifdef PLATFORM_PC
+        PortHudEnd();
+#endif
     }
 
     TaskPoolDraw(&work->tasks);
@@ -4163,7 +4170,20 @@ u8 SoraCardUpdateLoaded(CardDisplayWork* work, void* task) {
     return DispatchSoraCardCommand(work, task);
 }
 
+#ifdef PLATFORM_PC
+static void card_2_Body(CardDisplayWork* work);
+
+/* Deck cards: bottom-left corner of the screen. */
 static void card_2(CardDisplayWork* work) {
+    PortHudBegin(-1, 1);
+    card_2_Body(work);
+    PortHudEnd();
+}
+
+static void card_2_Body(CardDisplayWork* work) {
+#else
+static void card_2(CardDisplayWork* work) {
+#endif
     s16 y;
     void* gfx;
     ObjAffine* affine;
@@ -4236,7 +4256,20 @@ static void card_2(CardDisplayWork* work) {
     }
 }
 
+#ifdef PLATFORM_PC
+static void card_not_have_2_Body(CardDisplayWork* work);
+
+/* Deck cards: bottom-left corner of the screen. */
 void card_not_have_2(CardDisplayWork* work) {
+    PortHudBegin(-1, 1);
+    card_not_have_2_Body(work);
+    PortHudEnd();
+}
+
+static void card_not_have_2_Body(CardDisplayWork* work) {
+#else
+void card_not_have_2(CardDisplayWork* work) {
+#endif
     void* gfx;
     u16 y;
 
@@ -5318,7 +5351,20 @@ void LoadSoraReloadCardGfx(CardDisplayWork* work) {
     gauge->gfx2 = gRiCardF0RedFrames[gCardBattleState->soraGaugeFullFrame + 2];
 }
 
+#ifdef PLATFORM_PC
+static void card_reload_2_Body(CardDisplayWork* work);
+
+/* Reload card: bottom-left corner of the screen. */
 void card_reload_2(CardDisplayWork* work) {
+    PortHudBegin(-1, 1);
+    card_reload_2_Body(work);
+    PortHudEnd();
+}
+
+static void card_reload_2_Body(CardDisplayWork* work) {
+#else
+void card_reload_2(CardDisplayWork* work) {
+#endif
     ReloadGauge* gauge;
     s16 y;
     ObjAffine* affine;

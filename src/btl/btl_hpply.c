@@ -15,6 +15,7 @@
 #include "obj_api.h"
 #include "taskpool.h"
 #include "types.h"
+#include "engine.h"
 #include <stddef.h>
 #include "sprite_palettes.h"
 #include "engine_math.h"
@@ -308,7 +309,20 @@ s32 task_btl_hpply_1(BtlHpplyWork* work) {
     return 1;
 }
 
+#ifdef PLATFORM_PC
+static void task_btl_hpply_2_Body(BtlHpplyWork* work);
+
+/* Player HP gauge: top-left corner of the screen. */
 void task_btl_hpply_2(BtlHpplyWork* work) {
+    PortHudBegin(-1, -1);
+    task_btl_hpply_2_Body(work);
+    PortHudEnd();
+}
+
+static void task_btl_hpply_2_Body(BtlHpplyWork* work) {
+#else
+void task_btl_hpply_2(BtlHpplyWork* work) {
+#endif
     s32 scale;
     ObjAffine* affine;
 

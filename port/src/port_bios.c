@@ -199,7 +199,14 @@ void BgAffineSet(BgAffineSrcData* src, BgAffineDstData* dst, int32_t count) {
 }
 
 void VBlankIntrWait(void) {
+    extern void AgbMain(void);
+    extern int gPortInMainLoop;
+    uintptr_t caller = (uintptr_t)__builtin_return_address(0);
+
+    /* Save states may only be taken/restored at the main loop's wait. */
+    gPortInMainLoop = caller > (uintptr_t)AgbMain && caller < (uintptr_t)AgbMain + 0x400;
     PortFrame();
+    gPortInMainLoop = 0;
 }
 
 void SoftReset(int32_t flags) {

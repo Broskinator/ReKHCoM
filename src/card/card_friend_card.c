@@ -41,6 +41,7 @@
 #include "card_types.h"
 #include "card_ui_types.h"
 #include "types.h"
+#include "engine.h"
 #include "gba/macro.h"
 #include "sprite_palettes.h"
 #include <stddef.h>
@@ -895,7 +896,20 @@ u8 StockNameSora_1(StockNameWork* work) {
     return 1;
 }
 
+#ifdef PLATFORM_PC
+static void StockNameSora_2_Body(StockNameWork* work);
+
+/* Sleight name: top-left, under the HP gauge. */
 void StockNameSora_2(StockNameWork* work) {
+    PortHudBegin(-1, -1);
+    StockNameSora_2_Body(work);
+    PortHudEnd();
+}
+
+static void StockNameSora_2_Body(StockNameWork* work) {
+#else
+void StockNameSora_2(StockNameWork* work) {
+#endif
     if (work->visible) {
         DrawSprite(64, 14, NULL, work->tiles, work->palette, NULL,
 #ifdef VERSION_EU
@@ -997,7 +1011,20 @@ u8 StockNameRiku_1(StockNameWork* work) {
     return 1;
 }
 
+#ifdef PLATFORM_PC
+static void StockNameRiku_2_Body(StockNameWork* work);
+
+/* Sleight name: top centre. */
 void StockNameRiku_2(StockNameWork* work) {
+    PortHudBegin(0, -1);
+    StockNameRiku_2_Body(work);
+    PortHudEnd();
+}
+
+static void StockNameRiku_2_Body(StockNameWork* work) {
+#else
+void StockNameRiku_2(StockNameWork* work) {
+#endif
     if (gRikuBtlWork->hcEffect != HC_EFFECT_SLEIGHTBLIND && work->visible) {
         DrawSprite(120, 14, NULL, work->tiles, work->palette, NULL, 0, 10);
     }

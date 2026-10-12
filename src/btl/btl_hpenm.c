@@ -12,6 +12,7 @@
 #include "obj_api.h"
 #include "taskpool.h"
 #include "types.h"
+#include "engine.h"
 #include <stddef.h>
 #include "sprite_palettes.h"
 #include "sprites_mode_test.h"
@@ -131,7 +132,20 @@ s32 task_btl_hpenm_1(BtlHpenmWork* work) {
     return 1;
 }
 
+#ifdef PLATFORM_PC
+static void task_btl_hpenm_2_Body(BtlHpenmWork* work);
+
+/* Enemy HP gauge: top-right corner of the screen. */
 void task_btl_hpenm_2(BtlHpenmWork* work) {
+    PortHudBegin(1, -1);
+    task_btl_hpenm_2_Body(work);
+    PortHudEnd();
+}
+
+static void task_btl_hpenm_2_Body(BtlHpenmWork* work) {
+#else
+void task_btl_hpenm_2(BtlHpenmWork* work) {
+#endif
     void* gfx;
     void* bar;
     s32 scale;

@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "port/port_state.h"
 
 #define DMA_DEST_DEC 0x00200000u
 #define DMA_DEST_FIXED 0x00400000u
@@ -162,6 +163,10 @@ static void RunTimed(uint32_t timing) {
             d->armed = 0;
         }
     }
+}
+
+void PortDmaVisitState(PortStateVisitor visit) {
+    visit(sDma, sizeof(sDma));
 }
 
 void PortDmaHBlank(void) {

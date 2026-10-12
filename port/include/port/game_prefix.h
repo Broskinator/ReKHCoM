@@ -1,7 +1,7 @@
 /*
  * Force-included into every game translation unit of the PC build.
  *
- * Groups the game's mutable globals between the markers in port_markers.c so
- * a soft reset can restore them, like the BIOS clearing work RAM on hardware.
+ * Puts the game's mutable globals in their own PE sections (khdata/khbss) so
+ * soft reset and save states can find exactly them (see port_sections.c).
  */
-#pragma clang section bss = ".bss$kh1" data = ".data$kh1"
+#pragma clang section bss = "khbss" data = "khdata"

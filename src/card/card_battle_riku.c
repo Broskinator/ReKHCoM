@@ -29,6 +29,7 @@
 #include "card_label_data.h"
 #include "card_types.h"
 #include "types.h"
+#include "engine.h"
 #include "gba/macro.h"
 #include <stddef.h>
 #include "card_battle_riku.h"
@@ -2910,7 +2911,20 @@ u8 RikuCardUpdate(CardDisplayWork* work, void* task) {
     return DispatchRikuCardCommand(work, task);
 }
 
+#ifdef PLATFORM_PC
+static void card_2_Body(CardDisplayWork* work);
+
+/* Deck cards: bottom-left corner of the screen. */
 static void card_2(CardDisplayWork* work) {
+    PortHudBegin(-1, 1);
+    card_2_Body(work);
+    PortHudEnd();
+}
+
+static void card_2_Body(CardDisplayWork* work) {
+#else
+static void card_2(CardDisplayWork* work) {
+#endif
     void* gfx;
     ObjAffine* affine;
     u16 y;
@@ -2998,7 +3012,20 @@ static void card_2(CardDisplayWork* work) {
     }
 }
 
+#ifdef PLATFORM_PC
+static void NO_Card_2_Body(CardDisplayWork* work);
+
+/* Deck cards: bottom-left corner of the screen. */
 void NO_Card_2(CardDisplayWork* work) {
+    PortHudBegin(-1, 1);
+    NO_Card_2_Body(work);
+    PortHudEnd();
+}
+
+static void NO_Card_2_Body(CardDisplayWork* work) {
+#else
+void NO_Card_2(CardDisplayWork* work) {
+#endif
     void* gfx;
     u16 y;
 
@@ -3884,7 +3911,20 @@ void UpdateRikuReloadGauge(CardDisplayWork* work) {
     }
 }
 
+#ifdef PLATFORM_PC
+static void Reload_Card_2_Body(CardDisplayWork* work);
+
+/* Reload card: bottom-left corner of the screen. */
 void Reload_Card_2(CardDisplayWork* work) {
+    PortHudBegin(-1, 1);
+    Reload_Card_2_Body(work);
+    PortHudEnd();
+}
+
+static void Reload_Card_2_Body(CardDisplayWork* work) {
+#else
+void Reload_Card_2(CardDisplayWork* work) {
+#endif
     ObjAffine* affine;
     ObjAffine* affine2;
     ReloadGauge* gauge;

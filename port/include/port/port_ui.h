@@ -13,5 +13,7 @@ int PortUiActive(void);
 void PortUiOpenOptions(void);
 /* Called by the title screen while the options hint should be shown. */
 void PortUiTitleHint(void);
+/* Short message in the corner of the screen (UTF-8). */
+void PortUiNotice(const char* text);
 
 #endif

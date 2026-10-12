@@ -105,6 +105,8 @@ int PortRomLoad(void);
 void PortSramLoad(void);
 void PortSramSyncIfDirty(void);
 void PortBiosAreaRefresh(void);
+/* The game's globals: initialised data and zero-initialised data. */
+void PortGameSections(char** data, size_t* dataSize, char** bss, size_t* bssSize);
 
 /* ---- system / frame loop (port_main.c) --------------------------------- */
 

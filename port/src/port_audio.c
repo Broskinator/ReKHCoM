@@ -8,11 +8,13 @@
  *   - the four PSG channels, emulated from the sound registers.
  */
 #include <SDL3/SDL.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "m4a.h"
 #include "port/port.h"
 #include "port/port_audio.h"
+#include "port/port_state.h"
 
 #define OUT_RATE 48000
 #define FRAME_SAMPLES_MAX PORT_MIX_MAX
@@ -333,6 +335,19 @@ static int InM4aBuffer(uint32_t addr) {
 
 /* ---- output -------------------------------------------------------------------- */
 
+void PortAudioVisitState(PortStateVisitor visit) {
+    visit(sPsg, sizeof(sPsg));
+    visit(&sSeqPhase, sizeof(sSeqPhase));
+    visit(&sSeqStep, sizeof(sSeqStep));
+    visit(sFifo, sizeof(sFifo));
+    visit(&sStreamFrac, sizeof(sStreamFrac));
+}
+
+void PortAudioReset(void) {
+    if (sStream != NULL)
+        SDL_ClearAudioStream(sStream);
+}
+
 int PortAudioInit(void) {
     SDL_AudioSpec out = { SDL_AUDIO_F32, 2, OUT_RATE };
 
@@ -391,6 +406,15 @@ static void Queue(int n, int rate) {
         else
             ratio = 1.0f;
         SDL_SetAudioStreamFrequencyRatio(sStream, ratio);
+        if (SDL_getenv("KHCOM_AUDIOLOG")) {
+            static int sTick;
+            if (++sTick % 60 == 0) {
+                SDL_AudioSpec src, dst;
+                SDL_GetAudioStreamFormat(sStream, &src, &dst);
+                PortLog("audio: queued %.0f (avg %.0f, target %.0f) ratio %.4f in %d Hz out %d Hz", queued, sQueuedAvg,
+                        target, ratio, src.freq, dst.freq);
+            }
+        }
     }
 }
 
@@ -455,4 +479,24 @@ void PortAudioFrame(void) {
         sOut[i * 2 + 1] = SDL_clamp(r / 1024.0f * master, -1.0f, 1.0f);
     }
     Queue(n, rate);
+
+    {
+        /* KHCOM_WAVDUMP=file: raw float32 stereo of everything queued, with
+           the rate of each block in a side file (development aid). */
+        static FILE* sDump;
+        static FILE* sDumpRates;
+        const char* path = SDL_getenv("KHCOM_WAVDUMP");
+        if (path != NULL) {
+            if (sDump == NULL) {
+                char rates[512];
+                sDump = fopen(path, "wb");
+                SDL_snprintf(rates, sizeof(rates), "%s.rates", path);
+                sDumpRates = fopen(rates, "w");
+            }
+            if (sDump != NULL) {
+                fwrite(sOut, sizeof(float), (size_t)n * 2, sDump);
+                fprintf(sDumpRates, "%d %d\n", n, rate);
+            }
+        }
+    }
 }

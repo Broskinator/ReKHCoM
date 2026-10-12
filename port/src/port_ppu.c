@@ -16,6 +16,9 @@
 
 #include "port/port.h"
 #include "engine.h"
+#include "port/port_state.h"
+
+extern const void* gMsgwinMapBlocks[4];
 
 PortScreen gPortScreen = { GBA_SCREEN_W, GBA_SCREEN_H, 0, 0, 0 };
 
@@ -48,6 +51,25 @@ static BgLatch sBgLatch[4];
 
 /* Display offsets requested by the game for docking UI (see engine.h). */
 int gPortSpriteShiftX;
+typedef struct BgWorld {
+    PortWorldTileFunc fn;
+    int x;
+    int y;
+    uint16_t hofs;
+    uint16_t vofs;
+    int valid;
+} BgWorld;
+static BgWorld sBgWorld[4];
+static BgWorld sBgWorldLatched[4];
+
+void PortSetBgWorld(int bg, PortWorldTileFunc fn, int originX, int originY) {
+    if (bg >= 0 && bg < 4) {
+        sBgWorld[bg].fn = fn;
+        sBgWorld[bg].x = originX;
+        sBgWorld[bg].y = originY;
+    }
+}
+
 static int sBgShift[4];
 static int sBgShiftLatched[4];
 static int sBgDocked[4];
@@ -55,6 +77,17 @@ static int sBgDockedLatched[4];
 
 /* A docked layer is screen UI moved toward an edge: it shows only what the
    hardware would (no world-map continuation), so parked windows stay hidden. */
+void PortPpuVisitState(PortStateVisitor visit) {
+    visit(sBgLatch, sizeof(sBgLatch));
+    visit(sBgShift, sizeof(sBgShift));
+    visit(sBgShiftLatched, sizeof(sBgShiftLatched));
+    visit(sBgDocked, sizeof(sBgDocked));
+    visit(sBgDockedLatched, sizeof(sBgDockedLatched));
+    visit(sOamExt, sizeof(sOamExt));
+    visit(sBgWorld, sizeof(sBgWorld));
+    visit(sBgWorldLatched, sizeof(sBgWorldLatched));
+}
+
 void PortSetBgShiftX(int bg, int shift) {
     if (bg >= 0 && bg < 4) {
         sBgShift[bg] = shift;
@@ -71,6 +104,35 @@ void PortDockBg(int bg, int shift) {
 
 int PortWideMarginX(void) {
     return gPortScreen.wide ? gPortScreen.originX : 0;
+}
+
+int gPortSpriteShiftY;
+
+int PortWideMarginY(void) {
+    return gPortScreen.wide ? gPortScreen.originY : 0;
+}
+
+/* Anchors nest (a HUD task may draw child tasks), so keep a small stack. */
+static int sHudStack[16][2];
+static int sHudDepth;
+
+void PortHudBegin(int ax, int ay) {
+    if (sHudDepth < 16) {
+        sHudStack[sHudDepth][0] = gPortSpriteShiftX;
+        sHudStack[sHudDepth][1] = gPortSpriteShiftY;
+    }
+    sHudDepth++;
+    gPortSpriteShiftX = ax * PortWideMarginX();
+    gPortSpriteShiftY = ay * PortWideMarginY();
+}
+
+void PortHudEnd(void) {
+    if (sHudDepth > 0)
+        sHudDepth--;
+    if (sHudDepth < 16) {
+        gPortSpriteShiftX = sHudStack[sHudDepth][0];
+        gPortSpriteShiftY = sHudStack[sHudDepth][1];
+    }
 }
 uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
 
@@ -100,6 +162,9 @@ static uint8_t sObjPrio[PORT_MAX_W];
 static uint8_t sObjSemi[PORT_MAX_W];
 static uint8_t sObjWin[PORT_MAX_W];
 static uint8_t sWinMask[PORT_MAX_W];
+/* Wide view: 1 where some layer has world data (or inside the GBA picture);
+   the backdrop shows black elsewhere, i.e. beyond the edge of the world. */
+static uint8_t sInWorld[PORT_MAX_W];
 
 /* Affine background reference points (internal registers). */
 static int32_t sAffX[2], sAffY[2];
@@ -202,6 +267,9 @@ void PortLatchBgMaps(const BgEntry* entries) {
         l->hofs = IO16(0x10 + b * 4) & 0x1FF;
         l->vofs = IO16(0x12 + b * 4) & 0x1FF;
         sBgShiftLatched[b] = sBgShift[b];
+        sBgWorldLatched[b] = sBgWorld[b];
+        sBgWorldLatched[b].hofs = l->hofs;
+        sBgWorldLatched[b].vofs = l->vofs;
         sBgDockedLatched[b] = sBgDocked[b];
     }
 }
@@ -241,6 +309,10 @@ static int ValidateBgLatch(int bg, uint16_t dispcnt) {
 
     if (!(dispcnt & (0x100 << bg)) || l->map == NULL || l->width == 0 || l->height == 0)
         return 0;
+    /* Message window layers are screen UI, never part of the world. */
+    for (i = 0; i < 4; i++)
+        if ((const void*)l->map == gMsgwinMapBlocks[i])
+            return 0;
     if (mode > 1 || (mode == 1 && bg == 2))
         return 0;
     for (i = 0; i < 3; i++) {
@@ -250,6 +322,21 @@ static int ValidateBgLatch(int bg, uint16_t dispcnt) {
                 match++;
         }
     }
+    return match >= 7;
+}
+
+/* Same check for a game-provided world (cell rooms). */
+static int ValidateBgWorld(int bg, uint16_t dispcnt) {
+    static const int xs[3] = { 8, 120, 232 }, ys[3] = { 8, 80, 152 };
+    BgWorld* w = &sBgWorldLatched[bg];
+    int mode = dispcnt & 7, i, j, match = 0;
+
+    if (!(dispcnt & (0x100 << bg)) || w->fn == NULL || mode > 1 || (mode == 1 && bg == 2))
+        return 0;
+    for (i = 0; i < 3; i++)
+        for (j = 0; j < 3; j++)
+            if (w->fn(bg, (w->x + xs[i]) >> 3, (w->y + ys[j]) >> 3) == VramEntry(bg, xs[i], ys[j]))
+                match++;
     return match >= 7;
 }
 
@@ -296,15 +383,34 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             const BgLatch* l = &sBgLatch[bg];
             int we;
 
-            if (!l->valid || sBgDockedLatched[bg]) {
+            if (sBgDockedLatched[bg] || (!l->valid && !sBgWorldLatched[bg].valid)) {
                 out[x] = TRANSPARENT;
                 continue;
+            }
+            if (!l->valid) {
+                const BgWorld* wd = &sBgWorldLatched[bg];
+                int wx = wd->x + gx + (hofs - wd->hofs), wy = wd->y + gy + (vofs - wd->vofs);
+                we = wd->fn(bg, wx >> 3, wy >> 3);
+                if (we < 0) {
+                    out[x] = TRANSPARENT;
+                    continue;
+                }
+                sInWorld[x] = 1;
+                entry = we;
+                px = wx & 7;
+                fy = wy & 7;
+                tile = entry & 0x3FF;
+                fx = (entry & 0x400) ? 7 - px : px;
+                fyy = (entry & 0x800) ? 7 - fy : fy;
+                fy = py & 7;
+                goto pixel;
             }
             we = WorldEntry(l, l->x + gx + (hofs - l->hofs), l->y + gy + (vofs - l->vofs));
             if (we < 0) {
                 out[x] = TRANSPARENT;
                 continue;
             }
+            sInWorld[x] = 1;
             entry = we;
             px = (l->x + gx + (hofs - l->hofs)) & 7;
             fy = (l->y + gy + (vofs - l->vofs)) & 7;
@@ -373,6 +479,7 @@ static void DrawAffineBg(int bg, uint16_t dispcnt) {
             out[x] = TRANSPARENT;
             continue;
         }
+        sInWorld[x] = 1;
         tile = screen[(py >> 3) * tiles + (px >> 3)];
         ci = chars[tile * 64 + (py & 7) * 8 + (px & 7)];
         out[x] = ci ? (PLTT16[ci] & 0x7FFF) : TRANSPARENT;
@@ -674,7 +781,8 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
     for (x = 0; x < w; x++) {
         int gx = x - gPortScreen.originX;
         uint8_t mask = sWinMask[x];
-        uint16_t top = backdrop, second = backdrop;
+        uint16_t bd = sInWorld[x] ? backdrop : 0;
+        uint16_t top = bd, second = bd;
         int topLayer = LAYER_BD, secondLayer = LAYER_BD;
         int found = 0, i, objDone = 0;
         uint16_t col;
@@ -778,6 +886,14 @@ static void RenderLine(int y, int gy) {
         return;
     }
 
+    {
+        int x, inside = !gPortScreen.wide || (gy >= 0 && gy < GBA_SCREEN_H);
+        for (x = 0; x < w; x++) {
+            int gx = x - gPortScreen.originX;
+            sInWorld[x] = inside && (!gPortScreen.wide || (gx >= 0 && gx < GBA_SCREEN_W));
+        }
+    }
+
     for (b = 0; b < 4; b++) {
         bgPrio[b] = IO16(0x08 + b * 2) & 3;
         if (!(dispcnt & (0x100 << b)))
@@ -845,7 +961,14 @@ void PortPpuBeginFrame(void) {
     BuildLut();
     for (b = 0; b < 4; b++) {
         sBgLatch[b].valid = ValidateBgLatch(b, dispcnt);
-        any |= sBgLatch[b].valid;
+        sBgWorldLatched[b].valid = !sBgLatch[b].valid && ValidateBgWorld(b, dispcnt);
+        any |= sBgLatch[b].valid | sBgWorldLatched[b].valid;
+    }
+    /* Large affine stages (battle arenas) are fully in VRAM and extend as is. */
+    for (b = 2; b < 4; b++) {
+        int mode = dispcnt & 7;
+        if ((dispcnt & (0x100 << b)) && (mode == 2 || (mode == 1 && b == 2)) && (IO16(0x08 + b * 2) >> 14) >= 2)
+            any = 1;
     }
     gPortScreen.wide = any && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
                        && !(dispcnt & 0x80);

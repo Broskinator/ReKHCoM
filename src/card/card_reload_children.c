@@ -27,6 +27,7 @@
 #include "card_def_data.h"
 #include "card_types.h"
 #include "types.h"
+#include "engine.h"
 #include "gba/macro.h"
 #include <stddef.h>
 #include "lockon.h"
@@ -168,7 +169,20 @@ s32 UpdateReloadChildAbsorb(ReloadChildWork* work) {
     return 0;
 }
 
+#ifdef PLATFORM_PC
+static void RELOAD_CHILDREN_2_Body(ReloadChildWork* work);
+
+/* Reload cards: bottom-left corner, with the deck. */
 void RELOAD_CHILDREN_2(ReloadChildWork* work) {
+    PortHudBegin(-1, 1);
+    RELOAD_CHILDREN_2_Body(work);
+    PortHudEnd();
+}
+
+static void RELOAD_CHILDREN_2_Body(ReloadChildWork* work) {
+#else
+void RELOAD_CHILDREN_2(ReloadChildWork* work) {
+#endif
     s16 x;
     s16 y;
     ObjAffine* affine;
@@ -420,7 +434,20 @@ u8 UpdateRevCountEmpty(RevCountWork* work, void* task) {
 #define REV_COUNT_SPRITE_FLAGS SPRITE_PRIORITY(1)
 #endif
 
+#ifdef PLATFORM_PC
+static void REV_COUNT_2_Body(RevCountWork* work);
+
+/* Deck counter: bottom-left corner, with the deck. */
 void REV_COUNT_2(RevCountWork* work) {
+    PortHudBegin(-1, 1);
+    REV_COUNT_2_Body(work);
+    PortHudEnd();
+}
+
+static void REV_COUNT_2_Body(RevCountWork* work) {
+#else
+void REV_COUNT_2(RevCountWork* work) {
+#endif
     DrawSprite(work->x >> 8, work->y >> 8, NULL, work->tiles, work->palette, NULL, REV_COUNT_SPRITE_FLAGS, 15);
 }
 
@@ -513,7 +540,20 @@ u8 UpdateReloadSlideOut(ReloadWork* work) {
     return 0;
 }
 
+#ifdef PLATFORM_PC
+static void RELOAD_2_Body(ReloadWork* work);
+
+/* Reload gauge: bottom-left corner, with the deck. */
 void RELOAD_2(ReloadWork* work) {
+    PortHudBegin(-1, 1);
+    RELOAD_2_Body(work);
+    PortHudEnd();
+}
+
+static void RELOAD_2_Body(ReloadWork* work) {
+#else
+void RELOAD_2(ReloadWork* work) {
+#endif
     DrawSprite(work->x >> 8, work->y >> 8, work->gfx, work->tiles, work->palette, NULL, 0, 10);
 }
 

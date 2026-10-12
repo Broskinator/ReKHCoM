@@ -117,6 +117,8 @@ static int sOpen;
 static int sCursor;
 static int sScroll;
 static int sTitleHintFrames;
+static char sNotice[96];
+static int sNoticeFrames;
 static int sModeW[64], sModeH[64], sModeCount;
 static uint32_t sPadBack;
 
@@ -425,6 +427,28 @@ static void Close(void) {
     PortInputSuppressUntilRelease();
 }
 
+void PortUiNotice(const char* text) {
+    static const char* const prefix[LANG_COUNT][4] = {
+        { "State", "saved", "loaded", "Slot" },
+        { "État", "sauvegardé", "chargé", "Emplacement" },
+        { "Zustand", "gespeichert", "geladen", "Platz" },
+        { "Stato", "salvato", "caricato", "Slot" },
+        { "Estado", "guardado", "cargado", "Ranura" },
+    };
+    int l = Lang(), n;
+
+    /* Translate the few messages the platform layer emits. */
+    if (SDL_sscanf(text, "State %d saved", &n) == 1 && SDL_strstr(text, "saved"))
+        SDL_snprintf(sNotice, sizeof(sNotice), "%s %d %s", prefix[l][0], n, prefix[l][1]);
+    else if (SDL_sscanf(text, "State %d loaded", &n) == 1 && SDL_strstr(text, "loaded"))
+        SDL_snprintf(sNotice, sizeof(sNotice), "%s %d %s", prefix[l][0], n, prefix[l][2]);
+    else if (SDL_sscanf(text, "Slot %d", &n) == 1)
+        SDL_snprintf(sNotice, sizeof(sNotice), "%s %d", prefix[l][3], n);
+    else
+        SDL_strlcpy(sNotice, text, sizeof(sNotice));
+    sNoticeFrames = 120;
+}
+
 void PortUiTitleHint(void) {
     sTitleHintFrames = 2;
 }
@@ -554,6 +578,13 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
     sFbW = width;
     sFbH = height;
 
+    if (sNoticeFrames > 0) {
+        int w = TextWidth(sNotice) + 12;
+        sNoticeFrames--;
+        Shade(4, 4, w, 14, COL_PANEL, 200);
+        Rect(4, 4, w, 14, COL_BORDER);
+        DrawText(sNotice, 10, 6, COL_TEXT, COL_SHADOW);
+    }
     if (!sOpen) {
         if (sTitleHintFrames > 0) {
             const char* hint = sTitleHint[l];

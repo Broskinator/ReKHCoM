@@ -15,6 +15,7 @@
 
 #include "port/port.h"
 #include "port/port_ui.h"
+#include "port/port_state.h"
 
 typedef volatile unsigned int vu32;
 
@@ -23,8 +24,11 @@ typedef void (*IntrFunc)(void);
 extern void AgbMain(void);
 extern IntrFunc gIntrTable[];
 
-/* Bounds of the game's mutable globals (see port/game_prefix.h). */
-extern char __kh_data_start[], __kh_data_end[], __kh_bss_start[], __kh_bss_end[];
+/* The game's mutable globals (see port/game_prefix.h). */
+static char* sGameData;
+static size_t sGameDataSize;
+static char* sGameBss;
+static size_t sGameBssSize;
 
 static SDL_Window* sWindow;
 static SDL_Renderer* sRenderer;
@@ -371,6 +375,20 @@ static void HarnessFrame(void) {
     const char* quit = SDL_getenv("KHCOM_QUIT");
     const char* ui = SDL_getenv("KHCOM_OPTIONS_SHOT");
     const char* oam = SDL_getenv("KHCOM_OAMDUMP");
+    const char* saveAt = SDL_getenv("KHCOM_SAVESTATE");
+
+    /* KHCOM_SAVESTATE=frame:path[,frame:path...] */
+    while (saveAt && *saveAt) {
+        const char* colon = SDL_strchr(saveAt, ':');
+        const char* comma = SDL_strchr(saveAt, ',');
+        if (colon && (uint32_t)SDL_atoi(saveAt) == sFrameCount) {
+            char path[512];
+            size_t n = comma ? (size_t)(comma - colon - 1) : SDL_strlen(colon + 1);
+            SDL_strlcpy(path, colon + 1, SDL_min(n + 1, sizeof(path)));
+            PortStateRequestSave(PortConfigPath(path));
+        }
+        saveAt = comma ? comma + 1 : NULL;
+    }
 
     if (oam && HarnessListHas(oam, sFrameCount)) {
         extern void PortPpuDumpOam(void);
@@ -425,6 +443,23 @@ static void PumpEvents(void) {
                 Quit();
                 break;
             case SDL_EVENT_KEY_DOWN:
+                if (!ev.key.repeat && ev.key.key == SDLK_F5) {
+                    PortStateRequestSave(NULL);
+                    continue;
+                }
+                if (!ev.key.repeat && ev.key.key == SDLK_F9) {
+                    PortStateRequestLoad(NULL);
+                    continue;
+                }
+                if (ev.key.key == SDLK_F6 || ev.key.key == SDLK_F7) {
+                    char msg[32];
+                    gPortStateSlot = (gPortStateSlot + (ev.key.key == SDLK_F7 ? 1 : 8)) % 9;
+                    if (gPortStateSlot == 0)
+                        gPortStateSlot = 9;
+                    SDL_snprintf(msg, sizeof(msg), "Slot %d", gPortStateSlot);
+                    PortUiNotice(msg);
+                    continue;
+                }
                 if ((ev.key.key == SDLK_RETURN && (ev.key.mod & SDL_KMOD_ALT)) || ev.key.key == SDLK_F11) {
                     gPortConfig.fullscreen = !gPortConfig.fullscreen;
                     ApplyWindowMode();
@@ -523,6 +558,15 @@ static void VBlankCycle(void) {
         static uint64_t last;
         uint64_t t = SDL_GetPerformanceCounter();
         extern vu32 gVBlankCounter, gFrameCounter;
+        {
+            extern char gMPlayInfo_BGM[];
+            extern void* gSoundInfoPtr;
+            const uint8_t* m = (const uint8_t*)gMPlayInfo_BGM;
+            const uint8_t* si = (const uint8_t*)gSoundInfoPtr;
+            PortLog("bgm: song %08x clock %u tempoD %u tempoI %u | mix freq %d spv %d", *(uint32_t*)m,
+                    *(uint32_t*)(m + 0x0C), *(uint16_t*)(m + 0x1C), *(uint16_t*)(m + 0x20),
+                    si ? *(int32_t*)(si + 0x14) : 0, si ? *(int32_t*)(si + 0x10) : 0);
+        }
         if (last)
             PortLog("timing: 300 frames in %.3f s (%.2f Hz), vblanks %u, game updates %u",
                     (double)(t - last) / sPerfFreq, 300.0 * sPerfFreq / (double)(t - last), (unsigned)gVBlankCounter,
@@ -542,6 +586,7 @@ extern volatile unsigned short gFrameSyncFlags;
 #define FRAME_SYNC_FRAME_READY 0x4
 
 void PortFrame(void) {
+    PortStateService();
     if (gPortConfig.gameSpeed == 0 && (gFrameSyncFlags & FRAME_SYNC_FRAME_READY)) {
         gFrameSyncFlags &= ~FRAME_SYNC_FRAME_READY;
         VBlankCycle();
@@ -553,8 +598,8 @@ void PortFrame(void) {
 /* ---- reset ----------------------------------------------------------------------- */
 
 void PortSoftReset(void) {
-    memcpy(__kh_data_start, sDataSnapshot, sDataSize);
-    memset(__kh_bss_start, 0, (size_t)(__kh_bss_end - __kh_bss_start));
+    memcpy(sGameData, sDataSnapshot, sDataSize);
+    memset(sGameBss, 0, sGameBssSize);
     memset((void*)(uintptr_t)GBA_IO, 0, GBA_IO_SIZE);
     longjmp(sResetJmp, 1);
 }
@@ -602,9 +647,11 @@ int main(int argc, char** argv) {
     PortUiInit();
 
     PortBiosAreaRefresh();
-    sDataSize = (size_t)(__kh_data_end - __kh_data_start);
+    PortGameSections(&sGameData, &sGameDataSize, &sGameBss, &sGameBssSize);
+    sDataSize = sGameDataSize;
     sDataSnapshot = malloc(sDataSize ? sDataSize : 1);
-    memcpy(sDataSnapshot, __kh_data_start, sDataSize);
+    memcpy(sDataSnapshot, sGameData, sDataSize);
+    PortLog("Game globals: data %u bytes, bss %u bytes", (unsigned)sGameDataSize, (unsigned)sGameBssSize);
 
     {
         extern void PortWatchdogStart(void);
@@ -612,6 +659,8 @@ int main(int argc, char** argv) {
         PortCrashHandlerInstall();
         PortWatchdogStart();
     }
+    if (SDL_getenv("KHCOM_LOADSTATE"))
+        PortStateRequestLoad(PortConfigPath(SDL_getenv("KHCOM_LOADSTATE")));
     setjmp(sResetJmp);
     IO16(0x130) = 0x3FF;
     AgbMain();
