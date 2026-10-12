@@ -871,7 +871,11 @@ void UpdateSpriteOam() {
             x += (s16)entry->x;
             y += (s16)entry->y;
 
+#ifdef PLATFORM_PC
+            if (x > VIEW_RIGHT - 1 || x <= VIEW_LEFT - width || y > VIEW_BOTTOM - 1 || y <= VIEW_TOP - height) {
+#else
             if (x > DISPLAY_WIDTH - 1 || x <= -width || y > DISPLAY_HEIGHT - 1 || y <= -height) {
+#endif
                 if (((ObjTiles*)entry->tiles)->allocated) {
                     tileOffset += GetObjTileCount(attr0, attr1);
                 }
@@ -881,6 +885,10 @@ void UpdateSpriteOam() {
 
             oam[0] = (attr0 & ~OAM_Y_MASK) | (y & OAM_Y_MASK);
             oam[1] = (attr1 & ~OAM_X_MASK) | (x & OAM_X_MASK);
+#ifdef PLATFORM_PC
+            /* Full-range position for the wide view (OAM keeps 9/8 bits). */
+            PortOamSetPosition(emitted, x, y);
+#endif
             tiles = entry->tiles;
 
             if (tiles->allocated) {
@@ -970,6 +978,11 @@ u8 IsRectOutsideScreen(s16 x, s16 y, s32 topExtent, s32 bottomExtent, s32 leftEx
     u16 left = leftExtent;
     s16 right = rightExtent;
 
+#ifdef PLATFORM_PC
+    if (x + right < VIEW_LEFT || x - (s16)left > VIEW_RIGHT || y + (s16)bottom < VIEW_TOP || y - (s16)top > VIEW_BOTTOM) {
+        return TRUE;
+    }
+#else
     if (x + right < 0) {
         return TRUE;
     }
@@ -985,6 +998,7 @@ u8 IsRectOutsideScreen(s16 x, s16 y, s32 topExtent, s32 bottomExtent, s32 leftEx
     if (y - (s16)top > DISPLAY_HEIGHT) {
         return TRUE;
     }
+#endif
 
     return FALSE;
 }
@@ -1555,6 +1569,10 @@ void CommitDisplayRegs() {
     REG_BG3Y = gBg3Y;
     REG_DISPCNT = gDispCnt;
     *(vu16*)PLTT = gBackdropColor;
+#ifdef PLATFORM_PC
+    /* Map positions that go with the scroll registers just written. */
+    PortLatchBgMaps(gBgWork->entries);
+#endif
 }
 
 void VTransInit() {

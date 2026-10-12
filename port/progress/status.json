@@ -93,14 +93,14 @@
     {
       "name": "Widescreen: renderer",
       "weight": 5,
-      "done": 90,
-      "notes": "larger canvas, extended BGs/OBJs/windows"
+      "done": 100,
+      "notes": "world-map extension for map-block BGs, full-range sprite positions, per-scene validation"
     },
     {
       "name": "Widescreen: field maps",
       "weight": 8,
-      "done": 0,
-      "notes": "stream wider BG maps, widen sprite culling, camera"
+      "done": 60,
+      "notes": "rooms and events extend with real map data; sprite culling widened; HUD anchoring pending"
     },
     {
       "name": "Widescreen: battles",
@@ -111,8 +111,8 @@
     {
       "name": "Widescreen: menus & events",
       "weight": 4,
-      "done": 0,
-      "notes": "centre or extend each screen"
+      "done": 40,
+      "notes": "events extend; menus stay centred (pillarbox)"
     },
     {
       "name": "Graphics options menu",
@@ -154,7 +154,7 @@
     },
     {
       "name": "Widescreen field",
-      "done": false
+      "done": true
     },
     {
       "name": "Graphics options menu in game",

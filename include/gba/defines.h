@@ -30,4 +30,24 @@
 #define TILE_SIZE_4BPP 32
 #define PLTT_SIZE_4BPP 32
 
+/*
+ * Visible area in screen coordinates. On hardware it is the 240x160 LCD; the
+ * PC build can show more around it (wide view), so sprite culling uses these.
+ */
+#ifdef PLATFORM_PC
+extern int gPortViewLeft;
+extern int gPortViewTop;
+extern int gPortViewRight;
+extern int gPortViewBottom;
+#define VIEW_LEFT gPortViewLeft
+#define VIEW_TOP gPortViewTop
+#define VIEW_RIGHT gPortViewRight
+#define VIEW_BOTTOM gPortViewBottom
+#else
+#define VIEW_LEFT 0
+#define VIEW_TOP 0
+#define VIEW_RIGHT DISPLAY_WIDTH
+#define VIEW_BOTTOM DISPLAY_HEIGHT
+#endif
+
 #endif

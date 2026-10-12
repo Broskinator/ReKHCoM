@@ -15,8 +15,36 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "engine.h"
 
 PortScreen gPortScreen = { GBA_SCREEN_W, GBA_SCREEN_H, 0, 0, 0 };
+
+/* Area the game should keep sprites alive in (see VIEW_* in gba/defines.h). */
+int gPortViewLeft = 0;
+int gPortViewTop = 0;
+int gPortViewRight = GBA_SCREEN_W;
+int gPortViewBottom = GBA_SCREEN_H;
+
+/* Full-range sprite positions written alongside OAM by UpdateSpriteOam. */
+typedef struct OamExt {
+    int16_t x;
+    int16_t y;
+} OamExt;
+static OamExt sOamExt[128];
+
+/* Map-block backgrounds as they were when the scroll registers were last
+   committed: lets the wide view draw the world beyond the VRAM window. */
+typedef struct BgLatch {
+    void* const* map;
+    int width;
+    int height;
+    int x;
+    int y;
+    uint16_t hofs;
+    uint16_t vofs;
+    int valid;
+} BgLatch;
+static BgLatch sBgLatch[4];
 uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
 
 #define PLTT16 ((const uint16_t*)(uintptr_t)GBA_PLTT)
@@ -107,6 +135,79 @@ void PortPpuSetResolution(int w, int h) {
     gPortScreen.height = h;
     gPortScreen.originX = (w - GBA_SCREEN_W) / 2;
     gPortScreen.originY = (h - GBA_SCREEN_H) / 2;
+    gPortViewLeft = -gPortScreen.originX;
+    gPortViewTop = -gPortScreen.originY;
+    gPortViewRight = w - gPortScreen.originX;
+    gPortViewBottom = h - gPortScreen.originY;
+}
+
+void PortOamSetPosition(int index, int x, int y) {
+    if (index >= 0 && index < 128) {
+        sOamExt[index].x = (int16_t)x;
+        sOamExt[index].y = (int16_t)y;
+    }
+}
+
+void PortLatchBgMaps(const BgEntry* entries) {
+    int b;
+
+    for (b = 0; b < 4; b++) {
+        BgLatch* l = &sBgLatch[b];
+        l->map = entries[b].map;
+        l->width = entries[b].width;
+        l->height = entries[b].height;
+        l->x = entries[b].x;
+        l->y = entries[b].y;
+        l->hofs = IO16(0x10 + b * 4) & 0x1FF;
+        l->vofs = IO16(0x12 + b * 4) & 0x1FF;
+    }
+}
+
+/* Screen entry of the world map at world pixel (wx, wy); -1 outside it. */
+static int WorldEntry(const BgLatch* l, int wx, int wy) {
+    const uint16_t* block;
+
+    if (wx < 0 || wy < 0 || wx >= l->width * 256 || wy >= l->height * 256)
+        return -1;
+    block = (const uint16_t*)l->map[(wy >> 8) * l->width + (wx >> 8)];
+    if (block == NULL)
+        return -1;
+    return block[((wy & 255) >> 3) * 32 + ((wx & 255) >> 3)];
+}
+
+static int VramEntry(int bg, int gx, int gy) {
+    uint16_t cnt = IO16(0x08 + bg * 2);
+    const uint16_t* screen = (const uint16_t*)(VRAM8 + ((cnt >> 8) & 31) * 0x800);
+    int size = cnt >> 14;
+    int px = (gx + (IO16(0x10 + bg * 4) & 0x1FF)) & ((size & 1) ? 511 : 255);
+    int py = (gy + (IO16(0x12 + bg * 4) & 0x1FF)) & ((size & 2) ? 511 : 255);
+    int tx = px >> 3, ty = py >> 3, block = 0;
+
+    if (tx >= 32)
+        block += 1;
+    if (ty >= 32)
+        block += (size == 3) ? 2 : 1;
+    return screen[block * 0x400 + (ty & 31) * 32 + (tx & 31)];
+}
+
+/* A map-block BG can be extended when what VRAM shows is the world map. */
+static int ValidateBgLatch(int bg, uint16_t dispcnt) {
+    static const int xs[3] = { 8, 120, 232 }, ys[3] = { 8, 80, 152 };
+    BgLatch* l = &sBgLatch[bg];
+    int mode = dispcnt & 7, i, j, match = 0;
+
+    if (!(dispcnt & (0x100 << bg)) || l->map == NULL || l->width == 0 || l->height == 0)
+        return 0;
+    if (mode > 1 || (mode == 1 && bg == 2))
+        return 0;
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            int we = WorldEntry(l, l->x + xs[i], l->y + ys[j]);
+            if (we >= 0 && we == VramEntry(bg, xs[i], ys[j]))
+                match++;
+        }
+    }
+    return match >= 7;
 }
 
 /* ---- backgrounds --------------------------------------------------------- */
@@ -125,7 +226,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     int mosH = mosaic ? (IO16(0x4C) & 15) + 1 : 1;
     int mosV = mosaic ? ((IO16(0x4C) >> 4) & 15) + 1 : 1;
     uint16_t* out = sBgLine[bg];
-    int x, py, ty, fy;
+    int x, py, ty, fy, outside;
     int w = gPortScreen.width;
 
     (void)dispcnt;
@@ -134,6 +235,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     py = (gy + vofs) & hmask;
     ty = py >> 3;
     fy = py & 7;
+    outside = gy < 0 || gy >= GBA_SCREEN_H;
 
     for (x = 0; x < w; x++) {
         int gx = x - gPortScreen.originX;
@@ -146,6 +248,29 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
         }
         if (mosH > 1)
             gx -= ((gx % mosH) + mosH) % mosH;
+        if (outside || gx < 0 || gx >= GBA_SCREEN_W) {
+            /* Beyond the hardware picture: only map-block layers continue. */
+            const BgLatch* l = &sBgLatch[bg];
+            int we;
+
+            if (!l->valid) {
+                out[x] = TRANSPARENT;
+                continue;
+            }
+            we = WorldEntry(l, l->x + gx + (hofs - l->hofs), l->y + gy + (vofs - l->vofs));
+            if (we < 0) {
+                out[x] = TRANSPARENT;
+                continue;
+            }
+            entry = we;
+            px = (l->x + gx + (hofs - l->hofs)) & 7;
+            fy = (l->y + gy + (vofs - l->vofs)) & 7;
+            tile = entry & 0x3FF;
+            fx = (entry & 0x400) ? 7 - px : px;
+            fyy = (entry & 0x800) ? 7 - fy : fy;
+            fy = py & 7;
+            goto pixel;
+        }
         px = (gx + hofs) & wmask;
         tx = px >> 3;
         block = 0;
@@ -158,6 +283,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
         tile = entry & 0x3FF;
         fx = (entry & 0x400) ? 7 - (px & 7) : (px & 7);
         fyy = (entry & 0x800) ? 7 - fy : fy;
+    pixel:
         if (bpp8) {
             uint32_t off = tile * 64 + fyy * 8 + fx;
             ci = (((cnt >> 2) & 3) * 0x4000 + off < 0x10000) ? chars[off] : 0;
@@ -291,11 +417,16 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
 
         /* Decode the 8-bit Y and 9-bit X against the visible span. */
         oy = a0 & 0xFF;
-        if (oy >= sBottom)
-            oy -= 256;
         ox = a1 & 0x1FF;
-        if (ox >= sRight)
-            ox -= 512;
+        if ((sOamExt[i].x & 0x1FF) == ox && (sOamExt[i].y & 0xFF) == oy) {
+            ox = sOamExt[i].x;
+            oy = sOamExt[i].y;
+        } else {
+            if (oy >= sBottom)
+                oy -= 256;
+            if (ox >= sRight)
+                ox -= 512;
+        }
         if (ox >= sRight || ox + bw <= sLeft)
             continue;
 
@@ -665,7 +796,16 @@ static void HBlank(int line) {
 }
 
 void PortPpuBeginFrame(void) {
+    uint16_t dispcnt = IO16(0x00);
+    int b, any = 0;
+
     BuildLut();
+    for (b = 0; b < 4; b++) {
+        sBgLatch[b].valid = ValidateBgLatch(b, dispcnt);
+        any |= sBgLatch[b].valid;
+    }
+    gPortScreen.wide = any && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
+                       && !(dispcnt & 0x80);
     if (gPortScreen.wide) {
         sLeft = -gPortScreen.originX;
         sRight = gPortScreen.width - gPortScreen.originX;

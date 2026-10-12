@@ -32,6 +32,11 @@ typedef struct BgEntry {
 #endif
 } BgEntry;
 
+#ifdef PLATFORM_PC
+void PortLatchBgMaps(const BgEntry* entries);
+void PortOamSetPosition(int index, int x, int y);
+#endif
+
 typedef struct BgWork {
     BgEntry entries[BG_ENTRY_COUNT];
 } BgWork;
