@@ -264,7 +264,6 @@ MoviePlayer* MovieOpen(void* a) {
         p->audioData = (u8*)q;
         p->audioPos = (u8*)q;
         q = (u32*)((u8*)q + n);
-        // @bug The first block can decode to 0x2100 bytes (overflow).
         p->audioBuf = gMovieHeap.ewramAlloc(0x2000);
         MovieSetupAudioCodec(p, &p->decodeAudio, p->audioCodecId);
     }

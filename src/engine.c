@@ -1940,7 +1940,6 @@ void BgFree() {
 }
 
 void* GetBgMapBlock(BgEntry* entry, u16 x, u16 y) {
-    // @bug Called for a background without a map yet (division by zero, NULL read).
     u8 col = (x >> 8) % entry->width;
     u8 row = (y >> 8) % entry->height;
 
