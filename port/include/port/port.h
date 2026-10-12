@@ -36,8 +36,8 @@
 #define GBA_FPS 59.7275
 
 /* Largest internal resolution the renderer supports. */
-#define PORT_MAX_W 512
-#define PORT_MAX_H 288
+#define PORT_MAX_W 640
+#define PORT_MAX_H 360
 
 #define IO8(off) (*(volatile uint8_t*)(uintptr_t)(GBA_IO + (off)))
 #define IO16(off) (*(volatile uint16_t*)(uintptr_t)(GBA_IO + (off)))
@@ -50,6 +50,7 @@ enum PortViewMode {
     PORT_VIEW_WIDE,       /* 16:9 at the original height */
     PORT_VIEW_EXTENDED,   /* 16:9, more of the world in both directions */
     PORT_VIEW_MAXIMUM,    /* 16:9, as far out as the engine allows */
+    PORT_VIEW_AUTO,       /* fill the window at a whole-number pixel scale */
     PORT_VIEW_COUNT
 };
 
@@ -69,6 +70,7 @@ enum PortFilter {
 
 typedef struct PortConfig {
     int viewMode;
+    int zoom;             /* PORT_VIEW_AUTO: 0 near .. 3 far */
     int scaleMode;
     int filter;
     int fullscreen;
@@ -90,6 +92,8 @@ extern PortConfig gPortConfig;
 void PortConfigLoad(void);
 void PortConfigSave(void);
 void PortConfigView(int mode, int* w, int* h);
+/* Internal size and pixel scale that fill an outW x outH output (auto view). */
+void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale);
 const char* PortConfigPath(const char* name);
 
 /* ---- memory (port_memory.c) -------------------------------------------- */

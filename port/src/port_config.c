@@ -8,7 +8,8 @@
 #include "port/port.h"
 
 PortConfig gPortConfig = {
-    PORT_VIEW_EXTENDED, /* viewMode */
+    PORT_VIEW_AUTO,     /* viewMode */
+    1,                  /* zoom */
     PORT_SCALE_INTEGER, /* scaleMode */
     PORT_FILTER_NEAREST, /* filter */
     0,                  /* fullscreen */
@@ -25,6 +26,10 @@ PortConfig gPortConfig = {
     100,                /* sfxVolume */
 };
 
+#define CONFIG_VERSION 2
+
+static int sConfigVersion;
+
 typedef struct Key {
     const char* name;
     int* value;
@@ -33,7 +38,9 @@ typedef struct Key {
 } Key;
 
 static const Key sKeys[] = {
+    { "config_version", &sConfigVersion, 0, 1000 },
     { "view_mode", &gPortConfig.viewMode, 0, PORT_VIEW_COUNT - 1 },
+    { "zoom", &gPortConfig.zoom, 0, 3 },
     { "scale_mode", &gPortConfig.scaleMode, 0, PORT_SCALE_COUNT - 1 },
     { "filter", &gPortConfig.filter, 0, PORT_FILTER_COUNT - 1 },
     { "fullscreen", &gPortConfig.fullscreen, 0, 1 },
@@ -91,6 +98,24 @@ void PortConfigView(int mode, int* w, int* h) {
     }
 }
 
+void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale) {
+    static const int target[4] = { 160, 180, 216, 240 };
+    int s = outH / target[SDL_clamp(gPortConfig.zoom, 0, 3)];
+
+    if (s < 1)
+        s = 1;
+    /* Grow the scale until the canvas fits the renderer's limits. */
+    while ((outW + s - 1) / s > PORT_MAX_W || (outH + s - 1) / s > PORT_MAX_H)
+        s++;
+    *w = (outW + s - 1) / s;
+    *h = (outH + s - 1) / s;
+    if (*w < GBA_SCREEN_W)
+        *w = GBA_SCREEN_W;
+    if (*h < GBA_SCREEN_H)
+        *h = GBA_SCREEN_H;
+    *scale = s;
+}
+
 void PortConfigLoad(void) {
     FILE* f = fopen(PortConfigPath("kh_com.ini"), "r");
     char line[256];
@@ -112,6 +137,9 @@ void PortConfigLoad(void) {
         }
     }
     fclose(f);
+    /* Settings files from before the auto view switch to it once. */
+    if (sConfigVersion < CONFIG_VERSION)
+        gPortConfig.viewMode = PORT_VIEW_AUTO;
 }
 
 void PortConfigSave(void) {
@@ -121,6 +149,7 @@ void PortConfigSave(void) {
     if (f == NULL)
         return;
     fprintf(f, "# Kingdom Hearts: Chain of Memories (PC) settings\n");
+    sConfigVersion = CONFIG_VERSION;
     for (i = 0; i < sizeof(sKeys) / sizeof(sKeys[0]); i++)
         fprintf(f, "%s=%d\n", sKeys[i].name, *sKeys[i].value);
     fclose(f);

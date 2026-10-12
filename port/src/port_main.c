@@ -186,9 +186,36 @@ filter:
     SDL_SetTextureScaleMode(sTexture, mode);
 }
 
+static int sAutoScale;
+
+/* Auto view: size the canvas to the window every frame. */
+static void UpdateResolution(void) {
+    int outW, outH, w, h;
+
+    if (gPortConfig.viewMode != PORT_VIEW_AUTO) {
+        sAutoScale = 0;
+        PortConfigView(gPortConfig.viewMode, &w, &h);
+    } else {
+        if (!SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH) || outW <= 0 || outH <= 0)
+            return;
+        PortConfigAutoView(outW, outH, &w, &h, &sAutoScale);
+    }
+    if (w != gPortScreen.width || h != gPortScreen.height)
+        PortPpuSetResolution(w, h);
+}
+
 static void OutputRect(int outW, int outH, SDL_FRect* dst) {
     float sw = (float)gPortScreen.width, sh = (float)gPortScreen.height;
     float scale;
+
+    if (sAutoScale > 0) {
+        /* Whole-number scale; the canvas may overhang the window by < 1 pixel. */
+        dst->w = sw * sAutoScale;
+        dst->h = sh * sAutoScale;
+        dst->x = (float)((outW - (int)dst->w) / 2);
+        dst->y = (float)((outH - (int)dst->h) / 2);
+        return;
+    }
 
     switch (gPortConfig.scaleMode) {
         case PORT_SCALE_STRETCH:
@@ -401,6 +428,7 @@ int PortPacedByVsync(void) {
 void PortFrame(void) {
     *(volatile uint16_t*)(uintptr_t)0x03007FF8 &= ~1; /* BIOS IntrCheck */
     PortBiosAreaRefresh();
+    UpdateResolution();
 
     /* Visible lines (HBlank / VCount events in between). */
     PortPpuRenderFrame();
