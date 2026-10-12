@@ -3,15 +3,15 @@
 Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
-**v0.1 is an early Windows prerelease.** It boots into gameplay, supports wider
-views and graphics options, and saves to disk. Full playthroughs have not been
-verified. Opening and other movies are skipped in this release.
+**v0.2 is an early Windows prerelease.** It boots into gameplay, plays the game's
+movies, runs at the cartridge's speed, supports wider views, graphics and
+quality-of-life options, and saves to disk. Full playthroughs have not been verified.
 
 Download the Windows ZIP from [Releases](https://github.com/MatyMeatBoy/ReKHCom/releases).
 See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
-Development now includes native movie playback. See [the movie implementation
-and verification notes](port/MOVIES.md); v0.1 remains the earlier baseline.
+Movies play with native C codecs; see [the movie implementation and verification
+notes](port/MOVIES.md).
 
 ![progress](port/progress/progress.svg)
 
@@ -32,9 +32,9 @@ See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
   mosaic, HBlank effects), m4a sequencer/mixer in C, PSG emulation, BIOS, DMA, input,
   settings and the wide-view renderer.
 
-## Running v0.1 (Windows)
+## Running v0.2 (Windows)
 
-1. Extract `ReKHCoM-v0.1-windows-x86.zip` into a writable folder.
+1. Extract `ReKHCoM-v0.2-windows-x86.zip` into a writable folder.
 2. Place your European cartridge dump next to `khcom.exe`, named `baserom.gba`.
 3. Run `khcom.exe` and select your language.
 
@@ -49,7 +49,7 @@ trying new builds. Save states are specific to the build that created them.
 
 ### Known limitations
 
-- Movies are skipped in v0.1; native decoding is the next development priority.
+- Movie transitions during events and the ending still need verification.
 - Neither Sora's story nor Reverse/Rebirth has a verified full playthrough.
 - Some rendering, audio streaming, and widescreen scenes still need verification.
 - Controls use fixed default bindings; remapping is not implemented.
@@ -79,7 +79,7 @@ your dump during the first configure step.
 To make a distributable ZIP without ROMs, saves or local settings:
 
 ```sh
-python port/tools/package_release.py --version v0.1 --sdl ../toolchain/SDL3-3.4.18
+python port/tools/package_release.py --version v0.2 --sdl ../toolchain/SDL3-3.4.18
 ```
 
 ## Controls
