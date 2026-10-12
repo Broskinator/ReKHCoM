@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Package an existing Windows build using an explicit, ROM-free file list."""
+import argparse
+import hashlib
+import re
+import zipfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--version", required=True)
+    parser.add_argument("--build", type=Path, default=ROOT / "build/pc")
+    parser.add_argument("--sdl", type=Path, required=True)
+    parser.add_argument("--out", type=Path, default=ROOT / "build/releases")
+    args = parser.parse_args()
+    if not re.fullmatch(r"v\d+\.\d+(?:\.\d+)?(?:-[A-Za-z0-9.-]+)?", args.version):
+        parser.error("version must look like v0.1 or v0.1.1")
+    files = {
+        "khcom.exe": args.build / "khcom.exe",
+        "SDL3.dll": args.build / "SDL3.dll",
+        "README.md": ROOT / "README.md",
+        "CHANGELOG.md": ROOT / "CHANGELOG.md",
+        "LICENSE.md": ROOT / "LICENSE.md",
+        "SDL3-LICENSE.txt": args.sdl / "LICENSE.txt",
+    }
+    for source in files.values():
+        if not source.is_file():
+            parser.error(f"missing package input: {source}")
+    args.out.mkdir(parents=True, exist_ok=True)
+    archive = args.out / f"OpenKHCoM-{args.version}-windows-x86.zip"
+    prefix = archive.stem
+    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+        for name, source in files.items():
+            z.write(source, f"{prefix}/{name}")
+    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+    checksum = archive.with_suffix(".zip.sha256")
+    checksum.write_text(f"{digest}  {archive.name}\n", encoding="ascii")
+    print(f"Created {archive} ({archive.stat().st_size:,} bytes)")
+    print(f"SHA-256: {digest}")
+    print("Package files: " + ", ".join(files))
+
+
+if __name__ == "__main__":
+    main()

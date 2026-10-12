@@ -3,10 +3,12 @@
 Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
-> **Resumen (ES):** port nativo para PC basado en la decompilación. El código del juego
-> corre tal cual en x86; una capa de plataforma (SDL3) sustituye al hardware de la GBA:
-> vídeo, sonido, BIOS, DMA, interrupciones y guardado. Incluye vista panorámica 16:9 que
-> conserva el pixel art a escala 1:1 y opciones gráficas.
+**v0.1 is an early Windows prerelease.** It boots into gameplay, supports wider
+views and graphics options, and saves to disk. Full playthroughs have not been
+verified. Opening and other movies are skipped in this release.
+
+Download the Windows ZIP from [Releases](https://github.com/MatyMeatBoy/OpenKHCoM/releases).
+See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ![progress](port/progress/progress.svg)
 
@@ -27,6 +29,29 @@ See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
   mosaic, HBlank effects), m4a sequencer/mixer in C, PSG emulation, BIOS, DMA, input,
   settings and the wide-view renderer.
 
+## Running v0.1 (Windows)
+
+1. Extract `OpenKHCoM-v0.1-windows-x86.zip` into a writable folder.
+2. Place your European cartridge dump next to `khcom.exe`, named `baserom.gba`.
+3. Run `khcom.exe` and select your language.
+
+The supported ROM is 32 MiB, cartridge code `B8CP`, SHA-1
+`8db73586cdb11b3795907edebf43228dbcd3e6b2`. US and Japanese ROMs are not supported
+by the PC build. The ZIP includes SDL3; you do not need to install it separately.
+The executable is 32-bit x86 and has been tested locally on Windows only.
+
+Settings (`kh_com.ini`), your cartridge save (`kh_com.sav`), and the diagnostic
+log (`kh_com.log`) are stored next to the executable. Back up your save before
+trying new builds. Save states are specific to the build that created them.
+
+### Known limitations
+
+- Movies are skipped in v0.1; native decoding is the next development priority.
+- Neither Sora's story nor Reverse/Rebirth has a verified full playthrough.
+- Some rendering, audio streaming, and widescreen scenes still need verification.
+- Controls use fixed default bindings; remapping is not implemented.
+- Linux and macOS builds are not available.
+
 ## Building (Windows)
 
 Requirements: Python 3 with PyYAML, [llvm-mingw](https://github.com/mstorsjo/llvm-mingw),
@@ -34,14 +59,25 @@ Requirements: Python 3 with PyYAML, [llvm-mingw](https://github.com/mstorsjo/llv
 By default the tools are looked up in `../toolchain/`.
 
 ```sh
-cp /path/to/your/dump.gba roms/B8CP.gba
-python tools/extract_assets.py eu        # optional; text is extracted on configure
+git clone https://github.com/MatyMeatBoy/OpenKHCoM.git
+cd OpenKHCoM
+python -m pip install pyyaml
+# Copy your European dump to roms/B8CP.gba before configuring.
 python port/configure_pc.py              # --debug for a console build
 ninja -f build/pc/build.ninja
 build/pc/khcom.exe
 ```
 
-Put `baserom.gba` next to `khcom.exe` when distributing the build.
+Use `--toolchain PATH --sdl PATH` when your dependencies are outside
+`../toolchain/`. The SDL package must include `i686-w64-mingw32/`.
+Build from the repository root. Asset glue and text are generated locally from
+your dump during the first configure step.
+
+To make a distributable ZIP without ROMs, saves or local settings:
+
+```sh
+python port/tools/package_release.py --version v0.1 --sdl ../toolchain/SDL3-3.4.18
+```
 
 ## Controls
 
@@ -55,9 +91,24 @@ Put `baserom.gba` next to `khcom.exe` when distributing the build.
 
 F11 or Alt+Enter toggles fullscreen.
 
+F1 or Esc opens the options overlay. At the title screen, Select also opens it;
+on a controller, use Back + Start. F5 saves a state, F9 loads a state, and F6/F7
+change the state slot. Save states do not include cartridge SRAM.
+
+## Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout and verification
+workflow. The progress percentages describe development estimates, not game
+completion or a compatibility guarantee.
+
 ## Credits
 
 - Decompilation: [Pheenoh/khcom](https://github.com/Pheenoh/khcom) and contributors (CC0).
 - PC port: OpenKHCoM contributors.
 
 The original decompilation README is kept in [README.decomp.md](README.decomp.md).
+
+This is an independent fan project, unaffiliated with Square Enix, Disney or
+Nintendo. Their game content and trademarks are not covered by the source
+code's [CC0 license](LICENSE.md). SDL3 is distributed under its own license,
+included in the Windows package.
