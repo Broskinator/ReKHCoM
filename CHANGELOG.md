@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Play the ROM's opening, event and ending movies with native C codecs.
+- Preserve original pixel arithmetic, motion compensation and ADPCM audio.
+- Service display, subtitles, audio and input while waiting for movie frames.
+- Verify all 3,605 movie frames and 3,604 audio blocks against the ARM decoder.
+- Verify the full opening and return to gameplay in English and Spanish,
+  including widescreen and the alternate gameplay speed setting.
+
+Movie event/ending transitions during gameplay and listening checks on real
+audio hardware remain pending. The v0.1 release below is the earlier baseline.
+
 ## v0.1 — 2026-10-12
 
 Initial Windows x86 prerelease of the native PC port.

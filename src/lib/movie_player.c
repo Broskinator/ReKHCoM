@@ -33,6 +33,10 @@ static const s32 sMovieArmRotateMasks[16] = {
 };
 
 void MovieSetupVideoCodec(MoviePlayer* p, void* a, void* b, void* c, s32 w, s32 h) {
+#ifdef PLATFORM_PC
+    void PortMovieSetupVideo(MoviePlayer*);
+    PortMovieSetupVideo(p);
+#else
     u32 size1;
     u32 size2;
     s32 i;
@@ -153,9 +157,14 @@ void MovieSetupVideoCodec(MoviePlayer* p, void* a, void* b, void* c, s32 w, s32 
             table[i++] = (y * w + x) * 2;
         }
     }
+#endif
 }
 
 void MovieSetupAudioCodec(MoviePlayer* p, void* a, s32 b) {
+#ifdef PLATFORM_PC
+    void PortMovieSetupAudio(MoviePlayer*);
+    PortMovieSetupAudio(p);
+#else
     u32 size;
     s32 j;
     s32 i;
@@ -192,6 +201,7 @@ void MovieSetupAudioCodec(MoviePlayer* p, void* a, s32 b) {
 
         break;
     }
+#endif
 }
 
 MoviePlayer* MovieOpen(void* a) {
@@ -203,6 +213,11 @@ MoviePlayer* MovieOpen(void* a) {
     MoviePlayer* p;
 
     p = gMovieHeap.iwramAlloc(sizeof(MoviePlayer));
+#ifdef PLATFORM_PC
+    if (p == NULL) return NULL;
+    memset(p, 0, sizeof(*p));
+    v2 = 0;
+#endif
     p->data = a;
     p->videoDone = 0;
     p->audioDone = 2;
@@ -244,6 +259,18 @@ MoviePlayer* MovieOpen(void* a) {
         return NULL;
     }
 
+#ifdef PLATFORM_PC
+    /* Current assets use 240x160 and a 16-pixel keyframe grid. Avoid
+       overrunning the native framebuffer for unsupported movie headers. */
+    if (!p->width || !p->height || p->width > 240 || p->height > 160 ||
+        (p->width & 15) || (p->height & 15) || !p->frameCount ||
+        p->frameRate <= 0 || p->channels > 2 || p->audioCodecId > 2 ||
+        (p->channels && (!p->sampleRate || !p->audioBlockCount))) {
+        gMovieHeap.iwramFree(p);
+        return NULL;
+    }
+#endif
+
     MovieSetupVideoCodec(p, &p->decodeKeyFrame, &p->postProcessFrame, &p->decodeDeltaFrame, p->width, p->height);
     p->frameBuf = gMovieHeap.ewramAlloc(p->width * p->height * 2);
     p->workBuf = gMovieHeap.ewramAlloc(p->width * p->height * 2);
@@ -279,9 +306,11 @@ MoviePlayer* MovieOpen(void* a) {
 void MovieFree(MoviePlayer* a) {
     MoviePlayer* p = a;
 
+#ifndef PLATFORM_PC
     gMovieHeap.iwramFree(p->videoCodecCode);
     gMovieHeap.iwramFree(p->deltaCodecCode);
     gMovieHeap.iwramFree(p->audioCodecCode);
+#endif
     gMovieHeap.ewramFree(p->frameBuf);
     gMovieHeap.ewramFree(p->workBuf);
 

@@ -10,6 +10,9 @@ verified. Opening and other movies are skipped in this release.
 Download the Windows ZIP from [Releases](https://github.com/MatyMeatBoy/OpenKHCoM/releases).
 See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
+Development now includes native movie playback. See [the movie implementation
+and verification notes](port/MOVIES.md); v0.1 remains the earlier baseline.
+
 ![progress](port/progress/progress.svg)
 
 See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.

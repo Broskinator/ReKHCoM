@@ -7,7 +7,8 @@
 #include "types.h"
 
 #ifdef PLATFORM_PC
-int PortMovieSupported(void);
+void PortMovieFrame(void);
+void PortLog(const char*, ...);
 #endif
 
 #define MOVIE_TICKS_PER_FRAME 228
@@ -35,11 +36,10 @@ s32 MovieStart(void* a) {
     u32 channels;
 
 #ifdef PLATFORM_PC
-    if (!PortMovieSupported()) {
-        gMoviePlayer = NULL; /* no native decoder yet: skip the movie */
-        return 0;
-    }
+    dstB1 = dstB2 = NULL;
+    lenB1 = lenB2 = 0;
 #endif
+
     gMoviePlayer = MovieOpen(a);
 
     if (gMoviePlayer == NULL) {
@@ -47,6 +47,11 @@ s32 MovieStart(void* a) {
     }
 
     channels = MovieGetChannels(gMoviePlayer);
+#ifdef PLATFORM_PC
+    PortLog("Movie: %ux%u, %.2f fps, %u frames, %u Hz, %u channels",
+            gMoviePlayer->width, gMoviePlayer->height, gMoviePlayer->frameRate,
+            gMoviePlayer->frameCount, gMoviePlayer->sampleRate, channels);
+#endif
 
     if (channels != 0) {
         SndStreamInit(MovieGetSampleRate(gMoviePlayer), channels);
@@ -87,6 +92,11 @@ void MoviePlay(s32 (*a)(s32), s32 b) {
     s32 x;
     s32 y;
 
+#ifdef PLATFORM_PC
+    dstB1 = dstB2 = NULL;
+    lenB1 = lenB2 = 0;
+#endif
+
     MovieGetSize(gMoviePlayer, &w, &h);
     x = (DISPLAY_WIDTH - w) >> 1;
     y = (DISPLAY_HEIGHT - h) >> 1;
@@ -103,6 +113,10 @@ void MoviePlay(s32 (*a)(s32), s32 b) {
 
     while (1) {
         while (!MovieSyncFrame(gMoviePlayer)) {
+#ifdef PLATFORM_PC
+            /* Hardware interrupts advance the cartridge during this wait. */
+            PortMovieFrame();
+#endif
         }
 
         MovieDrawFrame(gMoviePlayer, (u16*)VRAM + (y * DISPLAY_WIDTH + x));
@@ -137,6 +151,9 @@ void MoviePlay(s32 (*a)(s32), s32 b) {
             break;
         }
     }
+#ifdef PLATFORM_PC
+    PortLog("Movie: stopped at frame %u/%u", gMoviePlayer->frameIndex, gMoviePlayer->frameCount);
+#endif
 }
 
 void MovieClose() {
@@ -149,6 +166,9 @@ void MovieClose() {
     }
 
     MovieFree(gMoviePlayer);
+#ifdef PLATFORM_PC
+    gMoviePlayer = NULL;
+#endif
 }
 
 void MovieUpdate() {

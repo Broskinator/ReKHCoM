@@ -4,14 +4,14 @@
 <text x="24" y="60" font-size="13" fill="#adb5bd">Kingdom Hearts: Chain of Memories (EU) - 2026-10-12</text>
 <text x="24" y="93" font-size="14" font-weight="600" fill="#f1f3f5">Overall port</text>
 <rect x="270" y="78" width="500" height="20" rx="4" fill="#2b2f38"/>
-<rect x="270" y="78" width="370.7" height="20" rx="4" fill="#e8a317"/>
-<text x="780" y="93" font-size="14" font-weight="700" fill="#f1f3f5">74.1%</text>
+<rect x="270" y="78" width="398.0" height="20" rx="4" fill="#e8a317"/>
+<text x="780" y="93" font-size="14" font-weight="700" fill="#f1f3f5">79.6%</text>
 <text x="278" y="93" font-size="11" fill="#f8f9fa">weighted by subsystem</text>
 <text x="24" y="123" font-size="14" font-weight="600" fill="#f1f3f5">Functions running natively</text>
 <rect x="270" y="108" width="500" height="20" rx="4" fill="#2b2f38"/>
-<rect x="270" y="108" width="498.7" height="20" rx="4" fill="#2f9e44"/>
-<text x="780" y="123" font-size="14" font-weight="700" fill="#f1f3f5">99.7%</text>
-<text x="278" y="123" font-size="11" fill="#f8f9fa">5198 / 5212 (43/57 hand-written ARM ported)</text>
+<rect x="270" y="108" width="500.0" height="20" rx="4" fill="#2f9e44"/>
+<text x="780" y="123" font-size="14" font-weight="700" fill="#f1f3f5">100.0%</text>
+<text x="278" y="123" font-size="11" fill="#f8f9fa">5212 / 5212 (57/57 hand-written ARM ported)</text>
 <text x="24" y="163" font-size="12" fill="#ced4da">Build system &amp; toolchain</text>
 <rect x="270" y="152" width="500" height="14" rx="3" fill="#2b2f38"/>
 <rect x="270" y="152" width="500.0" height="14" rx="3" fill="#2f9e44"/>
@@ -62,7 +62,8 @@
 <text x="780" y="449" font-size="12" fill="#ced4da">100%</text>
 <text x="24" y="475" font-size="12" fill="#ced4da">Movie (FMV) decoder</text>
 <rect x="270" y="464" width="500" height="14" rx="3" fill="#2b2f38"/>
-<text x="780" y="475" font-size="12" fill="#ced4da">0%</text>
+<rect x="270" y="464" width="450.0" height="14" rx="3" fill="#2f9e44"/>
+<text x="780" y="475" font-size="12" fill="#ced4da">90%</text>
 <text x="24" y="501" font-size="12" fill="#ced4da">Save data (SRAM)</text>
 <rect x="270" y="490" width="500" height="14" rx="3" fill="#2b2f38"/>
 <rect x="270" y="490" width="400.0" height="14" rx="3" fill="#e8a317"/>

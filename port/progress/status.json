@@ -75,8 +75,8 @@
     {
       "name": "Movie (FMV) decoder",
       "weight": 6,
-      "done": 0,
-      "notes": "movies skipped cleanly; C decoder for movie_codec.s pending"
+      "done": 90,
+      "notes": "native C; all 3605 video frames and 3604 audio blocks match ARM; English and Spanish opening return to gameplay; event/ending transitions and hardware audio verification pending"
     },
     {
       "name": "Save data (SRAM)",
@@ -168,7 +168,7 @@
     },
     {
       "name": "Opening movie plays",
-      "done": false
+      "done": true
     },
     {
       "name": "Full playthrough (Sora)",

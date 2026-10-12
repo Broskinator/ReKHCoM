@@ -39,7 +39,7 @@ limitations visible in the release notes.
 
 ## Next milestones
 
-1. Replace the self-modifying ARM movie codecs with native C routines.
-2. Integrate movie timing, video presentation and audio streaming.
-3. Verify the opening movie and the return to gameplay.
+1. Verify event and ending movie transitions during gameplay.
+2. Check movie audio on real hardware and expand subtitle coverage.
+3. Add control remapping and improve remaining rendering/audio edge cases.
 4. Expand scene regression coverage and complete both story playthroughs.

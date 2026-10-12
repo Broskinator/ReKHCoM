@@ -595,6 +595,12 @@ void PortFrame(void) {
     VBlankCycle();
 }
 
+/* Movies own their playback loop and run at the cartridge's frame rate,
+   independently of the gameplay speed setting and main-loop save states. */
+void PortMovieFrame(void) {
+    VBlankCycle();
+}
+
 /* ---- reset ----------------------------------------------------------------------- */
 
 void PortSoftReset(void) {
