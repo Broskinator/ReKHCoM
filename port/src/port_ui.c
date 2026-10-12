@@ -25,6 +25,7 @@ enum {
     ITEM_ZOOM,
     ITEM_SCALE,
     ITEM_NARROW,
+    ITEM_MOVIE,
     ITEM_FILTER,
     ITEM_FULLSCREEN,
     ITEM_FS_RES,
@@ -46,6 +47,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Zoom", "Zoom", "Zoom", "Zoom", "Zoom" },
     { "Scaling", "Mise à l'échelle", "Skalierung", "Scala", "Escalado" },
     { "GBA-size scenes", "Scènes format GBA", "Szenen im GBA-Format", "Scene formato GBA", "Escenas tamaño GBA" },
+    { "Movies", "Vidéos", "Videos", "Filmati", "Vídeos" },
     { "Filter", "Filtre", "Filter", "Filtro", "Filtro" },
     { "Fullscreen", "Plein écran", "Vollbild", "Schermo intero", "Pantalla completa" },
     { "Fullscreen resolution", "Résolution plein écran", "Vollbild-Auflösung", "Risoluzione a schermo intero",
@@ -105,6 +107,10 @@ static const char* const sSpeeds[2][LANG_COUNT] = {
 static const char* const sNarrow[2][LANG_COUNT] = {
     { "Exact pixels", "Pixels exacts", "Exakte Pixel", "Pixel esatti", "Píxel exacto" },
     { "Fill height", "Remplir la hauteur", "Höhe füllen", "Riempi altezza", "Llenar altura" },
+};
+static const char* const sMovieFill[2][LANG_COUNT] = {
+    { "Whole frame", "Image entière", "Ganzes Bild", "Quadro intero", "Cuadro completo" },
+    { "Fill screen", "Plein écran", "Bildschirm füllen", "Schermo pieno", "Pantalla completa" },
 };
 static const char* const sDesktop[LANG_COUNT] = { "Desktop", "Bureau", "Desktop", "Desktop", "Escritorio" };
 static const char* const sAutoOnly[LANG_COUNT] = { "(Auto view)", "(vue Auto)", "(Auto-Ansicht)", "(vista Auto)",
@@ -293,6 +299,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_NARROW:
             SDL_strlcpy(out, sNarrow[gPortConfig.narrowFit != 0][l], size);
             break;
+        case ITEM_MOVIE:
+            SDL_strlcpy(out, sMovieFill[gPortConfig.movieFill != 0][l], size);
+            break;
         case ITEM_FILTER:
             SDL_strlcpy(out, sFilters[gPortConfig.filter][l], size);
             break;
@@ -359,6 +368,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_NARROW:
             gPortConfig.narrowFit = !gPortConfig.narrowFit;
+            break;
+        case ITEM_MOVIE:
+            gPortConfig.movieFill = !gPortConfig.movieFill;
             break;
         case ITEM_FILTER:
             gPortConfig.filter = Wrap(gPortConfig.filter + dir, PORT_FILTER_COUNT);

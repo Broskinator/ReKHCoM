@@ -77,6 +77,7 @@ typedef struct PortConfig {
     int vsync;
     int gameSpeed;        /* 0: original (logic every other VBlank), 1: 60 fps */
     int narrowFit;        /* scenes without a wide view: 1 fill the height, 0 exact pixels */
+    int movieFill;        /* movies: 1 fill the screen (crop the letterbox), 0 whole frame */
     int scanlines;        /* 0..100 % intensity */
     int colorCorrection;  /* emulate the GBA LCD colours */
     int frameSkip;        /* reserved */
@@ -92,6 +93,7 @@ typedef struct PortConfig {
 extern PortConfig gPortConfig;
 
 void PortConfigLoad(void);
+void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);
 void PortConfigView(int mode, int* w, int* h);
 /* Internal size and pixel scale that fill an outW x outH output (auto view). */

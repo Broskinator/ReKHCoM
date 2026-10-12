@@ -21,6 +21,8 @@ typedef volatile unsigned int vu32;
 
 typedef void (*IntrFunc)(void);
 
+extern void* gMoviePlayer; /* non-NULL while a ROM movie plays */
+
 extern void AgbMain(void);
 extern IntrFunc gIntrTable[];
 
@@ -195,6 +197,9 @@ filter:
 
 static int sAutoScale;
 
+int gPortIntroRequested;
+int gPortStartupLanguage = -1;
+
 /* Auto view: size the canvas to the window every frame. */
 static void UpdateResolution(void) {
     int outW, outH, w, h;
@@ -273,7 +278,30 @@ static void Present(void) {
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
     SDL_RenderClear(sRenderer);
-    if (!gPortScreen.wide && gPortConfig.narrowFit && !PortUiActive()
+    if (gMoviePlayer != NULL && gPortConfig.movieFill && !PortUiActive()
+        && (float)outW / outH > (float)GBA_SCREEN_W / GBA_SCREEN_H) {
+        /* The ROM's movies are letterboxed inside the 240x160 frame (picture
+           on lines ~9-150, subtitles on 116-148). Crop to the window's shape
+           around the picture, never above the subtitles, and fill the screen. */
+        float cropH = GBA_SCREEN_W * (float)outH / outW;
+        float y0 = 80.0f - cropH / 2;
+        SDL_FRect src;
+
+        if (y0 + cropH < 147.0f)
+            y0 = 147.0f - cropH;
+        y0 = SDL_clamp(y0, 0.0f, GBA_SCREEN_H - cropH);
+        src.x = (float)gPortScreen.originX;
+        src.y = gPortScreen.originY + y0;
+        src.w = GBA_SCREEN_W;
+        src.h = cropH;
+        dst.x = 0;
+        dst.y = 0;
+        dst.w = (float)outW;
+        dst.h = (float)outH;
+        SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
+                                                                                 : SDL_SCALEMODE_PIXELART);
+        SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
+    } else if (!gPortScreen.wide && gPortConfig.narrowFit && !PortUiActive()
         && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)) {
         /* Scene without a wide view: show the GBA picture at full height
            (bars only at the sides), sampled with the pixel-art filter. */
@@ -613,8 +641,23 @@ void PortSoftReset(void) {
 int main(int argc, char** argv) {
     int winW, winH;
 
-    (void)argc;
-    (void)argv;
+    {
+        int i;
+        for (i = 1; i < argc; i++) {
+            if (strcmp(argv[i], "--intro") == 0)
+                gPortIntroRequested = 1;
+            else if (strcmp(argv[i], "--data-dir") == 0 && i + 1 < argc)
+                PortConfigSetDataPath(argv[++i]);
+            else if (strcmp(argv[i], "--language") == 0 && i + 1 < argc) {
+                const char* language = argv[++i];
+                if (strcmp(language, "es") == 0) gPortStartupLanguage = 4;
+                else if (strcmp(language, "en") == 0) gPortStartupLanguage = 0;
+                else if (strcmp(language, "fr") == 0) gPortStartupLanguage = 1;
+                else if (strcmp(language, "de") == 0) gPortStartupLanguage = 2;
+                else if (strcmp(language, "it") == 0) gPortStartupLanguage = 3;
+            }
+        }
+    }
 
     /* Claim the GBA address range before anything else can land there. */
     if (!PortMemoryInit())

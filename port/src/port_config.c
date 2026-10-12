@@ -14,8 +14,9 @@ PortConfig gPortConfig = {
     PORT_FILTER_NEAREST, /* filter */
     0,                  /* fullscreen */
     1,                  /* vsync */
-    0,                  /* gameSpeed */
+    1,                  /* gameSpeed: smooth gameplay; movies keep their own clock */
     1,                  /* narrowFit */
+    1,                  /* movieFill */
     0,                  /* scanlines */
     0,                  /* colorCorrection */
     0,                  /* frameSkip */
@@ -31,6 +32,11 @@ PortConfig gPortConfig = {
 #define CONFIG_VERSION 2
 
 static int sConfigVersion;
+static char sDataPath[768];
+
+void PortConfigSetDataPath(const char* path) {
+    SDL_snprintf(sDataPath, sizeof(sDataPath), "%s/", path);
+}
 
 typedef struct Key {
     const char* name;
@@ -49,6 +55,7 @@ static const Key sKeys[] = {
     { "vsync", &gPortConfig.vsync, 0, 1 },
     { "game_speed", &gPortConfig.gameSpeed, 0, 1 },
     { "narrow_fit", &gPortConfig.narrowFit, 0, 1 },
+    { "movie_fill", &gPortConfig.movieFill, 0, 1 },
     { "scanlines", &gPortConfig.scanlines, 0, 100 },
     { "color_correction", &gPortConfig.colorCorrection, 0, 1 },
     { "show_fps", &gPortConfig.showFps, 0, 1 },
@@ -74,7 +81,7 @@ static char* Trim(char* s) {
 const char* PortConfigPath(const char* name) {
     static char paths[4][1024];
     static int next;
-    const char* base = SDL_GetBasePath();
+    const char* base = sDataPath[0] ? sDataPath : SDL_GetBasePath();
     char* out = paths[next++ & 3];
 
     SDL_snprintf(out, 1024, "%s%s", base ? base : "", name);

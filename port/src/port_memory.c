@@ -24,7 +24,10 @@
 #define GBA_SPACE_END 0x0E010000u
 #define GBA_SPACE_SIZE (GBA_SPACE_END - 0x00400000u)
 
-__attribute__((section(".bss$zgba"), used, aligned(4096))) static uint8_t sGbaSpace[GBA_SPACE_SIZE];
+/* Its own uninitialised section: no file space, whatever follows it. */
+#pragma clang section bss = "gbaspace"
+__attribute__((used, aligned(4096))) static uint8_t sGbaSpace[GBA_SPACE_SIZE];
+#pragma clang section bss = ""
 
 /* Stand-in for the BIOS area behind BIOS_PTR(): reads see the open-bus value
    left by the BIOS (the opcode after the SWI return), writes are undone every
