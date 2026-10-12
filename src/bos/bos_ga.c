@@ -2325,6 +2325,7 @@ enum BosGaDefeatStep {
 };
 
 u8 BosGaUpdateDefeat(GaWork* work) {
+    // @bug Some fields are never set (uninitialized read).
     CharaObjParam param;
     u32 i;
     GaEntryWork* entry;

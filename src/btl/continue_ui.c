@@ -281,6 +281,7 @@ static s32 Continue_1(ContinueWork* work) {
     cursorY = sContinueCursorY;
     work->y += (cursorY[work->cursor] - work->y) >> 3;
     work->unk_64 += 4;
+    // @bug No return value (the caller reads it).
 }
 
 static void Continue_2(ContinueWork* work) {

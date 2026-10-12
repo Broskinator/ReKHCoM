@@ -766,6 +766,7 @@ typedef struct RikuDeckMenuWork {
     TextSlot textSlots2[8];
     TextSlot textSlots3[8];
     TextSlot textSlots4[30];
+    // @bug A card description can take more than 60 slots (overflow).
     TextSlot textSlots5[60];
     u8 unk_3C0[4];
     ObjTiles* tiles6;

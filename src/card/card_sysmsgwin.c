@@ -174,6 +174,7 @@ u8 sysmsgwin_1(SysMsgWinWork* work, void* task) {
         }
 
         work->palette4 = LoadObjPalette(gCard00Palette, sizeof(gCard00Palette));
+        // @bug palette4 can be NULL (NULL read).
         FadeSetPaletteExcluded(work->palette4->index + 16, TRUE);
         break;
     }
@@ -228,6 +229,7 @@ u8 UpdateSysmsgwinWaitInput(SysMsgWinWork* work, void* task) {
 #ifdef VERSION_EU
             FadeSetPaletteExcluded(work->palette2->index + 16, TRUE);
 #else
+            // @bug palette4 can be NULL (NULL read).
             FadeSetPaletteExcluded(work->palette4->index + 16, TRUE);
 #endif
             LoadObjPaletteBank(work->palette2->index, pal);
@@ -247,6 +249,7 @@ u8 UpdateSysmsgwinWaitInput(SysMsgWinWork* work, void* task) {
 #ifdef VERSION_EU
             FadeSetPaletteExcluded(work->palette3->index + 16, TRUE);
 #else
+            // @bug palette4 can be NULL (NULL read).
             FadeSetPaletteExcluded(work->palette4->index + 16, TRUE);
 #endif
             SetTaskUpdate(task, (TaskUpdateFunc)UpdateSysmsgwinChoice);
@@ -596,6 +599,7 @@ u8 sysmsgwinChoice_1(SysMsgWinWork* work, void* task) {
 
         work->tiles2 = LoadObjTiles(gDialogBoxTiles, sizeof(gDialogBoxTiles));
         work->palette4 = LoadObjPalette(gCard00Palette, sizeof(gCard00Palette));
+        // @bug palette4 can be NULL (NULL read).
         FadeSetPaletteExcluded(work->palette4->index + 16, TRUE);
         break;
     }
@@ -616,6 +620,7 @@ u8 UpdateSysmsgwinChoiceSetup(SysMsgWinWork* work, void* task) {
 #ifdef VERSION_EU
     FadeSetPaletteExcluded(work->palette2->index + 16, TRUE);
 #else
+    // @bug palette4 can be NULL (NULL read).
     FadeSetPaletteExcluded(work->palette4->index + 16, TRUE);
 #endif
     LoadObjPaletteBank(work->palette2->index, pal);
@@ -635,6 +640,7 @@ u8 UpdateSysmsgwinChoiceSetup(SysMsgWinWork* work, void* task) {
 #ifdef VERSION_EU
     FadeSetPaletteExcluded(work->palette3->index + 16, TRUE);
 #else
+    // @bug palette4 can be NULL (NULL read).
     FadeSetPaletteExcluded(work->palette4->index + 16, TRUE);
 #endif
     SetTaskUpdate(task, (TaskUpdateFunc)UpdateSysmsgwinChoiceInput);

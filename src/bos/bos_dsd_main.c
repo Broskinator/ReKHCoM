@@ -1036,6 +1036,7 @@ void BosDsdMainUpdateDefeat(DsdMainWork* work) {
     BtlObj* hand = &dsd->body[2];
     BtlObj* body = &work->body;
     BtlObj* obj;
+    // @bug Some fields are never set (uninitialized read).
     CharaObjParam param;
 
     switch (dsd->stateStep) {

@@ -5161,6 +5161,7 @@ enum MapConfirmCursor {
 void MapMenuSetPanelPalettesExcluded(MapMenuWork* work, u8 excluded) {
     s32 i;
 
+    // @bug Palettes the menu has not loaded are NULL (NULL read).
     FadeSetPaletteExcluded(work->palette3->index + 0x10, excluded);
     FadeSetPaletteExcluded(work->palette8->index + 0x10, excluded);
     FadeSetPaletteExcluded(work->palette4->index + 0x10, excluded);
@@ -5175,6 +5176,7 @@ void MapMenuSetPanelPalettesExcluded(MapMenuWork* work, u8 excluded) {
 }
 
 void MapMenuSetCharaPalettesExcluded(MapMenuWork* work, u8 excluded) {
+    // @bug Palettes the menu has not loaded are NULL (NULL read).
     FadeSetPaletteExcluded(work->palette2->index + 0x10, excluded);
     FadeSetPaletteExcluded(work->palette6->index + 0x10, excluded);
     FadeSetPaletteExcluded(work->palette7->index + 0x10, excluded);
@@ -6017,6 +6019,7 @@ void Task_MapMenu_2(MapMenuWork* work) {
 void Task_MapMenu_3(MapMenuWork* work) {
     s32 i;
 
+    // @bug Leaves the confirmation allocated when destroyed with it open.
     MapMenuSetCharaPalettesExcluded(work, FALSE);
     MapMenuSetPanelPalettesExcluded(work, FALSE);
     ReleaseObjPalette(work->palette2);

@@ -4942,6 +4942,7 @@ s32 PlayEventCharaAnimSounds(EventCharaWork* work) {
     x = (work->obj.x >> 8) - (gEventState->x >> 8);
     y = (work->obj.y >> 8) + (work->obj.z >> 8) - (gEventState->y >> 8);
 
+    // @bug obj.anim is NULL for characters without an animation (NULL read).
     switch (work->keyframes[work->keyframe].anim) {
     case 0x2EB:
     case 0x2F1:
@@ -6531,6 +6532,7 @@ void MsgwinLoadEntry(MsgWinWork* work) {
         work->charCount = LayoutMsgGlyphsSjis(gMsgwinTextX[work->position], gMsgwinTextY[work->position], (u8*)entry->text);
     }
 #else
+    // @bug In EU, EVENT_196_DAMI_JUUJIRO has no text (NULL read).
     if (entry->portraitId == PORTRAIT_NONE) {
         if (work->nextText != NULL) {
             work->charCount = LayoutMsgGlyphsPage(0x2E00, gMsgwinTextY[work->position] - 0x200, work->nextText, &work->nextText);

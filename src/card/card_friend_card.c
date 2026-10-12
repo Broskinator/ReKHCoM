@@ -881,11 +881,13 @@ u8 StockNameSora_1(StockNameWork* work) {
     if (work->cycling == TRUE && work->visible) {
         work->stockNameIndex++;
 
+        // @bug A full list has no -1 after its six names (reads past stockNames).
         if (work->stockNames[work->stockNameIndex] == -1) {
             work->stockNameIndex = 0;
         }
 
 #ifdef VERSION_EU
+        // @bug Uses the previous name's sprites and tiles with this name's sprite index.
         UpdateSpriteFrameTiles(work->tiles, sprites[gStockNameSprites[work->stockNames[work->stockNameIndex]].spriteIndex], srcTiles);
 #else
         UpdateSpriteFrameTiles(work->tiles, gStockNameSprites[work->stockNames[work->stockNameIndex]].sprites[gStockNameSprites[work->stockNames[work->stockNameIndex]].spriteIndex], gStockNameSprites[work->stockNames[work->stockNameIndex]].tiles);
@@ -983,11 +985,13 @@ u8 StockNameRiku_1(StockNameWork* work) {
     if (work->cycling == TRUE && work->visible) {
         work->stockNameIndex++;
 
+        // @bug A full list has no -1 after its six names (reads past stockNames).
         if (work->stockNames[work->stockNameIndex] == -1) {
             work->stockNameIndex = 0;
         }
 
 #ifdef VERSION_EU
+        // @bug Uses the previous name's sprites and tiles with this name's sprite index.
         UpdateSpriteFrameTiles(work->tiles, sprites[gStockNameSprites[work->stockNames[work->stockNameIndex]].spriteIndex], srcTiles);
 #else
         UpdateSpriteFrameTiles(work->tiles, gStockNameSprites[work->stockNames[work->stockNameIndex]].sprites[gStockNameSprites[work->stockNames[work->stockNameIndex]].spriteIndex], gStockNameSprites[work->stockNames[work->stockNameIndex]].tiles);
@@ -1006,6 +1010,7 @@ void StockNameRiku_2(StockNameWork* work) {
 void StockNameRiku_3(StockNameWork* work) {
     ReleaseObjTiles(work->tiles);
     ReleaseObjPalette(work->palette);
+    // @bug Leaving a battle frees gCardBattleState before this name is destroyed (NULL write).
     gCardBattleState->unk_0D9 = 0;
     work->visible = FALSE;
     gCardBattleState->unk_0CA = 256;

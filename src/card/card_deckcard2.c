@@ -111,6 +111,8 @@ u8 DeckCard2_1(DeckCard2Work* work) {
     } else {
         DeckCard2ReleaseGfx(work);
     }
+
+    // @bug No return value (the caller reads it).
 }
 
 void DeckCard2_2(DeckCard2Work* work) {

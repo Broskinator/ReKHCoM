@@ -809,6 +809,7 @@ void UpdatePoohAction(PoohWork* work, PooNode* node) {
     case POOH_ACTION_LOOK:
         if (work->lookTimer <= 59) {
             targetLookAngle = work->lookAngle;
+            // @bug node is NULL near the screen's edge (NULL read).
             work->lookTarget = GetAngle(work->pos.x, work->pos.y, ((s32*)node->pos)[0], ((s32*)node->pos)[1]);
             ApproachAngle(&targetLookAngle, work->lookTarget, 4);
             work->lookAngle = targetLookAngle;
@@ -1727,6 +1728,7 @@ u16 GetPooMapTile(u16 x, u16 y) {
     by = y >> 8;
     tx = (x >> 3) & 0x1F;
     ty = (y >> 3) & 0x1F;
+    // @bug Reads past the end of gPooBg3MapBlocks off the map.
     return blocks[by * 16 + bx][ty * 32 + tx];
 }
 

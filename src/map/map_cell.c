@@ -1383,6 +1383,7 @@ u8 MapCellHasType(s16 x, s16 y, u8 type) {
 void MapAssignWallTopPieces(s16 x, s16 y) {
     MapCell* cell = MapGetCell(x, y + 7);
 
+    // @bug cell is NULL past the room edge (NULL read).
     if (cell->upperZ == MAP_Z_TOP) {
         switch (cell->type) {
         case MAP_CELL_TYPE_LEFT_WALL_BASE:
@@ -1690,6 +1691,7 @@ void MapPlaceDoorOnPlatform(MapPlatform* platform, s32 side) {
     width = platform->right - platform->left;
 
     if (doorSide == MAP_DOOR_SIDE_UP_RIGHT) {
+        // @bug width >> 2 is 0 on platforms narrower than four cells (division by zero).
         x = platform->left + width * 5 / 8 + GetRandom() % (width >> 2);
 
         for (i = 0; i < width; i++) {
@@ -1716,6 +1718,7 @@ void MapPlaceDoorOnPlatform(MapPlatform* platform, s32 side) {
     }
 
     if (doorSide == MAP_DOOR_SIDE_DOWN_RIGHT) {
+        // @bug width >> 2 is 0 on platforms narrower than four cells (division by zero).
         x = platform->left + width * 5 / 8 + GetRandom() % (width >> 2);
 
         for (i = 0; i < width; i++) {
@@ -1738,6 +1741,7 @@ void MapPlaceDoorOnPlatform(MapPlatform* platform, s32 side) {
     }
 
     if (doorSide == MAP_DOOR_SIDE_DOWN_LEFT) {
+        // @bug width >> 2 is 0 on platforms narrower than four cells (division by zero).
         x = platform->left + width * 3 / 8 - GetRandom() % (width >> 2);
 
         for (i = 0; i < width; i++) {
@@ -1760,6 +1764,7 @@ void MapPlaceDoorOnPlatform(MapPlatform* platform, s32 side) {
     }
 
     if (doorSide == MAP_DOOR_SIDE_UP_LEFT) {
+        // @bug width >> 2 is 0 on platforms narrower than four cells (division by zero).
         x = platform->left + width * 3 / 8 - GetRandom() % (width >> 2);
 
         for (i = 0; i < width; i++) {

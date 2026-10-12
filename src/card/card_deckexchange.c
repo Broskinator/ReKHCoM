@@ -208,6 +208,7 @@ u8 deckexchange_1(DeckExchangeWork* work, void* task) {
     }
 
     work->step++;
+    // @bug No return value (the caller reads it).
 }
 
 u8 UpdateDeckExchangeLoadBgs(DeckExchangeWork* work, void* task) {
@@ -1128,6 +1129,7 @@ s32 CreateDeckExchangeCollectionGridCards(DeckExchangeWork* work, u8 categoryFil
     work->thumbY = 0x2800;
     work->scrollRowEnd = 4;
     SetDeckExchangeGridRowCount(work, y * 3 + x);
+    // @bug No return value (the caller reads it).
 }
 
 s32 GetCardIdForKind(s32 kind) {

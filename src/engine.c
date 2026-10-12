@@ -451,6 +451,7 @@ ObjTiles* AllocObjTiles(u16 size, const void* owner) {
 }
 
 void SetObjTileSource(ObjTiles* tiles, const void* src) {
+    // @bug Callers pass NULL when the tiles failed to allocate (NULL write).
     tiles->src = src;
 }
 
@@ -597,6 +598,7 @@ ObjAffine* AllocObjAffine(u8 angle, s32 sx, s32 sy, u8 doubleSize) {
     sin = gSineTable[angle];
     cos = gSineTable[angle + 0x40];
     affine = &gSpriteWork->affine[gSpriteWork->affineCount];
+    // @bug sx or sy can be 0 (division by zero).
     affine->pa = (cos << 8) / sx;
     affine->pb = (sin << 8) / sy;
     affine->pc = (-sin << 8) / sx;
@@ -623,6 +625,7 @@ ObjAffine* AllocObjAffineScaleFirst(u8 angle, s32 sx, s32 sy, u8 doubleSize) {
     sin = gSineTable[angle];
     cos = gSineTable[angle + 0x40];
     affine = &gSpriteWork->affine[gSpriteWork->affineCount];
+    // @bug sx or sy can be 0 (division by zero).
     affine->pa = (cos << 8) / sx;
     affine->pb = (sin << 8) / sx;
     affine->pc = (-sin << 8) / sy;
@@ -1937,6 +1940,7 @@ void BgFree() {
 }
 
 void* GetBgMapBlock(BgEntry* entry, u16 x, u16 y) {
+    // @bug Called for a background without a map yet (division by zero, NULL read).
     u8 col = (x >> 8) % entry->width;
     u8 row = (y >> 8) % entry->height;
 
@@ -2807,6 +2811,7 @@ void LoadPalette(const void* src, void* dst, u16 size) {
     src = LoadPaletteWithEffect(src, dst, size);
 
     for (i = 0; i < count; i++) {
+        // @bug Writes past the fade slots when dst is outside palette RAM.
         base[idx + i].src = (u8*)src + i * 32;
         base[idx + i].dst = (u8*)dst + i * 32;
         base[idx + i].dirty = TRUE;

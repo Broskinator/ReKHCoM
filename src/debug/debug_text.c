@@ -155,6 +155,7 @@ void DebugTextInit(u8 bg, u16 charSize, u16 screenSize) {
     CpuFill32(0, charBase, charSize);
     CpuFill32(0, screenBase, screenSize);
 
+    // @bug Only 20 lines are allocated, but OPE SAVE prints up to 40.
     sDebugTextLines = EwramAlloc(sizeof(DebugTextLine) * 20);
     sDebugTextLineCount = 0;
 

@@ -302,6 +302,7 @@ u8 UpdateMapSelectSetup(MapSelectWork* work, void* task) {
             TaskCreate(&work->tasks, &gTaskDescSELMAPEVKEY, &work->eventKeyArgs)->work;
     }
 
+    // @bug card can be NULL (NULL read).
     LoadMapSelectKindPalette(work->card->args.baseCardId, work);
     SetTaskUpdate(task, (TaskUpdateFunc)UpdateMapSelectSlideIn);
     return 1;
@@ -845,6 +846,7 @@ void MapSelect_2(MapSelectWork* work) {
     }
 
     if (work->scrollBarVisible) {
+        // @bug lastPage can be 0 (division by zero).
         DrawSprite(224,
 #ifdef VERSION_EU
                    (18 / work->lastPage) * work->page + 108,
