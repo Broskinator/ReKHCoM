@@ -34,19 +34,19 @@
       "name": "Interrupts & frame timing",
       "weight": 4,
       "done": 100,
-      "notes": "exact 59.7275 Hz pacing; original-speed mode (logic every other VBlank, sound every VBlank)"
+      "notes": "exact 59.7275 Hz pacing, one game update per VBlank (verified against BizHawk); FPS and logic-rate readout"
     },
     {
       "name": "PPU renderer",
       "weight": 10,
-      "done": 85,
-      "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window"
+      "done": 88,
+      "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window; separate HUD layer"
     },
     {
       "name": "Input (keyboard / gamepad)",
       "weight": 3,
-      "done": 80,
-      "notes": "default bindings; remapping pending"
+      "done": 85,
+      "notes": "default bindings; one-button dodge roll and stock (L+R); remapping pending"
     },
     {
       "name": "m4a sequencer & mixer",
@@ -75,8 +75,8 @@
     {
       "name": "Movie (FMV) decoder",
       "weight": 6,
-      "done": 90,
-      "notes": "native C; all 3605 video frames and 3604 audio blocks match ARM; English and Spanish opening return to gameplay; event/ending transitions and hardware audio verification pending"
+      "done": 92,
+      "notes": "native C; all 3605 video frames and 3604 audio blocks match ARM; playback at 15 fps on its own clock, matching hardware; event/ending transitions pending"
     },
     {
       "name": "Save data (SRAM)",
@@ -105,8 +105,8 @@
     {
       "name": "Widescreen: battles",
       "weight": 6,
-      "done": 70,
-      "notes": "affine arenas extend; HUD anchored to the corners; battle messages docked"
+      "done": 80,
+      "notes": "affine arenas extend; HUD on its own scaled layer anchored to the corners; tutorial pointers follow the HUD; battle messages docked"
     },
     {
       "name": "Widescreen: menus & events",
@@ -117,20 +117,44 @@
     {
       "name": "Graphics options menu",
       "weight": 5,
-      "done": 85,
-      "notes": "overlay with the game font, 5 languages, live changes; opened from title (SELECT), F1/Esc, Back+Start"
+      "done": 88,
+      "notes": "overlay with the game font, 5 languages, live changes; HUD size, HD text, control options; opened from title (SELECT), F1/Esc, Back+Start"
     },
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 15,
-      "notes": "Spanish: opening, Traverse Town, first battle; save states for regression tests"
+      "done": 20,
+      "notes": "Spanish: opening, Traverse Town, first battle and tutorial; game speed matches hardware; save states for regression tests"
     },
     {
       "name": "Save states",
       "weight": 2,
       "done": 90,
       "notes": "F5/F9, slots F6/F7; SRAM excluded; validated per build"
+    },
+    {
+      "name": "HD text",
+      "weight": 3,
+      "done": 60,
+      "notes": "dialogue and battle messages drawn with an outline font at output resolution; menus and Japanese text pending"
+    },
+    {
+      "name": "USA and Japanese versions",
+      "weight": 6,
+      "done": 0,
+      "notes": "decomp supports them; PC build, assets and testing pending"
+    },
+    {
+      "name": "Launcher & ROM install",
+      "weight": 4,
+      "done": 0,
+      "notes": "launcher that asks for the ROM, installs it and toggles options and mods"
+    },
+    {
+      "name": "Skip intro",
+      "weight": 1,
+      "done": 0,
+      "notes": "A shows a confirmation in the game's font; A again skips"
     }
   ],
   "milestones": [
@@ -169,6 +193,22 @@
     {
       "name": "Opening movie plays",
       "done": true
+    },
+    {
+      "name": "Game speed verified against hardware",
+      "done": true
+    },
+    {
+      "name": "HD text",
+      "done": true
+    },
+    {
+      "name": "Launcher with ROM install",
+      "done": false
+    },
+    {
+      "name": "USA and Japanese versions",
+      "done": false
     },
     {
       "name": "Full playthrough (Sora)",

@@ -1,6 +1,6 @@
 # Contributing
 
-OpenKHCoM is an experimental Windows native port of the GBA game, based on
+ReKHCoM is an experimental Windows native port of the GBA game, based on
 [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
 ## Project layout

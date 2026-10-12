@@ -110,7 +110,7 @@ def render_svg(status, m, overall):
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" font-family="Segoe UI, Helvetica, Arial, sans-serif">',
         f'<rect width="{width}" height="{height}" rx="10" fill="#14161c"/>',
-        '<text x="24" y="38" font-size="22" font-weight="700" fill="#f1f3f5">OpenKHCoM - PC port progress</text>',
+        '<text x="24" y="38" font-size="22" font-weight="700" fill="#f1f3f5">ReKHCoM - PC port progress</text>',
         f'<text x="24" y="60" font-size="13" fill="#adb5bd">Kingdom Hearts: Chain of Memories (EU) - {date.today().isoformat()}</text>',
     ]
 
@@ -143,7 +143,7 @@ def render_svg(status, m, overall):
 def render_md(status, m, overall):
     native = m["c_functions"] + m["asm_ported"]
     lines = [
-        "# OpenKHCoM progress",
+        "# ReKHCoM progress",
         "",
         "![progress](port/progress/progress.svg)",
         "",

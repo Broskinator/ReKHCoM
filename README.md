@@ -1,4 +1,4 @@
-# OpenKHCoM
+# ReKHCoM
 
 Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
@@ -7,7 +7,7 @@ on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheen
 views and graphics options, and saves to disk. Full playthroughs have not been
 verified. Opening and other movies are skipped in this release.
 
-Download the Windows ZIP from [Releases](https://github.com/MatyMeatBoy/OpenKHCoM/releases).
+Download the Windows ZIP from [Releases](https://github.com/MatyMeatBoy/ReKHCom/releases).
 See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 Development now includes native movie playback. See [the movie implementation
@@ -34,7 +34,7 @@ See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
 
 ## Running v0.1 (Windows)
 
-1. Extract `OpenKHCoM-v0.1-windows-x86.zip` into a writable folder.
+1. Extract `ReKHCoM-v0.1-windows-x86.zip` into a writable folder.
 2. Place your European cartridge dump next to `khcom.exe`, named `baserom.gba`.
 3. Run `khcom.exe` and select your language.
 
@@ -62,8 +62,8 @@ Requirements: Python 3 with PyYAML, [llvm-mingw](https://github.com/mstorsjo/llv
 By default the tools are looked up in `../toolchain/`.
 
 ```sh
-git clone https://github.com/MatyMeatBoy/OpenKHCoM.git
-cd OpenKHCoM
+git clone https://github.com/MatyMeatBoy/ReKHCom.git
+cd ReKHCom
 python -m pip install pyyaml
 # Copy your European dump to roms/B8CP.gba before configuring.
 python port/configure_pc.py              # --debug for a console build
@@ -86,11 +86,16 @@ python port/tools/package_release.py --version v0.1 --sdl ../toolchain/SDL3-3.4.
 
 | GBA | Keyboard | Gamepad |
 |---|---|---|
-| A | X / K | A (south), Y |
-| B | Z / J | B (east), X |
+| A | X / K | A (south) |
+| B | Z / J | B (east) |
 | L / R | A / S | LB / RB, triggers |
+| L + R (stock a card / sleight) | D | Y (north) |
+| Dodge roll | C | X (west) |
 | Start / Select | Enter / Backspace | Start / Back |
 | D-pad | Arrows, W | D-pad, left stick |
+
+The one-button stock and dodge roll can be turned off in the options; the
+gamepad's X and Y then act as B and A.
 
 F11 or Alt+Enter toggles fullscreen.
 
@@ -107,7 +112,7 @@ completion or a compatibility guarantee.
 ## Credits
 
 - Decompilation: [Pheenoh/khcom](https://github.com/Pheenoh/khcom) and contributors (CC0).
-- PC port: OpenKHCoM contributors.
+- PC port: ReKHCoM contributors.
 
 The original decompilation README is kept in [README.decomp.md](README.decomp.md).
 

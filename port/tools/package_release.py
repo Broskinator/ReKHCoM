@@ -30,7 +30,7 @@ def main():
         if not source.is_file():
             parser.error(f"missing package input: {source}")
     args.out.mkdir(parents=True, exist_ok=True)
-    archive = args.out / f"OpenKHCoM-{args.version}-windows-x86.zip"
+    archive = args.out / f"ReKHCoM-{args.version}-windows-x86.zip"
     prefix = archive.stem
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for name, source in files.items():
