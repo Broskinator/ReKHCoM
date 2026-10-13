@@ -171,6 +171,7 @@ void InitSystem() {
         gLanguage = gPortStartupLanguage;
     if (gPortIntroRequested) {
         gPortIntroRequested = 0;
+        ResetGameState(); /* as the title screen does before a new game */
         SetupSoraNewGame();
         ModeRequestHeapReset(&gModeMovie, MOVIE_OPENING);
     }

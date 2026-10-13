@@ -4,9 +4,8 @@
  * outline font at the window's resolution, at the same places and in the
  * same colours (palette fades included).
  *
- * Each word starts where the game puts it; when the outline font's word is
- * wider than the pixel font's, its letters are set closer to fit, so lines
- * keep the game's layout. Glyphs are rasterised with GDI and cached as
+ * Each word starts where the game puts it, or after the previous word when
+ * the outline font set that one wider; letters keep their natural spacing. Glyphs are rasterised with GDI and cached as
  * textures, drawn unscaled at whole pixels.
  */
 #define WIN32_LEAN_AND_MEAN
@@ -149,7 +148,8 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
     const uint16_t* widths = PortLatinGlyphWidths();
     HdFont* font;
     float shadow = SDL_max(1.0f, SDL_floorf(scale * 0.5f));
-    int n, i, j, pass;
+    int n, i, j, pass, lineY;
+    float space, lineEnd;
 
     if (!gPortConfig.hdText || scale <= 0.0f)
         return;
@@ -162,24 +162,24 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
     SDL_qsort(glyphs, n, sizeof(glyphs[0]), CompareGlyphs);
 
     /* Words: glyphs on one line, each where the previous one ends. */
+    space = (float)Glyph(renderer, font, ' ')->advance;
+    lineY = -1;
+    lineEnd = 0;
     for (i = 0; i < n; i = j) {
-        int engineW = widths[glyphs[i].code & 255], fontW = 0;
-        float k = 1.0f, pen, baseline;
+        float start, pen, baseline;
 
-        fontW = Glyph(renderer, font, glyphs[i].code)->advance;
         for (j = i + 1; j < n; j++) {
             const PortTextGlyph* p = &glyphs[j - 1];
             if (glyphs[j].y != p->y || glyphs[j].x != p->x + widths[p->code & 255])
                 break;
-            engineW += widths[glyphs[j].code & 255];
-            fontW += Glyph(renderer, font, glyphs[j].code)->advance;
         }
-        if (fontW > engineW * scale)
-            k = engineW * scale / fontW;
+        start = originX + glyphs[i].x * scale;
+        if (glyphs[i].y == lineY && start < lineEnd + space)
+            start = lineEnd + space; /* the previous word came out wider */
         baseline = originY + (glyphs[i].y + HD_TEXT_BASELINE) * scale;
         for (pass = 0; pass < 2; pass++) {
             int t;
-            pen = originX + glyphs[i].x * scale;
+            pen = start;
             for (t = i; t < j; t++) {
                 HdGlyph* g = Glyph(renderer, font, glyphs[t].code);
                 int alpha = glyphs[t].semi ? 0xA0 : 0xFF;
@@ -187,8 +187,10 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
                     DrawGlyph(renderer, g, pen + shadow, baseline + shadow, glyphs[t].shadow, alpha);
                 else
                     DrawGlyph(renderer, g, pen, baseline, glyphs[t].face, alpha);
-                pen += g->advance * k;
+                pen += g->advance;
             }
         }
+        lineY = glyphs[i].y;
+        lineEnd = pen;
     }
 }
