@@ -58,6 +58,8 @@ int PortMemoryInit(void) {
     return 1;
 }
 
+const char* gPortRomPath;
+
 static int TryRom(const char* path) {
     FILE* f = fopen(path, "rb");
     uint8_t header[0xC0];
@@ -69,7 +71,7 @@ static int TryRom(const char* path) {
     size = ftell(f);
     fseek(f, 0, SEEK_SET);
     if (size != (long)GBA_ROM_SIZE || fread(header, 1, sizeof(header), f) != sizeof(header)
-        || memcmp(header + 0xAC, "B8CP", 4) != 0) {
+        || memcmp(header + 0xAC, PORT_ROM_CODE, 4) != 0) {
         fclose(f);
         return 0;
     }
@@ -87,15 +89,17 @@ static int FindRom(void) {
     WIN32_FIND_DATAA fd;
     HANDLE h;
     char path[MAX_PATH];
-    static const char* const names[] = { "baserom.gba", "roms/B8CP.gba", "kh_com_eu.gba",
-                                                 "../../roms/B8CP.gba" /* development tree */ };
+    static const char* const names[] = { "baserom.gba", "roms/" PORT_ROM_CODE ".gba",
+                                         "../../roms/" PORT_ROM_CODE ".gba" /* development tree */ };
     size_t i;
 
+    if (gPortRomPath != NULL && TryRom(gPortRomPath))
+        return 1;
     for (i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
         if (TryRom(PortConfigPath(names[i])))
             return 1;
     }
-    /* Any dump of the European cartridge next to the executable. */
+    /* Any dump of this cartridge version next to the executable. */
     h = FindFirstFileA(PortConfigPath("*.gba"), &fd);
     if (h != INVALID_HANDLE_VALUE) {
         do {
@@ -114,8 +118,8 @@ int PortRomLoad(void) {
     const PortRomReloc* r;
 
     if (!FindRom()) {
-        PortFatal("Kingdom Hearts: Chain of Memories (Europe) ROM not found.\n\n"
-                  "Place your cartridge dump (B8CP, 32 MiB) next to the executable "
+        PortFatal("Kingdom Hearts: Chain of Memories (" PORT_ROM_REGION ") ROM not found.\n\n"
+                  "Place your cartridge dump (" PORT_ROM_CODE ", 32 MiB) next to the executable "
                   "as \"baserom.gba\".");
         return 0;
     }
@@ -126,7 +130,7 @@ int PortRomLoad(void) {
 }
 
 void PortSramLoad(void) {
-    FILE* f = fopen(PortConfigPath("kh_com.sav"), "rb");
+    FILE* f = fopen(PortConfigPath(PORT_SAVE_NAME), "rb");
     uint8_t* sram = (uint8_t*)(uintptr_t)GBA_SRAM;
 
     memset(sram, 0xFF, GBA_SRAM_SIZE);
@@ -146,12 +150,12 @@ void PortSramSyncIfDirty(void) {
 
     if (!sSramLoaded || memcmp(sSramShadow, sram, GBA_SRAM_SIZE) == 0)
         return;
-    snprintf(tmp, sizeof(tmp), "%s.tmp", PortConfigPath("kh_com.sav"));
+    snprintf(tmp, sizeof(tmp), "%s.tmp", PortConfigPath(PORT_SAVE_NAME));
     f = fopen(tmp, "wb");
     if (f == NULL)
         return;
     if (fwrite(sram, 1, GBA_SRAM_SIZE, f) == GBA_SRAM_SIZE && fclose(f) == 0) {
-        if (MoveFileExA(tmp, PortConfigPath("kh_com.sav"), MOVEFILE_REPLACE_EXISTING))
+        if (MoveFileExA(tmp, PortConfigPath(PORT_SAVE_NAME), MOVEFILE_REPLACE_EXISTING))
             memcpy(sSramShadow, sram, GBA_SRAM_SIZE);
     } else {
         fclose(f);

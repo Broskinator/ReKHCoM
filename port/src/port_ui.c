@@ -14,7 +14,9 @@
 
 extern void* gMsgLatinFontFrames[];
 extern const uint8_t gMsgLatinFontTiles[];
+#ifdef VERSION_EU
 extern uint32_t gLanguage;
+#endif
 const uint16_t* PortLatinGlyphWidths(void);
 void PortInputSuppressUntilRelease(void);
 
@@ -137,7 +139,11 @@ static uint32_t* sFb;
 static int sFbW, sFbH;
 
 static int Lang(void) {
+#ifdef VERSION_EU
     return gLanguage < LANG_COUNT ? (int)gLanguage : LANG_EN;
+#else
+    return LANG_EN; /* single-language cartridges */
+#endif
 }
 
 /* Next character of a UTF-8 string as a code of the game's Latin font. */

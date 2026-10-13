@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Package an existing Windows build using an explicit, ROM-free file list."""
+"""Package existing Windows builds using an explicit, ROM-free file list.
+
+The package holds the launcher (ReKHCoM.exe) and one game executable per
+cartridge version, built with port/configure_pc.py --version eu|us|jp.
+"""
 import argparse
 import hashlib
 import re
@@ -12,19 +16,25 @@ ROOT = Path(__file__).resolve().parents[2]
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", required=True)
-    parser.add_argument("--build", type=Path, default=ROOT / "build/pc")
+    parser.add_argument("--build", type=Path, default=ROOT / "build/pc", help="European build (and launcher)")
+    parser.add_argument("--build-us", type=Path, default=ROOT / "build/pc-us")
+    parser.add_argument("--build-jp", type=Path, default=ROOT / "build/pc-jp")
     parser.add_argument("--sdl", type=Path, required=True)
     parser.add_argument("--out", type=Path, default=ROOT / "build/releases")
     args = parser.parse_args()
     if not re.fullmatch(r"v\d+\.\d+(?:\.\d+)?(?:-[A-Za-z0-9.-]+)?", args.version):
         parser.error("version must look like v0.1 or v0.1.1")
     files = {
-        "khcom.exe": args.build / "khcom.exe",
+        "ReKHCoM.exe": args.build / "ReKHCoM.exe",
+        "khcom_eu.exe": args.build / "khcom.exe",
+        "khcom_us.exe": args.build_us / "khcom.exe",
+        "khcom_jp.exe": args.build_jp / "khcom.exe",
         "SDL3.dll": args.build / "SDL3.dll",
         "README.md": ROOT / "README.md",
         "CHANGELOG.md": ROOT / "CHANGELOG.md",
         "LICENSE.md": ROOT / "LICENSE.md",
         "SDL3-LICENSE.txt": args.sdl / "LICENSE.txt",
+        "licenses/imgui-LICENSE.txt": ROOT / "port/decompui/third_party/imgui/LICENSE.txt",
     }
     for source in files.values():
         if not source.is_file():
@@ -35,6 +45,7 @@ def main():
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for name, source in files.items():
             z.write(source, f"{prefix}/{name}")
+        z.writestr(f"{prefix}/roms/", "")
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
     checksum = archive.with_suffix(".zip.sha256")
     checksum.write_text(f"{digest}  {archive.name}\n", encoding="ascii")

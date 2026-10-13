@@ -94,6 +94,24 @@ typedef struct PortConfig {
 
 extern PortConfig gPortConfig;
 
+/* The cartridge version this executable is built for. */
+#if defined(VERSION_US)
+#define PORT_ROM_CODE "B8CE"
+#define PORT_ROM_REGION "USA"
+#define PORT_SAVE_NAME "kh_com_us.sav"
+#elif defined(VERSION_JP)
+#define PORT_ROM_CODE "B8CJ"
+#define PORT_ROM_REGION "Japan"
+#define PORT_SAVE_NAME "kh_com_jp.sav"
+#else
+#define PORT_ROM_CODE "B8CP"
+#define PORT_ROM_REGION "Europe"
+#define PORT_SAVE_NAME "kh_com.sav"
+#endif
+
+/* ROM given on the command line (--rom), tried before the usual names. */
+extern const char* gPortRomPath;
+
 void PortConfigLoad(void);
 void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);

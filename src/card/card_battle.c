@@ -722,9 +722,10 @@ s32 cardbattleSora_1(CardBattleWork* work, Task* task) {
             sSoraCardRequest = CARD_REQUEST_NONE;
 
             if (!(sSoraSelectedCard->flags & CARD_DISP_FLAG_RELOAD_CARD)) {
+                // @bug A "not have" display has no cardDef (NULL read).
                 if (work->stockCount == 3) {
                     UseSoraStock(work);
-                } else if (sSoraSelectedCard->cardDef->category == CARD_CATEGORY_ENEMY) {
+                } else if (BIOS_PTR(sSoraSelectedCard->cardDef)->category == CARD_CATEGORY_ENEMY) {
                     m4aSongNumStart(SONG_SYS_BEEP);
                 } else if (work->reloadPending[work->listIndex] == 0) {
                     if (!(sSoraSelectedCard->flags & CARD_DISP_FLAG_NO_CARD)) {
@@ -750,9 +751,10 @@ s32 cardbattleSora_1(CardBattleWork* work, Task* task) {
         case CARD_REQUEST_USE_CARD:
             sSoraCardRequest = CARD_REQUEST_NONE;
 
-            if (sSoraSelectedCard->cardDef->category != CARD_CATEGORY_ENEMY && !(sSoraSelectedCard->flags & CARD_DISP_FLAG_RELOAD_CARD)) {
+            // @bug The reload card and a "not have" display have no cardDef (NULL read).
+            if (BIOS_PTR(sSoraSelectedCard->cardDef)->category != CARD_CATEGORY_ENEMY && !(sSoraSelectedCard->flags & CARD_DISP_FLAG_RELOAD_CARD)) {
                 if (work->reloadPending[work->listIndex] == 0) {
-                    if (sSoraSelectedCard->cardDef->flags & CARD_DEF_FLAG_GIMMICK) {
+                    if (BIOS_PTR(sSoraSelectedCard->cardDef)->flags & CARD_DEF_FLAG_GIMMICK) {
                         UseSoraGimmickCard(work);
                     } else if (!(sSoraSelectedCard->flags & CARD_DISP_FLAG_NO_CARD)) {
                         if (CanUseSoraSelectedCard()) {
@@ -764,7 +766,7 @@ s32 cardbattleSora_1(CardBattleWork* work, Task* task) {
                         m4aSongNumStart(SONG_SYS_BEEP);
                     }
                 }
-            } else if (sSoraSelectedCard->cardDef->category == CARD_CATEGORY_ENEMY && !(sSoraSelectedCard->flags & CARD_DISP_FLAG_RELOAD_CARD)) {
+            } else if (BIOS_PTR(sSoraSelectedCard->cardDef)->category == CARD_CATEGORY_ENEMY && !(sSoraSelectedCard->flags & CARD_DISP_FLAG_RELOAD_CARD)) {
                 UseSoraHeartlessCard(work);
             } else if (gGameState.flags & GAME_FLAG_RIKU) {
                 RemoveSoraCardDisplays(work);

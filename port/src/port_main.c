@@ -675,6 +675,8 @@ int main(int argc, char** argv) {
                 gPortIntroRequested = 1;
             else if (strcmp(argv[i], "--data-dir") == 0 && i + 1 < argc)
                 PortConfigSetDataPath(argv[++i]);
+            else if (strcmp(argv[i], "--rom") == 0 && i + 1 < argc)
+                gPortRomPath = argv[++i];
             else if (strcmp(argv[i], "--language") == 0 && i + 1 < argc) {
                 const char* language = argv[++i];
                 if (strcmp(language, "es") == 0) gPortStartupLanguage = 4;

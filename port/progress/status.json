@@ -124,7 +124,7 @@
       "name": "Gameplay verification",
       "weight": 10,
       "done": 20,
-      "notes": "Spanish: opening, Traverse Town, first battle and tutorial; game speed matches hardware; save states for regression tests"
+      "notes": "Spanish: opening, Traverse Town, first battle and tutorial including the first reload; game speed matches hardware; save states for regression tests"
     },
     {
       "name": "Save states",
@@ -141,14 +141,14 @@
     {
       "name": "USA and Japanese versions",
       "weight": 6,
-      "done": 0,
-      "notes": "decomp supports them; PC build, assets and testing pending"
+      "done": 40,
+      "notes": "separate builds (configure --version us|jp); boot, opening movie and first scene verified; own save files; HD text and options overlay in English only"
     },
     {
       "name": "Launcher & ROM install",
       "weight": 4,
-      "done": 0,
-      "notes": "launcher that asks for the ROM, installs it and toggles options and mods"
+      "done": 60,
+      "notes": "decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements, controls, starts the matching game; packaging updated"
     },
     {
       "name": "Skip intro",

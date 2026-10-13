@@ -1024,7 +1024,8 @@ static u8 cardbattle_1(CardBattleWork* work, void* task) {
     case CARD_REQUEST_USE_CARD:
         sRikuCardRequest = CARD_REQUEST_NONE;
 
-        if (sRikuSelectedCard->cardDef->category != CARD_CATEGORY_ENEMY) {
+        // @bug The reload card and the empty slot have no cardDef (NULL read).
+        if (BIOS_PTR(sRikuSelectedCard->cardDef)->category != CARD_CATEGORY_ENEMY) {
             if (!(sRikuSelectedCard->flags & CARD_DISP_FLAG_RELOAD_CARD) && work->reloadPending[work->listIndex] == 0) {
                 if (!(sRikuSelectedCard->flags & CARD_DISP_FLAG_NO_CARD)) {
                     if (CanUseRikuSelectedCard()) {
@@ -2705,7 +2706,8 @@ u8 GetActiveCardValue() {
 
 s32 GetRikuSelectedCardMoveRaw() {
     if (sRikuSelectedCard != NULL) {
-        return sRikuSelectedCard->cardDef->move;
+        // @bug The reload card and the empty slot have no cardDef (NULL read).
+        return BIOS_PTR(sRikuSelectedCard->cardDef)->move;
     }
 
     return MOVE_STOCK_SEQUENCE;

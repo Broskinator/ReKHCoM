@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Configure the native Windows build of Kingdom Hearts: Chain of Memories.
 
-    python port/configure_pc.py [--toolchain DIR] [--sdl DIR] [--debug]
+    python port/configure_pc.py [--version eu|us|jp] [--toolchain DIR] [--sdl DIR] [--debug]
     ninja -f build/pc/build.ninja
+
+Each cartridge version (European, USA, Japanese) is its own build; the
+default output directory is build/pc for eu and build/pc-<version> otherwise.
 
 The game is built for 32-bit x86 so pointers keep their GBA size; see
 port/include/port/port.h for the overall design.
@@ -21,6 +24,7 @@ VERSION = "eu"
 BUILD = ROOT / "build" / "pc"
 GEN = ROOT / "build" / VERSION / "gen"
 PC_GEN = ROOT / "build" / VERSION / "pc"
+VERSIONS = ("eu", "us", "jp")
 
 
 def rel(path):
@@ -41,11 +45,15 @@ def main():
     parser.add_argument("--toolchain", type=Path, help="llvm-mingw directory")
     parser.add_argument("--sdl", type=Path, help="SDL3 mingw development package")
     parser.add_argument("--debug", action="store_true", help="no optimisation, console window")
-    parser.add_argument("--out", default="build/pc", help="output directory (default: build/pc)")
+    parser.add_argument("--version", default="eu", choices=VERSIONS, help="cartridge version (default: eu)")
+    parser.add_argument("--out", help="output directory (default: build/pc, or build/pc-<version>)")
     args = parser.parse_args()
 
-    global BUILD
-    BUILD = ROOT / args.out
+    global BUILD, VERSION, GEN, PC_GEN
+    VERSION = args.version
+    GEN = ROOT / "build" / VERSION / "gen"
+    PC_GEN = ROOT / "build" / VERSION / "pc"
+    BUILD = ROOT / (args.out or ("build/pc" if VERSION == "eu" else f"build/pc-{VERSION}"))
     toolchain = args.toolchain or find_default("toolchain", "llvm-mingw-*")
     sdl = args.sdl or find_default("sdl", "SDL3-*")
     sdl_arch = sdl / "i686-w64-mingw32"
@@ -56,20 +64,21 @@ def main():
     # Asset glue (headers, text fragments, ROM symbol table).
     if not (PC_GEN / "rom_symbols.s").exists():
         env = dict(os.environ, PYTHONUTF8="1")
-        subprocess.check_call([sys.executable, str(ROOT / "port" / "tools" / "gen_pc_assets.py")], env=env)
+        subprocess.check_call([sys.executable, str(ROOT / "port" / "tools" / "gen_pc_assets.py"),
+                               "--version", VERSION], env=env)
 
     include_dirs = ["include"] + sorted(rel(p) for p in (ROOT / "include").iterdir()
                                         if p.is_dir() and p.name != "gba")
     includes = " ".join(f"-I{d}" for d in include_dirs + [rel(GEN), "port/include"])
     opt = "-O0 -g" if args.debug else "-O2 -g"
     common = (f"{opt} -std=gnu89 -funsigned-char -fno-strict-aliasing -fwrapv -fno-common "
-              f"-mno-ms-bitfields -DVERSION_EU -DPLATFORM_PC")
+              f"-mno-ms-bitfields -DVERSION_{VERSION.upper()} -DPLATFORM_PC")
     game_cflags = f"{common} -w -include port/game_prefix.h {includes}"
     # Port sources see the game headers only through #include "...", so names
     # such as malloc.h cannot shadow the system headers.
     quoted = " ".join(f"-iquote {d}" for d in include_dirs + [rel(GEN)])
     port_cflags = (f"{opt} -std=gnu11 -Wall -Wno-unused-function -Wno-missing-braces -mno-ms-bitfields "
-                   f"-DVERSION_EU -DPLATFORM_PC {quoted} -Iport/include -I{rel(sdl_arch / 'include')}")
+                   f"-DVERSION_{VERSION.upper()} -DPLATFORM_PC {quoted} -Iport/include -I{rel(sdl_arch / 'include')}")
     ldflags = (f"-L{rel(sdl_arch / 'lib')} -lSDL3 -lgdi32 -Wl,--disable-dynamicbase -Wl,--large-address-aware "
                + ("" if args.debug else "-Wl,--subsystem,windows"))
 
@@ -113,8 +122,37 @@ def main():
         dll = sdl_arch / "bin" / "SDL3.dll"
         n.build("$builddir/SDL3.dll", "copy", rel(dll),
                 variables={"in_win": str(dll), "out_win": str(BUILD / "SDL3.dll")})
-        n.default(["$builddir/khcom.exe", "$builddir/SDL3.dll"])
+        targets = ["$builddir/khcom.exe", "$builddir/SDL3.dll"]
+        if VERSION == "eu":
+            targets.append(decompui(n, toolchain, sdl_arch, args.debug))
+        n.default(targets)
     print(f"configured {rel(BUILD / 'build.ninja')} ({'debug' if args.debug else 'release'})")
+
+
+def decompui(n, toolchain, sdl_arch, debug):
+    """The launcher (port/decompui): Dear ImGui on SDL3 + OpenGL, C++."""
+    ui = ROOT / "port" / "decompui"
+    imgui = ui / "third_party" / "imgui"
+    cxx = toolchain / "bin" / "i686-w64-mingw32-clang++.exe"
+    n.variable("cxx", "\"" + str(cxx).replace("\\", "/") + "\"")
+    n.variable("ui_cxxflags", f"{'-O0 -g' if debug else '-O2'} -std=c++17 -I{rel(imgui)} -I{rel(ui / 'third_party')} "
+                              f"-I{rel(sdl_arch / 'include')}")
+    n.variable("ui_ldflags", f"-static-libstdc++ -static-libgcc -L{rel(sdl_arch / 'lib')} -lSDL3 -lopengl32 -lcomdlg32 -lbcrypt -lshell32 "
+                             + ("" if debug else "-mwindows"))
+    n.rule("cxx_ui", "$cxx $ui_cxxflags -MD -MF $out.d -c $in -o $out", description="CXX $in",
+           depfile="$out.d", deps="gcc")
+    n.rule("link_ui", "$cxx @$out.rsp -o $out $ui_ldflags", rspfile="$out.rsp", rspfile_content="$in",
+           description="LINK $out")
+    sources = [ui / "decompui.cpp"] + [imgui / f for f in ("imgui.cpp", "imgui_draw.cpp", "imgui_tables.cpp",
+                                                          "imgui_widgets.cpp")]
+    sources += [imgui / "backends" / "imgui_impl_sdl3.cpp", imgui / "backends" / "imgui_impl_opengl3.cpp"]
+    objs = []
+    for src in sources:
+        obj = f"$builddir/decompui/{src.stem}.o"
+        n.build(obj, "cxx_ui", rel(src))
+        objs.append(obj)
+    n.build("$builddir/ReKHCoM.exe", "link_ui", objs)
+    return "$builddir/ReKHCoM.exe"
 
 
 if __name__ == "__main__":

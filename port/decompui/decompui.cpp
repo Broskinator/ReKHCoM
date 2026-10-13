@@ -1,0 +1,1113 @@
+/*
+ * decompui — the ReKHCoM launcher.
+ *
+ * Installs the user's cartridge dumps (any of the three versions, checked by
+ * SHA-1), edits the game's settings file (kh_com.ini) and starts the game
+ * executable built for the chosen version:
+ *
+ *   ReKHCoM.exe                 this launcher
+ *   khcom_eu.exe / _us / _jp    the game, one per cartridge version
+ *   roms/<code>.gba             installed dumps
+ *   kh_com.ini, *.sav, *.log    settings, saves and logs (shared data folder)
+ *
+ * Dear ImGui on SDL3 + OpenGL. Its look follows recomp-ui's GBA theme.
+ */
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <bcrypt.h>
+#include <commdlg.h>
+#include <shellapi.h>
+
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
+
+#include <algorithm>
+#include <cfloat>
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <map>
+#include <string>
+#include <vector>
+
+#include "imgui.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "backends/imgui_impl_sdl3.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#define STBI_ONLY_JPEG
+#include "stb_image.h"
+
+namespace fs = std::filesystem;
+
+/* ---- strings (Spanish / English) ------------------------------------------- */
+
+static bool sSpanish;
+
+static const char* T(const char* es, const char* en) {
+    return sSpanish ? es : en;
+}
+
+/* ---- cartridge versions ---------------------------------------------------- */
+
+struct Version {
+    const char* id;
+    const char* code;
+    const char* sha1;
+    const char* regionEs;
+    const char* regionEn;
+    const char* languages;
+};
+
+static const Version kVersions[] = {
+    { "eu", "B8CP", "8db73586cdb11b3795907edebf43228dbcd3e6b2", "Europa", "Europe", "EN  FR  DE  ES  IT" },
+    { "us", "B8CE", "10729bd884f8fdca7a310b6d606c52e46657aa48", "América", "USA", "EN" },
+    { "jp", "B8CJ", "59ec0a0a4ccd1e6acb3bbd7bfb21d63988958cfa", "Japón", "Japan", "JA" },
+};
+static const int kVersionCount = 3;
+static const size_t kRomSize = 32u << 20;
+
+struct VersionState {
+    bool installed;
+    fs::path exe;
+};
+
+static fs::path sRoot;
+static VersionState sState[kVersionCount];
+static int sSelected;
+static std::string sNotice;
+static bool sNoticeError;
+static double sNoticeTime;
+
+static void Notice(const std::string& text, bool error) {
+    sNotice = text;
+    sNoticeError = error;
+    sNoticeTime = ImGui::GetTime();
+}
+
+static std::string Sha1Hex(const std::vector<unsigned char>& data) {
+    BCRYPT_ALG_HANDLE alg = nullptr;
+    BCRYPT_HASH_HANDLE hash = nullptr;
+    unsigned char digest[20] = {};
+    std::string hex;
+
+    if (BCryptOpenAlgorithmProvider(&alg, BCRYPT_SHA1_ALGORITHM, nullptr, 0) != 0)
+        return hex;
+    if (BCryptCreateHash(alg, &hash, nullptr, 0, nullptr, 0, 0) == 0) {
+        BCryptHashData(hash, (PUCHAR)data.data(), (ULONG)data.size(), 0);
+        BCryptFinishHash(hash, digest, sizeof(digest), 0);
+        BCryptDestroyHash(hash);
+        for (unsigned char b : digest) {
+            char two[3];
+            std::snprintf(two, sizeof(two), "%02x", b);
+            hex += two;
+        }
+    }
+    BCryptCloseAlgorithmProvider(alg, 0);
+    return hex;
+}
+
+static bool ReadFile(const fs::path& path, std::vector<unsigned char>& out) {
+    std::ifstream f(path, std::ios::binary);
+    if (!f)
+        return false;
+    f.seekg(0, std::ios::end);
+    std::streamoff size = f.tellg();
+    if (size <= 0 || size > (std::streamoff)(64u << 20))
+        return false;
+    out.resize((size_t)size);
+    f.seekg(0);
+    f.read((char*)out.data(), size);
+    return (bool)f;
+}
+
+static fs::path RomPath(int v) {
+    return sRoot / "roms" / (std::string(kVersions[v].code) + ".gba");
+}
+
+static void ScanInstall() {
+    static const char* const devDirs[] = { "pc", "pc-us", "pc-jp" };
+
+    for (int v = 0; v < kVersionCount; v++) {
+        std::vector<unsigned char> rom;
+        sState[v].installed = ReadFile(RomPath(v), rom) && Sha1Hex(rom) == kVersions[v].sha1;
+        sState[v].exe = sRoot / (std::string("khcom_") + kVersions[v].id + ".exe");
+        if (!fs::exists(sState[v].exe)) {
+            /* development tree: build/decompui next to build/pc, build/pc-us, ... */
+            fs::path dev = sRoot.parent_path() / devDirs[v] / "khcom.exe";
+            if (fs::exists(dev))
+                sState[v].exe = dev;
+        }
+    }
+}
+
+/* Checks a dump and copies it into roms/. */
+static void InstallRom(const fs::path& path) {
+    std::vector<unsigned char> rom;
+
+    if (!ReadFile(path, rom) || rom.size() != kRomSize) {
+        Notice(T("Ese archivo no es un volcado de cartucho de 32 MiB.",
+                 "That file is not a 32 MiB cartridge dump."), true);
+        return;
+    }
+    for (int v = 0; v < kVersionCount; v++) {
+        if (std::memcmp(rom.data() + 0xAC, kVersions[v].code, 4) != 0)
+            continue;
+        if (Sha1Hex(rom) != kVersions[v].sha1) {
+            Notice(std::string(T("La ROM ", "The ")) + T(kVersions[v].regionEs, kVersions[v].regionEn) +
+                       T(" no coincide con el volcado original (SHA-1 distinto).",
+                         " ROM does not match the original dump (different SHA-1)."),
+                   true);
+            return;
+        }
+        std::error_code ec;
+        fs::create_directories(sRoot / "roms", ec);
+        fs::path tmp = RomPath(v);
+        tmp += ".tmp";
+        {
+            std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
+            out.write((const char*)rom.data(), (std::streamsize)rom.size());
+            if (!out) {
+                Notice(T("No se pudo escribir en la carpeta roms.", "Could not write to the roms folder."), true);
+                return;
+            }
+        }
+        fs::rename(tmp, RomPath(v), ec);
+        if (ec) {
+            Notice(T("No se pudo instalar la ROM.", "Could not install the ROM."), true);
+            return;
+        }
+        sState[v].installed = true;
+        sSelected = v;
+        Notice(std::string(T("ROM instalada y verificada: ", "ROM installed and verified: ")) +
+                   T(kVersions[v].regionEs, kVersions[v].regionEn),
+               false);
+        return;
+    }
+    Notice(T("No es una ROM de Kingdom Hearts: Chain of Memories.",
+             "This is not a Kingdom Hearts: Chain of Memories ROM."), true);
+}
+
+static void PickRom(SDL_Window* window) {
+    wchar_t file[MAX_PATH] = L"";
+    OPENFILENAMEW ofn = {};
+    SDL_PropertiesID props = SDL_GetWindowProperties(window);
+
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = (HWND)SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+    ofn.lpstrFilter = L"GBA ROM (*.gba)\0*.gba;*.agb;*.bin\0*.*\0*.*\0";
+    ofn.lpstrFile = file;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    if (GetOpenFileNameW(&ofn))
+        InstallRom(fs::path(file));
+}
+
+/* ---- settings (kh_com.ini, shared with the game) ----------------------------- */
+
+struct Setting {
+    const char* key;
+    int def;
+};
+
+/* Same keys, order and defaults as port/src/port_config.c. */
+static const Setting kSettings[] = {
+    { "config_version", 2 }, { "view_mode", 4 },   { "zoom", 1 },         { "scale_mode", 0 },
+    { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
+    { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
+    { "window_scale", 4 },   { "fullscreen_width", 1920 }, { "fullscreen_height", 1080 },
+    { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
+    { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
+};
+
+static std::map<std::string, int> sIni;
+
+static int& Ini(const char* key) {
+    return sIni[key];
+}
+
+static void LoadIni() {
+    sIni.clear();
+    for (const Setting& s : kSettings)
+        sIni[s.key] = s.def;
+    std::ifstream f(sRoot / "kh_com.ini");
+    std::string line;
+    while (std::getline(f, line)) {
+        size_t eq = line.find('=');
+        if (line.empty() || line[0] == '#' || line[0] == ';' || eq == std::string::npos)
+            continue;
+        std::string key = line.substr(0, eq);
+        while (!key.empty() && std::isspace((unsigned char)key.back()))
+            key.pop_back();
+        sIni[key] = std::atoi(line.c_str() + eq + 1);
+    }
+    /* Files from before the auto view switch to it once, as the game does. */
+    if (sIni["config_version"] < 2) {
+        sIni["view_mode"] = 4;
+        sIni["config_version"] = 2;
+    }
+}
+
+static void SaveIni() {
+    std::ofstream f(sRoot / "kh_com.ini", std::ios::trunc);
+    f << "# Kingdom Hearts: Chain of Memories (PC) settings\n";
+    for (const Setting& s : kSettings)
+        f << s.key << "=" << sIni[s.key] << "\n";
+}
+
+static void LoadLauncherState() {
+    std::ifstream f(sRoot / "decompui.ini");
+    std::string line;
+    while (std::getline(f, line)) {
+        if (line.rfind("version=", 0) == 0) {
+            for (int v = 0; v < kVersionCount; v++)
+                if (line.substr(8) == kVersions[v].id)
+                    sSelected = v;
+        }
+    }
+}
+
+static void SaveLauncherState() {
+    std::ofstream f(sRoot / "decompui.ini", std::ios::trunc);
+    f << "version=" << kVersions[sSelected].id << "\n";
+}
+
+/* ---- theme ------------------------------------------------------------------- */
+
+static float sScale = 1.0f;
+
+static float Px(float v) {
+    return v * sScale;
+}
+
+static ImU32 Col(float r, float g, float b, float a = 1.0f) {
+    return ImGui::GetColorU32(ImVec4(r, g, b, a));
+}
+
+/* recomp-ui's "Game Boy Advance" palette. */
+static const ImVec4 kInk(0.047f, 0.043f, 0.090f, 1.0f);
+static const ImVec4 kInkLift(0.082f, 0.075f, 0.145f, 1.0f);
+static const ImVec4 kPanel(0.094f, 0.086f, 0.165f, 1.0f);
+static const ImVec4 kPanelHover(0.145f, 0.133f, 0.247f, 1.0f);
+static const ImVec4 kControl(0.118f, 0.110f, 0.200f, 1.0f);
+static const ImVec4 kControlHover(0.161f, 0.149f, 0.271f, 1.0f);
+static const ImVec4 kBorder(0.204f, 0.188f, 0.325f, 1.0f);
+static const ImVec4 kAccent(0.463f, 0.427f, 0.945f, 1.0f);
+static const ImVec4 kAccentDim(0.325f, 0.290f, 0.741f, 1.0f);
+static const ImVec4 kText(0.922f, 0.918f, 0.957f, 1.0f);
+static const ImVec4 kMuted(0.525f, 0.510f, 0.647f, 1.0f);
+static const ImVec4 kGood(0.275f, 0.890f, 0.608f, 1.0f);
+static const ImVec4 kWarn(0.961f, 0.698f, 0.235f, 1.0f);
+static const ImVec4 kBad(0.950f, 0.380f, 0.420f, 1.0f);
+static const ImVec4 kFocus(0.220f, 0.882f, 0.902f, 1.0f);
+
+static ImFont* sFontBody;
+static ImFont* sFontTitle;
+static ImFont* sFontSmall;
+
+static void ApplyStyle() {
+    ImGuiStyle& s = ImGui::GetStyle();
+    s = ImGuiStyle();
+    s.WindowPadding = ImVec2(Px(24), Px(20));
+    s.FramePadding = ImVec2(Px(14), Px(9));
+    s.ItemSpacing = ImVec2(Px(10), Px(10));
+    s.ChildRounding = Px(14);
+    s.FrameRounding = Px(6);
+    s.GrabRounding = Px(6);
+    s.ScrollbarRounding = Px(6);
+    s.ChildBorderSize = 1.0f;
+    s.FrameBorderSize = 1.0f;
+    s.ScrollbarSize = Px(12);
+    s.GrabMinSize = Px(14);
+    ImVec4* c = s.Colors;
+    c[ImGuiCol_WindowBg] = ImVec4(0, 0, 0, 0);
+    c[ImGuiCol_ChildBg] = kPanel;
+    c[ImGuiCol_Border] = kBorder;
+    c[ImGuiCol_Text] = kText;
+    c[ImGuiCol_TextDisabled] = kMuted;
+    c[ImGuiCol_FrameBg] = kControl;
+    c[ImGuiCol_FrameBgHovered] = kControlHover;
+    c[ImGuiCol_FrameBgActive] = kControlHover;
+    c[ImGuiCol_Button] = kControl;
+    c[ImGuiCol_ButtonHovered] = kControlHover;
+    c[ImGuiCol_ButtonActive] = kAccentDim;
+    c[ImGuiCol_SliderGrab] = kAccent;
+    c[ImGuiCol_SliderGrabActive] = kAccent;
+    c[ImGuiCol_CheckMark] = kAccent;
+    c[ImGuiCol_Header] = kControl;
+    c[ImGuiCol_HeaderHovered] = kControlHover;
+    c[ImGuiCol_HeaderActive] = kAccentDim;
+    c[ImGuiCol_NavCursor] = kFocus;
+    c[ImGuiCol_ScrollbarBg] = ImVec4(0, 0, 0, 0);
+    c[ImGuiCol_ScrollbarGrab] = kBorder;
+    c[ImGuiCol_TableBorderLight] = kBorder;
+    c[ImGuiCol_TableBorderStrong] = kBorder;
+    c[ImGuiCol_TableRowBgAlt] = ImVec4(1, 1, 1, 0.025f);
+    c[ImGuiCol_PopupBg] = kPanel;
+}
+
+static void LoadFonts() {
+    ImGuiIO& io = ImGui::GetIO();
+    wchar_t windir[MAX_PATH];
+    GetWindowsDirectoryW(windir, MAX_PATH);
+    fs::path fonts = fs::path(windir) / "Fonts";
+    std::string regular = (fonts / "segoeui.ttf").string();
+    std::string semibold = (fonts / "seguisb.ttf").string();
+    static const ImWchar ranges[] = { 0x0020, 0x00FF, 0x2190, 0x2193, 0x25B6, 0x25C0, 0 };
+    ImFontConfig cfg;
+    cfg.OversampleH = 2;
+
+    io.Fonts->Clear();
+    if (fs::exists(regular)) {
+        sFontBody = io.Fonts->AddFontFromFileTTF(regular.c_str(), Px(18), &cfg, ranges);
+        sFontSmall = io.Fonts->AddFontFromFileTTF(regular.c_str(), Px(14), &cfg, ranges);
+        sFontTitle = io.Fonts->AddFontFromFileTTF(fs::exists(semibold) ? semibold.c_str() : regular.c_str(),
+                                                  Px(34), &cfg, ranges);
+    }
+    if (sFontBody == nullptr) {
+        ImFontConfig def;
+        def.SizePixels = Px(16);
+        sFontBody = sFontSmall = sFontTitle = io.Fonts->AddFontDefault(&def);
+    }
+}
+
+/* ---- widgets ----------------------------------------------------------------- */
+
+static void Background(ImVec2 size) {
+    ImDrawList* bg = ImGui::GetBackgroundDrawList();
+    ImU32 ink = ImGui::GetColorU32(kInk), lift = ImGui::GetColorU32(kInkLift);
+    float mid = size.y * 0.42f;
+    bg->AddRectFilledMultiColor(ImVec2(0, 0), ImVec2(size.x, mid), ink, ink, lift, lift);
+    bg->AddRectFilledMultiColor(ImVec2(0, mid), size, lift, lift, ink, ink);
+    bg->AddRectFilledMultiColor(ImVec2(0, 0), ImVec2(size.x, Px(110)), Col(kAccent.x, kAccent.y, kAccent.z, 0.12f),
+                                Col(kAccent.x, kAccent.y, kAccent.z, 0.12f), Col(0, 0, 0, 0), Col(0, 0, 0, 0));
+}
+
+/* Uppercase section heading with an accent tick. */
+static void Eyebrow(const char* text) {
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImGui::PushFont(sFontSmall);
+    float h = ImGui::GetTextLineHeight();
+    dl->AddRectFilled(ImVec2(p.x, p.y + h * 0.12f), ImVec2(p.x + Px(3), p.y + h * 0.9f),
+                      ImGui::GetColorU32(kAccent), Px(1.5f));
+    float x = p.x + Px(10);
+    char one[2] = { 0, 0 };
+    for (const char* q = text; *q; q++) {
+        one[0] = *q;
+        dl->AddText(ImVec2(x, p.y), ImGui::GetColorU32(kAccent), one);
+        x += ImGui::CalcTextSize(one).x + Px(2.2f);
+    }
+    ImGui::Dummy(ImVec2(x - p.x, h));
+    ImGui::PopFont();
+    ImGui::Spacing();
+}
+
+static bool BeginCard(const char* id, ImVec2 size = ImVec2(0, 0)) {
+    ImGuiChildFlags flags = ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding;
+    if (size.y == 0)
+        flags |= ImGuiChildFlags_AutoResizeY;
+    return ImGui::BeginChild(id, size, flags);
+}
+
+/* The primary action: glow, accent gradient and a play triangle. */
+static bool PlayButton(const char* label, ImVec2 size, bool enabled) {
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    if (!enabled)
+        ImGui::BeginDisabled();
+    bool clicked = ImGui::InvisibleButton("##play", size, ImGuiButtonFlags_EnableNav);
+    bool hover = enabled && ImGui::IsItemHovered();
+    bool focus = ImGui::IsItemFocused();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    ImVec2 mx(p.x + size.x, p.y + size.y);
+    float r = Px(8);
+    float a = enabled ? 1.0f : 0.35f;
+
+    for (int i = 6; i >= 1; i--) {
+        float grow = Px(2) * i;
+        dl->AddRectFilled(ImVec2(p.x - grow, p.y - grow), ImVec2(mx.x + grow, mx.y + grow),
+                          Col(kAccent.x, kAccent.y, kAccent.z, a * (hover ? 0.16f : 0.10f) * (7 - i) / 6), r + grow);
+    }
+    /* vertical gradient with rounded corners: rounded caps, gradient between */
+    ImU32 top = Col(kAccent.x, kAccent.y, kAccent.z, a), bottom = Col(kAccentDim.x, kAccentDim.y, kAccentDim.z, a);
+    dl->AddRectFilled(p, ImVec2(mx.x, p.y + r), top, r, ImDrawFlags_RoundCornersTop);
+    dl->AddRectFilled(ImVec2(p.x, mx.y - r), mx, bottom, r, ImDrawFlags_RoundCornersBottom);
+    dl->AddRectFilledMultiColor(ImVec2(p.x, p.y + r), ImVec2(mx.x, mx.y - r), top, top, bottom, bottom);
+    if (focus)
+        dl->AddRect(ImVec2(p.x - Px(3), p.y - Px(3)), ImVec2(mx.x + Px(3), mx.y + Px(3)),
+                    ImGui::GetColorU32(kFocus), r + Px(3), 0, Px(2.5f));
+    ImGui::PushFont(sFontTitle);
+    float th = ImGui::GetTextLineHeight(), tw = ImGui::CalcTextSize(label).x;
+    float tri = Px(16), gap = Px(14);
+    float cx = p.x + (size.x - tri - gap - tw) * 0.5f, cy = p.y + size.y * 0.5f;
+    dl->AddTriangleFilled(ImVec2(cx, cy - tri * 0.55f), ImVec2(cx, cy + tri * 0.55f), ImVec2(cx + tri, cy),
+                          Col(1, 1, 1, a));
+    dl->AddText(ImVec2(cx + tri + gap, cy - th * 0.5f), Col(1, 1, 1, a), label);
+    ImGui::PopFont();
+    if (!enabled)
+        ImGui::EndDisabled();
+    return clicked && enabled;
+}
+
+static void StatusDot(const ImVec4& color) {
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    float h = ImGui::GetTextLineHeight(), r = Px(5);
+    dl->AddCircleFilled(ImVec2(p.x + r, p.y + h * 0.5f), r, ImGui::GetColorU32(color));
+    ImGui::Dummy(ImVec2(r * 2, h));
+    ImGui::SameLine(0, Px(8));
+}
+
+/* A settings row: label on the left, "<  value  >" on the right. */
+static bool CycleRow(const char* label, const char* hint, int& value, int count, const char* const* names) {
+    bool changed = false;
+    float w = ImGui::GetContentRegionAvail().x;
+    float ctrl = std::min(Px(300), w * 0.5f);
+
+    ImGui::PushID(label);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(label);
+    if (hint != nullptr && ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", hint);
+    ImGui::SameLine(w - ctrl);
+    float btn = ImGui::GetFrameHeight();
+    if (ImGui::Button("<", ImVec2(btn, 0))) {
+        value = (value + count - 1) % count;
+        changed = true;
+    }
+    ImGui::SameLine(0, Px(6));
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    float mid = ctrl - btn * 2 - Px(12);
+    ImGui::GetWindowDrawList()->AddRectFilled(p, ImVec2(p.x + mid, p.y + btn), ImGui::GetColorU32(kControl), Px(6));
+    const char* text = names[std::clamp(value, 0, count - 1)];
+    float tw = ImGui::CalcTextSize(text).x;
+    ImGui::GetWindowDrawList()->AddText(ImVec2(p.x + (mid - tw) * 0.5f, p.y + (btn - ImGui::GetTextLineHeight()) * 0.5f),
+                                        ImGui::GetColorU32(kText), text);
+    ImGui::Dummy(ImVec2(mid, btn));
+    ImGui::SameLine(0, Px(6));
+    if (ImGui::Button(">", ImVec2(btn, 0))) {
+        value = (value + 1) % count;
+        changed = true;
+    }
+    ImGui::PopID();
+    return changed;
+}
+
+static bool ToggleRow(const char* label, const char* description, int& value) {
+    bool changed = false;
+    float w = ImGui::GetContentRegionAvail().x;
+    float tw = Px(52), th = Px(28);
+
+    ImGui::PushID(label);
+    ImGui::BeginGroup();
+    ImGui::TextUnformatted(label);
+    if (description != nullptr) {
+        ImGui::PushFont(sFontSmall);
+        ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + w - tw - Px(24));
+        ImGui::TextWrapped("%s", description);
+        ImGui::PopTextWrapPos();
+        ImGui::PopStyleColor();
+        ImGui::PopFont();
+    }
+    ImGui::EndGroup();
+    float rowH = ImGui::GetItemRectSize().y;
+    ImGui::SameLine(w - tw);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (rowH - th) * 0.5f);
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    if (ImGui::InvisibleButton("##toggle", ImVec2(tw, th), ImGuiButtonFlags_EnableNav)) {
+        value = !value;
+        changed = true;
+    }
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    dl->AddRectFilled(p, ImVec2(p.x + tw, p.y + th), ImGui::GetColorU32(value ? kAccent : kControlHover), th * 0.5f);
+    float knob = th * 0.5f - Px(4);
+    float kx = value ? p.x + tw - th * 0.5f : p.x + th * 0.5f;
+    dl->AddCircleFilled(ImVec2(kx, p.y + th * 0.5f), knob, Col(1, 1, 1));
+    if (ImGui::IsItemFocused())
+        dl->AddRect(ImVec2(p.x - Px(3), p.y - Px(3)), ImVec2(p.x + tw + Px(3), p.y + th + Px(3)),
+                    ImGui::GetColorU32(kFocus), th * 0.5f + Px(3), 0, Px(2));
+    ImGui::PopID();
+    return changed;
+}
+
+static bool SliderRow(const char* label, int& value, int lo, int hi, const char* format) {
+    float w = ImGui::GetContentRegionAvail().x;
+    float ctrl = std::min(Px(300), w * 0.5f);
+
+    ImGui::PushID(label);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(label);
+    ImGui::SameLine(w - ctrl);
+    ImGui::SetNextItemWidth(ctrl);
+    bool changed = ImGui::SliderInt("##v", &value, lo, hi, format);
+    ImGui::PopID();
+    return changed;
+}
+
+/* ---- pages ------------------------------------------------------------------- */
+
+enum Page { PAGE_HOME, PAGE_GRAPHICS, PAGE_SOUND, PAGE_EXTRAS, PAGE_CONTROLS, PAGE_COUNT };
+
+static int sPage;
+static GLuint sBoxArt;
+static int sBoxW, sBoxH;
+static bool sLaunch;
+
+static void LoadBoxArt() {
+    fs::path path = sRoot / "assets" / "boxart.png";
+    if (!fs::exists(path))
+        path = sRoot / "assets" / "boxart.jpg";
+    std::vector<unsigned char> file;
+    if (!ReadFile(path, file))
+        return;
+    int n;
+    unsigned char* rgba = stbi_load_from_memory(file.data(), (int)file.size(), &sBoxW, &sBoxH, &n, 4);
+    if (rgba == nullptr)
+        return;
+    glGenTextures(1, &sBoxArt);
+    glBindTexture(GL_TEXTURE_2D, sBoxArt);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sBoxW, sBoxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    stbi_image_free(rgba);
+}
+
+/* Box art, or a typographic cover when assets/boxart.png is missing. */
+static void DrawCover(float w, float h) {
+    ImVec2 p = ImGui::GetCursorScreenPos();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+
+    if (sBoxArt != 0) {
+        float s = std::min(w / sBoxW, h / sBoxH);
+        float iw = sBoxW * s, ih = sBoxH * s;
+        ImGui::SetCursorScreenPos(ImVec2(p.x + (w - iw) * 0.5f, p.y + (h - ih) * 0.5f));
+        ImGui::Image((ImTextureID)(intptr_t)sBoxArt, ImVec2(iw, ih));
+        ImGui::SetCursorScreenPos(ImVec2(p.x, p.y + h));
+        ImGui::Dummy(ImVec2(w, 0));
+        return;
+    }
+    ImVec2 mx(p.x + w, p.y + h);
+    dl->AddRectFilledMultiColor(p, mx, Col(0.16f, 0.13f, 0.36f), Col(0.16f, 0.13f, 0.36f), Col(0.05f, 0.04f, 0.11f),
+                                Col(0.05f, 0.04f, 0.11f));
+    dl->AddRect(p, mx, ImGui::GetColorU32(kBorder), Px(10), 0, 1.0f);
+    /* a card outline, the game's motif */
+    float cw = w * 0.36f, ch = cw * 1.45f;
+    ImVec2 c0(p.x + (w - cw) * 0.5f, p.y + h * 0.16f);
+    dl->AddRectFilled(c0, ImVec2(c0.x + cw, c0.y + ch), Col(kAccent.x, kAccent.y, kAccent.z, 0.18f), Px(8));
+    dl->AddRect(c0, ImVec2(c0.x + cw, c0.y + ch), Col(kAccent.x, kAccent.y, kAccent.z, 0.8f), Px(8), 0, Px(2));
+    ImGui::PushFont(sFontTitle);
+    const char* t1 = "KINGDOM HEARTS";
+    float t1w = ImGui::CalcTextSize(t1).x;
+    float scale = std::min(1.0f, (w - Px(24)) / t1w);
+    ImGui::PopFont();
+    dl->AddText(sFontTitle, sFontTitle->FontSize * scale, ImVec2(p.x + (w - t1w * scale) * 0.5f, c0.y + ch + Px(18)),
+                ImGui::GetColorU32(kText), t1);
+    const char* t2 = "Chain of Memories";
+    float t2w = sFontBody->CalcTextSizeA(sFontBody->FontSize, FLT_MAX, 0, t2).x;
+    dl->AddText(sFontBody, sFontBody->FontSize, ImVec2(p.x + (w - t2w) * 0.5f, c0.y + ch + Px(18) + Px(40) * scale),
+                ImGui::GetColorU32(kMuted), t2);
+    ImGui::Dummy(ImVec2(w, h));
+}
+
+static void PageHome(SDL_Window* window) {
+    float avail = ImGui::GetContentRegionAvail().x;
+    float coverW = std::clamp(avail * 0.34f, Px(240), Px(360));
+
+    BeginCard("cover", ImVec2(coverW + Px(48), 0));
+    Eyebrow(T("JUEGO", "GAME"));
+    DrawCover(coverW, coverW * 1.25f);
+    ImGui::EndChild();
+    ImGui::SameLine(0, Px(20));
+
+    ImGui::BeginGroup();
+    BeginCard("versions");
+    Eyebrow(T("VERSIONES", "VERSIONS"));
+    for (int v = 0; v < kVersionCount; v++) {
+        const Version& ver = kVersions[v];
+        ImGui::PushID(v);
+        bool selected = sSelected == v;
+        ImVec2 rowMin = ImGui::GetCursorScreenPos();
+        float rowW = ImGui::GetContentRegionAvail().x;
+        float rowH = Px(64);
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        if (ImGui::InvisibleButton("##row", ImVec2(rowW, rowH), ImGuiButtonFlags_EnableNav) && sState[v].installed) {
+            sSelected = v;
+            SaveLauncherState();
+        }
+        bool hover = ImGui::IsItemHovered();
+        dl->AddRectFilled(rowMin, ImVec2(rowMin.x + rowW, rowMin.y + rowH),
+                          ImGui::GetColorU32(selected ? kPanelHover : (hover ? kControl : kPanel)), Px(8));
+        dl->AddRect(rowMin, ImVec2(rowMin.x + rowW, rowMin.y + rowH),
+                    ImGui::GetColorU32(selected ? kAccent : kBorder), Px(8), 0, selected ? Px(2) : 1.0f);
+        if (ImGui::IsItemFocused())
+            dl->AddRect(ImVec2(rowMin.x - Px(2), rowMin.y - Px(2)), ImVec2(rowMin.x + rowW + Px(2), rowMin.y + rowH + Px(2)),
+                        ImGui::GetColorU32(kFocus), Px(10), 0, Px(2));
+        /* radio */
+        ImVec2 rc(rowMin.x + Px(22), rowMin.y + rowH * 0.5f);
+        dl->AddCircle(rc, Px(8), ImGui::GetColorU32(selected ? kAccent : kMuted), 0, Px(2));
+        if (selected)
+            dl->AddCircleFilled(rc, Px(4.5f), ImGui::GetColorU32(kAccent));
+        /* region, code and languages */
+        float tx = rowMin.x + Px(44);
+        dl->AddText(sFontBody, sFontBody->FontSize, ImVec2(tx, rowMin.y + Px(10)), ImGui::GetColorU32(kText),
+                    T(ver.regionEs, ver.regionEn));
+        char sub[64];
+        std::snprintf(sub, sizeof(sub), "%s   %s", ver.code, ver.languages);
+        dl->AddText(sFontSmall, sFontSmall->FontSize, ImVec2(tx, rowMin.y + Px(36)), ImGui::GetColorU32(kMuted), sub);
+        /* status */
+        const char* status;
+        ImVec4 color;
+        if (!sState[v].installed) {
+            status = T("Sin ROM", "No ROM");
+            color = kMuted;
+        } else if (!fs::exists(sState[v].exe)) {
+            status = T("Falta el ejecutable", "Executable missing");
+            color = kWarn;
+        } else {
+            status = T("Verificada", "Verified");
+            color = kGood;
+        }
+        float sw = sFontSmall->CalcTextSizeA(sFontSmall->FontSize, FLT_MAX, 0, status).x;
+        ImVec2 sp(rowMin.x + rowW - sw - Px(18), rowMin.y + (rowH - sFontSmall->FontSize) * 0.5f);
+        dl->AddCircleFilled(ImVec2(sp.x - Px(12), sp.y + sFontSmall->FontSize * 0.5f), Px(4.5f),
+                            ImGui::GetColorU32(color));
+        dl->AddText(sFontSmall, sFontSmall->FontSize, sp, ImGui::GetColorU32(color), status);
+        ImGui::PopID();
+    }
+    ImGui::Spacing();
+    if (ImGui::Button(T("Instalar ROM...", "Install ROM..."), ImVec2(-FLT_MIN, 0)))
+        PickRom(window);
+    ImGui::PushFont(sFontSmall);
+    ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+    ImGui::TextWrapped("%s", T("Elige tu volcado del cartucho (o arrástralo a esta ventana). Se comprueba su SHA-1 "
+                               "y se copia a la carpeta roms. No se incluye ninguna ROM.",
+                               "Choose your cartridge dump (or drop it on this window). Its SHA-1 is checked and "
+                               "it is copied into the roms folder. No ROM is included."));
+    ImGui::PopStyleColor();
+    ImGui::PopFont();
+    ImGui::EndChild();
+
+    ImGui::Spacing();
+    bool ready = sState[sSelected].installed && fs::exists(sState[sSelected].exe);
+    if (PlayButton(T("JUGAR", "PLAY"), ImVec2(ImGui::GetContentRegionAvail().x, Px(72)), ready))
+        sLaunch = true;
+    if (!ready) {
+        ImGui::PushFont(sFontSmall);
+        ImGui::TextColored(kMuted, "%s",
+                           sState[sSelected].installed
+                               ? T("No se encontró el ejecutable de esta versión.", "This version's executable is missing.")
+                               : T("Instala la ROM de esta versión para jugar.", "Install this version's ROM to play."));
+        ImGui::PopFont();
+    }
+    ImGui::EndGroup();
+}
+
+static void PageGraphics() {
+    const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
+                            T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
+                            T("Auto (llenar ventana)", "Auto (fill window)") };
+    const char* zooms[] = { T("Cerca", "Near"), T("Normal", "Normal"), T("Lejos", "Far"), T("Muy lejos", "Very far") };
+    const char* scales[] = { T("Entero", "Integer"), T("Ajustar", "Fit"), T("Estirar", "Stretch") };
+    const char* filters[] = { T("Nítido", "Sharp"), "Pixel art", T("Suave", "Smooth") };
+    const char* huds[] = { T("Original", "Original"), T("Grande", "Large"), T("Más grande", "Larger") };
+    const char* narrow[] = { T("Píxel exacto", "Exact pixels"), T("Llenar altura", "Fill height") };
+    const char* onoff[] = { T("No", "Off"), T("Sí", "On") };
+    const char* scan[] = { T("No", "Off"), "25%", "50%", "75%", "100%" };
+    const char* windows[] = { "1x", "2x", "3x", "4x", "5x", "6x", "7x", "8x" };
+    bool changed = false;
+
+    BeginCard("display");
+    Eyebrow(T("PANTALLA", "DISPLAY"));
+    changed |= CycleRow(T("Vista", "View"), T("Auto llena la ventana a escala de píxel entera.",
+                                              "Auto fills the window at a whole-number pixel scale."),
+                        Ini("view_mode"), 5, views);
+    changed |= CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"), nullptr, Ini("zoom"), 4, zooms);
+    changed |= CycleRow(T("Escalado", "Scaling"), nullptr, Ini("scale_mode"), 3, scales);
+    changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);
+    changed |= CycleRow(T("Tamaño del HUD", "HUD size"), nullptr, Ini("hud_size"), 3, huds);
+    changed |= CycleRow(T("Escenas tamaño GBA", "GBA-size scenes"), nullptr, Ini("narrow_fit"), 2, narrow);
+    ImGui::EndChild();
+    ImGui::Spacing();
+    BeginCard("window");
+    Eyebrow(T("VENTANA", "WINDOW"));
+    changed |= CycleRow(T("Pantalla completa", "Fullscreen"), nullptr, Ini("fullscreen"), 2, onoff);
+    int ws = std::clamp(Ini("window_scale"), 1, 8) - 1;
+    if (CycleRow(T("Tamaño de ventana", "Window size"), nullptr, ws, 8, windows)) {
+        Ini("window_scale") = ws + 1;
+        changed = true;
+    }
+    changed |= CycleRow("VSync", nullptr, Ini("vsync"), 2, onoff);
+    int sc = std::clamp(Ini("scanlines") / 25, 0, 4);
+    if (CycleRow("Scanlines", nullptr, sc, 5, scan)) {
+        Ini("scanlines") = sc * 25;
+        changed = true;
+    }
+    changed |= CycleRow(T("Colores LCD GBA", "GBA LCD colours"), nullptr, Ini("color_correction"), 2, onoff);
+    changed |= CycleRow(T("Mostrar FPS", "Show FPS"), nullptr, Ini("show_fps"), 2, onoff);
+    ImGui::EndChild();
+    if (changed)
+        SaveIni();
+}
+
+static void PageSound() {
+    bool changed = false;
+    BeginCard("sound");
+    Eyebrow(T("SONIDO", "SOUND"));
+    changed |= SliderRow(T("Volumen general", "Master volume"), Ini("master_volume"), 0, 100, "%d%%");
+    changed |= SliderRow(T("Volumen música", "Music volume"), Ini("music_volume"), 0, 100, "%d%%");
+    changed |= SliderRow(T("Volumen efectos", "Effects volume"), Ini("sfx_volume"), 0, 100, "%d%%");
+    ImGui::EndChild();
+    if (changed)
+        SaveIni();
+}
+
+static void PageExtras() {
+    bool changed = false;
+    BeginCard("extras");
+    Eyebrow(T("MEJORAS", "ENHANCEMENTS"));
+    changed |= ToggleRow(T("Texto HD", "HD text"),
+                         T("Los diálogos se dibujan con una fuente nítida a la resolución de la ventana, en el "
+                           "mismo lugar y colores del juego.",
+                           "Dialogue is drawn with a crisp font at the window's resolution, in the game's own "
+                           "places and colours."),
+                         Ini("hd_text"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Voltereta con un botón", "One-button dodge roll"),
+                         T("X en el mando, C en el teclado: rueda hacia la dirección que mantienes o hacia donde "
+                           "mira el personaje.",
+                           "Gamepad X, keyboard C: rolls toward the held direction or the way the character faces."),
+                         Ini("dodge_button"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Acumular con un botón (L+R)", "One-button stock (L+R)"),
+                         T("Y en el mando, D en el teclado: acumula cartas o trucos sin pulsar L y R a la vez.",
+                           "Gamepad Y, keyboard D: stock cards or sleights without pressing L and R together."),
+                         Ini("stock_button"));
+    ImGui::EndChild();
+    if (changed)
+        SaveIni();
+}
+
+static void PageControls() {
+    struct Row {
+        const char* es;
+        const char* en;
+        const char* keys;
+        const char* pad;
+    };
+    static const Row rows[] = {
+        { "A", "A", "X / K", "A" },
+        { "B", "B", "Z / J", "B" },
+        { "L / R", "L / R", "A / S", "LB / RB, LT / RT" },
+        { "L + R (acumular)", "L + R (stock)", "D", "Y" },
+        { "Voltereta", "Dodge roll", "C", "X" },
+        { "Start / Select", "Start / Select", "Enter / Backspace", "Start / Back" },
+        { "Cruceta", "D-pad", "Flechas, W", "Cruceta, stick izq." },
+        { "Opciones", "Options", "F1 / Esc", "Back + Start" },
+        { "Pantalla completa", "Fullscreen", "F11, Alt+Enter", "" },
+        { "Guardar / cargar estado", "Save / load state", "F5 / F9", "" },
+    };
+    BeginCard("controls");
+    Eyebrow(T("CONTROLES", "CONTROLS"));
+    if (ImGui::BeginTable("binds", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_PadOuterX)) {
+        ImGui::TableSetupColumn(T("Acción", "Action"));
+        ImGui::TableSetupColumn(T("Teclado", "Keyboard"));
+        ImGui::TableSetupColumn(T("Mando", "Gamepad"));
+        ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+        ImGui::TableHeadersRow();
+        ImGui::PopStyleColor();
+        for (const Row& r : rows) {
+            ImGui::TableNextRow(0, Px(36));
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted(T(r.es, r.en));
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted(r.keys);
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted(std::strcmp(r.pad, "Cruceta, stick izq.") == 0 && !sSpanish ? "D-pad, left stick"
+                                                                                                 : r.pad);
+        }
+        ImGui::EndTable();
+    }
+    ImGui::EndChild();
+}
+
+/* ---- header and frame ---------------------------------------------------------- */
+
+static void Header() {
+    ImGui::PushFont(sFontSmall);
+    ImGui::TextColored(kAccent, "REKHCOM  ·  DECOMP PORT");
+    ImGui::PopFont();
+    ImGui::PushFont(sFontTitle);
+    ImGui::TextUnformatted("Kingdom Hearts: Chain of Memories");
+    ImGui::PopFont();
+
+    const char* tabs[PAGE_COUNT] = { T("Inicio", "Home"), T("Gráficos", "Graphics"), T("Sonido", "Sound"),
+                                     T("Mejoras", "Enhancements"), T("Controles", "Controls") };
+    ImGui::Spacing();
+    for (int i = 0; i < PAGE_COUNT; i++) {
+        bool active = sPage == i;
+        ImGui::PushStyleColor(ImGuiCol_Button, active ? kAccentDim : kControl);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, active ? kAccent : kControlHover);
+        if (ImGui::Button(tabs[i]))
+            sPage = i;
+        ImGui::PopStyleColor(2);
+        if (i + 1 < PAGE_COUNT)
+            ImGui::SameLine(0, Px(6));
+    }
+    ImGui::Spacing();
+    ImGui::Spacing();
+}
+
+static void Footer() {
+    if (!sNotice.empty() && ImGui::GetTime() - sNoticeTime < 8.0) {
+        ImGui::PushFont(sFontSmall);
+        ImGui::TextColored(sNoticeError ? kBad : kGood, "%s", sNotice.c_str());
+        ImGui::PopFont();
+    }
+}
+
+static void Frame(SDL_Window* window) {
+    ImGuiIO& io = ImGui::GetIO();
+    Background(io.DisplaySize);
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(io.DisplaySize);
+    ImGui::Begin("decompui", nullptr,
+                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoBringToFrontOnFocus);
+    Header();
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+    ImGui::BeginChild("page", ImVec2(0, -Px(28)), ImGuiChildFlags_None, ImGuiWindowFlags_None);
+    ImGui::PopStyleColor();
+    switch (sPage) {
+        case PAGE_HOME:
+            PageHome(window);
+            break;
+        case PAGE_GRAPHICS:
+            PageGraphics();
+            break;
+        case PAGE_SOUND:
+            PageSound();
+            break;
+        case PAGE_EXTRAS:
+            PageExtras();
+            break;
+        case PAGE_CONTROLS:
+            PageControls();
+            break;
+    }
+    ImGui::EndChild();
+    Footer();
+    ImGui::End();
+}
+
+/* ---- launching --------------------------------------------------------------- */
+
+static std::wstring Quote(const std::wstring& s) {
+    std::wstring out = L"\"";
+    unsigned slashes = 0;
+    for (wchar_t c : s) {
+        if (c == L'\\') {
+            slashes++;
+            continue;
+        }
+        out.append(c == L'"' ? slashes * 2 + 1 : slashes, L'\\');
+        out += c;
+        slashes = 0;
+    }
+    out.append(slashes * 2, L'\\');
+    return out + L"\"";
+}
+
+/* Runs the game with the shared data folder; the launcher waits hidden. */
+static void Launch(SDL_Window* window) {
+    const VersionState& st = sState[sSelected];
+    std::wstring cmd = Quote(st.exe.wstring()) + L" --data-dir " + Quote(sRoot.wstring()) + L" --rom " +
+                       Quote(RomPath(sSelected).wstring());
+    STARTUPINFOW si = {};
+    PROCESS_INFORMATION pi = {};
+
+    si.cb = sizeof(si);
+    SaveIni();
+    SaveLauncherState();
+    if (!CreateProcessW(st.exe.c_str(), cmd.data(), nullptr, nullptr, FALSE, 0, nullptr,
+                        st.exe.parent_path().c_str(), &si, &pi)) {
+        Notice(T("No se pudo iniciar el juego.", "Could not start the game."), true);
+        return;
+    }
+    CloseHandle(pi.hThread);
+    SDL_HideWindow(window);
+    while (WaitForSingleObject(pi.hProcess, 100) == WAIT_TIMEOUT) {
+        SDL_Event ev;
+        while (SDL_PollEvent(&ev)) {
+        }
+    }
+    DWORD code = 0;
+    GetExitCodeProcess(pi.hProcess, &code);
+    CloseHandle(pi.hProcess);
+    SDL_ShowWindow(window);
+    SDL_RaiseWindow(window);
+    LoadIni();
+    if (code != 0)
+        Notice(T("El juego se cerró con un error; revisa kh_com.log.", "The game closed with an error; see kh_com.log."),
+               true);
+}
+
+/* ---- test harness ------------------------------------------------------------
+ * DECOMPUI_SHOT=dir  render every page off screen (hidden window) and save
+ *                    dir/decompui_<page>.bmp, then exit.
+ * DECOMPUI_INSTALL=path  install that ROM before the first frame.
+ */
+typedef void(APIENTRY* GenFn)(GLsizei, GLuint*);
+typedef void(APIENTRY* BindFn)(GLenum, GLuint);
+typedef void(APIENTRY* StorageFn)(GLenum, GLenum, GLsizei, GLsizei);
+typedef void(APIENTRY* AttachRbFn)(GLenum, GLenum, GLenum, GLuint);
+
+static bool ShotFrames(SDL_Window* window, const char* dir) {
+    GenFn genFb = (GenFn)SDL_GL_GetProcAddress("glGenFramebuffers");
+    BindFn bindFb = (BindFn)SDL_GL_GetProcAddress("glBindFramebuffer");
+    GenFn genRb = (GenFn)SDL_GL_GetProcAddress("glGenRenderbuffers");
+    BindFn bindRb = (BindFn)SDL_GL_GetProcAddress("glBindRenderbuffer");
+    StorageFn storage = (StorageFn)SDL_GL_GetProcAddress("glRenderbufferStorage");
+    AttachRbFn attach = (AttachRbFn)SDL_GL_GetProcAddress("glFramebufferRenderbuffer");
+    int w, h;
+    GLuint fb, rb;
+
+    if (!genFb || !bindFb || !genRb || !bindRb || !storage || !attach)
+        return false;
+    SDL_GetWindowSizeInPixels(window, &w, &h);
+    genFb(1, &fb);
+    bindFb(0x8D40 /* GL_FRAMEBUFFER */, fb);
+    genRb(1, &rb);
+    bindRb(0x8D41 /* GL_RENDERBUFFER */, rb);
+    storage(0x8D41, GL_RGBA8, w, h);
+    attach(0x8D40, 0x8CE0 /* GL_COLOR_ATTACHMENT0 */, 0x8D41, rb);
+    std::vector<unsigned char> px((size_t)w * h * 4);
+    for (int page = 0; page < PAGE_COUNT; page++) {
+        sPage = page;
+        for (int i = 0; i < 3; i++) {
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplSDL3_NewFrame();
+            ImGui::NewFrame();
+            ImGui::PushFont(sFontBody);
+            Frame(window);
+            ImGui::PopFont();
+            ImGui::Render();
+            glViewport(0, 0, w, h);
+            glClearColor(kInk.x, kInk.y, kInk.z, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        }
+        glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, px.data());
+        SDL_Surface* s = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_ABGR8888);
+        for (int y = 0; y < h; y++)
+            std::memcpy((unsigned char*)s->pixels + (size_t)y * s->pitch, px.data() + (size_t)(h - 1 - y) * w * 4,
+                        (size_t)w * 4);
+        char name[64];
+        std::snprintf(name, sizeof(name), "decompui_%d.bmp", page);
+        SDL_SaveBMP(s, (fs::u8path(dir) / name).string().c_str());
+        SDL_DestroySurface(s);
+    }
+    return true;
+}
+
+static fs::path ExeDir() {
+    wchar_t path[MAX_PATH];
+    GetModuleFileNameW(nullptr, path, MAX_PATH);
+    return fs::path(path).parent_path();
+}
+
+int main(int, char**) {
+    sRoot = ExeDir();
+    sSpanish = PRIMARYLANGID(GetUserDefaultUILanguage()) == LANG_SPANISH;
+    ScanInstall();
+    LoadIni();
+    LoadLauncherState();
+    if (!sState[sSelected].installed) {
+        for (int v = 0; v < kVersionCount; v++)
+            if (sState[v].installed) {
+                sSelected = v;
+                break;
+            }
+    }
+
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
+        return 1;
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    sScale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+    if (sScale < 1.0f)
+        sScale = 1.0f;
+    const char* shotDir = SDL_getenv("DECOMPUI_SHOT");
+    SDL_Window* window = SDL_CreateWindow("ReKHCoM", (int)Px(1180), (int)Px(760),
+                                          SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
+                                              (shotDir != nullptr ? SDL_WINDOW_HIDDEN : 0));
+    if (window == nullptr)
+        return 1;
+    SDL_SetWindowMinimumSize(window, (int)Px(960), (int)Px(640));
+    SDL_GLContext gl = SDL_GL_CreateContext(window);
+    SDL_GL_MakeCurrent(window, gl);
+    SDL_GL_SetSwapInterval(1);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+    ApplyStyle();
+    LoadFonts();
+    ImGui_ImplSDL3_InitForOpenGL(window, gl);
+    ImGui_ImplOpenGL3_Init("#version 130");
+    LoadBoxArt();
+    if (const char* rom = SDL_getenv("DECOMPUI_INSTALL")) {
+        InstallRom(fs::u8path(rom));
+    }
+
+    bool running = shotDir == nullptr || !ShotFrames(window, shotDir);
+    while (running) {
+        SDL_Event ev;
+        while (SDL_PollEvent(&ev)) {
+            ImGui_ImplSDL3_ProcessEvent(&ev);
+            if (ev.type == SDL_EVENT_QUIT || ev.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
+                running = false;
+            if (ev.type == SDL_EVENT_DROP_FILE && ev.drop.data != nullptr)
+                InstallRom(fs::u8path(ev.drop.data));
+        }
+        if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) {
+            SDL_Delay(50);
+            continue;
+        }
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+        ImGui::NewFrame();
+        ImGui::PushFont(sFontBody);
+        Frame(window);
+        ImGui::PopFont();
+        ImGui::Render();
+        int w, h;
+        SDL_GetWindowSizeInPixels(window, &w, &h);
+        glViewport(0, 0, w, h);
+        glClearColor(kInk.x, kInk.y, kInk.z, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        SDL_GL_SwapWindow(window);
+        if (sLaunch) {
+            sLaunch = false;
+            Launch(window);
+        }
+    }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
+    ImGui::DestroyContext();
+    SDL_GL_DestroyContext(gl);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
+}
