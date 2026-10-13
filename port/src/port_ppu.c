@@ -1492,7 +1492,7 @@ void PortPpuRenderHud(uint32_t* buf) {
     }
 }
 
-/* HD text glyphs of one layer (world canvas or HUD canvas), front last. */
+/* HD text glyphs of one layer (0 world canvas, 1 HUD canvas, 2 screen layer), front last. */
 int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
     uint16_t dispcnt = IO16(0x00);
     uint16_t bldcnt = IO16(0x50);
@@ -1507,10 +1507,12 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
         uint16_t a0 = OAM16[i * 4 + 0], a1 = OAM16[i * 4 + 1], a2 = OAM16[i * 4 + 2];
         const SpriteTag* tag = &sOamTag[i];
         int onHud = sHudLayer && tag->hud;
+        int onScreen = sOverlay && tag->screen;
+        int layer = onScreen ? 2 : onHud;
         int ox, oy, bank, k;
         uint16_t col[2];
 
-        if (!HdTextGlyph(i) || onHud != hud || (a0 & 0x300) == 0x200 || ((a0 >> 10) & 3) >= 2)
+        if (!HdTextGlyph(i) || layer != hud || (a0 & 0x300) == 0x200 || ((a0 >> 10) & 3) >= 2)
             continue;
         oy = a0 & 0xFF;
         ox = a1 & 0x1FF;
@@ -1523,7 +1525,11 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
             if (ox >= sRight)
                 ox -= 512;
         }
-        if (onHud) {
+        if (onScreen) {
+            /* the screen layer: GBA lines 0..159, centred in its width */
+            out[n].x = ox + (gPortOverlayW - GBA_SCREEN_W) / 2;
+            out[n].y = oy;
+        } else if (onHud) {
             int w = gPortHudW, h = gPortHudH;
             int xg = ox - tag->ax * gPortScreen.originX, yg = oy - tag->ay * gPortScreen.originY;
             out[n].x = tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);

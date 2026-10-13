@@ -474,6 +474,8 @@ static void Present(void) {
         od.x = (float)(int)((outW - od.w) / 2);
         od.y = (float)(int)((outH - od.h) / 2);
         SDL_RenderTexture(sRenderer, sOverlayTex, NULL, &od);
+        if (!PortUiActive())
+            PortHdTextDraw(sRenderer, 2, od.x, od.y, sOverlayScale);
     }
     if (PortPpuHudActive()) {
         SDL_FRect hd;
@@ -497,6 +499,32 @@ static void Present(void) {
         PortHdTextDraw(sRenderer, 1, hd.x, hd.y, (float)gPortHudScale);
     }
     DrawScanlines(&dst);
+    {
+        /* state / slot notices: topmost, at the window's scale */
+        static uint32_t sNoticeBuf[256 * 14];
+        static SDL_Texture* sNoticeTex;
+        int nw;
+
+        memset(sNoticeBuf, 0, sizeof(sNoticeBuf));
+        nw = PortUiDrawNotice(sNoticeBuf, 256, 14);
+        if (nw > 0) {
+            float f = SDL_max(1.0f, SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W));
+            SDL_FRect src = { 0, 0, (float)nw, 14 };
+            SDL_FRect nd = { 4 * f, 4 * f, nw * f, 14 * f };
+
+            if (sNoticeTex == NULL) {
+                sNoticeTex = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 256, 14);
+                if (sNoticeTex != NULL) {
+                    SDL_SetTextureBlendMode(sNoticeTex, SDL_BLENDMODE_BLEND);
+                    SDL_SetTextureScaleMode(sNoticeTex, SDL_SCALEMODE_PIXELART);
+                }
+            }
+            if (sNoticeTex != NULL) {
+                SDL_UpdateTexture(sNoticeTex, NULL, sNoticeBuf, 256 * 4);
+                SDL_RenderTexture(sRenderer, sNoticeTex, &src, &nd);
+            }
+        }
+    }
     if (gPortConfig.showFps) {
         char text[48];
         SDL_snprintf(text, sizeof(text), "%.1f FPS  logic %.1f", sFps, sLogicFps);

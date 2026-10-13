@@ -6,6 +6,7 @@
 void PortUiInit(void);
 /* Draw overlays (options menu, notices) on top of the finished frame. */
 void PortUiDraw(uint32_t* frame, int width, int height);
+int PortUiDrawNotice(uint32_t* frame, int width, int height);
 /* Returns non-zero when the event was consumed by the UI. */
 int PortUiHandleEvent(const void* sdlEvent);
 /* Non-zero while an overlay owns the input. */

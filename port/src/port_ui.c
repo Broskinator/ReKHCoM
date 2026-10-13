@@ -737,6 +737,25 @@ static void DrawSkipPrompt(int l) {
     DrawText(text, x + 19, y + 3, COL_TEXT, COL_SHADOW);
 }
 
+/* The state / slot notice, on a layer of its own above everything else (the
+   presenter draws it last, at the window's scale): like the app's own HUD.
+   Returns the width in GBA pixels, 0 when there is no notice. */
+int PortUiDrawNotice(uint32_t* frame, int width, int height) {
+    int w;
+
+    if (sNoticeFrames <= 0)
+        return 0;
+    sNoticeFrames--;
+    sFb = frame;
+    sFbW = width;
+    sFbH = height;
+    w = SDL_min(TextWidth(sNotice) + 12, width);
+    Shade(0, 0, w, 14, COL_PANEL, 230);
+    Rect(0, 0, w, 14, COL_BORDER);
+    DrawText(sNotice, 6, 2, COL_TEXT, COL_SHADOW);
+    return w;
+}
+
 void PortUiDraw(uint32_t* frame, int width, int height) {
     int l = Lang();
     int rowH = 11, panelW, panelH, px, py, rows, i, y, labelW = 0, valueW = 0;
@@ -746,13 +765,6 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
     sFbW = width;
     sFbH = height;
 
-    if (sNoticeFrames > 0) {
-        int w = TextWidth(sNotice) + 12;
-        sNoticeFrames--;
-        Shade(4, 4, w, 14, COL_PANEL, 200);
-        Rect(4, 4, w, 14, COL_BORDER);
-        DrawText(sNotice, 10, 6, COL_TEXT, COL_SHADOW);
-    }
     if (!sOpen) {
         if (sSkipPrompt)
             DrawSkipPrompt(l);

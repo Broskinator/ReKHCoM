@@ -65,6 +65,37 @@ static const GlyphWidthTable sLatinGlyphWidths = {
 static u16 sMsgGlyphCodes[128];
 static u16 sCardMsgGlyphCodes[128];
 
+/* HD text for menu text (TextSlot): the character each slot's tiles show,
+   by tile handle; a handle reloaded with another character is overwritten. */
+static struct {
+    void* tiles;
+    u16 code;
+} sSlotCodes[512];
+
+static void PortSlotRemember(void* tiles, u16 code) {
+    u32 i = ((u32)tiles * 2654435761u) >> 23, k;
+
+    if (tiles == NULL)
+        return;
+    for (k = 0; k < 512; k++, i = (i + 1) & 511) {
+        if (sSlotCodes[i].tiles == tiles || sSlotCodes[i].tiles == NULL) {
+            sSlotCodes[i].tiles = tiles;
+            sSlotCodes[i].code = code;
+            return;
+        }
+    }
+}
+
+static u16 PortSlotCode(void* tiles) {
+    u32 i = ((u32)tiles * 2654435761u) >> 23, k;
+
+    for (k = 0; k < 512 && sSlotCodes[i].tiles != NULL; k++, i = (i + 1) & 511) {
+        if (sSlotCodes[i].tiles == tiles)
+            return sSlotCodes[i].code;
+    }
+    return 0;
+}
+
 const u16* PortLatinGlyphWidths(void) {
     return sLatinGlyphWidths.widths;
 }
@@ -2347,9 +2378,17 @@ s32 LoadLatinTextSlots(const u16* text, TextSlot* slots) {
                 slots->advance = 255;
             }
 
+#ifdef PLATFORM_PC
+            {
+                u16 letter = (u16)glyph;
+#endif
             glyph = ((u16*)gMsgLatinFontFrames[glyph])[3];
             slots->tiles = LoadObjTiles(&gMsgLatinFontTiles[glyph * 32], 128);
             slots->useAlternatePalette = zero;
+#ifdef PLATFORM_PC
+                PortSlotRemember(slots->tiles, letter);
+            }
+#endif
         }
 
         sTextEntryCount++;
@@ -2366,6 +2405,9 @@ s32 LoadLatinTextSlots(const u16* text, TextSlot* slots) {
 
 #ifndef VERSION_EU
 s32 LoadJapaneseTextSlots(const u16* text, TextSlot* slots) {
+#ifdef PLATFORM_PC
+    u16 sjisCode = 0;
+#endif
     u8 buf[2];
     u16* raw;
     u16 glyph;
@@ -2404,6 +2446,9 @@ s32 LoadJapaneseTextSlots(const u16* text, TextSlot* slots) {
         } else {
             code = *raw;
             code = (code / 256) | (code << 8);
+#ifdef PLATFORM_PC
+            sjisCode = code;
+#endif
 #ifdef VERSION_JP
             text = (u16*)((u8*)text + 2);
 #else
@@ -2562,6 +2607,9 @@ s32 LoadJapaneseTextSlots(const u16* text, TextSlot* slots) {
                 slots->tiles = LoadObjTiles(&gMsgFontBank3Tiles[glyph * 32], 128);
                 break;
             }
+#ifdef PLATFORM_PC
+            PortSlotRemember(slots->tiles, sjisCode);
+#endif
 
             slots->advance = 10;
         }
@@ -2810,6 +2858,9 @@ void DrawTextSlots(s16 x, s16 y, TextSlot* slots, void* palette, u16 priority, u
             cy += 12;
             x = startX;
         } else if (slots->advance != TEXT_ADVANCE_SPACE) {
+#ifdef PLATFORM_PC
+            gPortTextChar = PortSlotCode(slots->tiles);
+#endif
             DrawSprite(x, cy, MSG_FONT_FRAMES[0], slots->tiles, palette, NULL, 0, priority);
             x += slots->advance;
         } else {
@@ -2818,6 +2869,9 @@ void DrawTextSlots(s16 x, s16 y, TextSlot* slots, void* palette, u16 priority, u
 
         slots++;
     }
+#ifdef PLATFORM_PC
+    gPortTextChar = 0;
+#endif
 }
 
 void DrawTextSlotsUnsorted(s16 x, s16 y, TextSlot* slots, void* palette, s32 priority, u8 n) {
@@ -2834,6 +2888,9 @@ void DrawTextSlotsUnsorted(s16 x, s16 y, TextSlot* slots, void* palette, s32 pri
             cy += 12;
             x = startX;
         } else if (slots->advance != TEXT_ADVANCE_SPACE) {
+#ifdef PLATFORM_PC
+            gPortTextChar = PortSlotCode(slots->tiles);
+#endif
             DrawSpriteUnsorted(x, cy, MSG_FONT_FRAMES[0], slots->tiles, palette, 0);
             x += slots->advance;
         } else {
@@ -2842,6 +2899,9 @@ void DrawTextSlotsUnsorted(s16 x, s16 y, TextSlot* slots, void* palette, s32 pri
 
         slots++;
     }
+#ifdef PLATFORM_PC
+    gPortTextChar = 0;
+#endif
 }
 
 void DrawTextSlotsWithFlags(s16 x, s32 y, TextSlot* slots, void* palette, u16 flags, u16 priority, u8 n) {
@@ -2858,6 +2918,9 @@ void DrawTextSlotsWithFlags(s16 x, s32 y, TextSlot* slots, void* palette, u16 fl
             cy += 12;
             x = startX;
         } else if (slots->advance != TEXT_ADVANCE_SPACE) {
+#ifdef PLATFORM_PC
+            gPortTextChar = PortSlotCode(slots->tiles);
+#endif
             DrawSprite(x, cy, MSG_FONT_FRAMES[0], slots->tiles, palette, NULL, flags, priority);
             x += slots->advance;
         } else {
@@ -2866,6 +2929,9 @@ void DrawTextSlotsWithFlags(s16 x, s32 y, TextSlot* slots, void* palette, u16 fl
 
         slots++;
     }
+#ifdef PLATFORM_PC
+    gPortTextChar = 0;
+#endif
 }
 
 void DrawTextSlotsWithTwoPalettes(s16 x, s32 y, TextSlot* slots, void* palette, void* alternatePalette, u16 priority, u8 n) {
@@ -2882,6 +2948,9 @@ void DrawTextSlotsWithTwoPalettes(s16 x, s32 y, TextSlot* slots, void* palette, 
             cy += 12;
             x = startX;
         } else if (slots->advance != TEXT_ADVANCE_SPACE) {
+#ifdef PLATFORM_PC
+            gPortTextChar = PortSlotCode(slots->tiles);
+#endif
             if (slots->useAlternatePalette == 0) {
                 DrawSprite(x, cy, MSG_FONT_FRAMES[0], slots->tiles, palette, NULL, 0, priority);
             } else {
@@ -2895,6 +2964,9 @@ void DrawTextSlotsWithTwoPalettes(s16 x, s32 y, TextSlot* slots, void* palette, 
 
         slots++;
     }
+#ifdef PLATFORM_PC
+    gPortTextChar = 0;
+#endif
 }
 
 void DrawTextTileArray(s16 x, s32 y, void** tiles, void* palette, u16 priority, u8 n) {

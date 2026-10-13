@@ -1791,10 +1791,12 @@ static int IsRoomGmkTask(const Task* task) {
 static void UpdateFieldTasks(void) {
     TaskPool* pool = &gFieldState->tasks;
     Task* task = ListPoolFirst(&pool->head);
-    int interrupted = IsMapInterrupted();
+    /* Only the save menu: the pause menu's list needs the sprite memory
+       these objects hold, so there they are recreated as the game does. */
+    int saveMenu = (gMapRoomState->flags & ROOM_FLAG_SAVE_MENU_OPEN) != 0;
 
     while (task != NULL) {
-        int keep = interrupted && (IsRoomGmkTask(task) || task->desc == sPortKeptGmkDesc);
+        int keep = saveMenu && (IsRoomGmkTask(task) || task->desc == sPortKeptGmkDesc);
         if (task->update != NULL && !keep && task->update(task->work, task) == 0)
             task = TaskDestroy(pool, task);
         else
@@ -2935,10 +2937,8 @@ void MapFldMain() {
         }
 
         if (GetKeysPressed() & START_BUTTON) {
-#ifndef PLATFORM_PC
-            /* PC: the room's map icon stays through the menu (MapFldWaitMenu) */
+            /* the pause menu needs the icon's sprite memory for its list */
             MapFldDestroyAllmapRoom();
-#endif
             TaskCreate(&gFieldState->tasks, &gTaskDescMapMenu, NULL);
             MapFldSetUpdateAndRun(MapFldWaitMenu);
             return;
