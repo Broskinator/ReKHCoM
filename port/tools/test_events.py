@@ -6,7 +6,7 @@ under build/eventtest/<version>) for a number of frames while A is pressed
 regularly to advance text and battles. Results: build/eventtest/<version>/report.txt
 and a contact sheet of the last screenshot of every event.
 
-    python port/tools/test_events.py [--version eu|us|jp] [--frames 4000] [--jobs 8] [--only 0:8,1:3]
+    python port/tools/test_events.py [--version eu|us|jp] [--wide] [--frames 4000] [--jobs 8] [--only 0:8,1:3]
 """
 import argparse
 import re
@@ -29,7 +29,7 @@ def event_lists():
     return out
 
 
-def run(exe_dir, work, version, list_id, index, frames, timeout):
+def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False):
     d = work / f"{list_id}_{index:03d}"
     if d.exists():
         shutil.rmtree(d)
@@ -66,10 +66,11 @@ def main():
     ap.add_argument("--timeout", type=int, default=600)
     ap.add_argument("--only", help="comma list of list:index")
     ap.add_argument("--build", help="folder with khcom.exe (default build/pc or build/pc-<version>)")
+    ap.add_argument("--wide", action="store_true", help="16:9 auto view instead of the GBA picture")
     args = ap.parse_args()
 
     exe_dir = ROOT / (args.build or ("build/pc" if args.version == "eu" else f"build/pc-{args.version}"))
-    work = ROOT / "build" / "eventtest" / args.version
+    work = ROOT / "build" / "eventtest" / (args.version + ("_wide" if args.wide else ""))
     work.mkdir(parents=True, exist_ok=True)
     events = event_lists()
     if args.only:
@@ -78,7 +79,7 @@ def main():
 
     results = {}
     with ThreadPoolExecutor(args.jobs) as pool:
-        futures = {pool.submit(run, exe_dir, work, args.version, l, i, args.frames, args.timeout): (l, i, n) for l, i, n in events}
+        futures = {pool.submit(run, exe_dir, work, args.version, l, i, args.frames, args.timeout, args.wide): (l, i, n) for l, i, n in events}
         for fut, (l, i, n) in futures.items():
             results[(l, i)] = (n,) + fut.result()
 
@@ -112,11 +113,12 @@ def main():
             d = work / f"{l}_{i:03d}"
             shots = sorted(d.glob("shot_*.bmp"))
             if shots:
-                cells.append(Image.open(shots[-1]).convert("RGB").resize((120, 80)))
+                cells.append(Image.open(shots[-1]).convert("RGB").resize((160, 90) if args.wide else (120, 80)))
         cols = 16
-        sheet = Image.new("RGB", (cols * 124, ((len(cells) + cols - 1) // cols) * 84), (30, 30, 30))
+        cw, ch = (164, 94) if args.wide else (124, 84)
+        sheet = Image.new("RGB", (cols * cw, ((len(cells) + cols - 1) // cols) * ch), (30, 30, 30))
         for n, im in enumerate(cells):
-            sheet.paste(im, ((n % cols) * 124, (n // cols) * 84))
+            sheet.paste(im, ((n % cols) * cw, (n // cols) * ch))
         if cells:
             sheet.save(work / "events.png")
     except ImportError:
