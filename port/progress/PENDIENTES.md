@@ -7,10 +7,10 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 
 - [~] Menú START: popeaba al cerrarlo y se "achicaba" al entrar en una subopción
   (la capa de pantalla ahora se mantiene un fotograma más; falta verificación visual).
-- [ ] Cristal de guardado: popea al salir y el cristal desaparece.
-- [ ] Subida de nivel: hueco neón arriba y abajo; algo popea justo antes.
+- [ ] Cristal de guardado: popea al salir y el cristal desaparece. Necesita un estado junto al cristal.
+- [ ] Subida de nivel: hueco neón arriba y abajo; algo popea justo antes. Necesita un estado antes de subir.
 - [ ] Menú de desbloquear puertas (síntesis de salas): subir un poco el menú
-  principal para que no quede pegado abajo.
+  principal para que no quede pegado abajo. Necesita un estado frente a una puerta cerrada.
 - [x] Menú del Vórtice y "Elige un mundo": altura completa con bordes estirados (las
   capturas con barras negras eran de la build anterior; "Elige un mundo" no llenaba la altura).
 - [~] Submenús en 16:9 ("todo todo"): Diario, Ver barajas, Estado, Mapamundi, Naipes:
@@ -37,14 +37,14 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 
 ## Sonido
 
-- [~] Música del estado 1 (Coliseo, `BGM_EVENT1`): intro → silencio → intro.
-  La ROM tiene ~1,1 s sin notas antes del punto de bucle y el port la reproduce
-  igual; falta compararla con mGBA para confirmar que el original suena así.
+- [x] Música del estado 1 (Coliseo, `BGM_EVENT1`): intro → silencio → intro.
+  Es así en la ROM: la última nota acaba en el tick 748 de 768 y la reverberación
+  (40/127) se apaga en pocos fotogramas; el port reproduce los datos tal cual.
 
 ## Pruebas y publicación
 
 - [ ] Baterías de eventos US/JP (rehacer con la build actual).
-- [ ] Launcher: remapeo de controles.
+- [x] Launcher: remapeo de controles (teclado ×2 y mando por acción, guardado en kh_com.ini).
 - [ ] Release v0.3 (pre-release, no Latest) con launcher.
 - [ ] Instalar la build nueva en build/pc cuando el juego esté cerrado
   (sin tocar ini, save ni estados del usuario).

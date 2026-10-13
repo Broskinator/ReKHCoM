@@ -68,6 +68,23 @@ enum PortFilter {
     PORT_FILTER_COUNT
 };
 
+/* Remappable actions (kh_com.ini kb_<name>, kb_<name>_2, pad_<name>). */
+enum {
+    PORT_ACT_A,
+    PORT_ACT_B,
+    PORT_ACT_L,
+    PORT_ACT_R,
+    PORT_ACT_START,
+    PORT_ACT_SELECT,
+    PORT_ACT_UP,
+    PORT_ACT_DOWN,
+    PORT_ACT_LEFT,
+    PORT_ACT_RIGHT,
+    PORT_ACT_STOCK,
+    PORT_ACT_DODGE,
+    PORT_ACT_COUNT
+};
+
 typedef struct PortConfig {
     int viewMode;
     int zoom;             /* PORT_VIEW_AUTO: 0 near .. 3 far */
@@ -91,6 +108,8 @@ typedef struct PortConfig {
     int stockButton;      /* one button for L + R (stock a card / sleight) */
     int hdText;           /* dialogue text drawn with an outline font at output resolution */
     int cardHudRaise;     /* battle: card hand lifted by this many GBA pixels (0..16) */
+    int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
+    int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
 } PortConfig;
 
 extern PortConfig gPortConfig;

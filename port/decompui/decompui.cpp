@@ -222,6 +222,18 @@ static const Setting kSettings[] = {
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
     { "card_hud_raise", 8 },
+    { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
+    { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
+    { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
+    { "kb_r", SDLK_S },         { "kb_r_2", 0 },            { "pad_r", SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER },
+    { "kb_start", SDLK_RETURN }, { "kb_start_2", 0 },       { "pad_start", SDL_GAMEPAD_BUTTON_START },
+    { "kb_select", SDLK_BACKSPACE }, { "kb_select_2", SDLK_RSHIFT }, { "pad_select", SDL_GAMEPAD_BUTTON_BACK },
+    { "kb_up", SDLK_UP },       { "kb_up_2", SDLK_W },      { "pad_up", SDL_GAMEPAD_BUTTON_DPAD_UP },
+    { "kb_down", SDLK_DOWN },   { "kb_down_2", 0 },         { "pad_down", SDL_GAMEPAD_BUTTON_DPAD_DOWN },
+    { "kb_left", SDLK_LEFT },   { "kb_left_2", 0 },         { "pad_left", SDL_GAMEPAD_BUTTON_DPAD_LEFT },
+    { "kb_right", SDLK_RIGHT }, { "kb_right_2", 0 },        { "pad_right", SDL_GAMEPAD_BUTTON_DPAD_RIGHT },
+    { "kb_stock", SDLK_D },     { "kb_stock_2", 0 },        { "pad_stock", SDL_GAMEPAD_BUTTON_NORTH },
+    { "kb_dodge", SDLK_C },     { "kb_dodge_2", 0 },        { "pad_dodge", SDL_GAMEPAD_BUTTON_WEST },
 };
 
 static std::map<std::string, int> sIni;
@@ -805,49 +817,140 @@ static void PageExtras() {
         SaveIni();
 }
 
+/* A binding cell waiting for a key or button (PageControls, MainLoop). */
+static std::string sCapture;
+static bool sCapturePad;
+
+static const char* PadName(int b) {
+    static const char* const names[] = { "A", "B", "X", "Y", "Back", "Guide", "Start", "L3", "R3", "LB", "RB",
+                                         "\xE2\x86\x91", "\xE2\x86\x93", "\xE2\x86\x90", "\xE2\x86\x92" };
+    if (b < 0)
+        return "-";
+    if (b < (int)(sizeof(names) / sizeof(names[0])))
+        return names[b];
+    return SDL_GetGamepadStringForButton((SDL_GamepadButton)b);
+}
+
+/* Event for the cell being captured: true when it was used. */
+static bool CaptureEvent(const SDL_Event& ev) {
+    if (sCapture.empty())
+        return false;
+    if (ev.type == SDL_EVENT_KEY_DOWN && !ev.key.repeat) {
+        if (ev.key.key == SDLK_ESCAPE) {
+            sCapture.clear();
+        } else if (!sCapturePad) {
+            Ini(sCapture.c_str()) = ev.key.key == SDLK_DELETE ? 0 : (int)ev.key.key;
+            sCapture.clear();
+            SaveIni();
+        } else if (ev.key.key == SDLK_DELETE) {
+            Ini(sCapture.c_str()) = -1;
+            sCapture.clear();
+            SaveIni();
+        }
+        return true;
+    }
+    if (ev.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN && sCapturePad) {
+        Ini(sCapture.c_str()) = ev.gbutton.button;
+        sCapture.clear();
+        SaveIni();
+        return true;
+    }
+    if (ev.type == SDL_EVENT_GAMEPAD_ADDED)
+        SDL_OpenGamepad(ev.gdevice.which);
+    return false;
+}
+
+static void BindCell(const char* key, bool pad) {
+    bool waiting = sCapture == key;
+    std::string label;
+    if (waiting) {
+        label = T("Pulsa...", "Press...");
+    } else if (pad) {
+        label = PadName(Ini(key));
+    } else {
+        int k = Ini(key);
+        label = k == 0 ? "-" : SDL_GetKeyName((SDL_Keycode)k);
+        if (label.empty())
+            label = "?";
+    }
+    label += "##";
+    label += key;
+    if (waiting)
+        ImGui::PushStyleColor(ImGuiCol_Button, kAccent);
+    if (ImGui::Button(label.c_str(), ImVec2(-FLT_MIN, 0))) {
+        sCapture = key;
+        sCapturePad = pad;
+    }
+    if (waiting)
+        ImGui::PopStyleColor();
+}
+
 static void PageControls() {
     struct Row {
         const char* es;
         const char* en;
-        const char* keys;
-        const char* pad;
+        const char* name;
     };
     static const Row rows[] = {
-        { "A", "A", "X / K", "A" },
-        { "B", "B", "Z / J", "B" },
-        { "L / R", "L / R", "A / S", "LB / RB, LT / RT" },
-        { "L + R (acumular)", "L + R (stock)", "D", "Y" },
-        { "Voltereta", "Dodge roll", "C", "X" },
-        { "Start / Select", "Start / Select", "Enter / Backspace", "Start / Back" },
-        { "Cruceta", "D-pad", "Flechas, W", "Cruceta, stick izq." },
-        { "Opciones", "Options", "F1 / Esc", "Back + Start" },
-        { "Pantalla completa", "Fullscreen", "F11, Alt+Enter", "" },
-        { "Guardar / cargar estado", "Save / load state", "F5 / F9", "" },
+        { "A", "A", "a" },
+        { "B", "B", "b" },
+        { "L", "L", "l" },
+        { "R", "R", "r" },
+        { "Start", "Start", "start" },
+        { "Select", "Select", "select" },
+        { "Arriba", "Up", "up" },
+        { "Abajo", "Down", "down" },
+        { "Izquierda", "Left", "left" },
+        { "Derecha", "Right", "right" },
+        { "L + R (acumular)", "L + R (stock)", "stock" },
+        { "Voltereta", "Dodge roll", "dodge" },
     };
     BeginCard("controls");
     Eyebrow(T("CONTROLES", "CONTROLS"));
-    if (ImGui::BeginTable("binds", 3, ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_PadOuterX)) {
-        ImGui::TableSetupColumn(T("Acción", "Action"));
-        ImGui::TableSetupColumn(T("Teclado", "Keyboard"));
-        ImGui::TableSetupColumn(T("Mando", "Gamepad"));
+    ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+    ImGui::TextWrapped("%s", T("Haz clic en una casilla y pulsa la tecla o el botón. Supr la deja vacía, Esc cancela. "
+                               "Los gatillos y el stick izquierdo funcionan siempre como L/R y cruceta.",
+                               "Click a cell and press the key or button. Delete clears it, Esc cancels. The "
+                               "triggers and the left stick always work as L/R and the d-pad."));
+    ImGui::PopStyleColor();
+    if (ImGui::BeginTable("binds", 4, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_PadOuterX)) {
+        ImGui::TableSetupColumn(T("Acción", "Action"), ImGuiTableColumnFlags_WidthStretch, 1.3f);
+        ImGui::TableSetupColumn(T("Teclado", "Keyboard"), ImGuiTableColumnFlags_WidthStretch, 1.0f);
+        ImGui::TableSetupColumn(T("Teclado 2", "Keyboard 2"), ImGuiTableColumnFlags_WidthStretch, 1.0f);
+        ImGui::TableSetupColumn(T("Mando", "Gamepad"), ImGuiTableColumnFlags_WidthStretch, 1.0f);
         ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
         ImGui::TableHeadersRow();
         ImGui::PopStyleColor();
         for (const Row& r : rows) {
+            std::string kb = std::string("kb_") + r.name, kb2 = kb + "_2", pad = std::string("pad_") + r.name;
             ImGui::TableNextRow(0, Px(36));
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted(T(r.es, r.en));
             ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted(r.keys);
+            BindCell(kb.c_str(), false);
             ImGui::TableNextColumn();
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted(std::strcmp(r.pad, "Cruceta, stick izq.") == 0 && !sSpanish ? "D-pad, left stick"
-                                                                                                 : r.pad);
+            BindCell(kb2.c_str(), false);
+            ImGui::TableNextColumn();
+            BindCell(pad.c_str(), true);
         }
         ImGui::EndTable();
     }
+    ImGui::Spacing();
+    if (ImGui::Button(T("Restablecer controles", "Reset controls"))) {
+        for (const Setting& st : kSettings) {
+            if (std::strncmp(st.key, "kb_", 3) == 0 || std::strncmp(st.key, "pad_", 4) == 0)
+                Ini(st.key) = st.def;
+        }
+        SaveIni();
+    }
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+    ImGui::TextWrapped("%s", T("Fijos: Opciones F1 / Esc (mando: Back + Start), pantalla completa F11 o Alt+Enter, "
+                               "estados F5 / F9.",
+                               "Fixed: options F1 / Esc (gamepad: Back + Start), fullscreen F11 or Alt+Enter, states "
+                               "F5 / F9."));
+    ImGui::PopStyleColor();
     ImGui::EndChild();
 }
 
@@ -1087,6 +1190,8 @@ int main(int, char**) {
     while (running) {
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
+            if (CaptureEvent(ev))
+                continue;
             ImGui_ImplSDL3_ProcessEvent(&ev);
             if (ev.type == SDL_EVENT_QUIT || ev.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
                 running = false;

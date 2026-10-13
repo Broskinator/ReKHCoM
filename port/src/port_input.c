@@ -24,18 +24,10 @@
 #define STICK_DEADZONE 12000
 #define TRIGGER_THRESHOLD 16000
 
-typedef struct KeyBind {
-    SDL_Keycode key;
-    uint16_t bit;
-} KeyBind;
-
-static const KeyBind sKeyBinds[] = {
-    { SDLK_X, KEY_A },        { SDLK_Z, KEY_B },          { SDLK_A, KEY_L },
-    { SDLK_S, KEY_R },        { SDLK_RETURN, KEY_START }, { SDLK_BACKSPACE, KEY_SELECT },
-    { SDLK_RSHIFT, KEY_SELECT }, { SDLK_UP, KEY_UP },     { SDLK_DOWN, KEY_DOWN },
-    { SDLK_LEFT, KEY_LEFT },  { SDLK_RIGHT, KEY_RIGHT },  { SDLK_K, KEY_A },
-    { SDLK_J, KEY_B },        { SDLK_W, KEY_UP },         { SDLK_D, KEY_STOCK },
-    { SDLK_C, KEY_DODGE },
+/* GBA key bit of each remappable action (port.h PORT_ACT_*). */
+static const uint16_t sActionBits[PORT_ACT_COUNT] = {
+    KEY_A,   KEY_B,    KEY_L,    KEY_R,     KEY_START, KEY_SELECT,
+    KEY_UP,  KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_STOCK, KEY_DODGE,
 };
 
 static uint16_t sKeyboard;
@@ -65,13 +57,13 @@ void PortInputHandleEvent(const void* p) {
         case SDL_EVENT_KEY_UP:
             if (ev->key.repeat)
                 break;
-            for (i = 0; i < sizeof(sKeyBinds) / sizeof(sKeyBinds[0]); i++) {
-                if (sKeyBinds[i].key != ev->key.key)
+            for (i = 0; i < PORT_ACT_COUNT * 2; i++) {
+                if (gPortConfig.keys[i / 2][i % 2] == 0 || (SDL_Keycode)gPortConfig.keys[i / 2][i % 2] != ev->key.key)
                     continue;
                 if (ev->type == SDL_EVENT_KEY_DOWN)
-                    sKeyboard |= sKeyBinds[i].bit;
+                    sKeyboard |= sActionBits[i / 2];
                 else
-                    sKeyboard &= ~sKeyBinds[i].bit;
+                    sKeyboard &= ~sActionBits[i / 2];
             }
             break;
         case SDL_EVENT_WINDOW_FOCUS_LOST:
@@ -82,36 +74,23 @@ void PortInputHandleEvent(const void* p) {
 
 static uint16_t GamepadKeys(SDL_Gamepad* pad) {
     uint16_t keys = 0;
-    int lx, ly;
+    int lx, ly, i;
 
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_SOUTH))
-        keys |= KEY_A;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_EAST))
-        keys |= KEY_B;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_WEST))
-        keys |= gPortConfig.dodgeButton ? KEY_DODGE : KEY_B;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_NORTH))
-        keys |= gPortConfig.stockButton ? KEY_STOCK : KEY_A;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_START))
-        keys |= KEY_START;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_BACK))
-        keys |= KEY_SELECT;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER))
-        keys |= KEY_L;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER))
-        keys |= KEY_R;
+    for (i = 0; i < PORT_ACT_COUNT; i++) {
+        uint16_t bit = sActionBits[i];
+        if (gPortConfig.pad[i] < 0 || !SDL_GetGamepadButton(pad, (SDL_GamepadButton)gPortConfig.pad[i]))
+            continue;
+        /* with the one-button options off, their buttons are B and A again */
+        if (i == PORT_ACT_DODGE && !gPortConfig.dodgeButton)
+            bit = KEY_B;
+        if (i == PORT_ACT_STOCK && !gPortConfig.stockButton)
+            bit = KEY_A;
+        keys |= bit;
+    }
     if (SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > TRIGGER_THRESHOLD)
         keys |= KEY_L;
     if (SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > TRIGGER_THRESHOLD)
         keys |= KEY_R;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_DPAD_UP))
-        keys |= KEY_UP;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_DPAD_DOWN))
-        keys |= KEY_DOWN;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_DPAD_LEFT))
-        keys |= KEY_LEFT;
-    if (SDL_GetGamepadButton(pad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT))
-        keys |= KEY_RIGHT;
 
     lx = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX);
     ly = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTY);
