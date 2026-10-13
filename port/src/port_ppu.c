@@ -79,7 +79,7 @@ static int sBgDockedLatched[4];
 /* A docked layer is screen UI moved toward an edge: it shows only what the
    hardware would (no world-map continuation), so parked windows stay hidden. */
 static int sBgSplit[4]; /* PortBgSplit, below */
-static int sSceneNarrow; /* PortSceneNarrow, below */
+static int sSceneNarrow, sNarrowWanted, sNarrowWait; /* PortSceneNarrow, below */
 
 void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgLatch, sizeof(sBgLatch));
@@ -92,6 +92,8 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgWorldLatched, sizeof(sBgWorldLatched));
     visit(sBgSplit, sizeof(sBgSplit));
     visit(&sSceneNarrow, sizeof(sSceneNarrow));
+    visit(&sNarrowWanted, sizeof(sNarrowWanted));
+    visit(&sNarrowWait, sizeof(sNarrowWait));
 }
 
 void PortSetBgShiftX(int bg, int shift) {
@@ -1233,8 +1235,23 @@ static void HBlank(int line) {
     IO16(0x04) &= ~2;
 }
 
+/* A mode switch asks for its framing before the old picture has gone: the
+   change waits for a blank frame of the transition (or half a second), so
+   the last frame of the old screen never shows at the new size. */
 void PortSceneNarrow(int on) {
-    sSceneNarrow = on;
+    sNarrowWanted = on;
+    sNarrowWait = 0;
+}
+
+static void UpdateSceneNarrow(uint16_t dispcnt) {
+    uint16_t bldcnt = IO16(0x50);
+    int blank = (dispcnt & 0x80) || !(dispcnt & 0x1F00)
+                || (((bldcnt >> 6) & 3) == 3 && (IO16(0x54) & 31) >= 16 && (bldcnt & 0x1F) == 0x1F);
+
+    if (sSceneNarrow == sNarrowWanted)
+        return;
+    if (blank || ++sNarrowWait > 30)
+        sSceneNarrow = sNarrowWanted;
 }
 
 void PortPpuBeginFrame(void) {
@@ -1242,6 +1259,7 @@ void PortPpuBeginFrame(void) {
     int b, any = 0;
 
     BuildLut();
+    UpdateSceneNarrow(dispcnt);
     for (b = 0; b < 4; b++) {
         sBgLatch[b].valid = ValidateBgLatch(b, dispcnt);
         sBgWorldLatched[b].valid = !sBgLatch[b].valid && ValidateBgWorld(b, dispcnt);
@@ -1255,6 +1273,11 @@ void PortPpuBeginFrame(void) {
     }
     gPortScreen.wide = any && !sSceneNarrow && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
                        && !(dispcnt & 0x80);
+    if (getenv("KHCOM_PPULOG"))
+        PortLog("ppu: dispcnt %04x latch %d%d%d%d world %d%d%d%d bgcnt %04x %04x %04x %04x wide %d narrow %d", dispcnt,
+                sBgLatch[0].valid, sBgLatch[1].valid, sBgLatch[2].valid, sBgLatch[3].valid, sBgWorldLatched[0].valid,
+                sBgWorldLatched[1].valid, sBgWorldLatched[2].valid, sBgWorldLatched[3].valid, IO16(0x08), IO16(0x0A),
+                IO16(0x0C), IO16(0x0E), gPortScreen.wide, sSceneNarrow);
     sHudLayer = gPortScreen.wide && gPortHudScale > 0 && gPortHudW >= GBA_SCREEN_W;
     if (sHudLayer) {
         memset(sOccBg, 4, (size_t)gPortScreen.width * gPortScreen.height);

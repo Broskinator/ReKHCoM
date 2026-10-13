@@ -5,8 +5,9 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 
 ## Pantallas y menús 16:9
 
-- [~] Menú START: popeaba al cerrarlo y se "achicaba" al entrar en una subopción
-  (la capa de pantalla ahora se mantiene un fotograma más; falta verificación visual).
+- [x] Menú START: popeaba al cerrarlo y se "achicaba" al entrar en una subopción.
+  Verificado fotograma a fotograma: abrir/cerrar sin saltos; al entrar/salir de una
+  subopción el encuadre cambia solo en un fotograma negro de la transición.
 - [ ] Cristal de guardado: popea al salir y el cristal desaparece. Necesita un estado junto al cristal.
 - [ ] Subida de nivel: hueco neón arriba y abajo; algo popea justo antes. Necesita un estado antes de subir.
 - [ ] Menú de desbloquear puertas (síntesis de salas): subir un poco el menú
