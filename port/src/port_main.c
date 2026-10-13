@@ -529,6 +529,7 @@ static void Quit(void);
  * KHCOM_QUIT=400       exit after that frame
  * KHCOM_BATTLE=10:4[:1] debug battle menu preset to entry 10, stage 4, as Riku with :1 (A starts it)
  * KHCOM_MODE=30:Mode_Deck[:arg]   at frame 30 switch to that game mode
+ * KHCOM_SONG=30:29    at frame 30 start song / sound effect 29
  * KHCOM_FAST=1         do not pace frames (run as fast as possible)
  * KHCOM_VBM=movie.vbm  play a VBA-rr input movie (power-on start, controller 1);
  *                      KHCOM_VBM_OFFSET=n shifts it by n frames
@@ -630,6 +631,16 @@ static void HarnessFrame(void) {
             SDL_strlcpy(name, colon + 1, SDL_min(n + 1, sizeof(name)));
             if (!PortHarnessMode(name, arg ? SDL_atoi(arg + 1) : 0))
                 PortLog("harness: no mode %s", name);
+        }
+    }
+
+    /* KHCOM_SONG=frame:id: start a song or sound effect. */
+    {
+        const char* m = SDL_getenv("KHCOM_SONG");
+        const char* colon = m ? SDL_strchr(m, ':') : NULL;
+        if (colon && (uint32_t)SDL_atoi(m) == sFrameCount) {
+            extern void PortHarnessSong(int song);
+            PortHarnessSong(SDL_atoi(colon + 1));
         }
     }
 

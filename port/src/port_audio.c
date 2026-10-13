@@ -310,7 +310,7 @@ static void PsgRender(int n, int rate) {
             if (sPsg[ch].on)
                 nr52 |= 1 << ch;
         IO8(0x84) = nr52;
-        if ((nr52 & 15) && SDL_getenv("KHCOM_PSGLOG")) {
+        if ((nr51 & ((nr52 & 15) * 0x11)) && SDL_getenv("KHCOM_PSGLOG")) {
             static int sLogged;
             if (sLogged++ < 20)
                 PortLog("psg: channels %x nr50 %02x nr51 %02x", nr52 & 15, nr50, nr51);

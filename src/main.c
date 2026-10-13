@@ -49,6 +49,10 @@ extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, g
     gModeWorldselect, gModeWORLDSELECT, gModeWorldwarp, gModeMsTop, gModePremire,
     gModeSioBtlOption;
 
+void PortHarnessSong(int song) {
+    m4aSongNumStart((u16)song);
+}
+
 int PortHarnessMode(const char* name, int arg) {
     static Mode* const modes[] = {
         &gModeDeck, &gModeStatus, &gModeJiminy, &gModeAllmap, &gModeMapinspect, &gModeWorldinspect,

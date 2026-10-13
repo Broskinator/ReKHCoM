@@ -57,14 +57,14 @@
     {
       "name": "PSG (CGB) channels",
       "weight": 3,
-      "done": 75,
-      "notes": "square+sweep, wave, noise, envelopes, NR52"
+      "done": 90,
+      "notes": "square+sweep (band-limited), wave, noise, envelopes, length, NR50-52 routing; 79 songs/effects use CGB voices (KHCOM_SONG plays one); one wave RAM bank, as m4a's bank switching within a frame produces the same result; hardware recording comparison pending"
     },
     {
       "name": "PCM streaming (FIFO)",
       "weight": 2,
-      "done": 60,
-      "notes": "timer 0 + DMA1/2 streams"
+      "done": 95,
+      "notes": "FIFO A/B fed by the DMA aimed at them, each at its own timer's rate; movie audio identical before/after, rate exact; hardware recording comparison pending"
     },
     {
       "name": "Block audio codec transform",
@@ -123,7 +123,7 @@
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 55,
+      "done": 60,
       "notes": "all 194 story events (EU, US) and all 209 battles of the debug battle menu run hidden without a crash (port/tools/test_events.py, test_battles.py); Spanish opening, first battle and reload verified; stray pointers and x/0 behave as on the GBA bus"
     },
     {
@@ -141,8 +141,8 @@
     {
       "name": "USA and Japanese versions",
       "weight": 6,
-      "done": 55,
-      "notes": "separate builds (configure --version us|jp); all 194 story events run on the US build; own save files; HD text and options overlay in English only"
+      "done": 62,
+      "notes": "separate builds (configure --version us|jp); all 194 story events and all 209 debug battles run on the US build; JP boots to the file select; own save files; HD text and options overlay in English only"
     },
     {
       "name": "Launcher & ROM install",
