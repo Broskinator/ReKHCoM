@@ -16,7 +16,7 @@
       "name": "GBA memory map & ROM loading",
       "weight": 4,
       "done": 100,
-      "notes": "address space embedded in the PE image"
+      "notes": "address space embedded in the PE image; NULL and out-of-range accesses emulate the GBA bus (port_biosfault.c)"
     },
     {
       "name": "BIOS services",
@@ -123,8 +123,8 @@
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 20,
-      "notes": "Spanish: opening, Traverse Town, first battle and tutorial including the first reload; game speed matches hardware; save states for regression tests"
+      "done": 35,
+      "notes": "all 194 story events start from the debug event menu and run hidden (port/tools/test_events.py); Spanish opening, first battle and reload verified; stray pointers and x/0 behave as on the GBA bus"
     },
     {
       "name": "Save states",
@@ -153,8 +153,8 @@
     {
       "name": "Skip intro",
       "weight": 1,
-      "done": 0,
-      "notes": "A shows a confirmation in the game's font; A again skips"
+      "done": 100,
+      "notes": "A shows a prompt in the game's font with an A button; A again skips the opening"
     }
   ],
   "milestones": [
