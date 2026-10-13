@@ -6393,7 +6393,8 @@ static void msgwin_2(MsgWinWork* work) {
     const MessageScriptEntry* entry = &work->script[work->scriptIndex];
 
 #ifdef PLATFORM_PC
-    gPortSpriteShiftX = MsgwinDockShift();
+    /* Without a portrait the window is a centred box: nothing to dock. */
+    gPortSpriteShiftX = entry->portraitId != PORTRAIT_NONE ? MsgwinDockShift() : 0;
     PortDockBg(work->bg, gPortSpriteShiftX);
 #endif
     if (entry->portraitId != PORTRAIT_NONE) {

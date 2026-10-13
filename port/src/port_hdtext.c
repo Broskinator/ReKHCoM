@@ -9,11 +9,11 @@
  * Glyphs are rasterised with GDI and cached as textures, drawn unscaled at
  * whole pixels.
  *
- * The font is assets/fonts/ComicHearts.otf next to the executable (Segoe UI
- * when it is missing). Letters it lacks are built from it where possible:
- * accented letters are the base letter with the accent of Comic Sans MS
- * (close to its style), and the Spanish opening marks are ? and ! turned
- * over; anything else comes from Comic Sans MS.
+ * The font is assets/fonts/KHMenu.otf next to the executable (Segoe UI when
+ * it is missing). Letters a font lacks are built from it where possible:
+ * accented letters are the base letter with the accent of the fallback font
+ * (Segoe UI), and the Spanish opening marks are ? and ! turned over; anything
+ * else comes from the fallback font.
  */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -41,7 +41,7 @@ typedef struct HdFont {
     int key;
     float cap;      /* capital height in output pixels */
     HFONT font;     /* the HD font */
-    HFONT fallback; /* for what the HD font lacks: Comic Sans MS, same capital height */
+    HFONT fallback; /* for what the HD font lacks: Segoe UI, same capital height */
     HdGlyph glyphs[256];
 } HdFont;
 
@@ -65,32 +65,51 @@ static void LoadCustomFont(void) {
     if (sCustomTried)
         return;
     sCustomTried = 1;
-    SDL_snprintf(path, sizeof(path), "%sassets/fonts/ComicHearts.otf", base ? base : "");
+    SDL_snprintf(path, sizeof(path), "%sassets/fonts/KHMenu.otf", base ? base : "");
     if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, 1024) > 0 && AddFontResourceExW(wpath, FR_PRIVATE, NULL) > 0) {
-        sFace = L"Comic Hearts";
+        sFace = L"KHMenu";
         PortLog("HD text: font %s", path);
     }
 }
 
-static HFONT MakeFont(const WCHAR* face, int px) {
-    return CreateFontW(-px, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS,
+static HFONT MakeFont(const WCHAR* face, int px, int width, int weight) {
+    return CreateFontW(-px, width, 0, 0, weight, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_TT_ONLY_PRECIS,
                        CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, VARIABLE_PITCH | FF_SWISS, face);
 }
 
-/* Font of the face whose capital H is `cap` pixels tall. */
-static HFONT FontWithCap(const WCHAR* face, float cap) {
+/* Font of the face whose capital H is `cap` pixels tall. A face set wider
+   than the game's pixel font is condensed to its widths, so lines keep
+   inside their windows. */
+static HFONT FontWithCap(const WCHAR* face, float cap, float scale, int weight) {
     static const MAT2 identity = { { 0, 1 }, { 0, 0 }, { 0, 0 }, { 0, 1 } };
+    static const char sample[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const uint16_t* widths = PortLatinGlyphWidths();
     GLYPHMETRICS gm;
-    int px = (int)(cap * 1.5f + 0.5f);
-    HFONT f = MakeFont(face, px);
+    TEXTMETRICW tm;
+    SIZE size;
+    WCHAR wide[64];
+    float game = 0;
+    int px = (int)(cap * 1.5f + 0.5f), i, n = (int)sizeof(sample) - 1;
+    HFONT f = MakeFont(face, px, 0, weight);
 
     SelectObject(sDc, f);
     if (GetGlyphOutlineW(sDc, L'H', GGO_METRICS, &gm, 0, NULL, &identity) != GDI_ERROR && gm.gmBlackBoxY > 0) {
         int fit = (int)(px * cap / (float)gm.gmBlackBoxY + 0.5f);
         if (fit != px && fit > 0) {
             DeleteObject(f);
-            f = MakeFont(face, fit);
+            px = fit;
+            f = MakeFont(face, px, 0, weight);
+            SelectObject(sDc, f);
         }
+    }
+    for (i = 0; i < n; i++) {
+        wide[i] = (WCHAR)sample[i];
+        game += widths[(uint8_t)sample[i]] * scale;
+    }
+    if (GetTextExtentPoint32W(sDc, wide, n, &size) && GetTextMetricsW(sDc, &tm) && size.cx > game * 1.02f) {
+        int w = (int)(tm.tmAveCharWidth * game / size.cx + 0.5f);
+        DeleteObject(f);
+        f = MakeFont(face, px, SDL_max(1, w), weight);
     }
     return f;
 }
@@ -126,8 +145,8 @@ static HdFont* FontForScale(float scale) {
     FontRelease(f);
     f->key = key;
     f->cap = HD_TEXT_CAP * scale;
-    f->font = FontWithCap(sFace, f->cap);
-    f->fallback = sFace[0] == L'S' ? f->font : FontWithCap(L"Comic Sans MS", f->cap);
+    f->font = FontWithCap(sFace, f->cap, scale, sFace[0] == L'S' ? FW_SEMIBOLD : FW_NORMAL);
+    f->fallback = sFace[0] == L'S' ? f->font : FontWithCap(L"Segoe UI", f->cap, scale, FW_SEMIBOLD);
     return f;
 }
 

@@ -1,9 +1,10 @@
-# Comic Hearts
+# Fonts
 
-`ComicHearts.otf` (Comic Hearts v1.1, Copyright (c) 2019, Sam) is a fan-made
-recreation of the Kingdom Hearts dialogue font, released by its author for free
-use in projects:
-https://www.reddit.com/r/KingdomHearts/comments/dexmtv/discussion_so_ive_finally_recreated_the_kingdom/
+Fan-made recreations of the Kingdom Hearts fonts, released by their authors
+for free use in projects.
 
-The game uses it for the optional HD text. The font has no accented letters;
-ReKHCoM builds them from its letters and the accents of Comic Sans MS.
+- `KHMenu.otf` (KHMenu Regular): the menu and dialogue font. ReKHCoM uses it
+  for the optional HD text.
+- `ComicHearts.otf` (Comic Hearts v1.1, Copyright (c) 2019, Sam): the movie
+  subtitle font, kept for the movies.
+  https://www.reddit.com/r/KingdomHearts/comments/dexmtv/discussion_so_ive_finally_recreated_the_kingdom/

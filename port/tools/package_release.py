@@ -37,7 +37,7 @@ def main():
         "licenses/imgui-LICENSE.txt": ROOT / "port/decompui/third_party/imgui/LICENSE.txt",
         "assets/boxart.jpg": ROOT / "port/decompui/assets/boxart.jpg",
         "assets/NOTICE.md": ROOT / "port/decompui/assets/NOTICE.md",
-        "assets/fonts/ComicHearts.otf": ROOT / "port/assets/fonts/ComicHearts.otf",
+        "assets/fonts/KHMenu.otf": ROOT / "port/assets/fonts/KHMenu.otf",
         "assets/fonts/NOTICE.md": ROOT / "port/assets/fonts/NOTICE.md",
     }
     for source in files.values():
