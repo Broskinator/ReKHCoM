@@ -3,7 +3,7 @@
 Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
-**v0.4 is an early Windows prerelease.** It comes with a launcher, runs the European,
+**v0.5 is an early Windows prerelease.** It comes with a launcher, runs the European,
 US and Japanese cartridges, plays the game's movies at the cartridge's speed, shows
 the game in 16:9, has graphics and quality-of-life options, and saves to disk. Full
 playthroughs have not been verified.
@@ -42,9 +42,9 @@ See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
   mosaic, HBlank effects), m4a sequencer/mixer in C, PSG emulation, BIOS, DMA, input,
   settings and the wide-view renderer.
 
-## Running v0.4 (Windows)
+## Running v0.5 (Windows)
 
-1. Extract `ReKHCoM-v0.4-windows-x86.zip` into a writable folder.
+1. Extract `ReKHCoM-v0.5-windows-x86.zip` into a writable folder.
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
 3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`
@@ -140,8 +140,8 @@ completion or a compatibility guarantee.
 ## Credits
 
 - Decompilation: [Pheenoh/khcom](https://github.com/Pheenoh/khcom) and contributors (CC0).
-- HD text font: KHMenu, a fan-made recreation of the game's font; Comic Hearts by Sam
-  (see `port/assets/fonts/NOTICE.md`).
+- HD text fonts: KHMenu, a fan-made recreation of the game's menu font, and Comic Hearts
+  by Sam, for the movie subtitles (see `port/assets/fonts/NOTICE.md`).
 - PC port: ReKHCoM contributors.
 
 The original decompilation README is kept in [README.decomp.md](README.decomp.md).

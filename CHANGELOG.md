@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.5 — 2026-10-13
+
+Windows x86 prerelease.
+
+- Movie subtitles in HD text, in Comic Hearts (a fan-made recreation of the
+  game's movie font), centred where the cartridge puts them.
+- Movies: the side bars show a blurred reflection of the picture instead of
+  its stretched edge column.
+- The pause menu list is back (v0.4 could show the pause menu without it);
+  the room's save point and map icon stay up through the save menu instead of
+  vanishing and popping back.
+- State and slot notices are drawn on a layer of their own above everything
+  else, at the window's scale.
+- HD text reaches menu text (the save menu, lists, names), on the menu layer.
+- Start + Select opens the options anywhere; Select alone only on the title
+  screen (Start alone no longer opens them).
+- Verified without a crash: all 194 story events (European, US and Japanese
+  builds) and all 209 battles of the debug battle menu as Sora (European and
+  US) and as Riku.
+
 ## v0.4 — 2026-10-13
 
 Windows x86 prerelease.

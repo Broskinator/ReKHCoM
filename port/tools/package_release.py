@@ -38,6 +38,7 @@ def main():
         "assets/boxart.jpg": ROOT / "port/decompui/assets/boxart.jpg",
         "assets/NOTICE.md": ROOT / "port/decompui/assets/NOTICE.md",
         "assets/fonts/KHMenu.otf": ROOT / "port/assets/fonts/KHMenu.otf",
+        "assets/fonts/ComicHearts.otf": ROOT / "port/assets/fonts/ComicHearts.otf",
         "assets/fonts/NOTICE.md": ROOT / "port/assets/fonts/NOTICE.md",
     }
     for source in files.values():

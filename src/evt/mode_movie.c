@@ -444,7 +444,6 @@ void mode_movie_0(s32 movieId) {
 #define MOVIE_SUB_MAX_CHARS 40
 #endif
 
-#ifndef VERSION_JP
 #ifdef PLATFORM_PC
 /* HD text: the pixel-font code of each subtitle glyph, as copied to VRAM. */
 extern u16* gPortSubGlyphCodes;
@@ -454,6 +453,7 @@ void PortOamSetText(int oamIndex, int code, int style);
 static u16 sMovieSubUpperCodes[MOVIE_SUB_MAX_CHARS];
 static u16 sMovieSubLowerCodes[MOVIE_SUB_MAX_CHARS];
 #endif
+#ifndef VERSION_JP
 static u16 sMovieSubUpperWidths[MOVIE_SUB_MAX_CHARS];
 static u16 sMovieSubLowerWidths[MOVIE_SUB_MAX_CHARS];
 #endif
