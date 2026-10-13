@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.4 — 2026-10-13
+
+Windows x86 prerelease.
+
+- Launcher: game language for the European version, a save card (date of the
+  save, open the folder, back it up with a date stamp), launcher language
+  (system, Spanish, English), version shown in the header.
+- Japanese version: HD text in Japanese (Yu Gothic UI on the game's grid) and
+  the options overlay in Japanese, drawn with the cartridge's own font.
+- No more pops around menus: field objects and the room's map icon stay up
+  through the pause and save menus instead of vanishing and coming back; a
+  sub-menu no longer shrinks for a frame when it opens.
+- Audio: band-limited Game Boy square channels (less harsh high notes); each
+  sound FIFO follows its own timer and DMA.
+- Right stick: left / right change cards, up stocks them.
+- Verified: all 194 story events (European and US builds) and all 209 battles
+  of the debug battle menu as Sora (European and US) and as Riku run without a
+  crash.
+
 ## v0.3 — 2026-10-13
 
 Windows x86 prerelease with a launcher and all three cartridge versions.

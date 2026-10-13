@@ -3,7 +3,7 @@
 Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
-**v0.3 is an early Windows prerelease.** It comes with a launcher, runs the European,
+**v0.4 is an early Windows prerelease.** It comes with a launcher, runs the European,
 US and Japanese cartridges, plays the game's movies at the cartridge's speed, shows
 the game in 16:9, has graphics and quality-of-life options, and saves to disk. Full
 playthroughs have not been verified.
@@ -42,13 +42,17 @@ See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
   mosaic, HBlank effects), m4a sequencer/mixer in C, PSG emulation, BIOS, DMA, input,
   settings and the wide-view renderer.
 
-## Running v0.3 (Windows)
+## Running v0.4 (Windows)
 
-1. Extract `ReKHCoM-v0.3-windows-x86.zip` into a writable folder.
+1. Extract `ReKHCoM-v0.4-windows-x86.zip` into a writable folder.
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
 3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`
    for the version you chose.
+
+The launcher also sets the European game's language, shows each version's save
+(open its folder, or back it up to `backups/` with a date stamp), and edits the
+graphics, sound, enhancement and control settings shared with the game.
 
 The ZIP includes SDL3; you do not need to install it separately. The executables
 are 32-bit x86 and have been tested locally on Windows only.

@@ -111,7 +111,7 @@
     {
       "name": "Widescreen: menus & events",
       "weight": 4,
-      "done": 90,
+      "done": 93,
       "notes": "pause menu, save, world select and level up on a screen layer at the window's height, anchored to both edges, no pop on open/close/sub-option; full-screen sub-menus (decks, status, diary, map, world/vortex) at full height with per-screen side bars; level-up bands, save crystal exit and door menu pending"
     },
     {
@@ -123,8 +123,8 @@
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 60,
-      "notes": "all 194 story events (EU, US) and all 209 battles of the debug battle menu run hidden without a crash (port/tools/test_events.py, test_battles.py); Spanish opening, first battle and reload verified; stray pointers and x/0 behave as on the GBA bus"
+      "done": 66,
+      "notes": "all 194 story events (EU, US) and all 209 debug battles as Sora (EU, US) and as Riku run hidden without a crash (port/tools/test_events.py, test_battles.py); Spanish opening, first battle and reload verified; stray pointers and x/0 behave as on the GBA bus"
     },
     {
       "name": "Save states",
@@ -141,14 +141,14 @@
     {
       "name": "USA and Japanese versions",
       "weight": 6,
-      "done": 68,
-      "notes": "separate builds (configure --version us|jp); all 194 story events and all 209 debug battles run on the US build; HD text in English and Japanese; JP boots to the file select; own save files; options overlay in English"
+      "done": 80,
+      "notes": "separate builds (configure --version us|jp); US: all 194 story events and all 209 debug battles run; JP: HD text and the options overlay in Japanese with the cartridge font, boots to the file select; own save files"
     },
     {
       "name": "Launcher & ROM install",
       "weight": 4,
-      "done": 80,
-      "notes": "decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements (HD text, card hand, one-button actions), editable controls, starts the matching game"
+      "done": 92,
+      "notes": "decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements, editable controls, game language (EU), save card (date, open folder, back up), launcher language, version; starts the matching game"
     },
     {
       "name": "Skip intro",

@@ -59,7 +59,7 @@ def asm_functions():
 def port_definitions():
     defined = set()
     for path in (ROOT / "port" / "src").glob("*.c"):
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8", errors="replace")
         defined.update(re.findall(r"^[A-Za-z_][\w \*]*?\b(\w+)\s*\([^;]*?\)\s*\{", text, re.M))
     return defined
 

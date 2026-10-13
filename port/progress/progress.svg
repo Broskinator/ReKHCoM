@@ -4,8 +4,8 @@
 <text x="24" y="60" font-size="13" fill="#adb5bd">Kingdom Hearts: Chain of Memories (EU) - 2026-10-13</text>
 <text x="24" y="93" font-size="14" font-weight="600" fill="#f1f3f5">Overall port</text>
 <rect x="270" y="78" width="500" height="20" rx="4" fill="#2b2f38"/>
-<rect x="270" y="78" width="447.6" height="20" rx="4" fill="#e8a317"/>
-<text x="780" y="93" font-size="14" font-weight="700" fill="#f1f3f5">89.5%</text>
+<rect x="270" y="78" width="456.1" height="20" rx="4" fill="#2f9e44"/>
+<text x="780" y="93" font-size="14" font-weight="700" fill="#f1f3f5">91.2%</text>
 <text x="278" y="93" font-size="11" fill="#f8f9fa">weighted by subsystem</text>
 <text x="24" y="123" font-size="14" font-weight="600" fill="#f1f3f5">Functions running natively</text>
 <rect x="270" y="108" width="500" height="20" rx="4" fill="#2b2f38"/>
@@ -86,16 +86,16 @@
 <text x="780" y="605" font-size="12" fill="#ced4da">92%</text>
 <text x="24" y="631" font-size="12" fill="#ced4da">Widescreen: menus &amp; events</text>
 <rect x="270" y="620" width="500" height="14" rx="3" fill="#2b2f38"/>
-<rect x="270" y="620" width="450.0" height="14" rx="3" fill="#2f9e44"/>
-<text x="780" y="631" font-size="12" fill="#ced4da">90%</text>
+<rect x="270" y="620" width="465.0" height="14" rx="3" fill="#2f9e44"/>
+<text x="780" y="631" font-size="12" fill="#ced4da">93%</text>
 <text x="24" y="657" font-size="12" fill="#ced4da">Graphics options menu</text>
 <rect x="270" y="646" width="500" height="14" rx="3" fill="#2b2f38"/>
 <rect x="270" y="646" width="460.0" height="14" rx="3" fill="#2f9e44"/>
 <text x="780" y="657" font-size="12" fill="#ced4da">92%</text>
 <text x="24" y="683" font-size="12" fill="#ced4da">Gameplay verification</text>
 <rect x="270" y="672" width="500" height="14" rx="3" fill="#2b2f38"/>
-<rect x="270" y="672" width="300.0" height="14" rx="3" fill="#e8a317"/>
-<text x="780" y="683" font-size="12" fill="#ced4da">60%</text>
+<rect x="270" y="672" width="330.0" height="14" rx="3" fill="#e8a317"/>
+<text x="780" y="683" font-size="12" fill="#ced4da">66%</text>
 <text x="24" y="709" font-size="12" fill="#ced4da">Save states</text>
 <rect x="270" y="698" width="500" height="14" rx="3" fill="#2b2f38"/>
 <rect x="270" y="698" width="450.0" height="14" rx="3" fill="#2f9e44"/>
@@ -106,12 +106,12 @@
 <text x="780" y="735" font-size="12" fill="#ced4da">85%</text>
 <text x="24" y="761" font-size="12" fill="#ced4da">USA and Japanese versions</text>
 <rect x="270" y="750" width="500" height="14" rx="3" fill="#2b2f38"/>
-<rect x="270" y="750" width="340.0" height="14" rx="3" fill="#e8a317"/>
-<text x="780" y="761" font-size="12" fill="#ced4da">68%</text>
+<rect x="270" y="750" width="400.0" height="14" rx="3" fill="#e8a317"/>
+<text x="780" y="761" font-size="12" fill="#ced4da">80%</text>
 <text x="24" y="787" font-size="12" fill="#ced4da">Launcher &amp; ROM install</text>
 <rect x="270" y="776" width="500" height="14" rx="3" fill="#2b2f38"/>
-<rect x="270" y="776" width="400.0" height="14" rx="3" fill="#e8a317"/>
-<text x="780" y="787" font-size="12" fill="#ced4da">80%</text>
+<rect x="270" y="776" width="460.0" height="14" rx="3" fill="#2f9e44"/>
+<text x="780" y="787" font-size="12" fill="#ced4da">92%</text>
 <text x="24" y="813" font-size="12" fill="#ced4da">Skip intro</text>
 <rect x="270" y="802" width="500" height="14" rx="3" fill="#2b2f38"/>
 <rect x="270" y="802" width="500.0" height="14" rx="3" fill="#2f9e44"/>
