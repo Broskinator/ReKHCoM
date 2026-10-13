@@ -58,10 +58,12 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 - [x] Menú de opciones del port en japonés (versión JP), con la fuente del cartucho.
 - [x] Launcher: idioma del juego (EU), partidas (fecha, abrir carpeta, copia de seguridad),
   idioma del launcher, versión y firma "por MatyMeatBoy".
-- [ ] Limpiar carpetas para un release prolijo, sin archivos de prueba.
+- [x] Carpetas limpias: build/pc sin archivos de depuración, 80 carpetas de prueba borradas, baterías
+  terminadas reducidas a informe + hoja de capturas. Repo sin archivos de prueba.
+- [x] Release v0.4 (pre-release pública): https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v0.4
 - [x] Launcher: remapeo de controles (teclado ×2 y mando por acción, guardado en kh_com.ini).
 - [x] Release v0.3 (pre-release pública, no Latest) con launcher y las tres versiones:
   https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v0.3
 - [x] Build nueva instalada en build/pc (ini, save y estados intactos; `khcom_prev.exe` carga
   los estados viejos).
-- [~] Actualizar porcentajes de PROGRESS hasta el 100 % (87 % ahora).
+- [~] Actualizar porcentajes de PROGRESS hasta el 100 % (91 % ahora).
