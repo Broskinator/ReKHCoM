@@ -220,9 +220,12 @@ void InitSystem() {
        (A starts it). */
     if (gPortBattleTest >= 0) {
         ResetGameState();
-        SetupSoraNewGame();
+        if (gPortBattleTest & 0x10000)
+            SetupRikuNewGame();
+        else
+            SetupSoraNewGame();
         gChkBtlWork->enemy = gPortBattleTest & 0xFF;
-        gChkBtlWork->bg = gPortBattleTest >> 8;
+        gChkBtlWork->bg = (gPortBattleTest >> 8) & 0xFF;
         ModeRequestHeapReset(&gModeChkbtl, 0);
         gPortBattleTest = -1;
     }

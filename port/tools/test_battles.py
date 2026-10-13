@@ -7,7 +7,7 @@ pressed regularly and the stick moves around. Results:
 build/battletest/<version>/report.txt and a contact sheet of the last
 screenshot of every battle.
 
-    python port/tools/test_battles.py [--version eu|us|jp] [--frames 3000] [--jobs 8] [--only 0,10,200]
+    python port/tools/test_battles.py [--version eu|us|jp] [--riku] [--frames 3000] [--jobs 8] [--only 0,10,200]
 """
 import argparse
 import hashlib
@@ -34,7 +34,7 @@ def stage_table():
     return re.findall(r"\{\s*(\w+),", body)
 
 
-def run(exe_dir, work, version, index, stage, frames, timeout):
+def run(exe_dir, work, version, index, stage, frames, timeout, riku=False):
     d = work / f"{index:03d}"
     if d.exists():
         shutil.rmtree(d)
@@ -50,7 +50,7 @@ def run(exe_dir, work, version, index, stage, frames, timeout):
             keys.append(f"{f + 6}-{f + 20}:{dirs[(n // 4) % 4]}")
     shots = ",".join(str(f) for f in (frames // 3, frames * 2 // 3, frames))
     env = dict(os.environ, SDL_VIDEO_DRIVER="dummy", SDL_AUDIO_DRIVER="dummy", KHCOM_FAST="1",
-               KHCOM_BATTLE=f"{index}:{stage}", KHCOM_KEYS=",".join(keys), KHCOM_SHOTS=shots,
+               KHCOM_BATTLE=f"{index}:{stage}:{int(riku)}", KHCOM_KEYS=",".join(keys), KHCOM_SHOTS=shots,
                KHCOM_QUIT=str(frames + 5))
     rom = ROOT / "roms" / ({"eu": "B8CP", "us": "B8CE", "jp": "B8CJ"}[version] + ".gba")
     try:
@@ -74,11 +74,12 @@ def main():
     ap.add_argument("--jobs", type=int, default=6)
     ap.add_argument("--timeout", type=int, default=600)
     ap.add_argument("--only", help="comma list of entry indices")
+    ap.add_argument("--riku", action="store_true", help="fight as Riku (Reverse/Rebirth)")
     ap.add_argument("--build", help="folder with khcom.exe (default build/pc or build/pc-<version>)")
     args = ap.parse_args()
 
     exe_dir = ROOT / (args.build or ("build/pc" if args.version == "eu" else f"build/pc-{args.version}"))
-    work = ROOT / "build" / "battletest" / args.version
+    work = ROOT / "build" / "battletest" / (args.version + ("_riku" if args.riku else ""))
     work.mkdir(parents=True, exist_ok=True)
     stages = stage_table()
     entries = battle_entries()
@@ -95,7 +96,7 @@ def main():
 
     results = {}
     with ThreadPoolExecutor(args.jobs) as pool:
-        futures = {pool.submit(run, exe_dir, work, args.version, i, stage_for(w), args.frames, args.timeout): (i, w, b)
+        futures = {pool.submit(run, exe_dir, work, args.version, i, stage_for(w), args.frames, args.timeout, args.riku): (i, w, b)
                    for i, w, b in entries}
         for fut, (i, w, b) in futures.items():
             results[i] = (w, b) + fut.result()

@@ -219,7 +219,7 @@ static uint32_t sHudBuf[PORT_MAX_W * PORT_MAX_H];
 
 int gPortIntroRequested;
 int gPortEventTest = -1; /* KHCOM_EVENT=list:index (0 Sora, 1 Riku) */
-int gPortBattleTest = -1; /* KHCOM_BATTLE=entry:stage of the debug battle menu */
+int gPortBattleTest = -1; /* KHCOM_BATTLE=entry:stage[:riku] of the debug battle menu */
 int gPortMovieTest = -1; /* KHCOM_MOVIE=id (mode_movie.h) */
 int gPortStartupLanguage = -1;
 
@@ -527,7 +527,7 @@ static void Quit(void);
  * KHCOM_SHOTS=60,120   save shot_<frame>.bmp at those frames
  * KHCOM_KEYS=100-105:START,200:A   hold GBA keys during frame ranges
  * KHCOM_QUIT=400       exit after that frame
- * KHCOM_BATTLE=10:4    debug battle menu preset to entry 10, stage 4 (A starts it)
+ * KHCOM_BATTLE=10:4[:1] debug battle menu preset to entry 10, stage 4, as Riku with :1 (A starts it)
  * KHCOM_MODE=30:Mode_Deck[:arg]   at frame 30 switch to that game mode
  * KHCOM_FAST=1         do not pace frames (run as fast as possible)
  * KHCOM_VBM=movie.vbm  play a VBA-rr input movie (power-on start, controller 1);
@@ -905,7 +905,9 @@ int main(int argc, char** argv) {
     if (SDL_getenv("KHCOM_BATTLE")) {
         const char* b = SDL_getenv("KHCOM_BATTLE");
         const char* colon = SDL_strchr(b, ':');
-        gPortBattleTest = (SDL_atoi(b) & 0xFF) | ((colon ? SDL_atoi(colon + 1) & 0xFF : 0) << 8);
+        const char* riku = colon ? SDL_strchr(colon + 1, ':') : NULL;
+        gPortBattleTest = (SDL_atoi(b) & 0xFF) | ((colon ? SDL_atoi(colon + 1) & 0xFF : 0) << 8)
+                          | ((riku && SDL_atoi(riku + 1)) ? 0x10000 : 0);
     }
     if (SDL_getenv("KHCOM_EVENT")) {
         const char* e = SDL_getenv("KHCOM_EVENT");
