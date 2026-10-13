@@ -18,8 +18,16 @@ notes](port/MOVIES.md).
 See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
 
 > [!IMPORTANT]
-> This repository contains **no game assets and no ROM**. You need your own dump of the
-> European cartridge (`B8CP`, SHA-1 `8db73586cdb11b3795907edebf43228dbcd3e6b2`).
+> This repository contains **no game assets and no ROM**. You need your own dump of one
+> of the cartridges:
+>
+> | Version | Code | SHA-1 |
+> |---|---|---|
+> | Europe (EN, FR, DE, ES, IT) | `B8CP` | `8db73586cdb11b3795907edebf43228dbcd3e6b2` |
+> | USA | `B8CE` | `10729bd884f8fdca7a310b6d606c52e46657aa48` |
+> | Japan | `B8CJ` | `59ec0a0a4ccd1e6acb3bbd7bfb21d63988958cfa` |
+>
+> v0.2 supports the European cartridge only; the development tree builds all three.
 
 ## How it works
 
@@ -65,11 +73,17 @@ By default the tools are looked up in `../toolchain/`.
 git clone https://github.com/MatyMeatBoy/ReKHCom.git
 cd ReKHCom
 python -m pip install pyyaml
-# Copy your European dump to roms/B8CP.gba before configuring.
-python port/configure_pc.py              # --debug for a console build
+# Copy your dumps to roms/B8CP.gba, roms/B8CE.gba and/or roms/B8CJ.gba first.
+python port/configure_pc.py              # European game + launcher, build/pc; --debug for a console build
+python port/configure_pc.py --version us # USA game, build/pc-us
+python port/configure_pc.py --version jp # Japanese game, build/pc-jp
 ninja -f build/pc/build.ninja
-build/pc/khcom.exe
+build/pc/ReKHCoM.exe                     # launcher (decompui); or run a khcom.exe directly
 ```
+
+The launcher, `ReKHCoM.exe` (source in `port/decompui`, Dear ImGui), installs your
+dumps after checking their SHA-1, edits the game's settings and enhancements
+and starts the executable built for the chosen version.
 
 Use `--toolchain PATH --sdl PATH` when your dependencies are outside
 `../toolchain/`. The SDL package must include `i686-w64-mingw32/`.
@@ -79,7 +93,7 @@ your dump during the first configure step.
 To make a distributable ZIP without ROMs, saves or local settings:
 
 ```sh
-python port/tools/package_release.py --version v0.2 --sdl ../toolchain/SDL3-3.4.18
+python port/tools/package_release.py --version v0.3 --sdl ../toolchain/SDL3-3.4.18
 ```
 
 ## Controls
@@ -102,6 +116,8 @@ F11 or Alt+Enter toggles fullscreen.
 F1 or Esc opens the options overlay. At the title screen, Select also opens it;
 on a controller, use Back + Start. F5 saves a state, F9 loads a state, and F6/F7
 change the state slot. Save states do not include cartridge SRAM.
+
+During the opening movie, A shows a prompt; A again skips the movie.
 
 ## Development
 

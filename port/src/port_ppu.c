@@ -343,10 +343,11 @@ void PortLatchBgMaps(const BgEntry* entries) {
 static int WorldEntry(const BgLatch* l, int wx, int wy) {
     const uint16_t* block;
 
-    if (wx < 0 || wy < 0 || wx >= l->width * 256 || wy >= l->height * 256)
+    if (l->map == NULL || wx < 0 || wy < 0 || wx >= l->width * 256 || wy >= l->height * 256)
         return -1;
     block = (const uint16_t*)l->map[(wy >> 8) * l->width + (wx >> 8)];
-    if (block == NULL)
+    /* Blocks live in work RAM or the ROM; anything else is not a world map. */
+    if ((uintptr_t)block < 0x02000000u || (uintptr_t)block >= 0x0A000000u)
         return -1;
     return block[((wy & 255) >> 3) * 32 + ((wx & 255) >> 3)];
 }

@@ -29,7 +29,7 @@ def event_lists():
     return out
 
 
-def run(exe_dir, work, list_id, index, frames, timeout):
+def run(exe_dir, work, version, list_id, index, frames, timeout):
     d = work / f"{list_id}_{index:03d}"
     if d.exists():
         shutil.rmtree(d)
@@ -45,7 +45,8 @@ def run(exe_dir, work, list_id, index, frames, timeout):
     import os
     full_env = dict(os.environ, **env)
     try:
-        p = subprocess.run([str(d / "khcom.exe"), "--language", "es"], cwd=d, env=full_env,
+        rom = ROOT / "roms" / {"eu": "B8CP", "us": "B8CE", "jp": "B8CJ"}[version]
+        p = subprocess.run([str(d / "khcom.exe"), "--language", "es", "--rom", str(rom) + ".gba"], cwd=d, env=full_env,
                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                            timeout=timeout)
         code = p.returncode
@@ -77,7 +78,7 @@ def main():
 
     results = {}
     with ThreadPoolExecutor(args.jobs) as pool:
-        futures = {pool.submit(run, exe_dir, work, l, i, args.frames, args.timeout): (l, i, n) for l, i, n in events}
+        futures = {pool.submit(run, exe_dir, work, args.version, l, i, args.frames, args.timeout): (l, i, n) for l, i, n in events}
         for fut, (l, i, n) in futures.items():
             results[(l, i)] = (n,) + fut.result()
 
@@ -105,7 +106,8 @@ def main():
         sheet = Image.new("RGB", (cols * 124, ((len(cells) + cols - 1) // cols) * 84), (30, 30, 30))
         for n, im in enumerate(cells):
             sheet.paste(im, ((n % cols) * 124, (n // cols) * 84))
-        sheet.save(work / "events.png")
+        if cells:
+            sheet.save(work / "events.png")
     except ImportError:
         pass
 

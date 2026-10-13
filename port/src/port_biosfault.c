@@ -17,6 +17,11 @@
  * Only the ModRM/SIB bytes are decoded, to find that register; the CPU does
  * the rest, flags included. Each site is logged once ("bios: ...") so it can
  * be marked in the sources.
+ *
+ * Integer division by zero is the other trap: the cartridge's division
+ * routines (libgcc's __divsi3 / __modsi3) return 0 for it, quotient and
+ * remainder alike, where x86 raises an exception. The handler sets both to 0
+ * and skips the instruction.
  */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -177,13 +182,67 @@ static void LogSite(const EXCEPTION_RECORD* r, uint32_t eip) {
             return;
     if (sLoggedCount < LOGGED_MAX)
         sLogged[sLoggedCount++] = eip;
-    PortLog("bios: %s %08lx at eip %08lx", r->ExceptionInformation[0] ? "write" : "read",
-            (unsigned long)r->ExceptionInformation[1], (unsigned long)eip);
+    if (r->ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO)
+        PortLog("bios: division by zero at eip %08lx", (unsigned long)eip);
+    else
+        PortLog("bios: %s %08lx at eip %08lx", r->ExceptionInformation[0] ? "write" : "read",
+                (unsigned long)r->ExceptionInformation[1], (unsigned long)eip);
+}
+
+/* Length of a DIV/IDIV (F6/F7 /6, /7) instruction, 0 if it is not one. */
+static int DivLength(const uint8_t* p, int* bytes) {
+    const uint8_t* start = p;
+    int size16 = 0;
+    uint8_t modrm;
+    int mod, rm;
+
+    while (*p == 0x66 || *p == 0x2E || *p == 0x3E || *p == 0x26 || *p == 0x36 || *p == 0x64 || *p == 0x65) {
+        size16 |= *p == 0x66;
+        p++;
+    }
+    if (*p != 0xF6 && *p != 0xF7)
+        return 0;
+    *bytes = *p == 0xF6 ? 1 : (size16 ? 2 : 4);
+    modrm = p[1];
+    if (((modrm >> 3) & 7) < 6)
+        return 0;
+    mod = modrm >> 6;
+    rm = modrm & 7;
+    p += 2;
+    if (mod != 3) {
+        if (rm == 4) {
+            uint8_t sib = *p++;
+            if (mod == 0 && (sib & 7) == 5)
+                p += 4;
+        } else if (mod == 0 && rm == 5) {
+            p += 4;
+        }
+        p += mod == 1 ? 1 : (mod == 2 ? 4 : 0);
+    }
+    return (int)(p - start);
 }
 
 static LONG CALLBACK BiosFaultHandler(EXCEPTION_POINTERS* info) {
     EXCEPTION_RECORD* r = info->ExceptionRecord;
     CONTEXT* c = info->ContextRecord;
+
+    if (r->ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO) {
+        int bytes, len = DivLength((const uint8_t*)(uintptr_t)c->Eip, &bytes);
+        if (len == 0)
+            return EXCEPTION_CONTINUE_SEARCH;
+        LogSite(r, c->Eip);
+        if (bytes == 1) {
+            c->Eax &= ~0xFFFFu; /* AL quotient, AH remainder */
+        } else if (bytes == 2) {
+            c->Eax &= ~0xFFFFu;
+            c->Edx &= ~0xFFFFu;
+        } else {
+            c->Eax = 0;
+            c->Edx = 0;
+        }
+        c->Eip += (DWORD)len;
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
 
     if (r->ExceptionCode == EXCEPTION_SINGLE_STEP) {
         if (sPending.reg < 0 || sPending.thread != GetCurrentThreadId())
