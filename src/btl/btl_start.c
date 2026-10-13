@@ -3,6 +3,9 @@
  * Battle Start Effect
  */
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "display.h"
 #include "m4a_song.h"
 #include "btl2.h"
@@ -28,6 +31,11 @@ void task_btl_start_0(BtlStartWork* work) {
 }
 
 s32 task_btl_start_1(BtlStartWork* work) {
+#ifdef PLATFORM_PC
+    /* The heart: GBA-size until the white flash hides the switch back. */
+    if (work->timer < 43)
+        PortFitScreen();
+#endif
     if (work->timer <= 20) {
         FadeStartIn(FADE_MODE_BLACK, 40);
     }

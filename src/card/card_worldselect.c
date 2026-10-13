@@ -3,6 +3,9 @@
  * Map Card Selection and Inventory
  */
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "macros.h"
 #include "registration_data.h"
 #include "system_state.h"
@@ -59,6 +62,10 @@
 #include "card_message_data.h"
 #include "jiminy_records_index_data.h"
 #include "gba/io_reg.h"
+
+#ifndef PORT_BAND
+#define PORT_BAND(draw) draw /* GBA: one band */
+#endif
 
 static TaskPool sModeWorldselectTasks;
 
@@ -811,6 +818,9 @@ u8 UpdateMapSelectClose(MapSelectWork* work) {
 }
 
 void MapSelect_2(MapSelectWork* work) {
+#ifdef PLATFORM_PC
+    PortFitScreen(); /* GBA-size screen: fill the window's height */
+#endif
     if (work->tiles3 != NULL && work->palette3 != NULL) {
         DrawSprite(work->titleX >> 8, work->titleY >> 8,
 #ifdef VERSION_EU
@@ -859,8 +869,8 @@ void MapSelect_2(MapSelectWork* work) {
         DrawSprite(120, 56, gCardBacks[CARD_BACK_WHITE].gfx2, work->tiles2, work->palette, NULL, SPRITE_FLAG_MOSAIC, 60);
     }
 
-    DrawSprite(128, work->topBarY >> 8, gMapSelectBarFrames[0], work->tiles7, work->palette3, NULL, SPRITE_PRIORITY(2), 80);
-    DrawSprite(128, work->bottomBarY >> 8, gMapSelectBarFrames[1], work->tiles7, work->palette3, NULL, SPRITE_PRIORITY(2), 80);
+    PORT_BAND(DrawSprite(128, work->topBarY >> 8, gMapSelectBarFrames[0], work->tiles7, work->palette3, NULL, SPRITE_PRIORITY(2), 80));
+    PORT_BAND(DrawSprite(128, work->bottomBarY >> 8, gMapSelectBarFrames[1], work->tiles7, work->palette3, NULL, SPRITE_PRIORITY(2), 80));
     DrawTextSlots(16, work->nameY >> 8, work->textSlots, work->palette4, 50, work->textSlotCounts[0]);
     TaskPoolDraw(&work->tasks);
 }

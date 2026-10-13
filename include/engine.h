@@ -63,6 +63,23 @@ void PortHudEnd(void);
 int PortTakeDodge(int held, int facingLeft);
 /* Opening movie: show or hide the "A again skips" prompt. */
 void PortUiSkipPrompt(int visible);
+/* This frame shows a GBA-size screen (menus, the battle start): scale the
+   160 lines to the window's height. Called every frame it applies. */
+void PortFitScreen(void);
+/* A band across the GBA screen (menu title bars): drawn twice, moved into
+   both margins of the wide view, so it reaches its edges. */
+#define PORT_BAND(draw)                \
+    do {                               \
+        int m_ = PortWideMarginX();    \
+        gPortSpriteShiftX -= m_;       \
+        draw;                          \
+        gPortSpriteShiftX += m_;       \
+        if (m_ > 0) {                  \
+            gPortSpriteShiftX += m_;   \
+            draw;                      \
+            gPortSpriteShiftX -= m_;   \
+        }                              \
+    } while (0)
 /* Wide view for tilemaps the game streams into VRAM from its own world data:
    fn returns the screen entry of world tile (tx, ty) of a background whose
    scroll registers show world pixel (originX, originY) at the screen's

@@ -224,6 +224,14 @@ enum {
 static uint16_t sBgLine[4][PORT_MAX_W];
 static uint16_t sObjLine[PORT_MAX_W];
 static uint8_t sObjPrio[PORT_MAX_W];
+static uint8_t sObjIndex[PORT_MAX_W];
+/* HUD layer: what covers each canvas pixel in the GBA's own compositing, so
+   HUD sprites stay behind what the cartridge draws in front of them: the
+   highest-priority opaque BG (4: none) and the winning other OBJ as
+   priority * 128 + OAM index (0xFFFF: none). A window that hides OBJs there
+   reads as 0 / 0. */
+static uint8_t sOccBg[PORT_MAX_W * PORT_MAX_H];
+static uint16_t sOccObj[PORT_MAX_W * PORT_MAX_H];
 static uint8_t sObjSemi[PORT_MAX_W];
 static uint8_t sObjWin[PORT_MAX_W];
 static uint8_t sWinMask[PORT_MAX_W];
@@ -718,6 +726,7 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
             if (sObjLine[x] == TRANSPARENT || prio < sObjPrio[x]) {
                 sObjLine[x] = (uint16_t)col;
                 sObjPrio[x] = (uint8_t)prio;
+                sObjIndex[x] = (uint8_t)i;
                 sObjSemi[x] = (mode == 1);
             }
         }
@@ -860,6 +869,26 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
         if (gx < sLeft || gx >= sRight) {
             dst[x] = 0xFF000000u;
             continue;
+        }
+        if (sHudLayer) {
+            int k, occ = 4, message = 0;
+            for (k = 0; k < n; k++) {
+                if ((mask & WIN_BG(order[k])) && sBgLine[order[k]][x] != TRANSPARENT) {
+                    occ = bgPrio[order[k]];
+                    break;
+                }
+            }
+            /* message windows (docked layers) always stay in front of the HUD */
+            for (k = 0; k < 4; k++)
+                if (bgOn[k] && sBgDockedLatched[k] && (mask & WIN_BG(k)) && sBgLine[k][x] != TRANSPARENT)
+                    message = 1;
+            if (!(mask & WIN_OBJ) || message) {
+                sOccBg[y * w + x] = 0;
+                sOccObj[y * w + x] = 0;
+            } else {
+                sOccBg[y * w + x] = (uint8_t)occ;
+                sOccObj[y * w + x] = sObjLine[x] != TRANSPARENT ? (uint16_t)(sObjPrio[x] * 128 + sObjIndex[x]) : 0xFFFFu;
+            }
         }
         for (i = 0; i <= n && found < 2; i++) {
             int prio = (i < n) ? bgPrio[order[i]] : 4;
@@ -1043,6 +1072,10 @@ void PortPpuBeginFrame(void) {
     gPortScreen.wide = any && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
                        && !(dispcnt & 0x80);
     sHudLayer = gPortScreen.wide && gPortHudScale > 0 && gPortHudW >= GBA_SCREEN_W;
+    if (sHudLayer) {
+        memset(sOccBg, 4, (size_t)gPortScreen.width * gPortScreen.height);
+        memset(sOccObj, 0xFF, (size_t)gPortScreen.width * gPortScreen.height * 2);
+    }
     sHdText = gPortConfig.hdText;
     if (gPortScreen.wide) {
         sLeft = -gPortScreen.originX;
@@ -1210,6 +1243,16 @@ void PortPpuRenderHud(uint32_t* buf) {
                 col = ObjColor(a0, a2, tx, ty, ow, mapping1d);
                 if (col < 0)
                     continue;
+                {
+                    /* hidden where the cartridge draws something in front */
+                    int cx = ox + sx + gPortScreen.originX, cy = oy + sy + gPortScreen.originY;
+                    int prio = (a2 >> 10) & 3;
+                    if (cx >= 0 && cy >= 0 && cx < gPortScreen.width && cy < gPortScreen.height) {
+                        int k = cy * gPortScreen.width + cx;
+                        if (sOccBg[k] < prio || sOccObj[k] < prio * 128 + i)
+                            continue;
+                    }
+                }
                 if (bldcnt & 0x10) {
                     if (effect == 2)
                         col = Brighten((uint16_t)col, evy);

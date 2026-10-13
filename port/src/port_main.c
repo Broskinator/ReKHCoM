@@ -40,6 +40,7 @@ static size_t sDataSize;
 static uint64_t sNextFrame;
 static uint64_t sPerfFreq;
 static uint32_t sFrameCount;
+static float sFitScale; /* see PortFitScreen */
 static int sInIrq;
 static uint32_t sComposite[PORT_MAX_W * PORT_MAX_H];
 static int HarnessListHas(const char* list, uint32_t frame);
@@ -189,13 +190,21 @@ filter:
             mode = SDL_SCALEMODE_PIXELART;
             break;
         default:
-            mode = SDL_SCALEMODE_NEAREST;
+            /* fractional fit scale: keep pixels even */
+            mode = sFitScale > 0 ? SDL_SCALEMODE_PIXELART : SDL_SCALEMODE_NEAREST;
             break;
     }
     SDL_SetTextureScaleMode(sTexture, mode);
 }
 
 static int sAutoScale;
+/* GBA-size screens (menus, battle start): the game marks each frame. The
+   160 lines then fill the window's height at a fractional scale. */
+static int sFitMark, sFit;
+
+void PortFitScreen(void) {
+    sFitMark = 1;
+}
 static SDL_Texture* sHudTexture;
 static int sHudTexW, sHudTexH;
 static uint32_t sHudBuf[PORT_MAX_W * PORT_MAX_H];
@@ -216,10 +225,18 @@ static void UpdateResolution(void) {
             return;
         PortConfigAutoView(outW, outH, &w, &h, &sAutoScale);
     }
+    sFitScale = 0;
+    if (sFit && gPortConfig.viewMode == PORT_VIEW_AUTO) {
+        float f = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
+        w = SDL_min((int)SDL_ceilf(outW / f), PORT_MAX_W);
+        h = GBA_SCREEN_H;
+        sFitScale = f;
+        sAutoScale = 0;
+    }
     /* HUD layer: a larger whole-number scale, keeping at least 144 lines and
        the GBA width so corner-anchored elements never collide. */
     gPortHudScale = 0;
-    if (gPortConfig.viewMode == PORT_VIEW_AUTO && sAutoScale > 0 && gPortConfig.hudSize > 0) {
+    if (gPortConfig.viewMode == PORT_VIEW_AUTO && sAutoScale > 0 && sFitScale == 0 && gPortConfig.hudSize > 0) {
         int hs = sAutoScale + gPortConfig.hudSize;
         while (hs > sAutoScale && (outH / hs < 144 || outW / hs < GBA_SCREEN_W))
             hs--;
@@ -237,6 +254,13 @@ static void OutputRect(int outW, int outH, SDL_FRect* dst) {
     float sw = (float)gPortScreen.width, sh = (float)gPortScreen.height;
     float scale;
 
+    if (sFitScale > 0) {
+        dst->w = sw * sFitScale;
+        dst->h = sh * sFitScale;
+        dst->x = (float)(int)((outW - dst->w) / 2);
+        dst->y = (float)(int)((outH - dst->h) / 2);
+        return;
+    }
     if (sAutoScale > 0) {
         /* Whole-number scale; the canvas may overhang the window by < 1 pixel. */
         dst->w = sw * sAutoScale;
@@ -614,6 +638,8 @@ int PortPacedByVsync(void) {
 static void VBlankCycle(void) {
     *(volatile uint16_t*)(uintptr_t)0x03007FF8 &= ~1; /* BIOS IntrCheck */
     PortBiosAreaRefresh();
+    sFit = sFitMark;
+    sFitMark = 0;
     UpdateResolution();
 
     /* Visible lines (HBlank / VCount events in between). */

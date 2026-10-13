@@ -3,6 +3,9 @@
  * Level-Up Bonus Screen
  */
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "card_localized_data.h"
 #include "registration_data.h"
 #include "system_state.h"
@@ -40,6 +43,10 @@
 #include "default_bg_map.h"
 #include "battle_ids.h"
 #include "macros.h"
+
+#ifndef PORT_BAND
+#define PORT_BAND(draw) draw /* GBA: one band */
+#endif
 
 #ifdef VERSION_EU
 static const u16 sLevelUpHeaderTileSizesByLanguage[5] = { 0x500, 0x500, 0x580, 0x500, 0x500 };
@@ -1089,6 +1096,10 @@ u8 UpdateLevelUpWaitFade() {
 void Level_Up_2(LevelUpWork* work) {
     u8 i = 0;
 
+#ifdef PLATFORM_PC
+    PortFitScreen(); /* GBA-size screen: fill the window's height */
+#endif
+
     if (work->loaded[0] != 0) {
         switch (work->state) {
         case LEVEL_UP_STATE_SLIDE_IN:
@@ -1136,8 +1147,8 @@ void Level_Up_2(LevelUpWork* work) {
 #endif
             }
 
-            DrawSprite(work->topBarX, work->topBarY >> 8, gLevelUpBarFrames[0], work->tiles2, work->tilesPalettes[7], NULL, SPRITE_PRIORITY(1), 51);
-            DrawSprite(work->bottomBarX, work->bottomBarY >> 8, gLevelUpBarFrames[1], work->tiles2, work->tilesPalettes[7], NULL, SPRITE_PRIORITY(1), 51);
+            PORT_BAND(DrawSprite(work->topBarX, work->topBarY >> 8, gLevelUpBarFrames[0], work->tiles2, work->tilesPalettes[7], NULL, SPRITE_PRIORITY(1), 51));
+            PORT_BAND(DrawSprite(work->bottomBarX, work->bottomBarY >> 8, gLevelUpBarFrames[1], work->tiles2, work->tilesPalettes[7], NULL, SPRITE_PRIORITY(1), 51));
             break;
         case LEVEL_UP_STATE_SELECT:
             for (; i < ARRAY_COUNT(work->textX); i++) {
@@ -1208,8 +1219,8 @@ void Level_Up_2(LevelUpWork* work) {
                        gLevelUpHeaderFrames[10],
 #endif
                        work->tilesPalettes[6], work->tilesPalettes[7], NULL, 0, 50);
-            DrawSprite(work->topBarX, work->topBarY >> 8, gLevelUpBarFrames[0], work->tiles2, work->tilesPalettes[7], NULL, SPRITE_PRIORITY(1), 51);
-            DrawSprite(work->bottomBarX, work->bottomBarY >> 8, gLevelUpBarFrames[1], work->tiles2, work->tilesPalettes[7], NULL, SPRITE_PRIORITY(1), 51);
+            PORT_BAND(DrawSprite(work->topBarX, work->topBarY >> 8, gLevelUpBarFrames[0], work->tiles2, work->tilesPalettes[7], NULL, SPRITE_PRIORITY(1), 51));
+            PORT_BAND(DrawSprite(work->bottomBarX, work->bottomBarY >> 8, gLevelUpBarFrames[1], work->tiles2, work->tilesPalettes[7], NULL, SPRITE_PRIORITY(1), 51));
             break;
         }
 

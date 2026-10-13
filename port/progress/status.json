@@ -39,8 +39,8 @@
     {
       "name": "PPU renderer",
       "weight": 10,
-      "done": 88,
-      "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window; separate HUD layer"
+      "done": 90,
+      "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window; HUD layer follows GBA priorities (message windows stay in front)"
     },
     {
       "name": "Input (keyboard / gamepad)",
@@ -111,8 +111,8 @@
     {
       "name": "Widescreen: menus & events",
       "weight": 4,
-      "done": 60,
-      "notes": "events extend; message windows dock to the screen edges; menus centred"
+      "done": 70,
+      "notes": "events extend; message windows dock to the edges; menus, save, world select, level up and the battle start fill the window's height; title bars reach the screen edges"
     },
     {
       "name": "Graphics options menu",
