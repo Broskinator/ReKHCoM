@@ -39,20 +39,20 @@
     {
       "name": "PPU renderer",
       "weight": 10,
-      "done": 90,
+      "done": 92,
       "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window; HUD layer follows GBA priorities (message windows stay in front)"
     },
     {
       "name": "Input (keyboard / gamepad)",
       "weight": 3,
-      "done": 85,
-      "notes": "default bindings; one-button dodge roll and stock (L+R); remapping pending"
+      "done": 100,
+      "notes": "remappable keyboard (two keys per action) and gamepad buttons in kh_com.ini and the launcher; one-button dodge roll and stock (L+R); right stick changes and stocks cards"
     },
     {
       "name": "m4a sequencer & mixer",
       "weight": 8,
-      "done": 85,
-      "notes": "full C port of m4a_1.s, 4x oversampled mixing"
+      "done": 90,
+      "notes": "full C port of m4a_1.s, 4x oversampled mixing; song loops checked against the ROM's sequence data"
     },
     {
       "name": "PSG (CGB) channels",
@@ -105,26 +105,26 @@
     {
       "name": "Widescreen: battles",
       "weight": 6,
-      "done": 80,
-      "notes": "affine arenas extend; HUD on its own scaled layer anchored to the corners; tutorial pointers follow the HUD; battle messages docked"
+      "done": 92,
+      "notes": "affine arenas extend and repeat sideways; HUD on its own scaled layer anchored to the corners, card hand lifted to show whole cards; tutorial pointers follow the HUD; battle messages docked"
     },
     {
       "name": "Widescreen: menus & events",
       "weight": 4,
-      "done": 78,
-      "notes": "menus on their own layer at the window's height, anchored to both edges (pause, save, world select, level up); battle start fills the height; sub-menus pending"
+      "done": 90,
+      "notes": "pause menu, save, world select and level up on a screen layer at the window's height, anchored to both edges, no pop on open/close/sub-option; full-screen sub-menus (decks, status, diary, map, world/vortex) at full height with per-screen side bars; level-up bands, save crystal exit and door menu pending"
     },
     {
       "name": "Graphics options menu",
       "weight": 5,
-      "done": 88,
+      "done": 92,
       "notes": "overlay with the game font, 5 languages, live changes; HUD size, HD text, control options; opened from title (SELECT), F1/Esc, Back+Start"
     },
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 35,
-      "notes": "all 194 story events start from the debug event menu and run hidden (port/tools/test_events.py); Spanish opening, first battle and reload verified; stray pointers and x/0 behave as on the GBA bus"
+      "done": 55,
+      "notes": "all 194 story events (EU, US) and all 209 battles of the debug battle menu run hidden without a crash (port/tools/test_events.py, test_battles.py); Spanish opening, first battle and reload verified; stray pointers and x/0 behave as on the GBA bus"
     },
     {
       "name": "Save states",
@@ -135,20 +135,20 @@
     {
       "name": "HD text",
       "weight": 3,
-      "done": 60,
-      "notes": "dialogue and battle messages drawn with an outline font at output resolution; menus and Japanese text pending"
+      "done": 75,
+      "notes": "dialogue and battle messages drawn with KHMenu (fan-made KH font) at output resolution, condensed to the game's widths; menus and Japanese text pending"
     },
     {
       "name": "USA and Japanese versions",
       "weight": 6,
-      "done": 40,
-      "notes": "separate builds (configure --version us|jp); boot, opening movie and first scene verified; own save files; HD text and options overlay in English only"
+      "done": 55,
+      "notes": "separate builds (configure --version us|jp); all 194 story events run on the US build; own save files; HD text and options overlay in English only"
     },
     {
       "name": "Launcher & ROM install",
       "weight": 4,
-      "done": 60,
-      "notes": "decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements, controls, starts the matching game; packaging updated"
+      "done": 80,
+      "notes": "decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements (HD text, card hand, one-button actions), editable controls, starts the matching game"
     },
     {
       "name": "Skip intro",

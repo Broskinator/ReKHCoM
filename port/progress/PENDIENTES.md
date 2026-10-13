@@ -9,7 +9,8 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   Verificado fotograma a fotograma: abrir/cerrar sin saltos; al entrar/salir de una
   subopción el encuadre cambia solo en un fotograma negro de la transición.
 - [ ] Cristal de guardado: popea al salir y el cristal desaparece. Necesita un estado junto al cristal.
-- [ ] Subida de nivel: hueco neón arriba y abajo; algo popea justo antes. Necesita un estado antes de subir.
+- [ ] Subida de nivel: hueco neón arriba y abajo; algo popea justo antes. Necesita un estado antes de subir
+  (el modo de depuración `Mode_Premire` no carga las franjas y los combates de depuración no la muestran).
 - [ ] Menú de desbloquear puertas (síntesis de salas): subir un poco el menú
   principal para que no quede pegado abajo. Necesita un estado frente a una puerta cerrada.
 - [x] Menú del Vórtice y "Elige un mundo": altura completa con bordes estirados (las
@@ -20,17 +21,18 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   Del port de Vita (ggdrn/KH_COM_VITA): [x] stick derecho para las cartas (L/R, arriba L+R);
   [ ] devolver a la mano las cartas acumuladas (Sora); [ ] aviso de puntos moguri en el campo;
   [ ] bancos de guardado (varios .sav); [ ] revancha de jefes; [ ] repetir tutoriales.
-- [ ] Fondos blancos fuera del mapa del castillo → negro o color que corresponda.
+- [~] Fondos blancos fuera del mapa del castillo → negro. En el vestíbulo ya sale negro;
+  si aparece blanco en otra sala, hace falta un estado allí.
 - [x] Transición de puerta y síntesis de salas: cian → negro (barras de estirar borde).
 - [x] Barras laterales: título/menú inicial blanco, copyright crema, idioma con
   grano (sin copiar emblemas), pantalla de carga estirando el último píxel.
-- [~] Arenas de combate: el escenario se repite más allá de los bordes.
+- [x] Arenas de combate: el escenario se repite más allá de los bordes (209 combates revisados).
 
 ## Combate
 
 - [x] Subir el HUD de cartas (la carta sigue por debajo del borde): 8 px por
   defecto, opción "Subir cartas en combate" (0–16 px) en el juego y el launcher.
-- [~] Batería de los 209 combates del menú de depuración (`port/tools/test_battles.py`).
+- [x] Batería de los 209 combates del menú de depuración (`port/tools/test_battles.py`): 209/209 sin cuelgues.
 
 ## Texto
 
@@ -47,9 +49,9 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 
 ## Pruebas y publicación
 
-- [ ] Baterías de eventos US/JP (rehacer con la build actual).
+- [~] Baterías de eventos US/JP: US 194/194; JP en curso.
 - [x] Launcher: remapeo de controles (teclado ×2 y mando por acción, guardado en kh_com.ini).
 - [ ] Release v0.3 (pre-release, no Latest) con launcher.
 - [ ] Instalar la build nueva en build/pc cuando el juego esté cerrado
   (sin tocar ini, save ni estados del usuario).
-- [ ] Actualizar porcentajes de PROGRESS hasta el 100 %.
+- [~] Actualizar porcentajes de PROGRESS hasta el 100 % (87 % ahora).
