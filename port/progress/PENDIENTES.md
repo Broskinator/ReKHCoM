@@ -51,7 +51,8 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 
 - [~] Baterías de eventos US/JP: US 194/194; JP en curso.
 - [x] Launcher: remapeo de controles (teclado ×2 y mando por acción, guardado en kh_com.ini).
-- [ ] Release v0.3 (pre-release, no Latest) con launcher.
-- [ ] Instalar la build nueva en build/pc cuando el juego esté cerrado
-  (sin tocar ini, save ni estados del usuario).
+- [x] Release v0.3 (pre-release pública, no Latest) con launcher y las tres versiones:
+  https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v0.3
+- [x] Build nueva instalada en build/pc (ini, save y estados intactos; `khcom_prev.exe` carga
+  los estados viejos).
 - [~] Actualizar porcentajes de PROGRESS hasta el 100 % (87 % ahora).
