@@ -12,6 +12,9 @@
 #include "field_state.h"
 #include "map.h"
 #include "map_tasks.h"
+#include "battle_work.h"
+#include "battle_actor.h"
+#include "card.h"
 #include "taskpool.h"
 #include "pallet.h"
 #include "sprite.h"
@@ -76,6 +79,14 @@ int PortHarnessMode(const char* name, int arg) {
         sCrystal.def = &gMapGmk04Def;
         PortMapKeepGmkDesc(&gTaskDescMapGmk04); /* kept like the room's own */
         TaskCreate(&gFieldState->tasks, &gTaskDescMapGmk04, &sCrystal);
+        return 1;
+    }
+    /* the level-up screen, as the end of a battle opens it */
+    if (strcmp(name, "levelup") == 0 && gBtlWork != NULL) {
+        gBtlWork->pendingLevelUps = 1;
+        ReleaseBattleTiles();
+        gBtlWork->task = TaskCreate(&gBtlWork->taskPools[1], &gTaskDescLevelUp, NULL);
+        gBtlWork->flags |= BTL_FLAG_PAUSE_DISABLED | BTL_FLAG_FIELD_HIDDEN;
         return 1;
     }
     /* the save point's menu, opened as talking to it does */
@@ -253,6 +264,7 @@ void InitSystem() {
             SetupSoraNewGame();
         gChkBtlWork->enemy = gPortBattleTest & 0xFF;
         gChkBtlWork->bg = (gPortBattleTest >> 8) & 0xFF;
+        gChkBtlWork->hp = 560; /* the menu's maximum: tests reach the end of the battle */
         ModeRequestHeapReset(&gModeChkbtl, 0);
         gPortBattleTest = -1;
     }

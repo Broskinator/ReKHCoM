@@ -45,6 +45,10 @@ namespace fs = std::filesystem;
 
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
+#ifndef REKHCOM_VERSION
+#define REKHCOM_VERSION "v0.4-dev"
+#endif
+
 static bool sSpanish;
 
 static const char* T(const char* es, const char* en) {
@@ -271,6 +275,16 @@ static void SaveIni() {
         f << s.key << "=" << sIni[s.key] << "\n";
 }
 
+/* Language the European game starts in (the language screen's cursor):
+   0 = the player chooses, then English, French, German, Italian, Spanish. */
+static const char* const kGameLanguageIds[] = { "", "en", "fr", "de", "it", "es" };
+static int sGameLanguage;
+static int sUiLanguage; /* 0 = system, 1 = Spanish, 2 = English */
+
+static void ApplyUiLanguage() {
+    sSpanish = sUiLanguage == 1 || (sUiLanguage == 0 && PRIMARYLANGID(GetUserDefaultUILanguage()) == LANG_SPANISH);
+}
+
 static void LoadLauncherState() {
     std::ifstream f(sRoot / "decompui.ini");
     std::string line;
@@ -279,13 +293,47 @@ static void LoadLauncherState() {
             for (int v = 0; v < kVersionCount; v++)
                 if (line.substr(8) == kVersions[v].id)
                     sSelected = v;
+        } else if (line.rfind("game_language=", 0) == 0) {
+            for (int i = 1; i < 6; i++)
+                if (line.substr(14) == kGameLanguageIds[i])
+                    sGameLanguage = i;
+        } else if (line.rfind("ui_language=", 0) == 0) {
+            sUiLanguage = std::clamp(std::atoi(line.c_str() + 12), 0, 2);
         }
     }
+    ApplyUiLanguage();
 }
 
 static void SaveLauncherState() {
     std::ofstream f(sRoot / "decompui.ini", std::ios::trunc);
     f << "version=" << kVersions[sSelected].id << "\n";
+    f << "game_language=" << kGameLanguageIds[sGameLanguage] << "\n";
+    f << "ui_language=" << sUiLanguage << "\n";
+}
+
+/* ---- saves -------------------------------------------------------------------- */
+
+static fs::path SavePath(int v) {
+    static const char* const names[] = { "kh_com.sav", "kh_com_us.sav", "kh_com_jp.sav" };
+    return sRoot / names[v];
+}
+
+/* Copies the version's save to backups/<name>-<date>-<time>.sav. */
+static void BackupSave(int v) {
+    std::error_code ec;
+    SYSTEMTIME t;
+    char stamp[32];
+
+    GetLocalTime(&t);
+    std::snprintf(stamp, sizeof(stamp), "-%04d%02d%02d-%02d%02d%02d", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute,
+                  t.wSecond);
+    fs::path dir = sRoot / "backups";
+    fs::create_directories(dir, ec);
+    fs::path dst = dir / (SavePath(v).stem().string() + stamp + ".sav");
+    if (fs::copy_file(SavePath(v), dst, fs::copy_options::overwrite_existing, ec))
+        Notice(std::string(T("Copia guardada en backups/", "Backup saved to backups/")) + dst.filename().string(), false);
+    else
+        Notice(T("No se pudo copiar la partida.", "Could not copy the save."), true);
 }
 
 /* ---- theme ------------------------------------------------------------------- */
@@ -716,6 +764,51 @@ static void PageHome(SDL_Window* window) {
                                : T("Instala la ROM de esta versión para jugar.", "Install this version's ROM to play."));
         ImGui::PopFont();
     }
+    ImGui::Spacing();
+    BeginCard("save");
+    Eyebrow(T("PARTIDA", "SAVE"));
+    if (sSelected == 0) {
+        const char* langs[] = { T("Elegir al empezar", "Choose at start"), "English", "Fran\xC3\xA7" "ais", "Deutsch",
+                                "Italiano", "Espa\xC3\xB1ol" };
+        if (CycleRow(T("Idioma del juego", "Game language"), nullptr, sGameLanguage, 6, langs))
+            SaveLauncherState();
+    }
+    {
+        std::error_code ec;
+        fs::path save = SavePath(sSelected);
+        bool has = fs::exists(save, ec);
+        char line[160];
+        if (has) {
+            FILETIME ft, local;
+            SYSTEMTIME st;
+            WIN32_FILE_ATTRIBUTE_DATA attr;
+            if (GetFileAttributesExW(save.c_str(), GetFileExInfoStandard, &attr)) {
+                ft = attr.ftLastWriteTime;
+                FileTimeToLocalFileTime(&ft, &local);
+                FileTimeToSystemTime(&local, &st);
+                std::snprintf(line, sizeof(line), "%s %s  -  %02d/%02d/%04d %02d:%02d", T("Partida:", "Save:"),
+                              save.filename().string().c_str(), st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute);
+            } else {
+                std::snprintf(line, sizeof(line), "%s %s", T("Partida:", "Save:"), save.filename().string().c_str());
+            }
+        } else {
+            std::snprintf(line, sizeof(line), "%s",
+                          T("Sin partida guardada para esta versi\xC3\xB3n.", "No save for this version yet."));
+        }
+        ImGui::PushFont(sFontSmall);
+        ImGui::TextColored(has ? kText : kMuted, "%s", line);
+        ImGui::PopFont();
+        float half = (ImGui::GetContentRegionAvail().x - Px(8)) * 0.5f;
+        if (ImGui::Button(T("Abrir carpeta", "Open folder"), ImVec2(half, 0)))
+            ShellExecuteW(nullptr, L"explore", sRoot.wstring().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        ImGui::SameLine(0, Px(8));
+        ImGui::BeginDisabled(!has);
+        if (ImGui::Button(T("Copia de seguridad", "Back up save"), ImVec2(half, 0)))
+            BackupSave(sSelected);
+        ImGui::EndDisabled();
+    }
+    ImGui::EndChild();
+
     ImGui::EndGroup();
 }
 
@@ -960,7 +1053,21 @@ static void PageControls() {
 
 static void Header() {
     ImGui::PushFont(sFontSmall);
-    ImGui::TextColored(kAccent, "REKHCOM  ·  DECOMP PORT");
+    ImGui::TextColored(kAccent, "REKHCOM  \xC2\xB7  DECOMP PORT  \xC2\xB7  " REKHCOM_VERSION);
+    ImGui::SameLine(0, Px(14));
+    ImGui::TextColored(kText, "%s MatyMeatBoy", T("por", "by"));
+    {
+        const char* uis[] = { T("Idioma: sistema", "Language: system"), "Idioma: Espa\xC3\xB1ol", "Language: English" };
+        float w = Px(190);
+        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - w);
+        ImGui::PushStyleColor(ImGuiCol_Button, kControl);
+        if (ImGui::Button(uis[sUiLanguage], ImVec2(w, 0))) {
+            sUiLanguage = (sUiLanguage + 1) % 3;
+            ApplyUiLanguage();
+            SaveLauncherState();
+        }
+        ImGui::PopStyleColor();
+    }
     ImGui::PopFont();
     ImGui::PushFont(sFontTitle);
     ImGui::TextUnformatted("Kingdom Hearts: Chain of Memories");
@@ -1048,6 +1155,10 @@ static void Launch(SDL_Window* window) {
     const VersionState& st = sState[sSelected];
     std::wstring cmd = Quote(st.exe.wstring()) + L" --data-dir " + Quote(sRoot.wstring()) + L" --rom " +
                        Quote(RomPath(sSelected).wstring());
+    if (sSelected == 0 && sGameLanguage > 0) {
+        std::string id = kGameLanguageIds[sGameLanguage];
+        cmd += L" --language " + std::wstring(id.begin(), id.end());
+    }
     STARTUPINFOW si = {};
     PROCESS_INFORMATION pi = {};
 
@@ -1143,7 +1254,7 @@ static fs::path ExeDir() {
 
 int main(int, char**) {
     sRoot = ExeDir();
-    sSpanish = PRIMARYLANGID(GetUserDefaultUILanguage()) == LANG_SPANISH;
+    ApplyUiLanguage();
     ScanInstall();
     LoadIni();
     LoadLauncherState();
