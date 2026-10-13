@@ -59,23 +59,29 @@ typedef struct Bitmap {
 } Bitmap;
 
 static HDC sDc;
-static HdFont sFonts[2];
-static int sNextFont;
+static HdFont sFonts[2][2]; /* [style][cache slot] */
+static int sNextFont[2];
 static int sCustomTried;
-static const WCHAR* sFace = L"Segoe UI";
+static const WCHAR* sFace[2] = { L"Segoe UI", L"Segoe UI" }; /* menu / dialogue, movie subtitles */
 
 static void LoadCustomFont(void) {
-    char path[1024];
-    WCHAR wpath[1024];
+    static const char* const files[2] = { "assets/fonts/KHMenu.otf", "assets/fonts/ComicHearts.otf" };
+    static const WCHAR* const faces[2] = { L"KHMenu", L"Comic Hearts" };
     const char* base = SDL_GetBasePath();
+    int i;
 
     if (sCustomTried)
         return;
     sCustomTried = 1;
-    SDL_snprintf(path, sizeof(path), "%sassets/fonts/KHMenu.otf", base ? base : "");
-    if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, 1024) > 0 && AddFontResourceExW(wpath, FR_PRIVATE, NULL) > 0) {
-        sFace = L"KHMenu";
-        PortLog("HD text: font %s", path);
+    for (i = 0; i < 2; i++) {
+        char path[1024];
+        WCHAR wpath[1024];
+
+        SDL_snprintf(path, sizeof(path), "%s%s", base ? base : "", files[i]);
+        if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, 1024) > 0 && AddFontResourceExW(wpath, FR_PRIVATE, NULL) > 0) {
+            sFace[i] = faces[i];
+            PortLog("HD text: font %s", path);
+        }
     }
 }
 
@@ -141,25 +147,27 @@ static void FontRelease(HdFont* f) {
     SDL_memset(f, 0, sizeof(*f));
 }
 
-static HdFont* FontForScale(float scale) {
+static HdFont* FontForScale(float scale, int style) {
     int key = (int)(scale * 16.0f + 0.5f);
     HdFont* f;
     int i;
 
     for (i = 0; i < 2; i++) {
-        if (sFonts[i].font != NULL && sFonts[i].key == key)
-            return &sFonts[i];
+        if (sFonts[style][i].font != NULL && sFonts[style][i].key == key)
+            return &sFonts[style][i];
     }
     if (sDc == NULL)
         sDc = CreateCompatibleDC(NULL);
     LoadCustomFont();
-    f = &sFonts[sNextFont];
-    sNextFont ^= 1;
+    f = &sFonts[style][sNextFont[style]];
+    sNextFont[style] ^= 1;
     FontRelease(f);
     f->key = key;
     f->cap = HD_TEXT_CAP * scale;
-    f->font = FontWithCap(sFace, f->cap, scale, sFace[0] == L'S' ? FW_SEMIBOLD : FW_NORMAL);
-    f->fallback = sFace[0] == L'S' ? f->font : FontWithCap(L"Segoe UI", f->cap, scale, FW_SEMIBOLD);
+    f->font = FontWithCap(sFace[style], f->cap, scale, sFace[style][0] == L'S' ? FW_SEMIBOLD : FW_NORMAL);
+    f->fallback = sFace[style][0] == L'S' ? f->font
+                                          : FontWithCap(style ? L"Comic Sans MS" : L"Segoe UI", f->cap, scale,
+                                                        style ? FW_NORMAL : FW_SEMIBOLD);
     return f;
 }
 
@@ -419,23 +427,16 @@ static void DrawGlyph(SDL_Renderer* r, HdGlyph* g, float x, float y, uint32_t co
     SDL_RenderTexture(r, g->tex, NULL, &d);
 }
 
-void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float originY, float scale) {
-    static PortTextGlyph glyphs[HD_TEXT_MAX_GLYPHS];
+static void DrawFlowing(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n, float originX, float originY, float scale) {
     const uint16_t* widths = PortLatinGlyphWidths();
     HdFont* font;
     float shadow = SDL_max(1.0f, SDL_floorf(scale * 0.5f));
-    int n, i, j, pass, lineY, lineGameEnd = 0;
+    int i, j, pass, lineY, lineGameEnd = 0;
     float space, lineEnd;
 
-    if (!gPortConfig.hdText || scale <= 0.0f)
-        return;
-    n = PortPpuTextGlyphs(glyphs, HD_TEXT_MAX_GLYPHS, hudLayer);
-    if (n == 0)
-        return;
-    font = FontForScale(scale);
+    font = FontForScale(scale, 0);
     if (font->font == NULL)
         return;
-    SDL_qsort(glyphs, n, sizeof(glyphs[0]), CompareGlyphs);
 
     /* Japanese glyphs keep their cells on the game's grid; the rest flow. */
     for (i = j = 0; i < n; i++) {
@@ -443,7 +444,7 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
             HdGlyph* g = GlyphJp(renderer, font, glyphs[i].code);
             float x = originX + glyphs[i].x * scale + (HD_TEXT_JP_CELL * scale - g->advance) * 0.5f;
             float base = originY + (glyphs[i].y + HD_TEXT_BASELINE) * scale;
-            int alpha = glyphs[i].semi ? 0xA0 : 0xFF;
+            int alpha = glyphs[i].semi ? glyphs[i].semi : 0xFF;
             DrawGlyph(renderer, g, x + shadow, base + shadow, glyphs[i].shadow, alpha);
             DrawGlyph(renderer, g, x, base, glyphs[i].face, alpha);
         } else {
@@ -482,7 +483,7 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
             pen = start;
             for (t = i; t < j; t++) {
                 HdGlyph* g = Glyph(renderer, font, glyphs[t].code);
-                int alpha = glyphs[t].semi ? 0xA0 : 0xFF;
+                int alpha = glyphs[t].semi ? glyphs[t].semi : 0xFF;
                 if (pass == 0)
                     DrawGlyph(renderer, g, pen + shadow, baseline + shadow, glyphs[t].shadow, alpha);
                 else
@@ -493,6 +494,73 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
         lineY = glyphs[i].y;
         lineEnd = pen;
         lineGameEnd = glyphs[j - 1].x + widths[glyphs[j - 1].code & 255];
+    }
+}
+
+/* Movie subtitles: each line is centred on the game's own line, so the
+   outline font's other widths keep it where the cartridge puts it. */
+static void DrawSubtitles(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n, float originX, float originY,
+                          float scale) {
+    const uint16_t* widths = PortLatinGlyphWidths();
+    HdFont* font = FontForScale(scale, 1);
+    float shadow = SDL_max(1.0f, SDL_floorf(scale * 0.5f));
+    float space;
+    int i, j, gameSpace = SDL_max(1, widths[' ']);
+
+    if (font->font == NULL)
+        return;
+    space = (float)Glyph(renderer, font, ' ')->advance;
+    for (i = 0; i < n; i = j) {
+        float hdWidth = 0, pen, baseline;
+        int t, prevEnd = glyphs[i].x, gameStart = glyphs[i].x, gameEnd;
+
+        for (j = i; j < n && glyphs[j].y == glyphs[i].y; j++) {
+            int gap = glyphs[j].x - prevEnd;
+            if (j > i && gap > 0)
+                hdWidth += space * SDL_max(1, (gap + gameSpace / 2) / gameSpace);
+            hdWidth += (float)Glyph(renderer, font, glyphs[j].code)->advance;
+            prevEnd = glyphs[j].x + widths[glyphs[j].code & 255];
+        }
+        gameEnd = prevEnd;
+        pen = originX + ((gameStart + gameEnd) * 0.5f) * scale - hdWidth * 0.5f;
+        baseline = originY + (glyphs[i].y + HD_TEXT_BASELINE) * scale;
+        prevEnd = gameStart;
+        for (t = i; t < j; t++) {
+            HdGlyph* g = Glyph(renderer, font, glyphs[t].code);
+            int gap = glyphs[t].x - prevEnd, alpha = glyphs[t].semi ? glyphs[t].semi : 0xFF;
+            if (t > i && gap > 0)
+                pen += space * SDL_max(1, (gap + gameSpace / 2) / gameSpace);
+            DrawGlyph(renderer, g, pen + shadow, baseline + shadow, glyphs[t].shadow, alpha);
+            DrawGlyph(renderer, g, pen, baseline, glyphs[t].face, alpha);
+            pen += g->advance;
+            prevEnd = glyphs[t].x + widths[glyphs[t].code & 255];
+        }
+    }
+}
+
+void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float originY, float scale) {
+    static PortTextGlyph glyphs[HD_TEXT_MAX_GLYPHS];
+    int n, i, flowing = 0, subs;
+
+    if (!gPortConfig.hdText || scale <= 0.0f)
+        return;
+    n = PortPpuTextGlyphs(glyphs, HD_TEXT_MAX_GLYPHS, hudLayer);
+    if (n == 0)
+        return;
+    SDL_qsort(glyphs, n, sizeof(glyphs[0]), CompareGlyphs);
+    /* style 0 first (in place), then the subtitles after them */
+    {
+        static PortTextGlyph sub[HD_TEXT_MAX_GLYPHS];
+        for (i = subs = 0; i < n; i++) {
+            if (glyphs[i].style)
+                sub[subs++] = glyphs[i];
+            else
+                glyphs[flowing++] = glyphs[i];
+        }
+        if (flowing > 0)
+            DrawFlowing(renderer, glyphs, flowing, originX, originY, scale);
+        if (subs > 0)
+            DrawSubtitles(renderer, sub, subs, originX, originY, scale);
     }
 }
 

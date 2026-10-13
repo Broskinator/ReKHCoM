@@ -76,7 +76,7 @@ void PortBgSplit(int bg, int column);
 /* Battles: world-map layers repeat sideways past their edge. */
 void PortSetBattleView(int on);
 /* GBA-size screens: how the side bars beyond them are filled. */
-enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE };
+enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE, PORT_SIDE_BLUR };
 void PortSideStyle(int style);
 /* Full-screen menus: shown as the GBA picture (full height, side bars). */
 void PortSceneNarrow(int on);

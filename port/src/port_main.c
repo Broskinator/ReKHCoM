@@ -40,6 +40,9 @@ static size_t sDataSize;
 static uint64_t sNextFrame;
 static uint64_t sPerfFreq;
 static uint32_t sFrameCount;
+uint32_t PortFrameCount(void) {
+    return (uint32_t)sFrameCount;
+}
 static float sFitScale; /* see PortFitScreen */
 static int sInIrq;
 static uint32_t sComposite[PORT_MAX_W * PORT_MAX_H];
@@ -331,7 +334,7 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
    (PortSideStyle): its edge columns stretched (default), its background
    colour, or its paper texture repeated mirrored from clean bands. */
 #define SIDE_STRIP 16
-static int sSideStyle; /* engine.h: 0 stretch, 1 colour, 2 texture */
+static int sSideStyle; /* engine.h: 0 stretch, 1 colour, 2 texture, 3 blurred reflection */
 
 void PortSideStyle(int style) {
     sSideStyle = style;
@@ -414,6 +417,87 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
     }
 }
 
+/* Side bars of style 3: the picture itself, cropped to the window's shape,
+   shrunk to a few pixels and enlarged again (a blurred reflection), dimmed. */
+static SDL_Texture* sBlurTex;
+#define BLUR_W 24
+#define BLUR_H 14
+#define BLUR_OUT_W 320
+#define BLUR_OUT_H 180
+
+static void DrawBlurredReflection(const SDL_FRect* src, int outW, int outH) {
+    static uint32_t cell[BLUR_W * BLUR_H], big[BLUR_OUT_W * BLUR_OUT_H];
+    float aspect = outW / (float)outH, cw = src->w, ch = src->h;
+    int x0, y0, w, h, cx, cy;
+
+    if (sBlurTex == NULL) {
+        sBlurTex = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, BLUR_OUT_W,
+                                     BLUR_OUT_H);
+        if (sBlurTex == NULL)
+            return;
+        SDL_SetTextureScaleMode(sBlurTex, SDL_SCALEMODE_NEAREST);
+    }
+    if (aspect >= cw / ch)
+        ch = cw / aspect; /* wider window: keep the full width, crop rows */
+    else
+        cw = ch * aspect;
+    w = (int)cw;
+    h = (int)ch;
+    x0 = (int)src->x + ((int)src->w - w) / 2;
+    y0 = (int)src->y + ((int)src->h - h) / 2;
+    /* mean colour of each cell of the cropped picture, dimmed */
+    for (cy = 0; cy < BLUR_H; cy++) {
+        for (cx = 0; cx < BLUR_W; cx++) {
+            int xa = x0 + cx * w / BLUR_W, xb = x0 + (cx + 1) * w / BLUR_W;
+            int ya = y0 + cy * h / BLUR_H, yb = y0 + (cy + 1) * h / BLUR_H, x, y, n = 0;
+            unsigned r = 0, g = 0, b = 0;
+            for (y = ya; y < yb; y++) {
+                for (x = xa; x < xb; x++) {
+                    uint32_t c = sComposite[y * gPortScreen.width + x];
+                    r += (c >> 16) & 255;
+                    g += (c >> 8) & 255;
+                    b += c & 255;
+                    n++;
+                }
+            }
+            if (n == 0)
+                n = 1;
+            cell[cy * BLUR_W + cx] = 0xFF000000u | ((r * 110 / 255 / n) << 16) | ((g * 110 / 255 / n) << 8) | (b * 110 / 255 / n);
+        }
+    }
+    /* bilinear enlargement in code: smooth, and nothing but a plain copy
+       is left for the renderer */
+    for (cy = 0; cy < BLUR_OUT_H; cy++) {
+        float fy = (cy + 0.5f) * BLUR_H / BLUR_OUT_H - 0.5f;
+        int iy = (int)SDL_floorf(fy), jy;
+        float ty = fy - iy;
+
+        jy = SDL_clamp(iy + 1, 0, BLUR_H - 1);
+        iy = SDL_clamp(iy, 0, BLUR_H - 1);
+        for (cx = 0; cx < BLUR_OUT_W; cx++) {
+            float fx = (cx + 0.5f) * BLUR_W / BLUR_OUT_W - 0.5f;
+            int ix = (int)SDL_floorf(fx), jx, sh;
+            float tx = fx - ix;
+            uint32_t out = 0xFF000000u;
+
+            jx = SDL_clamp(ix + 1, 0, BLUR_W - 1);
+            ix = SDL_clamp(ix, 0, BLUR_W - 1);
+            for (sh = 0; sh < 24; sh += 8) {
+                float a = (float)((cell[iy * BLUR_W + ix] >> sh) & 255);
+                float b = (float)((cell[iy * BLUR_W + jx] >> sh) & 255);
+                float c = (float)((cell[jy * BLUR_W + ix] >> sh) & 255);
+                float d = (float)((cell[jy * BLUR_W + jx] >> sh) & 255);
+                float v = (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty;
+
+                out |= (uint32_t)(v + 0.5f) << sh;
+            }
+            big[cy * BLUR_OUT_W + cx] = out;
+        }
+    }
+    SDL_UpdateTexture(sBlurTex, NULL, big, BLUR_OUT_W * 4);
+    SDL_RenderTexture(sRenderer, sBlurTex, NULL, NULL);
+}
+
 static void Present(void) {
     int outW, outH;
     SDL_FRect dst;
@@ -437,10 +521,12 @@ static void Present(void) {
         dst.h = GBA_SCREEN_H * scale;
         dst.x = (float)(int)((outW - dst.w) / 2);
         dst.y = (float)(int)((outH - dst.h) / 2);
+        if (sSideStyle == 3 && !PortUiActive())
+            DrawBlurredReflection(&src, outW, outH);
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
         SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
-        if (!PortUiActive()) {
+        if (!PortUiActive() && sSideStyle != 3) {
             SideBar((int)src.x, (int)src.y, -1, dst.y, scale, 0.0f, dst.x, (int)src.x);
             SideBar((int)(src.x + src.w) - SIDE_STRIP, (int)src.y, 1, dst.y, scale, dst.x + dst.w, (float)outW,
                     (int)(src.x + src.w) - 1);

@@ -62,6 +62,10 @@ static const GlyphWidthTable sLatinGlyphWidths = {
 #ifdef PLATFORM_PC
 /* Used by the PC options overlay, which draws with this font. */
 /* HD text: the character each laid-out glyph sprite shows. */
+/* Movie subtitles: set by mode_movie.c, each glyph copied to VRAM is
+   appended here (the pixel-font code, Shift-JIS in Japanese). */
+u16* gPortSubGlyphCodes;
+
 static u16 sMsgGlyphCodes[128];
 static u16 sCardMsgGlyphCodes[128];
 
@@ -6850,6 +6854,9 @@ s32 CopySjisGlyphsToVram(const TextChar* str) {
     u8 bank;
     u8* dst;
     u8 n;
+#ifdef PLATFORM_PC
+    u16 sjisFull = 0;
+#endif
     glyph = 0;
     dst = (u8*)(OBJ_VRAM0 + 512 * TILE_SIZE_4BPP);
     bank = 0;
@@ -6866,6 +6873,9 @@ s32 CopySjisGlyphsToVram(const TextChar* str) {
         } else {
             code = *raw;
             code = (code / 256) | (code << 8);
+#ifdef PLATFORM_PC
+            sjisFull = code;
+#endif
             str += 2;
 
             if ((code & 0xFF00) == 0x8100) {
@@ -6997,6 +7007,11 @@ s32 CopySjisGlyphsToVram(const TextChar* str) {
                 GetSjisGlyph(code, &glyph, &bank);
             }
 
+            
+#ifdef PLATFORM_PC
+            if (gPortSubGlyphCodes != NULL)
+                *gPortSubGlyphCodes++ = sjisFull;
+#endif
             switch (bank) {
         case 0:
             glyph = ((u16*)gMsgFontBank0Frames[glyph])[3];
@@ -7034,6 +7049,9 @@ s32 CopySjisGlyphsToVramAt(const TextChar* str, u16 tile) {
     u8 bank;
     u8* dst;
     u8 n;
+#ifdef PLATFORM_PC
+    u16 sjisFull = 0;
+#endif
     glyph = 0;
     dst = (u8*)(OBJ_VRAM0 + 512 * TILE_SIZE_4BPP) + tile * 32;
     bank = 0;
@@ -7050,6 +7068,9 @@ s32 CopySjisGlyphsToVramAt(const TextChar* str, u16 tile) {
         } else {
             code = *raw;
             code = (code / 256) | (code << 8);
+#ifdef PLATFORM_PC
+            sjisFull = code;
+#endif
             str += 2;
 
             if ((code & 0xFF00) == 0x8100) {
@@ -7181,6 +7202,11 @@ s32 CopySjisGlyphsToVramAt(const TextChar* str, u16 tile) {
                 GetSjisGlyph(code, &glyph, &bank);
             }
 
+            
+#ifdef PLATFORM_PC
+            if (gPortSubGlyphCodes != NULL)
+                *gPortSubGlyphCodes++ = sjisFull;
+#endif
             switch (bank) {
             case 0:
                 glyph = ((u16*)gMsgFontBank0Frames[glyph])[3];
@@ -7286,6 +7312,10 @@ u8 CopyLatinGlyphsToVram(const TextChar* str, u16* widths, u16 tile) {
 #endif
 
             if (glyph != 32) {
+#ifdef PLATFORM_PC
+                if (gPortSubGlyphCodes != NULL)
+                    *gPortSubGlyphCodes++ = (u16)glyph;
+#endif
                 *widths = sLatinGlyphWidths.widths[glyph];
                 glyph = ((u16*)gMsgLatinFontFrames[glyph])[3];
                 CpuCopy16(&gMsgLatinFontTiles[glyph * 32], dst, 0x80);

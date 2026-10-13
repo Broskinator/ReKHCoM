@@ -31,6 +31,7 @@
 #include "types.h"
 #include "key_state.h"
 #include "movie_subtitle_text.h"
+#include <stdlib.h>
 #include "movies.h"
 #include "text_types.h"
 #include "event_ids.h"
@@ -414,6 +415,9 @@ enum MovieModeState {
 };
 
 void mode_movie_0(s32 movieId) {
+#ifdef PLATFORM_PC
+    PortSideStyle(PORT_SIDE_BLUR); /* the picture's own blurred reflection fills the sides */
+#endif
     sMovieModeState = MOVIE_MODE_STATE_CLEAR;
     sMovieId = movieId;
     sUnk_02034940 = 0;
@@ -441,6 +445,15 @@ void mode_movie_0(s32 movieId) {
 #endif
 
 #ifndef VERSION_JP
+#ifdef PLATFORM_PC
+/* HD text: the pixel-font code of each subtitle glyph, as copied to VRAM. */
+extern u16* gPortSubGlyphCodes;
+void PortLog(const char* fmt, ...);
+unsigned PortFrameCount(void);
+void PortOamSetText(int oamIndex, int code, int style);
+static u16 sMovieSubUpperCodes[MOVIE_SUB_MAX_CHARS];
+static u16 sMovieSubLowerCodes[MOVIE_SUB_MAX_CHARS];
+#endif
 static u16 sMovieSubUpperWidths[MOVIE_SUB_MAX_CHARS];
 static u16 sMovieSubLowerWidths[MOVIE_SUB_MAX_CHARS];
 #endif
@@ -552,10 +565,26 @@ void MovieVBlankIntr() {
             if (sMovieFlags & MOVIE_FLAG_UPPER_SUB_PENDING) {
                 sMovieFlags &= ~MOVIE_FLAG_UPPER_SUB_PENDING;
                 sMovieSubUpperAlpha = 0;
+#ifdef PLATFORM_PC
+                if (getenv("KHCOM_MOVIELOG"))
+                    PortLog("movie: upper subtitle at movie frame %d, game frame %u", (int)sMovieFrame, (unsigned)PortFrameCount());
+#endif
 #ifdef VERSION_JP
+                #ifdef PLATFORM_PC
+                gPortSubGlyphCodes = sMovieSubUpperCodes;
+#endif
                 CopySjisGlyphsToVram(sMovieSubUpper->text);
+#ifdef PLATFORM_PC
+                gPortSubGlyphCodes = NULL;
+#endif
 #else
+                #ifdef PLATFORM_PC
+                gPortSubGlyphCodes = sMovieSubUpperCodes;
+#endif
                 CopyLatinGlyphsToVram(sMovieSubUpper->text, sMovieSubUpperWidths, 0);
+#ifdef PLATFORM_PC
+                gPortSubGlyphCodes = NULL;
+#endif
 #endif
             }
 
@@ -563,9 +592,21 @@ void MovieVBlankIntr() {
                 sMovieFlags &= ~MOVIE_FLAG_LOWER_SUB_PENDING;
                 sMovieSubLowerAlpha = 0;
 #ifdef VERSION_JP
+                #ifdef PLATFORM_PC
+                gPortSubGlyphCodes = sMovieSubLowerCodes;
+#endif
                 CopySjisGlyphsToVramAt(sMovieSubLower->text, 0x100);
+#ifdef PLATFORM_PC
+                gPortSubGlyphCodes = NULL;
+#endif
 #else
+                #ifdef PLATFORM_PC
+                gPortSubGlyphCodes = sMovieSubLowerCodes;
+#endif
                 CopyLatinGlyphsToVram(sMovieSubLower->text, sMovieSubLowerWidths, 0x100);
+#ifdef PLATFORM_PC
+                gPortSubGlyphCodes = NULL;
+#endif
 #endif
             }
 
@@ -630,6 +671,9 @@ void MovieVBlankIntr() {
                     oam[1] = x | OAM_SIZE(1);
 #endif
                     oam[2] = palette | (tile + 0x200);
+#ifdef PLATFORM_PC
+                    PortOamSetText((int)((oam - (u16*)OAM) / 4), sMovieSubUpperCodes[i], 1);
+#endif
                     oam += 4;
 #ifndef VERSION_JP
                     x += sMovieSubUpperWidths[i];
@@ -665,6 +709,9 @@ void MovieVBlankIntr() {
                     oam[1] = x | OAM_SIZE(1);
 #endif
                     oam[2] = palette | (tile + 0x300);
+#ifdef PLATFORM_PC
+                    PortOamSetText((int)((oam - (u16*)OAM) / 4), sMovieSubLowerCodes[i], 1);
+#endif
                     oam += 4;
 #ifndef VERSION_JP
                     x += sMovieSubLowerWidths[i];
@@ -681,6 +728,9 @@ void MovieVBlankIntr() {
 #endif
                      i++) {
                     oam[0] = OAM_DISABLE;
+#ifdef PLATFORM_PC
+                    PortOamSetText((int)((oam - (u16*)OAM) / 4), 0, 0);
+#endif
                     oam += 4;
                 }
 

@@ -165,6 +165,7 @@ typedef struct SpriteTag {
     int8_t ax;
     int8_t ay;
     uint16_t text; /* HD text: pixel-font character (Shift-JIS in Japanese), 0 for other sprites */
+    uint8_t style; /* HD text font: 0 dialogue / menu, 1 movie subtitles */
     uint8_t screen; /* drawn by a menu: goes on the screen layer */
 } SpriteTag;
 static SpriteTag sEntryTag[128];
@@ -245,6 +246,15 @@ static int HdTextGlyph(int oamIndex) {
     if (c > 0xFF) /* Shift-JIS (Japanese version); 0x8140 is the wide space */
         return c >= 0x8141;
     return c != 0x81 && c != 0x8D && c != 0x8F && c != 0x90 && c != 0x9D;
+}
+
+/* HD text for sprites written straight into OAM (movie subtitles). */
+void PortOamSetText(int oamIndex, int code, int style) {
+    if (oamIndex >= 0 && oamIndex < 128) {
+        memset(&sOamTag[oamIndex], 0, sizeof(sOamTag[0]));
+        sOamTag[oamIndex].text = (uint16_t)code;
+        sOamTag[oamIndex].style = (uint8_t)style;
+    }
 }
 
 void PortOamSetSource(int oamIndex, int entry) {
@@ -1552,7 +1562,12 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
             }
         }
         out[n].code = tag->text;
-        out[n].semi = ((a0 >> 10) & 3) == 1;
+        out[n].style = tag->style;
+        out[n].semi = 0;
+        if (((a0 >> 10) & 3) == 1) {
+            int eva = IO16(0x52) & 31;
+            out[n].semi = (uint8_t)(eva >= 1 && eva <= 16 ? eva * 255 / 16 : 0xA0);
+        }
         out[n].face = sColorLut[col[0]];
         out[n].shadow = sColorLut[col[1]];
         n++;
