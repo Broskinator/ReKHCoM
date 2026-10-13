@@ -282,6 +282,9 @@ static s32 Continue_1(ContinueWork* work) {
     work->y += (cursorY[work->cursor] - work->y) >> 3;
     work->unk_64 += 4;
     // @bug No return value (the caller reads it).
+#ifdef PLATFORM_PC
+    return 1; /* x86 has no leftover r0: keep the task running, as on the GBA */
+#endif
 }
 
 static void Continue_2(ContinueWork* work) {

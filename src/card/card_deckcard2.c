@@ -113,6 +113,9 @@ u8 DeckCard2_1(DeckCard2Work* work) {
     }
 
     // @bug No return value (the caller reads it).
+#ifdef PLATFORM_PC
+    return 1; /* x86 has no leftover r0: keep the task running, as on the GBA */
+#endif
 }
 
 void DeckCard2_2(DeckCard2Work* work) {

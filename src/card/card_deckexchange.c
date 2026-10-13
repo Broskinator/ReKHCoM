@@ -209,6 +209,9 @@ u8 deckexchange_1(DeckExchangeWork* work, void* task) {
 
     work->step++;
     // @bug No return value (the caller reads it).
+#ifdef PLATFORM_PC
+    return 1; /* x86 has no leftover r0: keep the task running, as on the GBA */
+#endif
 }
 
 u8 UpdateDeckExchangeLoadBgs(DeckExchangeWork* work, void* task) {
@@ -1130,6 +1133,9 @@ s32 CreateDeckExchangeCollectionGridCards(DeckExchangeWork* work, u8 categoryFil
     work->scrollRowEnd = 4;
     SetDeckExchangeGridRowCount(work, y * 3 + x);
     // @bug No return value (the caller reads it).
+#ifdef PLATFORM_PC
+    return y * 3 + x; /* callers only test it for an empty grid */
+#endif
 }
 
 s32 GetCardIdForKind(s32 kind) {
