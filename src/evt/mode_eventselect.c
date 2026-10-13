@@ -264,6 +264,14 @@ enum EventSelectList {
     EVENT_SELECT_LIST_RIKU
 };
 
+#ifdef PLATFORM_PC
+/* Test harness (KHCOM_EVENT=list:index): preselect an entry of the menu. */
+void PortEventSelectPreset(int list, int index) {
+    sEventSelectList = list ? EVENT_SELECT_LIST_RIKU : EVENT_SELECT_LIST_SORA;
+    sEventSelectIndex = index;
+}
+#endif
+
 s16 GetEventListLength(u8 list) {
     s16 n = 0;
 

@@ -27,8 +27,17 @@ void SndStreamInit(u32 rate, u32 channels) {
     gSndStream.playedTotal = 0;
 
     for (i = 0; i < channels; i++) {
+#ifdef PLATFORM_PC
+        // @bug MovieDecodeAudioBlock copies with CpuFastCopy, which rounds up to
+        // 32 bytes: near the end of the ring it writes past this buffer into the
+        // next heap block's header, and freeing after a movie stopped early
+        // (skipped) follows the broken link. Leave room for the overrun.
+        gSndStream.buffers[i] =
+            gSndStream.alloc(((gSndStream.bufferSize + 3) & ~3) + 32);
+#else
         gSndStream.buffers[i] =
             gSndStream.alloc((gSndStream.bufferSize + 3) & ~3);
+#endif
         memset(gSndStream.buffers[i], 0, gSndStream.bufferSize);
         gSndStream.writePos[i] = 0;
         gSndStream.totalWritten[i] = 0;

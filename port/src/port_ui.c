@@ -130,6 +130,7 @@ static int sScroll;
 static int sTitleHintFrames;
 static char sNotice[96];
 static int sNoticeFrames;
+static int sSkipPrompt;
 static int sModeW[64], sModeH[64], sModeCount;
 static uint32_t sPadBack;
 
@@ -602,6 +603,33 @@ int PortUiHandleEvent(const void* p) {
 #define COL_BORDER 0xFFD8C080u
 #define COL_SELECT 0xFF3050A8u
 
+static const char* const sSkipText[LANG_COUNT] = {
+    "Press again to skip the intro", "Appuyez encore pour passer l'intro", "Erneut drücken: Intro überspringen",
+    "Premi di nuovo per saltare l'intro", "Pulsa otra vez para saltar la intro",
+};
+
+void PortUiSkipPrompt(int visible) {
+    sSkipPrompt = visible;
+}
+
+/* Bottom right of the GBA picture: an A button and the text, in the game font. */
+static void DrawSkipPrompt(int l) {
+    const char* text = sSkipText[l];
+    int w = TextWidth(text) + 26, h = 15;
+    int x = gPortScreen.originX + GBA_SCREEN_W - w - 4;
+    int y = gPortScreen.originY + GBA_SCREEN_H - h - 4;
+    int cx = x + 9, cy = y + 7, dx, dy;
+
+    Shade(x, y, w, h, COL_PANEL, 210);
+    Rect(x, y, w, h, COL_BORDER);
+    for (dy = -5; dy <= 5; dy++)
+        for (dx = -5; dx <= 5; dx++)
+            if (dx * dx + dy * dy <= 26)
+                Pixel(cx + dx, cy + dy, 0xFFE8ECF4u);
+    DrawGlyph('A', cx - 2, cy - 4, 0xFF283050u, 0xFFE8ECF4u);
+    DrawText(text, x + 19, y + 3, COL_TEXT, COL_SHADOW);
+}
+
 void PortUiDraw(uint32_t* frame, int width, int height) {
     int l = Lang();
     int rowH = 11, panelW, panelH, px, py, rows, i, y, labelW = 0, valueW = 0;
@@ -619,6 +647,8 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
         DrawText(sNotice, 10, 6, COL_TEXT, COL_SHADOW);
     }
     if (!sOpen) {
+        if (sSkipPrompt)
+            DrawSkipPrompt(l);
         if (sTitleHintFrames > 0) {
             const char* hint = sTitleHint[l];
             int gx = gPortScreen.originX + GBA_SCREEN_W - TextWidth(hint) - 6;

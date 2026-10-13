@@ -61,6 +61,8 @@ extern int gPortTextChar;
 void PortHudEnd(void);
 /* One-button dodge roll: the d-pad direction to roll toward, or 0. */
 int PortTakeDodge(int held, int facingLeft);
+/* Opening movie: show or hide the "A again skips" prompt. */
+void PortUiSkipPrompt(int visible);
 /* Wide view for tilemaps the game streams into VRAM from its own world data:
    fn returns the screen entry of world tile (tx, ty) of a background whose
    scroll registers show world pixel (originX, originY) at the screen's

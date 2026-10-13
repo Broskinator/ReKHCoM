@@ -32,6 +32,9 @@
 #include "registration_data.h"
 #include "mode_movie.h"
 extern int gPortIntroRequested;
+extern int gPortEventTest;
+extern Mode gModeEventselect;
+void PortEventSelectPreset(int list, int index);
 extern int gPortStartupLanguage;
 #endif
 
@@ -170,6 +173,13 @@ void InitSystem() {
         gPortIntroRequested = 0;
         SetupSoraNewGame();
         ModeRequestHeapReset(&gModeMovie, MOVIE_OPENING);
+    }
+    /* Test harness: the debug event menu, preset to one event (A starts it). */
+    if (gPortEventTest >= 0) {
+        ResetGameState();
+        PortEventSelectPreset(gPortEventTest >> 8, gPortEventTest & 0xFF);
+        ModeRequestHeapReset(&gModeEventselect, 0);
+        gPortEventTest = -1;
     }
 #endif
 #else

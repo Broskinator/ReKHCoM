@@ -201,6 +201,7 @@ static int sHudTexW, sHudTexH;
 static uint32_t sHudBuf[PORT_MAX_W * PORT_MAX_H];
 
 int gPortIntroRequested;
+int gPortEventTest = -1; /* KHCOM_EVENT=list:index (0 Sora, 1 Riku) */
 int gPortStartupLanguage = -1;
 
 /* Auto view: size the canvas to the window every frame. */
@@ -375,6 +376,8 @@ static void Quit(void);
  * KHCOM_KEYS=100-105:START,200:A   hold GBA keys during frame ranges
  * KHCOM_QUIT=400       exit after that frame
  * KHCOM_FAST=1         do not pace frames (run as fast as possible)
+ * KHCOM_VBM=movie.vbm  play a VBA-rr input movie (power-on start, controller 1);
+ *                      KHCOM_VBM_OFFSET=n shifts it by n frames
  */
 static int HarnessListHas(const char* list, uint32_t frame) {
     const char* p = list;
@@ -389,6 +392,36 @@ static int HarnessListHas(const char* list, uint32_t frame) {
     return 0;
 }
 
+/* Input of a VBA-rr movie for one frame (0 past its end). */
+static uint16_t MovieKeys(uint32_t frame) {
+    static uint8_t* data;
+    static size_t frames;
+    static int loaded;
+    const char* path = SDL_getenv("KHCOM_VBM");
+    long index;
+
+    if (path == NULL)
+        return 0;
+    if (!loaded) {
+        size_t size = 0;
+        loaded = 1;
+        data = SDL_LoadFile(path, &size);
+        if (data != NULL && size >= 0x100 && SDL_memcmp(data, "VBM", 4) == 0) {
+            uint32_t start = data[0x3C] | data[0x3D] << 8 | data[0x3E] << 16 | (uint32_t)data[0x3F] << 24;
+            frames = start < size ? (size - start) / 2 : 0;
+            SDL_memmove(data, data + start, frames * 2);
+            PortLog("vbm: %s, %u frames", path, (unsigned)frames);
+        } else {
+            PortLog("vbm: cannot read %s", path);
+            frames = 0;
+        }
+    }
+    index = (long)frame + (SDL_getenv("KHCOM_VBM_OFFSET") ? SDL_atoi(SDL_getenv("KHCOM_VBM_OFFSET")) : 0);
+    if (index < 0 || (size_t)index >= frames)
+        return 0;
+    return (uint16_t)((data[index * 2] | data[index * 2 + 1] << 8) & 0x3FF);
+}
+
 static uint16_t HarnessKeys(uint32_t frame) {
     static const struct { const char* name; uint16_t bit; } names[] = {
         { "A", 1 }, { "B", 2 }, { "SELECT", 4 }, { "START", 8 }, { "RIGHT", 16 },
@@ -396,7 +429,7 @@ static uint16_t HarnessKeys(uint32_t frame) {
         { "STOCK", PORT_KEY_STOCK }, { "DODGE", PORT_KEY_DODGE },
     };
     const char* p = SDL_getenv("KHCOM_KEYS");
-    uint16_t keys = 0;
+    uint16_t keys = MovieKeys(frame);
 
     while (p && *p) {
         int a = SDL_atoi(p), b = a;
@@ -688,6 +721,13 @@ int main(int argc, char** argv) {
         }
     }
 
+    if (SDL_getenv("KHCOM_EVENT")) {
+        const char* e = SDL_getenv("KHCOM_EVENT");
+        const char* colon = SDL_strchr(e, ':');
+        if (colon)
+            gPortEventTest = (SDL_atoi(e) << 8) | (SDL_atoi(colon + 1) & 0xFF);
+    }
+
     /* Claim the GBA address range before anything else can land there. */
     if (!PortMemoryInit())
         return 1;
@@ -734,7 +774,9 @@ int main(int argc, char** argv) {
     {
         extern void PortWatchdogStart(void);
         extern void PortCrashHandlerInstall(void);
+        extern void PortBiosFaultInstall(void);
         PortCrashHandlerInstall();
+        PortBiosFaultInstall();
         PortWatchdogStart();
     }
     if (SDL_getenv("KHCOM_LOADSTATE"))

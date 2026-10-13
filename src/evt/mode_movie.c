@@ -456,6 +456,32 @@ s32 HandleMovieFrame(s32 arg) {
         return 1;
     }
 
+#ifdef PLATFORM_PC
+    /* A shows a prompt; A again while it is up skips the opening. */
+    if (sMovieId == MOVIE_OPENING) {
+        static u16 sPrevKeys;
+        static s16 sSkipTimer;
+        u16 pressed;
+
+        if (sMovieFrame == 0) {
+            sPrevKeys = keys;
+            sSkipTimer = 0;
+        }
+        pressed = keys & ~sPrevKeys;
+        sPrevKeys = keys;
+        if (pressed & A_BUTTON) {
+            if (sSkipTimer > 0) {
+                PortUiSkipPrompt(FALSE);
+                return 1;
+            }
+            sSkipTimer = 15 * 4; /* movie frames: 4 seconds */
+            PortUiSkipPrompt(TRUE);
+        } else if (sSkipTimer > 0 && --sSkipTimer == 0) {
+            PortUiSkipPrompt(FALSE);
+        }
+    }
+#endif
+
     if (sMovieSubs != NULL) {
         for (i = 0; i < 2; i++) {
             if (sMovieSubs[sMovieSubIndex].frame == sMovieFrame) {
@@ -846,6 +872,9 @@ void mode_movie_1() {
             sMovieFlags |= MOVIE_FLAG_PLAYING;
             MoviePlay(HandleMovieFrame, 0);
             sMovieFlags &= ~MOVIE_FLAG_PLAYING;
+#ifdef PLATFORM_PC
+            PortUiSkipPrompt(FALSE);
+#endif
         }
 
         MovieClose();

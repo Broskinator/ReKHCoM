@@ -15,5 +15,7 @@ void PortUiOpenOptions(void);
 void PortUiTitleHint(void);
 /* Short message in the corner of the screen (UTF-8). */
 void PortUiNotice(const char* text);
+/* Opening movie: show or hide the "A again skips" prompt. */
+void PortUiSkipPrompt(int visible);
 
 #endif
