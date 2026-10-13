@@ -61,6 +61,7 @@
 #include "save_types.h"
 #include "task_descriptors.h"
 #include "taskpool.h"
+#include <stdlib.h>
 #include "text.h"
 #include "text_types.h"
 #include "types.h"
@@ -1762,10 +1763,73 @@ void MapGmkInitRoom() {
     MapGmkCreateTasks();
 }
 
+#ifdef PLATFORM_PC
+void PortLog(const char* fmt, ...);
+/* Room gimmicks (save point, barrels, jumps) end their tasks while a menu
+   interrupts the field, and MapGmkCreateTasks makes them again afterwards.
+   The wide view shows the field around the menus, where they would vanish
+   and pop back: they are kept (not updated) while the field is interrupted
+   and replaced when they are made again. */
+static const TaskDesc* sPortKeptGmkDesc; /* test harness: one more kind to keep */
+
+void PortMapKeepGmkDesc(const TaskDesc* desc) {
+    sPortKeptGmkDesc = desc;
+}
+
+static int IsRoomGmkTask(const Task* task) {
+    s32 i;
+
+    if (task->desc == &gTaskDescMapGmkJump || task->desc == &gTaskDescMapGmkDmy)
+        return 1;
+    for (i = 0; i < sMapGmkCount; i++) {
+        if (task->desc == gMapGmkPlacements[i].def->desc)
+            return 1;
+    }
+    return 0;
+}
+
+static void UpdateFieldTasks(void) {
+    TaskPool* pool = &gFieldState->tasks;
+    Task* task = ListPoolFirst(&pool->head);
+    int interrupted = IsMapInterrupted();
+
+    while (task != NULL) {
+        int keep = interrupted && (IsRoomGmkTask(task) || task->desc == sPortKeptGmkDesc);
+        if (task->update != NULL && !keep && task->update(task->work, task) == 0)
+            task = TaskDestroy(pool, task);
+        else
+            task = ListPoolNext(&task->node);
+    }
+}
+
+static void DestroyRoomGmkTasks(void) {
+    TaskPool* pool = &gFieldState->tasks;
+    Task* task = ListPoolFirst(&pool->head);
+
+    while (task != NULL) {
+        if (IsRoomGmkTask(task)) {
+            if (getenv("KHCOM_GMKLOG"))
+                PortLog("gmk: replace %s", task->desc->name);
+            task = TaskDestroy(pool, task);
+        }
+        else
+            task = ListPoolNext(&task->node);
+    }
+}
+
+void PortMapUpdateFieldTasks(void) {
+    UpdateFieldTasks();
+}
+#endif
+
 void MapGmkCreateTasks() {
     s32 i;
     MapPlatform* platform;
     const MapGmkDef* def;
+
+#ifdef PLATFORM_PC
+    DestroyRoomGmkTasks(); /* still there when kept through a menu */
+#endif
 
     for (i = 0; i < 12; i++) {
         platform = GetMapPlatform(i);
@@ -2871,7 +2935,10 @@ void MapFldMain() {
         }
 
         if (GetKeysPressed() & START_BUTTON) {
+#ifndef PLATFORM_PC
+            /* PC: the room's map icon stays through the menu (MapFldWaitMenu) */
             MapFldDestroyAllmapRoom();
+#endif
             TaskCreate(&gFieldState->tasks, &gTaskDescMapMenu, NULL);
             MapFldSetUpdateAndRun(MapFldWaitMenu);
             return;
@@ -2879,7 +2946,9 @@ void MapFldMain() {
     }
 
     if (gMapRoomState->flags & ROOM_FLAG_SAVE_MENU_OPEN) {
+#ifndef PLATFORM_PC
         MapFldDestroyAllmapRoom();
+#endif
         MapFldSetUpdateAndRun(MapFldWaitMenu);
         return;
     }
@@ -2988,6 +3057,11 @@ void MapFldWaitMenu() {
         SetupBg(0, 3, 31, 14);
         SetBgPriority(0, 0);
         MapGmkCreateTasks();
+#ifdef PLATFORM_PC
+        /* The wide view shows the field around the menus: the room's map
+           icon stayed up instead of vanishing and popping back. */
+        if (sMapFldAllmapRoomTask == NULL)
+#endif
         sMapFldAllmapRoomTask = CreateAllmapRoomTask(&gFieldState->tasks);
         MapFldSetUpdateAndRun(MapFldMain);
     } else {

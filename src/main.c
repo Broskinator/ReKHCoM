@@ -9,6 +9,10 @@
 #include "key.h"
 #include "malloc.h"
 #include "m4a.h"
+#include "field_state.h"
+#include "map.h"
+#include "map_tasks.h"
+#include "taskpool.h"
 #include "pallet.h"
 #include "sprite.h"
 #include "sroll.h"
@@ -45,6 +49,9 @@ extern int gPortStartupLanguage;
 
 #ifdef PLATFORM_PC
 /* Test harness (KHCOM_MODE): switch to one of these modes by name. */
+extern const MapGmkDef gMapGmk04Def;
+extern TaskDesc gTaskDescMapGmk04, gTaskDescMapSave;
+void PortMapKeepGmkDesc(const TaskDesc* desc);
 extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, gModeWorldinspect,
     gModeWorldselect, gModeWORLDSELECT, gModeWorldwarp, gModeMsTop, gModePremire,
     gModeSioBtlOption;
@@ -61,6 +68,22 @@ int PortHarnessMode(const char* name, int arg) {
     };
     u32 i;
 
+    /* a save point beside Sora */
+    if (strcmp(name, "crystal") == 0 && gFieldState != NULL) {
+        static MapGmkPlacement sCrystal;
+        sCrystal.pos = gFieldState->actor.fieldPosition;
+        sCrystal.pos.x += (arg ? arg : 40) << 8;
+        sCrystal.def = &gMapGmk04Def;
+        PortMapKeepGmkDesc(&gTaskDescMapGmk04); /* kept like the room's own */
+        TaskCreate(&gFieldState->tasks, &gTaskDescMapGmk04, &sCrystal);
+        return 1;
+    }
+    /* the save point's menu, opened as talking to it does */
+    if (strcmp(name, "mapsave") == 0 && gFieldState != NULL) {
+        gFieldState->flags |= FIELD_FLAG_FREEZE_PLAYER;
+        TaskCreate(&gFieldState->tasks, &gTaskDescMapSave, NULL);
+        return 1;
+    }
     for (i = 0; i < sizeof(modes) / sizeof(modes[0]); i++) {
         if (strcmp(modes[i]->name, name) == 0) {
             ModeRequest(modes[i], arg);

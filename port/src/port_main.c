@@ -619,18 +619,25 @@ static void HarnessFrame(void) {
     const char* oam = SDL_getenv("KHCOM_OAMDUMP");
     const char* saveAt = SDL_getenv("KHCOM_SAVESTATE");
 
-    /* KHCOM_MODE=frame:name[:arg]: switch to a game mode (menus, screens). */
+    /* KHCOM_MODE=frame:name[:arg][,frame:name...]: switch to a game mode
+       (menus, screens) or run a harness action (main.c PortHarnessMode). */
     {
         const char* m = SDL_getenv("KHCOM_MODE");
-        const char* colon = m ? SDL_strchr(m, ':') : NULL;
-        if (colon && (uint32_t)SDL_atoi(m) == sFrameCount) {
-            extern int PortHarnessMode(const char* name, int arg);
-            char name[64];
-            const char* arg = SDL_strchr(colon + 1, ':');
-            size_t n = arg ? (size_t)(arg - colon - 1) : SDL_strlen(colon + 1);
-            SDL_strlcpy(name, colon + 1, SDL_min(n + 1, sizeof(name)));
-            if (!PortHarnessMode(name, arg ? SDL_atoi(arg + 1) : 0))
-                PortLog("harness: no mode %s", name);
+        while (m && *m) {
+            const char* comma = SDL_strchr(m, ',');
+            const char* colon = SDL_strchr(m, ':');
+            if (colon && (!comma || colon < comma) && (uint32_t)SDL_atoi(m) == sFrameCount) {
+                extern int PortHarnessMode(const char* name, int arg);
+                char item[96], *name = item, *arg;
+                size_t n = comma ? (size_t)(comma - colon - 1) : SDL_strlen(colon + 1);
+                SDL_strlcpy(item, colon + 1, SDL_min(n + 1, sizeof(item)));
+                arg = SDL_strchr(item, ':');
+                if (arg)
+                    *arg++ = 0;
+                if (!PortHarnessMode(name, arg ? SDL_atoi(arg) : 0))
+                    PortLog("harness: no mode %s", name);
+            }
+            m = comma ? comma + 1 : NULL;
         }
     }
 

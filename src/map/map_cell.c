@@ -531,7 +531,14 @@ void UpdateMapField() {
     }
 
     gMapRoomState->jumpGmkHeight = 0;
+#ifdef PLATFORM_PC
+    {
+        extern void PortMapUpdateFieldTasks(void);
+        PortMapUpdateFieldTasks(); /* keeps the room's gimmicks through menus */
+    }
+#else
     TaskPoolUpdate(&gFieldState->tasks);
+#endif
     gMapRoomState->attackActive = FALSE;
 
     if ((gFieldState->flags & FIELD_FLAG_FREEZE_PLAYER) == 0 && (gMapRoomState->flags & ROOM_FLAG_ENEMY_STRUCK) == 0) {
