@@ -20,7 +20,7 @@ extern uint32_t gLanguage;
 const uint16_t* PortLatinGlyphWidths(void);
 void PortInputSuppressUntilRelease(void);
 
-enum { LANG_EN, LANG_FR, LANG_DE, LANG_IT, LANG_ES, LANG_COUNT };
+enum { LANG_EN, LANG_FR, LANG_DE, LANG_IT, LANG_ES, LANG_JA, LANG_COUNT };
 
 enum {
     ITEM_VIEW,
@@ -48,81 +48,90 @@ enum {
 
 /* Strings: UTF-8, one row per item, columns in LANG_* order. */
 static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
-    { "View", "Vue", "Ansicht", "Visuale", "Vista" },
-    { "Zoom", "Zoom", "Zoom", "Zoom", "Zoom" },
-    { "Scaling", "Mise à l'échelle", "Skalierung", "Scala", "Escalado" },
-    { "HUD size", "Taille du HUD", "HUD-Größe", "Dimensione HUD", "Tamaño del HUD" },
-    { "GBA-size scenes", "Scènes format GBA", "Szenen im GBA-Format", "Scene formato GBA", "Escenas tamaño GBA" },
-    { "Filter", "Filtre", "Filter", "Filtro", "Filtro" },
-    { "Fullscreen", "Plein écran", "Vollbild", "Schermo intero", "Pantalla completa" },
+    { "View", "Vue", "Ansicht", "Visuale", "Vista", "表示" },
+    { "Zoom", "Zoom", "Zoom", "Zoom", "Zoom", "ズーム" },
+    { "Scaling", "Mise à l'échelle", "Skalierung", "Scala", "Escalado", "スケール" },
+    { "HUD size", "Taille du HUD", "HUD-Größe", "Dimensione HUD", "Tamaño del HUD", "HUDサイズ" },
+    { "GBA-size scenes", "Scènes format GBA", "Szenen im GBA-Format", "Scene formato GBA", "Escenas tamaño GBA", "GBAサイズの場面" },
+    { "Filter", "Filtre", "Filter", "Filtro", "Filtro", "フィルター" },
+    { "Fullscreen", "Plein écran", "Vollbild", "Schermo intero", "Pantalla completa", "フルスクリーン" },
     { "Fullscreen resolution", "Résolution plein écran", "Vollbild-Auflösung", "Risoluzione a schermo intero",
-      "Resolución completa" },
-    { "VSync", "VSync", "VSync", "VSync", "VSync" },
-    { "Scanlines", "Lignes de balayage", "Scanlines", "Linee di scansione", "Scanlines" },
-    { "GBA LCD colours", "Couleurs LCD GBA", "GBA-LCD-Farben", "Colori LCD GBA", "Colores LCD GBA" },
-    { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD" },
+      "Resolución completa", "フルスクリーン解像度" },
+    { "VSync", "VSync", "VSync", "VSync", "VSync", "VSync" },
+    { "Scanlines", "Lignes de balayage", "Scanlines", "Linee di scansione", "Scanlines", "スキャンライン" },
+    { "GBA LCD colours", "Couleurs LCD GBA", "GBA-LCD-Farben", "Colori LCD GBA", "Colores LCD GBA", "GBAカラー" },
+    { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "Battle cards raised", "Cartes de combat relevées", "Kampfkarten angehoben", "Carte di battaglia rialzate",
-      "Subir cartas en combate" },
-    { "Show FPS", "Afficher FPS", "FPS anzeigen", "Mostra FPS", "Mostrar FPS" },
+      "Subir cartas en combate", "カードを上げる" },
+    { "Show FPS", "Afficher FPS", "FPS anzeigen", "Mostra FPS", "Mostrar FPS", "FPS表示" },
     { "One-button dodge roll", "Roulade en un bouton", "Ausweichrolle mit einer Taste", "Capriola con un tasto",
-      "Voltereta con un botón" },
+      "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
-      "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)" },
-    { "Music volume", "Volume musique", "Musiklautstärke", "Volume musica", "Volumen música" },
-    { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos" },
-    { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general" },
-    { "Back", "Retour", "Zurück", "Indietro", "Volver" },
+      "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
+    { "Music volume", "Volume musique", "Musiklautstärke", "Volume musica", "Volumen música", "音楽の音量" },
+    { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos", "効果音の音量" },
+    { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general", "全体の音量" },
+    { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
 };
 
-static const char* const sTitle[LANG_COUNT] = { "Options", "Options", "Optionen", "Opzioni", "Opciones" };
+static const char* const sTitle[LANG_COUNT] = { "Options", "Options", "Optionen", "Opzioni", "Opciones",
+    "オプション",
+};
 static const char* const sHelp[LANG_COUNT] = {
     "\xE2\x86\x91\xE2\x86\x93 Select   \xE2\x86\x90\xE2\x86\x92 Change   B Back",
     "\xE2\x86\x91\xE2\x86\x93 Choisir   \xE2\x86\x90\xE2\x86\x92 Modifier   B Retour",
     "\xE2\x86\x91\xE2\x86\x93 Wählen   \xE2\x86\x90\xE2\x86\x92 Ändern   B Zurück",
     "\xE2\x86\x91\xE2\x86\x93 Scegli   \xE2\x86\x90\xE2\x86\x92 Cambia   B Indietro",
     "\xE2\x86\x91\xE2\x86\x93 Elegir   \xE2\x86\x90\xE2\x86\x92 Cambiar   B Volver",
+    "\xE2\x86\x91\xE2\x86\x93 選択   \xE2\x86\x90\xE2\x86\x92 変更   B 戻る",
 };
 static const char* const sTitleHint[LANG_COUNT] = { "SELECT  Options", "SELECT  Options", "SELECT  Optionen",
-                                                    "SELECT  Opzioni", "SELECT  Opciones" };
+                                                    "SELECT  Opzioni", "SELECT  Opciones",
+    "SELECT  オプション",
+};
 static const char* const sOnOff[2][LANG_COUNT] = {
-    { "Off", "Non", "Aus", "No", "No" },
-    { "On", "Oui", "An", "Sì", "Sí" },
+    { "Off", "Non", "Aus", "No", "No", "オフ" },
+    { "On", "Oui", "An", "Sì", "Sí", "オン" },
 };
 static const char* const sViews[PORT_VIEW_COUNT][LANG_COUNT] = {
-    { "Original 240x160", "Originale 240x160", "Original 240x160", "Originale 240x160", "Original 240x160" },
-    { "Wide 284x160", "Large 284x160", "Breit 284x160", "Panoramica 284x160", "Panorámica 284x160" },
-    { "Extended 320x180", "Étendue 320x180", "Erweitert 320x180", "Estesa 320x180", "Ampliada 320x180" },
-    { "Maximum 384x216", "Maximale 384x216", "Maximal 384x216", "Massima 384x216", "Máxima 384x216" },
-    { "Auto (fill window)", "Auto (remplir)", "Auto (füllen)", "Auto (riempi)", "Auto (llenar ventana)" },
+    { "Original 240x160", "Originale 240x160", "Original 240x160", "Originale 240x160", "Original 240x160", "オリジナル 240x160" },
+    { "Wide 284x160", "Large 284x160", "Breit 284x160", "Panoramica 284x160", "Panorámica 284x160", "ワイド 284x160" },
+    { "Extended 320x180", "Étendue 320x180", "Erweitert 320x180", "Estesa 320x180", "Ampliada 320x180", "拡張 320x180" },
+    { "Maximum 384x216", "Maximale 384x216", "Maximal 384x216", "Massima 384x216", "Máxima 384x216", "最大 384x216" },
+    { "Auto (fill window)", "Auto (remplir)", "Auto (füllen)", "Auto (riempi)", "Auto (llenar ventana)", "自動 (画面に合わせる)" },
 };
 static const char* const sZooms[4][LANG_COUNT] = {
-    { "Near", "Proche", "Nah", "Vicino", "Cerca" },
-    { "Normal", "Normal", "Normal", "Normale", "Normal" },
-    { "Far", "Loin", "Weit", "Lontano", "Lejos" },
-    { "Very far", "Très loin", "Sehr weit", "Molto lontano", "Muy lejos" },
+    { "Near", "Proche", "Nah", "Vicino", "Cerca", "近い" },
+    { "Normal", "Normal", "Normal", "Normale", "Normal", "ふつう" },
+    { "Far", "Loin", "Weit", "Lontano", "Lejos", "遠い" },
+    { "Very far", "Très loin", "Sehr weit", "Molto lontano", "Muy lejos", "とても遠い" },
 };
 static const char* const sScales[PORT_SCALE_COUNT][LANG_COUNT] = {
-    { "Integer", "Entière", "Ganzzahlig", "Intera", "Entero" },
-    { "Fit", "Ajuster", "Einpassen", "Adatta", "Ajustar" },
-    { "Stretch", "Étirer", "Strecken", "Allunga", "Estirar" },
+    { "Integer", "Entière", "Ganzzahlig", "Intera", "Entero", "ドットばい" },
+    { "Fit", "Ajuster", "Einpassen", "Adatta", "Ajustar", "合わせる" },
+    { "Stretch", "Étirer", "Strecken", "Allunga", "Estirar", "引き伸ばし" },
 };
 static const char* const sFilters[PORT_FILTER_COUNT][LANG_COUNT] = {
-    { "Sharp", "Net", "Scharf", "Nitido", "Nítido" },
-    { "Pixel art", "Pixel art", "Pixel-Art", "Pixel art", "Pixel art" },
-    { "Smooth", "Lisse", "Weich", "Morbido", "Suave" },
+    { "Sharp", "Net", "Scharf", "Nitido", "Nítido", "シャープ" },
+    { "Pixel art", "Pixel art", "Pixel-Art", "Pixel art", "Pixel art", "ドット絵" },
+    { "Smooth", "Lisse", "Weich", "Morbido", "Suave", "なめらか" },
 };
 static const char* const sHudSizes[3][LANG_COUNT] = {
-    { "Original", "Original", "Original", "Originale", "Original" },
-    { "Large", "Grand", "Groß", "Grande", "Grande" },
-    { "Larger", "Plus grand", "Größer", "Più grande", "Más grande" },
+    { "Original", "Original", "Original", "Originale", "Original", "オリジナル" },
+    { "Large", "Grand", "Groß", "Grande", "Grande", "大きい" },
+    { "Larger", "Plus grand", "Größer", "Più grande", "Más grande", "もっと大きい" },
 };
 static const char* const sNarrow[2][LANG_COUNT] = {
-    { "Exact pixels", "Pixels exacts", "Exakte Pixel", "Pixel esatti", "Píxel exacto" },
-    { "Fill height", "Remplir la hauteur", "Höhe füllen", "Riempi altezza", "Llenar altura" },
+    { "Exact pixels", "Pixels exacts", "Exakte Pixel", "Pixel esatti", "Píxel exacto", "等倍ピクセル" },
+    { "Fill height", "Remplir la hauteur", "Höhe füllen", "Riempi altezza", "Llenar altura", "高さに合わせる" },
 };
-static const char* const sDesktop[LANG_COUNT] = { "Desktop", "Bureau", "Desktop", "Desktop", "Escritorio" };
+static const char* const sDesktop[LANG_COUNT] = { "Desktop", "Bureau", "Desktop", "Desktop", "Escritorio",
+    "デスクトップ",
+};
 static const char* const sAutoOnly[LANG_COUNT] = { "(Auto view)", "(vue Auto)", "(Auto-Ansicht)", "(vista Auto)",
-                                                   "(vista Auto)" };
+                                                   "(vista Auto)",
+    "(自動表示のみ)",
+};
 
 static const int sViewOrder[PORT_VIEW_COUNT] = { PORT_VIEW_AUTO, PORT_VIEW_ORIGINAL, PORT_VIEW_WIDE,
                                                  PORT_VIEW_EXTENDED, PORT_VIEW_MAXIMUM };
@@ -145,10 +154,28 @@ static int sFbW, sFbH;
 static int Lang(void) {
 #ifdef VERSION_EU
     return gLanguage < LANG_COUNT ? (int)gLanguage : LANG_EN;
+#elif defined(VERSION_JP)
+    return LANG_JA;
 #else
-    return LANG_EN; /* single-language cartridges */
+    return LANG_EN;
 #endif
 }
+
+#ifdef VERSION_JP
+/* Japanese characters: drawn from the cartridge's Shift-JIS font, 10 pixels apart. */
+#define JP_CHAR 0x1000000
+#define JP_ADVANCE 10
+int PortCodepointToSjis(unsigned cp);
+void GetSjisGlyph(uint16_t code, uint16_t* glyph, uint8_t* bank);
+extern void* gMsgFontBank0Frames[];
+extern void* gMsgFontBank1Frames[];
+extern void* gMsgFontBank2Frames[];
+extern void* gMsgFontBank3Frames[];
+extern const uint8_t gMsgFontBank0Tiles[];
+extern const uint8_t gMsgFontBank1Tiles[];
+extern const uint8_t gMsgFontBank2Tiles[];
+extern const uint8_t gMsgFontBank3Tiles[];
+#endif
 
 /* Next character of a UTF-8 string as a code of the game's Latin font. */
 static int NextChar(const char** s) {
@@ -175,6 +202,10 @@ static int NextChar(const char** s) {
         case 0x25CB:
             return 0x0E;
     }
+#ifdef VERSION_JP
+    if (c >= 0x3000)
+        return JP_CHAR | (int)c; /* kana, kanji and full-width forms */
+#endif
     return c < 256 ? (int)c : '?';
 }
 
@@ -212,6 +243,10 @@ static void Rect(int x0, int y0, int w, int h, uint32_t c) {
 }
 
 static int GlyphWidth(int code) {
+#ifdef VERSION_JP
+    if (code & JP_CHAR)
+        return JP_ADVANCE;
+#endif
     return PortLatinGlyphWidths()[code & 255];
 }
 
@@ -228,15 +263,56 @@ static int TextWidth(const char* s) {
 static void DrawGlyph(int code, int x, int y, uint32_t face, uint32_t shadow) {
     const uint16_t* frame;
     const uint8_t* tiles;
-    int px, py;
+    int px, py, top = 3, bottom = 13;
 
     if (code == ' ' || code <= 0)
         return;
-    frame = (const uint16_t*)gMsgLatinFontFrames[code & 255];
-    if (frame == NULL || frame[0] == 0)
-        return;
-    tiles = gMsgLatinFontTiles + (frame[3] & 0x3FF) * 32;
-    for (py = 3; py < 13; py++) {
+#ifdef VERSION_JP
+    if (code & JP_CHAR) {
+        static void** const frames[4] = { gMsgFontBank0Frames, gMsgFontBank1Frames, gMsgFontBank2Frames,
+                                          gMsgFontBank3Frames };
+        static const uint8_t* const banks[4] = { gMsgFontBank0Tiles, gMsgFontBank1Tiles, gMsgFontBank2Tiles,
+                                                 gMsgFontBank3Tiles };
+        int sjis = PortCodepointToSjis((unsigned)(code & 0xFFFF));
+        uint16_t glyph = 0;
+        uint8_t bank = 0;
+
+        if ((sjis >> 8) == 0x81) {
+            /* punctuation: the table LayoutMsgGlyphsSjis uses (msg.c) */
+            static const uint16_t row81[][2] = {
+                { 0x41, 0xF5 }, { 0x42, 0xF6 }, { 0x43, 0xF8 }, { 0x44, 0xF7 }, { 0x45, 0xF9 }, { 0x48, 0xF1 },
+                { 0x49, 0xF0 }, { 0x5B, 0xFD }, { 0x5C, 0xFC }, { 0x5E, 0xF3 }, { 0x60, 0xFE }, { 0x63, 0xFB },
+                { 0x66, 0xFF }, { 0x69, 0xEC }, { 0x6A, 0xED }, { 0x75, 0xE8 }, { 0x76, 0xE9 }, { 0x77, 0xEA },
+                { 0x78, 0xEB }, { 0x7B, 0xDF }, { 0x7C, 0xFC }, { 0x81, 0xEF }, { 0x93, 0xF2 }, { 0x96, 0xF4 },
+            };
+            size_t k;
+            for (k = 0; k < sizeof(row81) / sizeof(row81[0]); k++)
+                if (row81[k][0] == (sjis & 0xFF))
+                    break;
+            if (k == sizeof(row81) / sizeof(row81[0]))
+                return;
+            glyph = row81[k][1];
+        } else {
+            GetSjisGlyph((uint16_t)sjis, &glyph, &bank);
+        }
+        if (bank > 3)
+            return;
+        frame = (const uint16_t*)frames[bank][glyph];
+        if (frame == NULL)
+            return;
+        tiles = banks[bank] + (frame[3] & 0x3FF) * 32;
+        top = 0;
+        bottom = 15;
+    } else
+#endif
+    {
+        frame = (const uint16_t*)gMsgLatinFontFrames[code & 255];
+        if (frame == NULL || frame[0] == 0)
+            return;
+        tiles = gMsgLatinFontTiles + (frame[3] & 0x3FF) * 32;
+    }
+    /* Latin glyphs use rows 3..12 of the cell, Japanese ones nearly all of it */
+    for (py = top; py < bottom; py++) {
         for (px = 0; px < 16; px++) {
             int t = (py >> 3) * 2 + (px >> 3);
             uint8_t b = tiles[t * 32 + (py & 7) * 4 + ((px & 7) >> 1)];
@@ -460,6 +536,8 @@ void PortUiOpenOptions(void) {
     sOpen = 1;
     sCursor = 0;
     sScroll = 0;
+    if (SDL_getenv("KHCOM_OPTIONS_CURSOR")) /* test harness: shot of a lower row */
+        sCursor = SDL_clamp(SDL_atoi(SDL_getenv("KHCOM_OPTIONS_CURSOR")), 0, ITEM_COUNT - 1);
     RefreshModes();
 }
 
@@ -480,6 +558,7 @@ void PortUiNotice(const char* text) {
         { "Zustand", "gespeichert", "geladen", "Platz" },
         { "Stato", "salvato", "caricato", "Slot" },
         { "Estado", "guardado", "cargado", "Ranura" },
+        { "ステート", "セーブ", "ロード", "スロット" },
     };
     int l = Lang(), n;
 
@@ -618,6 +697,7 @@ int PortUiHandleEvent(const void* p) {
 static const char* const sSkipText[LANG_COUNT] = {
     "Press again to skip the intro", "Appuyez encore pour passer l'intro", "Erneut drücken: Intro überspringen",
     "Premi di nuovo per saltare l'intro", "Pulsa otra vez para saltar la intro",
+    "もう一度押すとイントロをスキップ",
 };
 
 void PortUiSkipPrompt(int visible) {

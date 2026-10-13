@@ -495,3 +495,13 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
         lineGameEnd = glyphs[j - 1].x + widths[glyphs[j - 1].code & 255];
     }
 }
+
+/* Shift-JIS code of a Unicode character (two-byte codes only), 0 if none:
+   the options overlay draws Japanese with the cartridge's own font. */
+int PortCodepointToSjis(unsigned cp) {
+    WCHAR w = (WCHAR)cp;
+    char b[4];
+    int n = WideCharToMultiByte(932, 0, &w, 1, b, sizeof(b), NULL, NULL);
+
+    return n == 2 ? ((uint8_t)b[0] << 8) | (uint8_t)b[1] : 0;
+}

@@ -53,7 +53,12 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 
 ## Pruebas y publicación
 
-- [~] Baterías de eventos US/JP: US 194/194; JP en curso.
+- [~] Baterías: eventos US 194/194; combates US 209/209; combates como Riku 209/209;
+  eventos y combates JP en curso.
+- [x] Menú de opciones del port en japonés (versión JP), con la fuente del cartucho.
+- [x] Launcher: idioma del juego (EU), partidas (fecha, abrir carpeta, copia de seguridad),
+  idioma del launcher, versión y firma "por MatyMeatBoy".
+- [ ] Limpiar carpetas para un release prolijo, sin archivos de prueba.
 - [x] Launcher: remapeo de controles (teclado ×2 y mando por acción, guardado en kh_com.ini).
 - [x] Release v0.3 (pre-release pública, no Latest) con launcher y las tres versiones:
   https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v0.3
