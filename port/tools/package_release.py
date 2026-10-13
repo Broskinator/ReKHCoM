@@ -35,6 +35,8 @@ def main():
         "LICENSE.md": ROOT / "LICENSE.md",
         "SDL3-LICENSE.txt": args.sdl / "LICENSE.txt",
         "licenses/imgui-LICENSE.txt": ROOT / "port/decompui/third_party/imgui/LICENSE.txt",
+        "assets/boxart.jpg": ROOT / "port/decompui/assets/boxart.jpg",
+        "assets/NOTICE.md": ROOT / "port/decompui/assets/NOTICE.md",
     }
     for source in files.values():
         if not source.is_file():

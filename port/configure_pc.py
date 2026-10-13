@@ -124,7 +124,7 @@ def main():
                 variables={"in_win": str(dll), "out_win": str(BUILD / "SDL3.dll")})
         targets = ["$builddir/khcom.exe", "$builddir/SDL3.dll"]
         if VERSION == "eu":
-            targets.append(decompui(n, toolchain, sdl_arch, args.debug))
+            targets += decompui(n, toolchain, sdl_arch, args.debug)
         n.default(targets)
     print(f"configured {rel(BUILD / 'build.ninja')} ({'debug' if args.debug else 'release'})")
 
@@ -152,7 +152,13 @@ def decompui(n, toolchain, sdl_arch, debug):
         n.build(obj, "cxx_ui", rel(src))
         objs.append(obj)
     n.build("$builddir/ReKHCoM.exe", "link_ui", objs)
-    return "$builddir/ReKHCoM.exe"
+    art = ui / "assets" / "boxart.jpg"
+    n.rule("copy_asset", 'cmd /c (if not exist "$dir_win" mkdir "$dir_win") & copy /y "$in_win" "$out_win" >nul',
+           description="COPY $out")
+    n.build("$builddir/assets/boxart.jpg", "copy_asset", rel(art),
+            variables={"in_win": str(art), "out_win": str(BUILD / "assets" / "boxart.jpg"),
+                       "dir_win": str(BUILD / "assets")})
+    return ["$builddir/ReKHCoM.exe", "$builddir/assets/boxart.jpg"]
 
 
 if __name__ == "__main__":
