@@ -81,6 +81,19 @@ void ModeBlankDisplay() {
     *(vu16*)PLTT = gModeBlankColor;
 }
 
+#ifdef PLATFORM_PC
+extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, gModeWorldinspect,
+    gModeWorldselect, gModeWORLDSELECT, gModeWorldwarp, gModeMsTop;
+
+/* The menu screens drawn over the whole GBA picture: their backgrounds end
+   at its edges, so they keep the GBA framing in the wide view. */
+static int ModeIsFullScreenMenu(const Mode* mode) {
+    return mode == &gModeDeck || mode == &gModeStatus || mode == &gModeJiminy || mode == &gModeAllmap
+        || mode == &gModeMapinspect || mode == &gModeWorldinspect || mode == &gModeWorldselect
+        || mode == &gModeWORLDSELECT || mode == &gModeWorldwarp || mode == &gModeMsTop;
+}
+#endif
+
 void ModeStart(Mode* mode, s32 arg) {
     gModeBlankColor = FadeGetColor();
     VTransReset();
@@ -92,6 +105,7 @@ void ModeStart(Mode* mode, s32 arg) {
 
 #ifdef PLATFORM_PC
     PortSideStyle(PORT_SIDE_STRETCH); /* modes choose their own in init */
+    PortSceneNarrow(ModeIsFullScreenMenu(mode));
 #endif
     if (mode->init != NULL) {
         mode->init(arg);

@@ -78,6 +78,8 @@ void PortSetBattleView(int on);
 /* GBA-size screens: how the side bars beyond them are filled. */
 enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE };
 void PortSideStyle(int style);
+/* Full-screen menus: shown as the GBA picture (full height, side bars). */
+void PortSceneNarrow(int on);
 #define PORT_MENU_LEFT(x) ((x) - PortScreenMarginX())
 #define PORT_MENU_RIGHT(x) ((x) + PortScreenMarginX())
 /* A band across the GBA screen (menu title bars): drawn twice, moved into

@@ -79,6 +79,7 @@ static int sBgDockedLatched[4];
 /* A docked layer is screen UI moved toward an edge: it shows only what the
    hardware would (no world-map continuation), so parked windows stay hidden. */
 static int sBgSplit[4]; /* PortBgSplit, below */
+static int sSceneNarrow; /* PortSceneNarrow, below */
 
 void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgLatch, sizeof(sBgLatch));
@@ -90,6 +91,7 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgWorld, sizeof(sBgWorld));
     visit(sBgWorldLatched, sizeof(sBgWorldLatched));
     visit(sBgSplit, sizeof(sBgSplit));
+    visit(&sSceneNarrow, sizeof(sSceneNarrow));
 }
 
 void PortSetBgShiftX(int bg, int shift) {
@@ -1231,6 +1233,10 @@ static void HBlank(int line) {
     IO16(0x04) &= ~2;
 }
 
+void PortSceneNarrow(int on) {
+    sSceneNarrow = on;
+}
+
 void PortPpuBeginFrame(void) {
     uint16_t dispcnt = IO16(0x00);
     int b, any = 0;
@@ -1247,7 +1253,7 @@ void PortPpuBeginFrame(void) {
         if ((dispcnt & (0x100 << b)) && (mode == 2 || (mode == 1 && b == 2)) && (IO16(0x08 + b * 2) >> 14) >= 2)
             any = 1;
     }
-    gPortScreen.wide = any && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
+    gPortScreen.wide = any && !sSceneNarrow && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
                        && !(dispcnt & 0x80);
     sHudLayer = gPortScreen.wide && gPortHudScale > 0 && gPortHudW >= GBA_SCREEN_W;
     if (sHudLayer) {

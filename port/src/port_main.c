@@ -528,6 +528,7 @@ static void Quit(void);
  * KHCOM_KEYS=100-105:START,200:A   hold GBA keys during frame ranges
  * KHCOM_QUIT=400       exit after that frame
  * KHCOM_BATTLE=10:4    debug battle menu preset to entry 10, stage 4 (A starts it)
+ * KHCOM_MODE=30:Mode_Deck[:arg]   at frame 30 switch to that game mode
  * KHCOM_FAST=1         do not pace frames (run as fast as possible)
  * KHCOM_VBM=movie.vbm  play a VBA-rr input movie (power-on start, controller 1);
  *                      KHCOM_VBM_OFFSET=n shifts it by n frames
@@ -616,6 +617,21 @@ static void HarnessFrame(void) {
     const char* ui = SDL_getenv("KHCOM_OPTIONS_SHOT");
     const char* oam = SDL_getenv("KHCOM_OAMDUMP");
     const char* saveAt = SDL_getenv("KHCOM_SAVESTATE");
+
+    /* KHCOM_MODE=frame:name[:arg]: switch to a game mode (menus, screens). */
+    {
+        const char* m = SDL_getenv("KHCOM_MODE");
+        const char* colon = m ? SDL_strchr(m, ':') : NULL;
+        if (colon && (uint32_t)SDL_atoi(m) == sFrameCount) {
+            extern int PortHarnessMode(const char* name, int arg);
+            char name[64];
+            const char* arg = SDL_strchr(colon + 1, ':');
+            size_t n = arg ? (size_t)(arg - colon - 1) : SDL_strlen(colon + 1);
+            SDL_strlcpy(name, colon + 1, SDL_min(n + 1, sizeof(name)));
+            if (!PortHarnessMode(name, arg ? SDL_atoi(arg + 1) : 0))
+                PortLog("harness: no mode %s", name);
+        }
+    }
 
     /* KHCOM_SAVESTATE=frame:path[,frame:path...] */
     while (saveAt && *saveAt) {

@@ -23,6 +23,7 @@
 #include "sio_api.h"
 #include "save_api.h"
 #include <stddef.h>
+#include <string.h>
 #include "engine_math.h"
 #include "gba/defines.h"
 #include "gba/macro.h"
@@ -40,6 +41,30 @@ extern int gPortBattleTest;
 extern Mode gModeEventselect;
 void PortEventSelectPreset(int list, int index);
 extern int gPortStartupLanguage;
+#endif
+
+#ifdef PLATFORM_PC
+/* Test harness (KHCOM_MODE): switch to one of these modes by name. */
+extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, gModeWorldinspect,
+    gModeWorldselect, gModeWORLDSELECT, gModeWorldwarp, gModeMsTop, gModePremire,
+    gModeSioBtlOption;
+
+int PortHarnessMode(const char* name, int arg) {
+    static Mode* const modes[] = {
+        &gModeDeck, &gModeStatus, &gModeJiminy, &gModeAllmap, &gModeMapinspect, &gModeWorldinspect,
+        &gModeWorldselect, &gModeWORLDSELECT, &gModeWorldwarp, &gModeMsTop, &gModePremire,
+        &gModeSioBtlOption,
+    };
+    u32 i;
+
+    for (i = 0; i < sizeof(modes) / sizeof(modes[0]); i++) {
+        if (strcmp(modes[i]->name, name) == 0) {
+            ModeRequest(modes[i], arg);
+            return 1;
+        }
+    }
+    return 0;
+}
 #endif
 
 vu16 gFrameSyncFlags;
