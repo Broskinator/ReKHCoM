@@ -3,9 +3,10 @@
 Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
-**v0.2 is an early Windows prerelease.** It boots into gameplay, plays the game's
-movies, runs at the cartridge's speed, supports wider views, graphics and
-quality-of-life options, and saves to disk. Full playthroughs have not been verified.
+**v0.3 is an early Windows prerelease.** It comes with a launcher, runs the European,
+US and Japanese cartridges, plays the game's movies at the cartridge's speed, shows
+the game in 16:9, has graphics and quality-of-life options, and saves to disk. Full
+playthroughs have not been verified.
 
 Download the Windows ZIP from [Releases](https://github.com/MatyMeatBoy/ReKHCom/releases).
 See [CHANGELOG.md](CHANGELOG.md) for release notes.
@@ -27,7 +28,8 @@ See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
 > | USA | `B8CE` | `10729bd884f8fdca7a310b6d606c52e46657aa48` |
 > | Japan | `B8CJ` | `59ec0a0a4ccd1e6acb3bbd7bfb21d63988958cfa` |
 >
-> v0.2 supports the European cartridge only; the development tree builds all three.
+> Each version has its own executable and save file; the launcher picks the one
+> that matches your dump.
 
 ## How it works
 
@@ -40,27 +42,29 @@ See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
   mosaic, HBlank effects), m4a sequencer/mixer in C, PSG emulation, BIOS, DMA, input,
   settings and the wide-view renderer.
 
-## Running v0.2 (Windows)
+## Running v0.3 (Windows)
 
-1. Extract `ReKHCoM-v0.2-windows-x86.zip` into a writable folder.
-2. Place your European cartridge dump next to `khcom.exe`, named `baserom.gba`.
-3. Run `khcom.exe` and select your language.
+1. Extract `ReKHCoM-v0.3-windows-x86.zip` into a writable folder.
+2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
+   the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
+3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`
+   for the version you chose.
 
-The supported ROM is 32 MiB, cartridge code `B8CP`, SHA-1
-`8db73586cdb11b3795907edebf43228dbcd3e6b2`. US and Japanese ROMs are not supported
-by the PC build. The ZIP includes SDL3; you do not need to install it separately.
-The executable is 32-bit x86 and has been tested locally on Windows only.
+The ZIP includes SDL3; you do not need to install it separately. The executables
+are 32-bit x86 and have been tested locally on Windows only.
 
-Settings (`kh_com.ini`), your cartridge save (`kh_com.sav`), and the diagnostic
-log (`kh_com.log`) are stored next to the executable. Back up your save before
-trying new builds. Save states are specific to the build that created them.
+Settings (`kh_com.ini`), your cartridge saves (`kh_com.sav`, `kh_com_us.sav`,
+`kh_com_jp.sav`), and the diagnostic log (`kh_com.log`) are stored next to the
+executables. Back up your saves before trying new builds. Save states are specific
+to the build that created them.
 
 ### Known limitations
 
 - Movie transitions during events and the ending still need verification.
 - Neither Sora's story nor Reverse/Rebirth has a verified full playthrough.
 - Some rendering, audio streaming, and widescreen scenes still need verification.
-- Controls use fixed default bindings; remapping is not implemented.
+- The level-up screen bands, the save crystal exit and the door menu are not yet
+  adapted to 16:9.
 - Linux and macOS builds are not available.
 
 ## Building (Windows)
@@ -107,9 +111,12 @@ python port/tools/package_release.py --version v0.3 --sdl ../toolchain/SDL3-3.4.
 | Dodge roll | C | X (west) |
 | Start / Select | Enter / Backspace | Start / Back |
 | D-pad | Arrows, W | D-pad, left stick |
+| Change card / stock | | Right stick: left / right = L / R, up = L + R |
 
-The one-button stock and dodge roll can be turned off in the options; the
-gamepad's X and Y then act as B and A.
+These are the defaults; every action takes two keys and a gamepad button, edited
+on the launcher's Controls page (or `kb_*` / `pad_*` in `kh_com.ini`). The one-button
+stock and dodge roll can be turned off in the options; their gamepad buttons then
+act as A and B.
 
 F11 or Alt+Enter toggles fullscreen.
 
@@ -128,6 +135,8 @@ completion or a compatibility guarantee.
 ## Credits
 
 - Decompilation: [Pheenoh/khcom](https://github.com/Pheenoh/khcom) and contributors (CC0).
+- HD text font: KHMenu, a fan-made recreation of the game's font; Comic Hearts by Sam
+  (see `port/assets/fonts/NOTICE.md`).
 - PC port: ReKHCoM contributors.
 
 The original decompilation README is kept in [README.decomp.md](README.decomp.md).

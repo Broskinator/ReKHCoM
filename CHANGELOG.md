@@ -1,5 +1,35 @@
 # Changelog
 
+## v0.3 — 2026-10-13
+
+Windows x86 prerelease with a launcher and all three cartridge versions.
+
+- ReKHCoM launcher: installs a European, US or Japanese dump (checked by SHA-1),
+  edits the settings, enhancements and controls, and starts the matching game.
+- Builds for the European (`B8CP`), US (`B8CE`) and Japanese (`B8CJ`) cartridges,
+  each with its own save file.
+- Remappable controls: two keys and a gamepad button per action; the right
+  stick changes cards and stocks them.
+- Menus in 16:9: the pause menu, save, world select and level up fill the
+  window's height, anchored to both edges, with no pop when they open, close
+  or enter a sub-option; full-screen sub-menus keep the GBA framing at full
+  height; each screen's side bars match it (title, copyright, language select).
+- Battles: arenas repeat sideways in the wide view; the card hand is lifted
+  8 px (option) so whole cards show.
+- HD text in KHMenu, a fan-made recreation of the game's font, fitted to the
+  game's line widths.
+- Skip the opening (A, then A again).
+- Fixes: crash when reloading cards after the tutorial, stray pointers and
+  division by zero behave as on the GBA, a movie skipped early no longer
+  corrupts the heap, low HP after the intro, centred message boxes without a
+  portrait, letters merging in HD text.
+- Verified: all 194 story events (European and US builds) and all 209 battles
+  of the debug battle menu run without a crash.
+
+The level-up screen bands, the save crystal exit and the door menu in 16:9 are
+still being worked on. Full playthroughs remain unverified. A user-supplied ROM
+is required and is not included.
+
 ## v0.2 — 2026-10-12
 
 Windows x86 prerelease.
