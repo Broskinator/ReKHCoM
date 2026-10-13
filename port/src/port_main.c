@@ -334,7 +334,10 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
    (PortSideStyle): its edge columns stretched (default), its background
    colour, or its paper texture repeated mirrored from clean bands. */
 #define SIDE_STRIP 16
-static int sSideStyle; /* engine.h: 0 stretch, 1 colour, 2 texture, 3 blurred reflection */
+static SDL_Texture* sMenuSideTexture;
+static int sSideStyle; /* engine.h: stretch, colour, texture, blur, menu, pattern */
+static int sMenuPanelSide = -1;
+void PortMenuPanelSide(int side) { sMenuPanelSide = side; }
 
 void PortSideStyle(int style) {
     sSideStyle = style;
@@ -351,6 +354,61 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
     if (x1 - x0 <= 0)
         return;
     SDL_SetTextureScaleMode(sTexture, SDL_SCALEMODE_NEAREST);
+    if (sSideStyle == 4 || sSideStyle == 5) {
+        /* Extend background tiles, never the foreground labels or cursor.
+           The title band keeps its existing edge treatment. */
+        uint32_t strip[SIDE_STRIP * GBA_SCREEN_H];
+        int yy, xx;
+        if (!sMenuSideTexture)
+            sMenuSideTexture = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_XRGB8888,
+                SDL_TEXTUREACCESS_STREAMING, SIDE_STRIP, GBA_SCREEN_H);
+        if (!sMenuSideTexture)
+            return;
+        for (yy = 0; yy < GBA_SCREEN_H; yy++) {
+            uint32_t tabColor = 0;
+            if (sSideStyle == 4 && side == sMenuPanelSide && yy >= 16 && yy < 32) {
+                int a, b, best = 0;
+                /* The tab is a sprite. Use its row's dominant colour so
+                   the eye and an overlapping hand cannot smear outward. */
+                for (a = 0; a < 24; a++) {
+                    int tabX = side < 0 ? sx : edgeX - 23;
+                    uint32_t color = sComposite[(sy + yy) * gPortScreen.width + tabX + a];
+                    int count = 0;
+                    for (b = 0; b < 24; b++)
+                        count += sComposite[(sy + yy) * gPortScreen.width + tabX + b] == color;
+                    if (count > best) {
+                        best = count;
+                        tabColor = color;
+                    }
+                }
+            }
+            for (xx = 0; xx < SIDE_STRIP; xx++) {
+                int sample = edgeX;
+                /* The outside gutter is clear of the grid silhouettes.
+                   Repeat its stipple on either side when the panels swap. */
+                if (sSideStyle == 4 && side == sMenuPanelSide && yy >= 32 && yy < 132)
+                    sample = (side < 0 ? sx : edgeX - 3) + (xx & 3);
+                /* Only the world's ornamental bands repeat horizontally;
+                   its floor badge and text retain the plain edge fill. */
+                if (sSideStyle == 5 && ((yy >= 16 && yy < 24) || (yy >= 136 && yy < (side > 0 ? 154 : 145))))
+                    sample = sx + xx;
+                strip[yy * SIDE_STRIP + xx] = yy < 16 ?
+                    sComposite[(sy + yy) * gPortScreen.width + edgeX] :
+                    gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
+                if (tabColor)
+                    strip[yy * SIDE_STRIP + xx] = tabColor;
+            }
+        }
+        SDL_UpdateTexture(sMenuSideTexture, NULL, strip, SIDE_STRIP * 4);
+        SDL_SetTextureScaleMode(sMenuSideTexture, SDL_SCALEMODE_NEAREST);
+        for (float pos = x0; pos < x1; pos += w) {
+            float width = SDL_min(w, x1 - pos);
+            SDL_FRect src = {0, 0, width / scale, GBA_SCREEN_H};
+            SDL_FRect dst = {pos, y, width, GBA_SCREEN_H * scale};
+            SDL_RenderTexture(sRenderer, sMenuSideTexture, &src, &dst);
+        }
+        return;
+    }
     if (sSideStyle == 1) {
         /* the strip's most common colour: the screen's background */
         static uint16_t count[4096];
@@ -732,6 +790,16 @@ static void HarnessFrame(void) {
     const char* ui = SDL_getenv("KHCOM_OPTIONS_SHOT");
     const char* oam = SDL_getenv("KHCOM_OAMDUMP");
     const char* saveAt = SDL_getenv("KHCOM_SAVESTATE");
+
+    if (SDL_getenv("KHCOM_TRACE_MODES")) {
+        extern const char* PortHarnessModeName(void);
+        static const char* previous;
+        const char* name = PortHarnessModeName();
+        if (name != previous) {
+            PortLog("harness: frame %u mode %s", (unsigned)sFrameCount, name);
+            previous = name;
+        }
+    }
 
     /* KHCOM_MODE=frame:name[:arg][,frame:name...]: switch to a game mode
        (menus, screens) or run a harness action (main.c PortHarnessMode). */

@@ -63,6 +63,11 @@ void PortHarnessSong(int song) {
     m4aSongNumStart((u16)song);
 }
 
+const char* PortHarnessModeName(void) {
+    extern Mode* gCurrentMode;
+    return gCurrentMode != NULL ? gCurrentMode->name : "none";
+}
+
 int PortHarnessMode(const char* name, int arg) {
     static Mode* const modes[] = {
         &gModeDeck, &gModeStatus, &gModeJiminy, &gModeAllmap, &gModeMapinspect, &gModeWorldinspect,

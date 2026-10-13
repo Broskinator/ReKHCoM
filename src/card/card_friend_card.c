@@ -865,8 +865,13 @@ void StockNameSora_0(StockNameWork* work, const s32* src) {
 
 u8 StockNameSora_1(StockNameWork* work) {
 #ifdef VERSION_EU
+#ifdef PLATFORM_PC
+    void** sprites;
+    void* srcTiles;
+#else
     void** sprites = (void**)LANGSTR(gStockNameSprites[work->stockNames[work->stockNameIndex]].sprites);
     void* srcTiles = LANGSTR(gStockNameSprites[work->stockNames[work->stockNameIndex]].tiles);
+#endif
 #endif
 
     if (!gCardBattleState->soraStockNameShown || gCardBattleState->soraStockName != work->stockName) {
@@ -883,12 +888,21 @@ u8 StockNameSora_1(StockNameWork* work) {
         work->stockNameIndex++;
 
         // @bug A full list has no -1 after its six names (reads past stockNames).
+#ifdef PLATFORM_PC
+        if (work->stockNameIndex >= ARRAY_COUNT(work->stockNames) || work->stockNames[work->stockNameIndex] == -1) {
+#else
         if (work->stockNames[work->stockNameIndex] == -1) {
+#endif
             work->stockNameIndex = 0;
         }
 
 #ifdef VERSION_EU
+#ifdef PLATFORM_PC
+        sprites = (void**)LANGSTR(gStockNameSprites[work->stockNames[work->stockNameIndex]].sprites);
+        srcTiles = LANGSTR(gStockNameSprites[work->stockNames[work->stockNameIndex]].tiles);
+#else
         // @bug Uses the previous name's sprites and tiles with this name's sprite index.
+#endif
         UpdateSpriteFrameTiles(work->tiles, sprites[gStockNameSprites[work->stockNames[work->stockNameIndex]].spriteIndex], srcTiles);
 #else
         UpdateSpriteFrameTiles(work->tiles, gStockNameSprites[work->stockNames[work->stockNameIndex]].sprites[gStockNameSprites[work->stockNames[work->stockNameIndex]].spriteIndex], gStockNameSprites[work->stockNames[work->stockNameIndex]].tiles);
@@ -982,8 +996,13 @@ void StockNameRiku_0(StockNameWork* work, const s32* src) {
 
 u8 StockNameRiku_1(StockNameWork* work) {
 #ifdef VERSION_EU
+#ifdef PLATFORM_PC
+    void** sprites;
+    void* srcTiles;
+#else
     void** sprites = (void**)LANGSTR(gStockNameSprites[work->stockNames[work->stockNameIndex]].sprites);
     void* srcTiles = LANGSTR(gStockNameSprites[work->stockNames[work->stockNameIndex]].tiles);
+#endif
 #endif
 
     if (!gCardBattleState->rikuStockNameShown || gCardBattleState->rikuStockName != work->stockName) {
@@ -1000,12 +1019,21 @@ u8 StockNameRiku_1(StockNameWork* work) {
         work->stockNameIndex++;
 
         // @bug A full list has no -1 after its six names (reads past stockNames).
+#ifdef PLATFORM_PC
+        if (work->stockNameIndex >= ARRAY_COUNT(work->stockNames) || work->stockNames[work->stockNameIndex] == -1) {
+#else
         if (work->stockNames[work->stockNameIndex] == -1) {
+#endif
             work->stockNameIndex = 0;
         }
 
 #ifdef VERSION_EU
+#ifdef PLATFORM_PC
+        sprites = (void**)LANGSTR(gStockNameSprites[work->stockNames[work->stockNameIndex]].sprites);
+        srcTiles = LANGSTR(gStockNameSprites[work->stockNames[work->stockNameIndex]].tiles);
+#else
         // @bug Uses the previous name's sprites and tiles with this name's sprite index.
+#endif
         UpdateSpriteFrameTiles(work->tiles, sprites[gStockNameSprites[work->stockNames[work->stockNameIndex]].spriteIndex], srcTiles);
 #else
         UpdateSpriteFrameTiles(work->tiles, gStockNameSprites[work->stockNames[work->stockNameIndex]].sprites[gStockNameSprites[work->stockNames[work->stockNameIndex]].spriteIndex], gStockNameSprites[work->stockNames[work->stockNameIndex]].tiles);

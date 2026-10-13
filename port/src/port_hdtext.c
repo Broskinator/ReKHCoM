@@ -515,25 +515,34 @@ static void DrawSubtitles(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n, 
         int t, prevEnd = glyphs[i].x, gameStart = glyphs[i].x, gameEnd;
 
         for (j = i; j < n && glyphs[j].y == glyphs[i].y; j++) {
-            int gap = glyphs[j].x - prevEnd;
+            int jp = glyphs[j].code > 0xFF, gap = glyphs[j].x - prevEnd;
             if (j > i && gap > 0)
                 hdWidth += space * SDL_max(1, (gap + gameSpace / 2) / gameSpace);
-            hdWidth += (float)Glyph(renderer, font, glyphs[j].code)->advance;
-            prevEnd = glyphs[j].x + widths[glyphs[j].code & 255];
+            hdWidth += jp ? HD_TEXT_JP_CELL * scale : (float)Glyph(renderer, font, glyphs[j].code)->advance;
+            prevEnd = glyphs[j].x + (jp ? HD_TEXT_JP_CELL : widths[glyphs[j].code & 255]);
         }
         gameEnd = prevEnd;
         pen = originX + ((gameStart + gameEnd) * 0.5f) * scale - hdWidth * 0.5f;
         baseline = originY + (glyphs[i].y + HD_TEXT_BASELINE) * scale;
         prevEnd = gameStart;
         for (t = i; t < j; t++) {
-            HdGlyph* g = Glyph(renderer, font, glyphs[t].code);
-            int gap = glyphs[t].x - prevEnd, alpha = glyphs[t].semi ? glyphs[t].semi : 0xFF;
+            int jp = glyphs[t].code > 0xFF, gap = glyphs[t].x - prevEnd, alpha = glyphs[t].semi ? glyphs[t].semi : 0xFF;
             if (t > i && gap > 0)
                 pen += space * SDL_max(1, (gap + gameSpace / 2) / gameSpace);
-            DrawGlyph(renderer, g, pen + shadow, baseline + shadow, glyphs[t].shadow, alpha);
-            DrawGlyph(renderer, g, pen, baseline, glyphs[t].face, alpha);
-            pen += g->advance;
-            prevEnd = glyphs[t].x + widths[glyphs[t].code & 255];
+            if (jp) {
+                HdGlyph* g = GlyphJp(renderer, font, glyphs[t].code);
+                float x = pen + (HD_TEXT_JP_CELL * scale - g->advance) * 0.5f;
+                DrawGlyph(renderer, g, x + shadow, baseline + shadow, glyphs[t].shadow, alpha);
+                DrawGlyph(renderer, g, x, baseline, glyphs[t].face, alpha);
+                pen += HD_TEXT_JP_CELL * scale;
+                prevEnd = glyphs[t].x + HD_TEXT_JP_CELL;
+            } else {
+                HdGlyph* g = Glyph(renderer, font, glyphs[t].code);
+                DrawGlyph(renderer, g, pen + shadow, baseline + shadow, glyphs[t].shadow, alpha);
+                DrawGlyph(renderer, g, pen, baseline, glyphs[t].face, alpha);
+                pen += g->advance;
+                prevEnd = glyphs[t].x + widths[glyphs[t].code & 255];
+            }
         }
     }
 }

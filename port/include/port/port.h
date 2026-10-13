@@ -177,6 +177,7 @@ typedef struct PortScreen {
 
 extern PortScreen gPortScreen;
 extern uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
+extern uint32_t gPortMenuBackground[PORT_MAX_W * PORT_MAX_H];
 
 void PortPpuSetResolution(int w, int h);
 void PortPpuRenderFrame(void);

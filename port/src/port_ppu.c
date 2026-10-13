@@ -188,6 +188,9 @@ static int sScreenDepth, sScreenMark, sOverlay;
 static int sScreenBg[4];
 static uint16_t sScrLine[PORT_MAX_W];
 static uint8_t sScrPrio[PORT_MAX_W];
+static uint8_t sScrIndex[PORT_MAX_W];
+static uint8_t sScreenOccBg[PORT_MAX_W * GBA_SCREEN_H];
+static uint16_t sScreenOccObj[PORT_MAX_W * GBA_SCREEN_H];
 static uint8_t sScrSemi[PORT_MAX_W];
 
 void PortScreenBegin(void) {
@@ -270,6 +273,7 @@ int PortPpuHudActive(void) {
     return sHudLayer;
 }
 uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
+uint32_t gPortMenuBackground[PORT_MAX_W * PORT_MAX_H];
 
 #define PLTT16 ((const uint16_t*)(uintptr_t)GBA_PLTT)
 #define VRAM8 ((const uint8_t*)(uintptr_t)GBA_VRAM)
@@ -702,6 +706,7 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
         sObjSemi[i] = 0;
         sScrLine[i] = TRANSPARENT;
         sScrPrio[i] = 4;
+        sScrIndex[i] = 127;
         sObjWin[i] = 0;
     }
     if (!(dispcnt & 0x1000))
@@ -821,6 +826,7 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
                 if (sScrLine[x] == TRANSPARENT || prio < sScrPrio[x]) {
                     sScrLine[x] = (uint16_t)col;
                     sScrPrio[x] = (uint8_t)prio;
+                    sScrIndex[x] = (uint8_t)i;
                     sScrSemi[x] = (mode == 1);
                 }
             } else if (sObjLine[x] == TRANSPARENT || prio < sObjPrio[x]) {
@@ -933,9 +939,9 @@ static uint16_t Darken(uint16_t c, int ey) {
     return (uint16_t)(r | (g << 5) | (b << 10));
 }
 
-static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgPrio) {
+static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgPrio, uint32_t* frame, int objects) {
     int w = gPortScreen.width;
-    uint32_t* dst = gPortFrame + y * w;
+    uint32_t* dst = frame + y * w;
     uint16_t bldcnt = IO16(0x50);
     uint16_t bldalpha = IO16(0x52);
     int eva = bldalpha & 31, evb = (bldalpha >> 8) & 31;
@@ -970,7 +976,7 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
             dst[x] = 0xFF000000u;
             continue;
         }
-        if (sHudLayer) {
+        if ((sHudLayer || sHdText) && objects) {
             int k, occ = 4, message = 0;
             for (k = 0; k < n; k++) {
                 if ((mask & WIN_BG(order[k])) && sBgLine[order[k]][x] != TRANSPARENT) {
@@ -982,7 +988,7 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
             for (k = 0; k < 4; k++)
                 if (bgOn[k] && sBgDockedLatched[k] && (mask & WIN_BG(k)) && sBgLine[k][x] != TRANSPARENT)
                     message = 1;
-            if (!(mask & WIN_OBJ) || message) {
+            if (!(mask & WIN_OBJ) || (message && sHudLayer)) {
                 sOccBg[y * w + x] = 0;
                 sOccObj[y * w + x] = 0;
             } else {
@@ -993,7 +999,7 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
         for (i = 0; i <= n && found < 2; i++) {
             int prio = (i < n) ? bgPrio[order[i]] : 4;
 
-            if (!objDone && (mask & WIN_OBJ) && sObjLine[x] != TRANSPARENT && sObjPrio[x] <= prio) {
+            if (objects && !objDone && (mask & WIN_OBJ) && sObjLine[x] != TRANSPARENT && sObjPrio[x] <= prio) {
                 objDone = 1;
                 if (found == 0) {
                     top = sObjLine[x];
@@ -1110,9 +1116,23 @@ static void ComposeOverlayLine(int gy, uint16_t dispcnt, const int* bgOn, const 
         uint8_t mask;
 
         dst[ox] = 0;
+        sScreenOccBg[gy * wo + ox] = 0;
+        sScreenOccObj[gy * wo + ox] = 0;
         if (x < 0 || x >= w || gx < sLeft || gx >= sRight)
             continue;
         mask = sWinMask[x];
+        if (sHdText && (mask & WIN_OBJ)) {
+            int occ = 4;
+            for (i = 0; i < n; i++) {
+                if ((mask & WIN_BG(order[i])) && sBgLine[order[i]][x] != TRANSPARENT) {
+                    occ = bgPrio[order[i]];
+                    break;
+                }
+            }
+            sScreenOccBg[gy * wo + ox] = (uint8_t)occ;
+            sScreenOccObj[gy * wo + ox] = sScrLine[x] != TRANSPARENT ?
+                (uint16_t)(sScrPrio[x] * 128 + sScrIndex[x]) : 0xFFFF;
+        }
         for (i = 0; i <= n && found < 2; i++) {
             int prio = (i < n) ? bgPrio[order[i]] : 4;
             if (!objDone && (mask & WIN_OBJ) && sScrLine[x] != TRANSPARENT && sScrPrio[x] <= prio) {
@@ -1171,6 +1191,7 @@ static void RenderLine(int y, int gy) {
         for (x = 0; x < w; x++) {
             int gx = x - gPortScreen.originX;
             dst[x] = (gx < sLeft || gx >= sRight) ? 0xFF000000u : 0xFFFFFFFFu;
+            gPortMenuBackground[y * w + x] = dst[x];
         }
         return;
     }
@@ -1217,7 +1238,9 @@ static void RenderLine(int y, int gy) {
     }
     DrawObjs(gy, dispcnt);
     BuildWindows(gy, dispcnt);
-    ComposeLine(y, dispcnt, bgOn, bgPrio);
+    ComposeLine(y, dispcnt, bgOn, bgPrio, gPortFrame, 1);
+    if (sSceneNarrow)
+        ComposeLine(y, dispcnt, bgOn, bgPrio, gPortMenuBackground, 0);
     if (sOverlay && gy >= 0 && gy < GBA_SCREEN_H)
         ComposeOverlayLine(gy, dispcnt, bgOn, bgPrio);
 }
@@ -1291,11 +1314,11 @@ void PortPpuBeginFrame(void) {
                 sBgWorldLatched[1].valid, sBgWorldLatched[2].valid, sBgWorldLatched[3].valid, IO16(0x08), IO16(0x0A),
                 IO16(0x0C), IO16(0x0E), gPortScreen.wide, sSceneNarrow);
     sHudLayer = gPortScreen.wide && gPortHudScale > 0 && gPortHudW >= GBA_SCREEN_W;
-    if (sHudLayer) {
+    sHdText = gPortConfig.hdText;
+    if (sHudLayer || sHdText) {
         memset(sOccBg, 4, (size_t)gPortScreen.width * gPortScreen.height);
         memset(sOccObj, 0xFF, (size_t)gPortScreen.width * gPortScreen.height * 2);
     }
-    sHdText = gPortConfig.hdText;
     sOverlay = gPortScreenLayer;
     for (b = 0; b < 4; b++) {
         int m = dispcnt & 7;
@@ -1534,6 +1557,28 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
                 oy -= 256;
             if (ox >= sRight)
                 ox -= 512;
+        }
+        if (onScreen) {
+            int px = ox + (gPortOverlayW - GBA_SCREEN_W) / 2 + 4;
+            int py = oy + 6, prio = (a2 >> 10) & 3;
+            if (px >= 0 && px < gPortOverlayW && py >= 0 && py < GBA_SCREEN_H) {
+                int at = py * gPortOverlayW + px;
+                if (sScreenOccBg[at] < prio || sScreenOccObj[at] < prio * 128 + i)
+                    continue;
+            }
+        }
+        if (!onScreen && !onHud) {
+            /* HD glyphs bypass DrawObjs, but must still obey the cartridge's
+               background/window and object priority. A covered glyph must
+               not be painted over a tutorial or confirmation panel. */
+            int px = ox + gPortScreen.originX + 4;
+            int py = oy + gPortScreen.originY + 6;
+            int prio = (a2 >> 10) & 3;
+            if (px >= 0 && px < gPortScreen.width && py >= 0 && py < gPortScreen.height) {
+                int at = py * gPortScreen.width + px;
+                if (sOccBg[at] < prio || (sOccObj[at] != 0 && sOccObj[at] < prio * 128 + i))
+                    continue;
+            }
         }
         if (onScreen) {
             /* the screen layer: GBA lines 0..159, centred in its width */

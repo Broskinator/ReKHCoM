@@ -10,8 +10,7 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   subopción el encuadre cambia solo en un fotograma negro de la transición.
 - [x] Cristal / icono que desaparece y popea al salir del menú de guardado (y de START): el
   objeto blanco de arriba a la derecha es el icono de la sala del minimapa; el juego lo
-  destruía al abrir el menú y lo recreaba al cerrarlo. Ahora se mantiene. Los objetos de sala
-  (cristal, barriles, saltos) también se conservan durante los menús en vez de recrearse.
+  destruía al abrir el menú y lo recreaba al cerrarlo. Ahora se mantiene. La conservación de los demás objetos de sala sigue pendiente de revisión en las transiciones.
 - [ ] Subida de nivel: hueco neón arriba y abajo; algo popea justo antes. Necesita un estado antes de subir
   (el modo de depuración `Mode_Premire` no carga las franjas y los combates de depuración no la muestran).
 - [ ] Menú de desbloquear puertas (síntesis de salas): subir un poco el menú
@@ -26,7 +25,7 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   [ ] bancos de guardado (varios .sav); [ ] revancha de jefes; [ ] repetir tutoriales.
 - [~] Fondos blancos fuera del mapa del castillo → negro. En el vestíbulo ya sale negro;
   si aparece blanco en otra sala, hace falta un estado allí.
-- [x] Transición de puerta y síntesis de salas: cian → negro (barras de estirar borde).
+- [ ] Transición de puerta: el usuario volvió a observar un flash cian; reproducir la ruta natural y corregirlo.
 - [x] Barras laterales: título/menú inicial blanco, copyright crema, idioma con
   grano (sin copiar emblemas), pantalla de carga estirando el último píxel.
 - [x] Arenas de combate: el escenario se repite más allá de los bordes (209 combates revisados).
@@ -40,10 +39,10 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 ## Texto
 
 - [x] Texto HD con la fuente KHMenu (cabe en los recuadros, acentos y ¿¡ nativos).
-- [ ] Comic Hearts para las cinemáticas (subtítulos de las películas).
+- [x] Subtítulos HD de la intro: capturas recientes EU (Comic Hearts) y JP verificadas; ambos procesos terminaron normalmente.
 - [x] Recuadro de mensaje sin retrato descentrado (ranura 2 del usuario).
 - [x] Texto HD en la versión JP (Yu Gothic UI sobre la rejilla del juego).
-- [ ] Texto HD en las fuentes de menú (listas de Estado, etc.).
+- [~] Texto dinámico de menús HD implementado; faltan números y revisión completa de prioridades.
 
 ## Sonido
 
@@ -54,7 +53,8 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 ## Pruebas y publicación
 
 - [~] Baterías: eventos US 194/194; combates US 209/209; combates como Riku 209/209;
-  eventos y combates JP en curso.
+  JP: informes terminados con 194/194 eventos y 209/209 combates sin crash.
+  Son recorridos automáticos limitados, no partidas completas ni validación visual exhaustiva.
 - [x] Menú de opciones del port en japonés (versión JP), con la fuente del cartucho.
 - [x] Launcher: idioma del juego (EU), partidas (fecha, abrir carpeta, copia de seguridad),
   idioma del launcher, versión y firma "por MatyMeatBoy".
@@ -67,3 +67,40 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 - [x] Build nueva instalada en build/pc (ini, save y estados intactos; `khcom_prev.exe` carga
   los estados viejos).
 - [~] Actualizar porcentajes de PROGRESS hasta el 100 % (91 % ahora).
+
+## Revisión de Codex — 13 de octubre de 2026
+
+- [~] Naipes mapa, Estado/magias y barajas: los laterales ahora usan un pase
+  de fondos sin sprites, para no estirar guantes, etiquetas ni cartas.
+  El panel izquierdo repite cuatro píxeles del patrón entre columnas; el tab
+  del ojo y la línea inferior continúan hasta el margen. Revisar todas las
+  pestañas y la edición Añadir/Quitar, especialmente las transiciones.
+- [~] Mapamundi: bandas ajedrezadas extendidas. Usuario confirmó el patrón;
+  tramo inferior derecho ampliado y capturado. Revisar las variantes de planta.
+- [~] Aviso del primer tutorial de naipes mapa: nombre de la carta oculto
+  mientras el mensaje está abierto, también con fuente original. Texto HD
+  comprueba oclusión en las capas de campo y menú; verificar el tutorial.
+- [x] Crash de edición de baraja reproducido desde START al entrar en Añadir.
+  El contador de descripción no se inicializaba; se corrigió. La ruta que fallaba
+  pasa por Añadir/Quitar y vuelve al campo sin crash después de la corrección.
+  La prueba nueva
+  `test_menu_cycles.py` comprueba entradas a Mode_Deck y retornos a Mode_MapFld;
+  doce ciclos completos pasan. La ruta anterior de veinte ciclos terminó sin
+  crash, pero no validaba cada transición. Ampliar a los demás submenús y edición.
+- [ ] Otros crashes al alternar submenús: ampliar la ruta a Estado, Diario,
+  naipes mapa y transiciones con distintas partidas.
+- [ ] Animación superior de salida de submenús: revisar fotogramas de transición.
+- [ ] Sprite a la izquierda antes/después de subir de nivel: reproducir y corregir.
+- [ ] Números HD opcionales: determinar qué números son texto y cuáles forman parte
+  de las ilustraciones de cartas; no sustituir dibujos completos por glifos.
+- [x] Batería de eventos: `--wide` realmente selecciona view_mode=4. Antes
+  generaba resultados etiquetados como panorámicos con view_mode=0.
+- [~] Nombres de combos Sora/Riku: límite de seis entradas y gráficos del nombre
+  actual corregidos bajo PLATFORM_PC. Compilan EU/US/JP; la prueba breve de un
+  combate por personaje termina sin crash, falta comprobar una lista completa.
+- [ ] Publicación siguiente: completar regresiones y las correcciones visuales
+  pendientes antes de presentar v0.5 como versión verificada.
+
+Validación reciente: subtítulos EU/JP en build/subtitles-current. La misma lectura
+inválida de UpdateSpriteOam apareció tanto con modo forzado como entrando desde
+START; la ruta de reproducción está en test_menu_cycles.py --edit.

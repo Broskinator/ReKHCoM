@@ -104,7 +104,10 @@ void ModeStart(Mode* mode, s32 arg) {
     gCurrentMode = mode;
 
 #ifdef PLATFORM_PC
-    PortSideStyle(PORT_SIDE_STRETCH); /* modes choose their own in init */
+    PortMenuPanelSide(-1);
+    PortSideStyle(mode == &gModeAllmap ? PORT_SIDE_PATTERN :
+                  (mode == &gModeDeck || mode == &gModeStatus || mode == &gModeMapinspect)
+                      ? PORT_SIDE_MENU : PORT_SIDE_STRETCH);
     PortSceneNarrow(ModeIsFullScreenMenu(mode));
 #endif
     if (mode->init != NULL) {

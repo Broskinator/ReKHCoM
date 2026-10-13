@@ -1372,6 +1372,12 @@ static void Deckmenu2_0(DeckMenuWork* work, void* resultOut) {
     work->textSlotCount2 = 0;
     work->textSlotCount3 = 0;
     work->textSlotCount4 = 0;
+#ifdef PLATFORM_PC
+    /* The Add transition can draw the caption before selecting a card.
+       Empty slots alone are insufficient: an old count reads past them. */
+    work->textSlotCount5 = 0;
+    work->textSlotCount6 = 0;
+#endif
     InitTextSlots(work->textSlots, ARRAY_COUNT(work->textSlots));
     InitTextSlots(work->textSlots2, ARRAY_COUNT(work->textSlots2));
     InitTextSlots(work->textSlots3, ARRAY_COUNT(work->textSlots3));
@@ -4172,6 +4178,13 @@ void DrawDeckNames(DeckMenuWork* work, u8 flag) {
 }
 
 static void Deckmenu2_2(DeckMenuWork* work) {
+#ifdef PLATFORM_PC
+    /* The collection panel moves to the right in Add mode. Keep the
+       extended gutter attached to that panel, not to the caption box. */
+    PortMenuPanelSide(work->view == DECK_MENU_VIEW_ADD_GRID ||
+                      work->view == DECK_MENU_VIEW_ADD_FILTER ||
+                      work->view == DECK_MENU_VIEW_ADD_VALUE_SELECT ? 1 : -1);
+#endif
     gCardUiSpriteState.gfx = AnimUpdate(&gCardUiSpriteState.anim);
 
     if (work->popupActive == 0) {

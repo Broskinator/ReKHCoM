@@ -877,7 +877,12 @@ void MapSelect_2(MapSelectWork* work) {
 
     PORT_BAND(DrawSprite(128, work->topBarY >> 8, gMapSelectBarFrames[0], work->tiles7, work->palette3, NULL, SPRITE_PRIORITY(2), 80));
     PORT_BAND(DrawSprite(128, work->bottomBarY >> 8, gMapSelectBarFrames[1], work->tiles7, work->palette3, NULL, SPRITE_PRIORITY(2), 80));
-    DrawTextSlots(16, work->nameY >> 8, work->textSlots, work->palette4, 50, work->textSlotCounts[0]);
+#ifdef PLATFORM_PC
+    /* The tutorial owns the caption area, as it owns the hand/highlight.
+       Suppress the underlying card name for both pixel and HD text. */
+    if (!IsMessageWindowOpen())
+#endif
+        DrawTextSlots(16, work->nameY >> 8, work->textSlots, work->palette4, 50, work->textSlotCounts[0]);
     TaskPoolDraw(&work->tasks);
 #ifdef PLATFORM_PC
     PortScreenEnd();

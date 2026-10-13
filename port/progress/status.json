@@ -112,7 +112,7 @@
       "name": "Widescreen: menus & events",
       "weight": 4,
       "done": 93,
-      "notes": "pause menu, save, world select and level up on a screen layer at the window's height, anchored to both edges, no pop on open/close/sub-option; full-screen sub-menus (decks, status, diary, map, world/vortex) at full height with per-screen side bars; level-up bands, save crystal exit and door menu pending"
+      "notes": "Pause/save/world selection/level up use a screen layer. Deck, status and map-card margins now extend backgrounds without foreground sprites; world map repeats ornamental patterns. Level-up sprite, cyan door flash, submenu exit animation and stress crash remain open."
     },
     {
       "name": "Graphics options menu",
@@ -124,7 +124,7 @@
       "name": "Gameplay verification",
       "weight": 10,
       "done": 66,
-      "notes": "all 194 story events (EU, US) and all 209 debug battles as Sora (EU, US) and as Riku run hidden without a crash (port/tools/test_events.py, test_battles.py); Spanish opening, first battle and reload verified; stray pointers and x/0 behave as on the GBA bus"
+      "notes": "Earlier EU/US/JP reports: 194 event and 209 debug battle smoke cases per region; bounded runs, not full playthroughs. Twelve traced START/deck/field cycles passed. Add-card crash reproduced through normal navigation and fixed by initializing caption counts; Add/Remove/field regression passed. Other repeated submenu crashes remain under investigation."
     },
     {
       "name": "Save states",
@@ -135,14 +135,14 @@
     {
       "name": "HD text",
       "weight": 3,
-      "done": 85,
-      "notes": "dialogue and battle messages at output resolution: KHMenu (fan-made KH font) condensed to the game's widths for Latin text, Yu Gothic UI on the game's grid for Japanese; menu fonts pending"
+      "done": 88,
+      "notes": "KHMenu Latin/menu text, Japanese glyphs and Comic Hearts subtitles. Fresh EU/JP opening captures verified after Shift-JIS fix. Map-card tutorial caption hidden while its notice is open; general occlusion regression, stylized art and remaining digits still pending."
     },
     {
       "name": "USA and Japanese versions",
       "weight": 6,
       "done": 80,
-      "notes": "separate builds (configure --version us|jp); US: all 194 story events and all 209 debug battles run; JP: HD text and the options overlay in Japanese with the cartridge font, boots to the file select; own save files"
+      "notes": "Separate native builds and per-region saves. Earlier US and JP reports completed 194 event and 209 battle smoke cases. Latest sources compile for all three regions; fresh visual and gameplay regressions remain."
     },
     {
       "name": "Launcher & ROM install",

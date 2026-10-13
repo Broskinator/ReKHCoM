@@ -176,12 +176,12 @@ def render_md(status, m, overall):
 
 
 def main():
-    status = json.loads(STATUS.read_text())
+    status = json.loads(STATUS.read_text(encoding="utf-8"))
     m = measure()
     total = sum(s["weight"] for s in status["subsystems"])
     overall = sum(s["weight"] * s["done"] for s in status["subsystems"]) / total
-    SVG.write_text(render_svg(status, m, overall), newline="\n")
-    MD.write_text(render_md(status, m, overall), newline="\n")
+    SVG.write_text(render_svg(status, m, overall), encoding="utf-8", newline="\n")
+    MD.write_text(render_md(status, m, overall), encoding="utf-8", newline="\n")
     print(f"overall {overall:.1f}%, native functions {m['c_functions'] + m['asm_ported']}/{m['rom_functions']}")
 
 

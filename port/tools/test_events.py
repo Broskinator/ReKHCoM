@@ -36,7 +36,7 @@ def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False):
     d.mkdir(parents=True)
     for f in ("khcom.exe", "SDL3.dll"):
         shutil.copy(exe_dir / f, d / f)
-    (d / "kh_com.ini").write_text("config_version=2\nview_mode=0\n")
+    (d / "kh_com.ini").write_text(f"config_version=2\nview_mode={4 if wide else 0}\n")
     keys = ",".join(f"{f}-{f + 3}:A" for f in range(30, frames, 40))
     shots = ",".join(str(f) for f in (frames // 4, frames // 2, frames * 3 // 4, frames))
     env = {"SDL_VIDEO_DRIVER": "dummy", "SDL_AUDIO_DRIVER": "dummy", "KHCOM_FAST": "1",
