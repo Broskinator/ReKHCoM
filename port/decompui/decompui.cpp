@@ -1041,9 +1041,9 @@ static void PageControls() {
     }
     ImGui::Spacing();
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
-    ImGui::TextWrapped("%s", T("Fijos: Opciones F1 / Esc (mando: Back + Start), pantalla completa F11 o Alt+Enter, "
+    ImGui::TextWrapped("%s", T("Fijos: Opciones F1 / Esc o Start + Select (en el inicio, solo Select), pantalla completa F11 o Alt+Enter, "
                                "estados F5 / F9.",
-                               "Fixed: options F1 / Esc (gamepad: Back + Start), fullscreen F11 or Alt+Enter, states "
+                               "Fixed: options F1 / Esc or Start + Select (on the title screen, Select alone), fullscreen F11 or Alt+Enter, states "
                                "F5 / F9."));
     ImGui::PopStyleColor();
     ImGui::EndChild();

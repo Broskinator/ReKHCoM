@@ -124,9 +124,10 @@ act as A and B.
 
 F11 or Alt+Enter toggles fullscreen.
 
-F1 or Esc opens the options overlay. At the title screen, Select also opens it;
-on a controller, use Back + Start. F5 saves a state, F9 loads a state, and F6/F7
-change the state slot. Save states do not include cartridge SRAM.
+F1, Esc, or Start + Select (keyboard or controller, as bound) opens the options
+overlay anywhere; at the title screen Select alone opens it. F5 saves a state, F9
+loads a state, and F6/F7 change the state slot. Save states do not include
+cartridge SRAM.
 
 During the opening movie, A shows a prompt; A again skips the movie.
 

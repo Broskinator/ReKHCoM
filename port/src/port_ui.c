@@ -3,8 +3,8 @@
  *
  * Drawn into the frame at the internal resolution with the game's own Latin
  * message font, so it matches the pixel art. Opened from the title screen
- * (SELECT), with F1 / Esc on the keyboard, or Back+Start / Guide on a
- * gamepad. The game is paused while it is open.
+ * (SELECT), with F1 / Esc on the keyboard, or Start + Select (keyboard or
+ * gamepad, as bound) / Guide anywhere. The game is paused while it is open.
  */
 #include <SDL3/SDL.h>
 #include <string.h>
@@ -144,7 +144,6 @@ static char sNotice[96];
 static int sNoticeFrames;
 static int sSkipPrompt;
 static int sModeW[64], sModeH[64], sModeCount;
-static uint32_t sPadBack;
 
 /* ---- drawing ------------------------------------------------------------------ */
 
@@ -592,23 +591,39 @@ int PortUiHandleEvent(const void* p) {
             PortUiOpenOptions();
             return 1;
         }
+        /* Start + Select anywhere (the bound buttons and keys): the other one
+           is read as it is now, so a release the overlay swallowed never
+           leaves a half combo behind. */
         if (ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-            if (ev->gbutton.button == SDL_GAMEPAD_BUTTON_GUIDE
-                || (ev->gbutton.button == SDL_GAMEPAD_BUTTON_START && (sPadBack & 1))
-                || (ev->gbutton.button == SDL_GAMEPAD_BUTTON_BACK && (sPadBack & 2))) {
+            SDL_Gamepad* pad = SDL_GetGamepadFromID(ev->gbutton.which);
+            int start = gPortConfig.pad[PORT_ACT_START], select = gPortConfig.pad[PORT_ACT_SELECT];
+            int b = ev->gbutton.button;
+            if (b == SDL_GAMEPAD_BUTTON_GUIDE
+                || (pad != NULL && b == start && select >= 0 && SDL_GetGamepadButton(pad, (SDL_GamepadButton)select))
+                || (pad != NULL && b == select && start >= 0 && SDL_GetGamepadButton(pad, (SDL_GamepadButton)start))) {
                 PortUiOpenOptions();
                 return 1;
             }
-            if (ev->gbutton.button == SDL_GAMEPAD_BUTTON_BACK)
-                sPadBack |= 1;
-            if (ev->gbutton.button == SDL_GAMEPAD_BUTTON_START)
-                sPadBack |= 2;
         }
-        if (ev->type == SDL_EVENT_GAMEPAD_BUTTON_UP) {
-            if (ev->gbutton.button == SDL_GAMEPAD_BUTTON_BACK)
-                sPadBack &= ~1u;
-            if (ev->gbutton.button == SDL_GAMEPAD_BUTTON_START)
-                sPadBack &= ~2u;
+        if (ev->type == SDL_EVENT_KEY_DOWN && !ev->key.repeat) {
+            const bool* held = SDL_GetKeyboardState(NULL);
+            int i, isStart = 0, isSelect = 0, startHeld = 0, selectHeld = 0;
+            for (i = 0; i < 2; i++) {
+                SDL_Keycode ks = (SDL_Keycode)gPortConfig.keys[PORT_ACT_START][i];
+                SDL_Keycode kl = (SDL_Keycode)gPortConfig.keys[PORT_ACT_SELECT][i];
+                if (ks != 0) {
+                    isStart |= ev->key.key == ks;
+                    startHeld |= held[SDL_GetScancodeFromKey(ks, NULL)];
+                }
+                if (kl != 0) {
+                    isSelect |= ev->key.key == kl;
+                    selectHeld |= held[SDL_GetScancodeFromKey(kl, NULL)];
+                }
+            }
+            if ((isStart && selectHeld) || (isSelect && startHeld)) {
+                PortUiOpenOptions();
+                return 1;
+            }
         }
         return 0;
     }
