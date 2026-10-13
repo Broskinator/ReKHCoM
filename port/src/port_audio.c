@@ -61,6 +61,23 @@ static const uint8_t sDuty[4][8] = {
 
 static const uint8_t sNrx4[4] = { 0x65, 0x6D, 0x75, 0x7D };
 
+/* Mean of a square channel's duty pattern (+1/-1 per eighth) between
+   phase p and p + inc, in eighths: the box-filtered waveform, so the
+   output does not alias the way point samples do. */
+static double DutyIntegral(int duty, double p) {
+    double periods = SDL_floor(p / 8.0), r = p - periods * 8.0, sum = 0;
+    int k, highs = 0;
+
+    for (k = 0; k < 8; k++)
+        highs += sDuty[duty][k];
+    for (k = 0; k < 8 && r > 0; k++) {
+        double part = r >= 1.0 ? 1.0 : r;
+        sum += (sDuty[duty][k] ? part : -part);
+        r -= part;
+    }
+    return periods * (double)(2 * highs - 8) + sum;
+}
+
 static uint16_t RegFreq(int ch) {
     static const uint8_t lo[3] = { 0x64, 0x6C, 0x74 };
     return (uint16_t)(IO8(lo[ch]) | ((IO8(sNrx4[ch]) & 7) << 8));
@@ -235,10 +252,11 @@ static void PsgRender(int n, int rate) {
                 case 1: {
                     int duty = IO8(ch == 0 ? 0x62 : 0x68) >> 6;
                     double hz = 131072.0 / (2048 - c->freq);
-                    c->phase += hz * 8.0 / rate;
+                    double inc = hz * 8.0 / rate, p0 = c->phase;
+                    c->phase += inc;
+                    s = (float)((DutyIntegral(duty, c->phase) - DutyIntegral(duty, p0)) / inc) * (float)c->volume;
                     if (c->phase >= 8.0)
                         c->phase -= 8.0 * (int)(c->phase / 8.0);
-                    s = sDuty[duty][(int)c->phase] ? (float)c->volume : -(float)c->volume;
                     break;
                 }
                 case 2: {
@@ -292,6 +310,11 @@ static void PsgRender(int n, int rate) {
             if (sPsg[ch].on)
                 nr52 |= 1 << ch;
         IO8(0x84) = nr52;
+        if ((nr52 & 15) && SDL_getenv("KHCOM_PSGLOG")) {
+            static int sLogged;
+            if (sLogged++ < 20)
+                PortLog("psg: channels %x nr50 %02x nr51 %02x", nr52 & 15, nr50, nr51);
+        }
     }
 }
 
@@ -300,27 +323,53 @@ static void PsgRender(int n, int rate) {
 typedef struct Fifo {
     uint32_t lastSad;
     uint32_t pos;
+    double frac;
 } Fifo;
 
 static Fifo sFifo[2];
 static double sStreamFrac;
 
-static int FifoActive(int dma) {
-    uint32_t cnt = IO32(0xB8 + dma * 12);
-    return (cnt & 0x80000000u) && ((cnt >> 28) & 3) == 3;
+/* The DMA channel (1 or 2) feeding FIFO A (0) or B (1), 0 if none. */
+static int FifoDma(int fifo) {
+    int dma;
+
+    for (dma = 1; dma <= 2; dma++) {
+        uint32_t cnt = IO32(0xB8 + dma * 12);
+        if ((cnt & 0x80000000u) && ((cnt >> 28) & 3) == 3 && IO32(0xB4 + dma * 12) == 0x040000A0u + fifo * 4)
+            return dma;
+    }
+    return 0;
 }
 
-static void FifoRead(int dma, float* out, int n, float scale) {
-    Fifo* f = &sFifo[dma - 1];
+/* Sample rate of a FIFO: the overflow rate of its timer (SOUNDCNT_H bit 10 / 14). */
+static double FifoRate(int fifo) {
+    int timer = (IO16(0x82) >> (fifo ? 14 : 10)) & 1;
+
+    if (!(IO16(0x102 + timer * 4) & 0x80))
+        return 0;
+    return 16777216.0 / (double)(0x10000 - IO16(0x100 + timer * 4));
+}
+
+/* n output samples from a FIFO's stream, `step` stream samples apiece. */
+static void FifoRead(int fifo, float* out, int n, float scale, double step) {
+    Fifo* f = &sFifo[fifo];
+    int dma = FifoDma(fifo);
     uint32_t sad = IO32(0xB0 + dma * 12);
     int i;
 
     if (sad != f->lastSad) {
         f->lastSad = sad;
         f->pos = sad;
+        f->frac = 0;
     }
-    for (i = 0; i < n; i++)
-        out[i] = (float)*(const int8_t*)(uintptr_t)f->pos++ * scale;
+    for (i = 0; i < n; i++) {
+        out[i] = (float)*(const int8_t*)(uintptr_t)f->pos * scale;
+        f->frac += step;
+        while (f->frac >= 1.0) {
+            f->frac -= 1.0;
+            f->pos++;
+        }
+    }
 }
 
 static int InM4aBuffer(uint32_t addr) {
@@ -439,9 +488,11 @@ void PortAudioFrame(void) {
             sDsBL[i] = gPortMix.left[i] / 256.0f * bScale;
         }
         haveB = 1;
-    } else if (FifoActive(1) && (IO16(0x102) & 0x80)) {
-        uint32_t reload = IO16(0x100);
-        double hz = 16777216.0 / (double)(0x10000 - reload);
+    } else if ((FifoDma(0) && FifoRate(0) > 0) || (FifoDma(1) && FifoRate(1) > 0)) {
+        /* Streams: the output runs at FIFO A's rate (B's when A is idle);
+           the other FIFO is stepped at its own timer's rate. */
+        int lead = FifoDma(0) && FifoRate(0) > 0 ? 0 : 1;
+        double hz = FifoRate(lead);
         double want = hz / GBA_FPS + sStreamFrac;
 
         n = (int)want;
@@ -449,9 +500,13 @@ void PortAudioFrame(void) {
         if (n > FRAME_SAMPLES_MAX)
             n = FRAME_SAMPLES_MAX;
         rate = (int)(hz + 0.5);
-        FifoRead(1, sDsAR, n, aScale);
-        if (FifoActive(2)) {
-            FifoRead(2, sDsBL, n, bScale);
+        if (lead == 0) {
+            FifoRead(0, sDsAR, n, aScale, 1.0);
+        } else {
+            memset(sDsAR, 0, n * sizeof(float));
+        }
+        if (FifoDma(1) && FifoRate(1) > 0) {
+            FifoRead(1, sDsBL, n, bScale, FifoRate(1) / hz);
             haveB = 1;
         }
     } else {
