@@ -1954,6 +1954,9 @@ u8 LayoutMsgGlyphsSjis(s32 x, s32 y, const u8* text) {
                 ReleaseObjTiles(sMsgGlyphSprites[sTextEntryCount].tiles);
             }
 
+#ifdef PLATFORM_PC
+            sMsgGlyphCodes[sTextEntryCount] = code; /* Shift-JIS, for the HD text */
+#endif
             px = cx;
 
             if ((u16)(code - 0x8260) <= 58) {

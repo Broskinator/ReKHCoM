@@ -135,14 +135,14 @@
     {
       "name": "HD text",
       "weight": 3,
-      "done": 75,
-      "notes": "dialogue and battle messages drawn with KHMenu (fan-made KH font) at output resolution, condensed to the game's widths; menus and Japanese text pending"
+      "done": 85,
+      "notes": "dialogue and battle messages at output resolution: KHMenu (fan-made KH font) condensed to the game's widths for Latin text, Yu Gothic UI on the game's grid for Japanese; menu fonts pending"
     },
     {
       "name": "USA and Japanese versions",
       "weight": 6,
-      "done": 62,
-      "notes": "separate builds (configure --version us|jp); all 194 story events and all 209 debug battles run on the US build; JP boots to the file select; own save files; HD text and options overlay in English only"
+      "done": 68,
+      "notes": "separate builds (configure --version us|jp); all 194 story events and all 209 debug battles run on the US build; HD text in English and Japanese; JP boots to the file select; own save files; options overlay in English"
     },
     {
       "name": "Launcher & ROM install",

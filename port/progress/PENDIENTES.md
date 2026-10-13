@@ -39,7 +39,8 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 - [x] Texto HD con la fuente KHMenu (cabe en los recuadros, acentos y ¿¡ nativos).
 - [ ] Comic Hearts para las cinemáticas (subtítulos de las películas).
 - [x] Recuadro de mensaje sin retrato descentrado (ranura 2 del usuario).
-- [ ] Texto HD en la versión JP y en los menús.
+- [x] Texto HD en la versión JP (Yu Gothic UI sobre la rejilla del juego).
+- [ ] Texto HD en las fuentes de menú (listas de Estado, etc.).
 
 ## Sonido
 

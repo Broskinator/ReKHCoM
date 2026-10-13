@@ -164,7 +164,7 @@ typedef struct SpriteTag {
     uint8_t hud;
     int8_t ax;
     int8_t ay;
-    uint16_t text; /* HD text: pixel-font character, 0 for other sprites */
+    uint16_t text; /* HD text: pixel-font character (Shift-JIS in Japanese), 0 for other sprites */
     uint8_t screen; /* drawn by a menu: goes on the screen layer */
 } SpriteTag;
 static SpriteTag sEntryTag[128];
@@ -240,8 +240,10 @@ void PortOamTagsReset(void) {
 static int HdTextGlyph(int oamIndex) {
     int c = sOamTag[oamIndex].text;
 
-    if (!sHdText || c <= 0x20 || c > 0xFF || c == 0x7F)
+    if (!sHdText || c <= 0x20 || c == 0x7F)
         return 0;
+    if (c > 0xFF) /* Shift-JIS (Japanese version); 0x8140 is the wide space */
+        return c >= 0x8141;
     return c != 0x81 && c != 0x8D && c != 0x8F && c != 0x90 && c != 0x9D;
 }
 

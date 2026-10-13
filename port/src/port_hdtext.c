@@ -26,6 +26,10 @@
 #define HD_TEXT_CAP 7.0f
 #define HD_TEXT_BASELINE 11
 #define HD_TEXT_MAX_GLYPHS 256
+/* Japanese: glyphs on a 10-pixel grid, 10 pixels tall, on the same baseline. */
+#define HD_TEXT_JP_CELL 10
+#define HD_TEXT_JP_EM 11.0f
+#define HD_TEXT_JP_CACHE 1024
 
 const uint16_t* PortLatinGlyphWidths(void);
 
@@ -42,7 +46,10 @@ typedef struct HdFont {
     float cap;      /* capital height in output pixels */
     HFONT font;     /* the HD font */
     HFONT fallback; /* for what the HD font lacks: Segoe UI, same capital height */
+    HFONT jp;       /* Japanese version: Yu Gothic UI, the size of the game's 10-pixel glyphs */
     HdGlyph glyphs[256];
+    uint16_t jpCodes[HD_TEXT_JP_CACHE]; /* Shift-JIS codes of jpGlyphs, 0 = free */
+    HdGlyph jpGlyphs[HD_TEXT_JP_CACHE];
 } HdFont;
 
 /* A glyph bitmap in memory: 8-bit coverage, origin as GDI reports it. */
@@ -121,6 +128,12 @@ static void FontRelease(HdFont* f) {
         if (f->glyphs[i].tex != NULL)
             SDL_DestroyTexture(f->glyphs[i].tex);
     }
+    for (i = 0; i < HD_TEXT_JP_CACHE; i++) {
+        if (f->jpGlyphs[i].tex != NULL)
+            SDL_DestroyTexture(f->jpGlyphs[i].tex);
+    }
+    if (f->jp != NULL)
+        DeleteObject(f->jp);
     if (f->fallback != NULL && f->fallback != f->font)
         DeleteObject(f->fallback);
     if (f->font != NULL)
@@ -310,6 +323,56 @@ static int Turned(HdFont* f, WCHAR wc, Bitmap* out) {
     return 1;
 }
 
+static void GlyphTexture(SDL_Renderer* renderer, HdGlyph* g, Bitmap* bm) {
+    g->advance = bm->advance;
+    g->left = bm->left;
+    g->top = bm->top;
+    if (bm->a != NULL && bm->w > 0 && bm->h > 0) {
+        uint32_t* argb = SDL_malloc((size_t)bm->w * bm->h * 4);
+        int i;
+
+        if (argb != NULL) {
+            for (i = 0; i < bm->w * bm->h; i++)
+                argb[i] = ((uint32_t)bm->a[i] << 24) | 0xFFFFFFu;
+            g->tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, bm->w, bm->h);
+            if (g->tex != NULL) {
+                SDL_UpdateTexture(g->tex, NULL, argb, bm->w * 4);
+                SDL_SetTextureBlendMode(g->tex, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureScaleMode(g->tex, SDL_SCALEMODE_NEAREST);
+                g->w = bm->w;
+                g->h = bm->h;
+            }
+            SDL_free(argb);
+        }
+    }
+    SDL_free(bm->a);
+    bm->a = NULL;
+}
+
+/* A Japanese glyph by its Shift-JIS code, from a small open-addressed cache. */
+static HdGlyph* GlyphJp(SDL_Renderer* renderer, HdFont* f, uint16_t code) {
+    static HdGlyph sNone;
+    unsigned slot = (code * 2654435761u) >> 22, k;
+    char sjis[2] = { (char)(code >> 8), (char)code };
+    WCHAR wc;
+    Bitmap bm;
+
+    for (k = 0; k < HD_TEXT_JP_CACHE; k++, slot = (slot + 1) % HD_TEXT_JP_CACHE) {
+        if (f->jpCodes[slot] == code)
+            return &f->jpGlyphs[slot];
+        if (f->jpCodes[slot] == 0)
+            break;
+    }
+    if (k == HD_TEXT_JP_CACHE)
+        return &sNone; /* full: draw nothing rather than evict mid-frame */
+    f->jpCodes[slot] = code;
+    if (f->jp == NULL)
+        f->jp = MakeFont(L"Yu Gothic UI", (int)(HD_TEXT_JP_EM * f->cap / HD_TEXT_CAP + 0.5f), 0, FW_BOLD);
+    if (MultiByteToWideChar(932, 0, sjis, 2, &wc, 1) == 1 && Render(f->jp, wc, &bm))
+        GlyphTexture(renderer, &f->jpGlyphs[slot], &bm);
+    return &f->jpGlyphs[slot];
+}
+
 static HdGlyph* Glyph(SDL_Renderer* renderer, HdFont* f, int code) {
     HdGlyph* g = &f->glyphs[code & 255];
     char c = (char)code;
@@ -328,30 +391,8 @@ static HdGlyph* Glyph(SDL_Renderer* renderer, HdFont* f, int code) {
         ok = Turned(f, wc, &bm) || Render(f->fallback, wc, &bm);
     else
         ok = Compose(f, wc, &bm) || Render(f->fallback, wc, &bm);
-    if (!ok)
-        return g;
-    g->advance = bm.advance;
-    g->left = bm.left;
-    g->top = bm.top;
-    if (bm.a != NULL && bm.w > 0 && bm.h > 0) {
-        uint32_t* argb = SDL_malloc((size_t)bm.w * bm.h * 4);
-        int i;
-
-        if (argb != NULL) {
-            for (i = 0; i < bm.w * bm.h; i++)
-                argb[i] = ((uint32_t)bm.a[i] << 24) | 0xFFFFFFu;
-            g->tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, bm.w, bm.h);
-            if (g->tex != NULL) {
-                SDL_UpdateTexture(g->tex, NULL, argb, bm.w * 4);
-                SDL_SetTextureBlendMode(g->tex, SDL_BLENDMODE_BLEND);
-                SDL_SetTextureScaleMode(g->tex, SDL_SCALEMODE_NEAREST);
-                g->w = bm.w;
-                g->h = bm.h;
-            }
-            SDL_free(argb);
-        }
-    }
-    SDL_free(bm.a);
+    if (ok)
+        GlyphTexture(renderer, g, &bm);
     return g;
 }
 
@@ -395,6 +436,23 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
     if (font->font == NULL)
         return;
     SDL_qsort(glyphs, n, sizeof(glyphs[0]), CompareGlyphs);
+
+    /* Japanese glyphs keep their cells on the game's grid; the rest flow. */
+    for (i = j = 0; i < n; i++) {
+        if (glyphs[i].code > 0xFF) {
+            HdGlyph* g = GlyphJp(renderer, font, glyphs[i].code);
+            float x = originX + glyphs[i].x * scale + (HD_TEXT_JP_CELL * scale - g->advance) * 0.5f;
+            float base = originY + (glyphs[i].y + HD_TEXT_BASELINE) * scale;
+            int alpha = glyphs[i].semi ? 0xA0 : 0xFF;
+            DrawGlyph(renderer, g, x + shadow, base + shadow, glyphs[i].shadow, alpha);
+            DrawGlyph(renderer, g, x, base, glyphs[i].face, alpha);
+        } else {
+            glyphs[j++] = glyphs[i];
+        }
+    }
+    n = j;
+    if (n == 0)
+        return;
 
     /* Words: glyphs on one line, each where the previous one ends. */
     space = (float)Glyph(renderer, font, ' ')->advance;
