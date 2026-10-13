@@ -693,6 +693,7 @@ void mode_chksnd_1() {
         }
 
         if (GetKeysPressed() & A_BUTTON) {
+            // @bug Reads past the end of gSongTable from SND_962 on.
             m4aSongNumStart(sChkSndEntries[sChkSndIndex].songNum);
         }
 
@@ -701,6 +702,7 @@ void mode_chksnd_1() {
         PrintString(5, 0, 0, sChkSndSeparatorText);
 #else
         if (GetKeysPressed() & A_BUTTON) {
+            // @bug Reads past sChkSndEntries before the index wraps, and past gSongTable from SND_962 on.
             m4aSongNumStart(sChkSndEntries[sChkSndIndex].songNum);
         }
 

@@ -691,6 +691,7 @@ void mode_worldinspect_0() {
 
     for (i = 0, slot = sWorldInspectFloorCount; i <= 13; i++) {
         if ((gGameState.availableWorlds & sWorldinspectMsgs[i].flags) != 0) {
+            // @bug Writes past the end of sWorldInspectWorlds when the floors fill it.
             sWorldInspectWorlds[slot++] = sWorldinspectMsgs[i].world;
 
             if (slot > 11) {

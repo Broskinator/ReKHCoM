@@ -1563,6 +1563,7 @@ s32 SELMAP_EVKEY_1(SelmapEventKeyWork* work, void* task) {
         SetTaskUpdate(task, (TaskUpdateFunc)UpdateSelmapEventKeyClose);
     }
 
+    // @bug Reads past the list once the last card is paid.
     if (work->cards[work->paidCount].total != 0) {
         key = GetEventKey(0);
         work->cards[work->paidCount].total = key->value;

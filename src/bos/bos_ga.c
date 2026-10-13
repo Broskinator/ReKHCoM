@@ -2325,6 +2325,7 @@ enum BosGaDefeatStep {
 };
 
 u8 BosGaUpdateDefeat(GaWork* work) {
+    // @bug param.flags is never set (uninitialized read).
     CharaObjParam param;
     u32 i;
     GaEntryWork* entry;

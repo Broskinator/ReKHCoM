@@ -1345,6 +1345,7 @@ u8 CharaObjUpdateDefeat2() {
         if (++sCharaObj->timer > 10) {
             sCharaObj->timer = 0;
             CharaObjFree();
+            // @bug Writes to sCharaObj after freeing it.
             sCharaObj->state++;
         }
 
@@ -1669,6 +1670,7 @@ u8 CharaObjUpdateDefeat() {
             sCharaObj->fadeLevel = 0;
             sCharaObj->timer = 0;
             CharaObjFree();
+            // @bug Writes to sCharaObj after freeing it.
             sCharaObj->state++;
         }
 

@@ -535,6 +535,7 @@ static void Deckmenu2_2(RikuDeckMenuWork* work) {
 
 static void Deckmenu2_3(RikuDeckMenuWork* work) {
     ClearRikuCardGrid(work);
+    // @bug Leaves the card preview's tiles allocated.
     ReleaseObjTiles(work->tiles);
     ReleaseObjTiles(work->tiles2);
     ReleaseObjTiles(work->tiles4);

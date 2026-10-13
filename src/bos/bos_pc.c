@@ -5575,6 +5575,7 @@ u8 BosPcUpdateIdle(PcWork* work, Task* task) {
     BosPcSetAnim(work, 0);
     work->cardDelay -= 1;
 
+    // @bug hpRatio >> 4 can be 0 (division by zero).
     if (work->cardDelay < 0) {
         if ((gBtlWork->flags & BTL_FLAG_PLAYER_CARD_ACTION) == 0) {
             RequestEnemyCardUse(&work->body);
