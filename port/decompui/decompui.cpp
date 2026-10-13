@@ -909,9 +909,11 @@ static void PageControls() {
     Eyebrow(T("CONTROLES", "CONTROLS"));
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("Haz clic en una casilla y pulsa la tecla o el botón. Supr la deja vacía, Esc cancela. "
-                               "Los gatillos y el stick izquierdo funcionan siempre como L/R y cruceta.",
+                               "Los gatillos y el stick izquierdo funcionan siempre como L/R y cruceta; el stick derecho "
+                               "cambia de carta (izquierda/derecha = L/R) y arriba acumula (L+R).",
                                "Click a cell and press the key or button. Delete clears it, Esc cancels. The "
-                               "triggers and the left stick always work as L/R and the d-pad."));
+                               "triggers and the left stick always work as L/R and the d-pad; the right stick "
+                               "changes cards (left/right = L/R) and up stocks (L+R)."));
     ImGui::PopStyleColor();
     if (ImGui::BeginTable("binds", 4, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_PadOuterX)) {
         ImGui::TableSetupColumn(T("Acción", "Action"), ImGuiTableColumnFlags_WidthStretch, 1.3f);

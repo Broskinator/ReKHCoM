@@ -102,6 +102,16 @@ static uint16_t GamepadKeys(SDL_Gamepad* pad) {
         keys |= KEY_UP;
     if (ly > STICK_DEADZONE)
         keys |= KEY_DOWN;
+
+    /* Right stick for the cards: left / right = L / R, up = L + R (stock). */
+    lx = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHTX);
+    ly = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHTY);
+    if (lx < -STICK_DEADZONE * 2)
+        keys |= KEY_L;
+    if (lx > STICK_DEADZONE * 2)
+        keys |= KEY_R;
+    if (ly < -STICK_DEADZONE * 2)
+        keys |= KEY_L | KEY_R;
     return keys;
 }
 

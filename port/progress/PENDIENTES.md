@@ -16,7 +16,10 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   capturas con barras negras eran de la build anterior; "Elige un mundo" no llenaba la altura).
 - [~] Submenús en 16:9 ("todo todo"): Diario, Ver barajas, Estado, Mapamundi, Naipes:
   todos a altura completa con bordes estirados, como la pantalla de carga.
-- [ ] Revisar en cada pendiente si el port de Vita u otro recomp tiene una solución aplicable.
+- [~] Revisar en cada pendiente si el port de Vita u otro recomp tiene una solución aplicable.
+  Del port de Vita (ggdrn/KH_COM_VITA): [x] stick derecho para las cartas (L/R, arriba L+R);
+  [ ] devolver a la mano las cartas acumuladas (Sora); [ ] aviso de puntos moguri en el campo;
+  [ ] bancos de guardado (varios .sav); [ ] revancha de jefes; [ ] repetir tutoriales.
 - [ ] Fondos blancos fuera del mapa del castillo → negro o color que corresponda.
 - [x] Transición de puerta y síntesis de salas: cian → negro (barras de estirar borde).
 - [x] Barras laterales: título/menú inicial blanco, copyright crema, idioma con
