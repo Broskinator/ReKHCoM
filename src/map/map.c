@@ -78,6 +78,10 @@
 #include "mode_sio_api.h"
 #include "card_ui_types.h"
 
+#ifndef PORT_MENU_LEFT
+#define PORT_MENU_LEFT(x) (x)
+#define PORT_MENU_RIGHT(x) (x)
+#endif
 #ifndef PORT_BAND
 #define PORT_BAND(draw) draw /* GBA: one band */
 #endif
@@ -5740,7 +5744,7 @@ void Task_MapMenu_2(MapMenuWork* work) {
     s32 iconOffset;
 
 #ifdef PLATFORM_PC
-    PortFitScreen(); /* GBA-size screen: fill the window's height */
+    PortScreenBegin(); /* menu: drawn on the screen layer, at the window's height */
 #endif
 
     PORT_BAND(DrawSprite(128, work->y >> 8, gMapMenuBarsFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
@@ -5752,14 +5756,14 @@ void Task_MapMenu_2(MapMenuWork* work) {
 #endif
         (gMapRoomState->flags & ROOM_FLAG_HIDE_PLAYER)) {
         if (gGameState.flags & GAME_FLAG_RIKU) {
-            DrawSprite(work->x8 >> 8, work->y4 >> 8, gRikuFf00Frames[0], work->tiles8, work->palette6,
+            DrawSprite(PORT_MENU_RIGHT(work->x8 >> 8), work->y4 >> 8, gRikuFf00Frames[0], work->tiles8, work->palette6,
                 NULL, SPRITE_PRIORITY(1), 80);
         } else {
-            DrawSprite(work->x8 >> 8, work->y4 >> 8, gSor1ff00Frames[0], work->tiles8,
+            DrawSprite(PORT_MENU_RIGHT(work->x8 >> 8), work->y4 >> 8, gSor1ff00Frames[0], work->tiles8,
                 work->palette6, NULL, SPRITE_PRIORITY(1), 80);
         }
 
-        DrawSprite(work->x8 >> 8, work->y4 >> 8, gBtlShadowFrames[0], work->tiles7, work->palette7, NULL,
+        DrawSprite(PORT_MENU_RIGHT(work->x8 >> 8), work->y4 >> 8, gBtlShadowFrames[0], work->tiles7, work->palette7, NULL,
             SPRITE_PRIORITY(1), 81);
     }
 
@@ -5767,108 +5771,108 @@ void Task_MapMenu_2(MapMenuWork* work) {
 #ifdef VERSION_EU
         switch (gLanguage) {
         case LANGUAGE_SPANISH:
-            DrawSprite(work->x >> 8, 0, gMapMenuTitleSpanishFrames[0], work->tiles3, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+            DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapMenuTitleSpanishFrames[0], work->tiles3, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
             break;
         case LANGUAGE_ENGLISH:
         case LANGUAGE_FRENCH:
         case LANGUAGE_ITALIAN:
-            DrawSprite(work->x >> 8, 0, gMapMenuTitleFrames[0], work->tiles3, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+            DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapMenuTitleFrames[0], work->tiles3, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
             break;
         case LANGUAGE_GERMAN:
         default:
-            DrawSprite(work->x >> 8, 0, gMapMenuTitleGermanFrames[0], work->tiles3, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+            DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapMenuTitleGermanFrames[0], work->tiles3, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
             break;
         }
 #else
-        DrawSprite(work->x >> 8, 0, gMapMenuTitleFrames[0], work->tiles3, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+        DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapMenuTitleFrames[0], work->tiles3, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
 #endif
-        DrawSprite(work->x2 >> 8, 14, gMapMenuCharaWinFrames[0], work->tiles4, work->palette2, NULL, SPRITE_PRIORITY(1), 90);
+        DrawSprite(PORT_MENU_RIGHT(work->x2 >> 8), 14, gMapMenuCharaWinFrames[0], work->tiles4, work->palette2, NULL, SPRITE_PRIORITY(1), 90);
 
         if (gGameState.flags & GAME_FLAG_RIKU) {
 #ifdef VERSION_EU
             switch (gLanguage) {
             case LANGUAGE_ENGLISH:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuRikuStatusFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuRikuStatusFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_FRENCH:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusFrenchFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusFrenchFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuRikuStatusFrenchFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusFrenchFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusFrenchFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuRikuStatusFrenchFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_SPANISH:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusSpanishFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusSpanishFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuRikuStatusSpanishFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusSpanishFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusSpanishFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuRikuStatusSpanishFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_ITALIAN:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusItalianFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusItalianFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuRikuStatusItalianFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusItalianFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusItalianFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuRikuStatusItalianFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_GERMAN:
             default:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusGermanFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusGermanFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuRikuStatusGermanFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusGermanFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusGermanFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuRikuStatusGermanFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             }
 #else
-            DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-            DrawSprite(work->x3 >> 8, 0, gMapMenuRikuStatusFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-            DrawSprite(work->x4 >> 8, 103, gMapMenuRikuStatusFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+            DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+            DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuRikuStatusFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+            DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuRikuStatusFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                 81);
 #endif
 
             if (work->tiles9[0] != NULL) {
-                DrawSprite((work->x4 >> 8) + 18, 124, work->gfx[0], work->tiles9[0],
+                DrawSprite(PORT_MENU_RIGHT((work->x4 >> 8) + 18), 124, work->gfx[0], work->tiles9[0],
                     work->palette9[0], NULL, SPRITE_PRIORITY(1), 80);
             }
         } else {
 #ifdef VERSION_EU
             switch (gLanguage) {
             case LANGUAGE_ENGLISH:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuSoraStatusFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuSoraStatusFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_FRENCH:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusFrenchFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusFrenchFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuSoraStatusFrenchFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusFrenchFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusFrenchFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuSoraStatusFrenchFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_SPANISH:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusSpanishFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusSpanishFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuSoraStatusSpanishFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusSpanishFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusSpanishFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuSoraStatusSpanishFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_ITALIAN:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusItalianFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusItalianFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuSoraStatusItalianFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusItalianFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusItalianFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuSoraStatusItalianFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_GERMAN:
             default:
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusGermanFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-                DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusGermanFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x4 >> 8, 103, gMapMenuSoraStatusGermanFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusGermanFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+                DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusGermanFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+                DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuSoraStatusGermanFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             }
 #else
-            DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
-            DrawSprite(work->x3 >> 8, 0, gMapMenuSoraStatusFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
-            DrawSprite(work->x4 >> 8, 103, gMapMenuSoraStatusFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+            DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusFrames[0], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 80);
+            DrawSprite(PORT_MENU_RIGHT(work->x3 >> 8), 0, gMapMenuSoraStatusFrames[1], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1), 81);
+            DrawSprite(PORT_MENU_RIGHT(work->x4 >> 8), 103, gMapMenuSoraStatusFrames[2], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                 81);
 #endif
 
@@ -5876,7 +5880,7 @@ void Task_MapMenu_2(MapMenuWork* work) {
                 iconOffset = i * 20 + 14;
 
                 if (work->tiles9[i] != NULL) {
-                    DrawSprite((work->x4 >> 8) + iconOffset, 124, work->gfx[i], work->tiles9[i],
+                    DrawSprite(PORT_MENU_RIGHT((work->x4 >> 8) + iconOffset), 124, work->gfx[i], work->tiles9[i],
                         work->palette9[i], NULL, SPRITE_PRIORITY(1), 80);
                 }
             }
@@ -5886,32 +5890,32 @@ void Task_MapMenu_2(MapMenuWork* work) {
 #ifdef VERSION_EU
             switch (gLanguage) {
             case LANGUAGE_ENGLISH:
-                DrawSprite(work->x5 >> 8, 144, gMapMenuSoraStatusFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x5 >> 8), 144, gMapMenuSoraStatusFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_FRENCH:
-                DrawSprite(work->x5 >> 8, 144, gMapMenuSoraStatusFrenchFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x5 >> 8), 144, gMapMenuSoraStatusFrenchFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_SPANISH:
-                DrawSprite(work->x5 >> 8, 144, gMapMenuSoraStatusSpanishFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x5 >> 8), 144, gMapMenuSoraStatusSpanishFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_ITALIAN:
-                DrawSprite(work->x5 >> 8, 144, gMapMenuSoraStatusItalianFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x5 >> 8), 144, gMapMenuSoraStatusItalianFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             case LANGUAGE_GERMAN:
             default:
-                DrawSprite(work->x5 >> 8, 144, gMapMenuSoraStatusGermanFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_RIGHT(work->x5 >> 8), 144, gMapMenuSoraStatusGermanFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                     81);
                 break;
             }
 #else
-            DrawSprite(work->x5 >> 8, 144, gMapMenuSoraStatusFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
+            DrawSprite(PORT_MENU_RIGHT(work->x5 >> 8), 144, gMapMenuSoraStatusFrames[3], work->tiles5, work->palette3, NULL, SPRITE_PRIORITY(1),
                 81);
 #endif
-            DrawTextSlots((work->x5 >> 8) + 16, 145, work->textSlots, work->palette8, 50,
+            DrawTextSlots(PORT_MENU_RIGHT((work->x5 >> 8) + 16), 145, work->textSlots, work->palette8, 50,
                 work->textSlotCount);
         }
 
@@ -5919,48 +5923,48 @@ void Task_MapMenu_2(MapMenuWork* work) {
         switch (gLanguage) {
         case LANGUAGE_ENGLISH:
             if (work->cursorVisible) {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsFrames[work->cursor], work->tiles6, work->palette5, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsFrames[work->cursor], work->tiles6, work->palette5, NULL,
                     SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandHighlightFrames[work->cursor], work->tiles6, work->palette4, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandHighlightFrames[work->cursor], work->tiles6, work->palette4, NULL,
                     SPRITE_PRIORITY(1), 81);
             } else {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
                     80);
             }
 
             break;
         case LANGUAGE_FRENCH:
             if (work->cursorVisible) {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsFrenchFrames[work->cursor], work->tiles6, work->palette5, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsFrenchFrames[work->cursor], work->tiles6, work->palette5, NULL,
                     SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandHighlightFrenchFrames[work->cursor], work->tiles6, work->palette4, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandHighlightFrenchFrames[work->cursor], work->tiles6, work->palette4, NULL,
                     SPRITE_PRIORITY(1), 81);
             } else {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsFrenchFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsFrenchFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
                     80);
             }
 
             break;
         case LANGUAGE_SPANISH:
             if (work->cursorVisible) {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsSpanishFrames[work->cursor], work->tiles6, work->palette5, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsSpanishFrames[work->cursor], work->tiles6, work->palette5, NULL,
                     SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandHighlightSpanishFrames[work->cursor], work->tiles6, work->palette4, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandHighlightSpanishFrames[work->cursor], work->tiles6, work->palette4, NULL,
                     SPRITE_PRIORITY(1), 81);
             } else {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsSpanishFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsSpanishFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
                     80);
             }
 
             break;
         case LANGUAGE_ITALIAN:
             if (work->cursorVisible) {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsItalianFrames[work->cursor], work->tiles6, work->palette5, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsItalianFrames[work->cursor], work->tiles6, work->palette5, NULL,
                     SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandHighlightItalianFrames[work->cursor], work->tiles6, work->palette4, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandHighlightItalianFrames[work->cursor], work->tiles6, work->palette4, NULL,
                     SPRITE_PRIORITY(1), 81);
             } else {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsItalianFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsItalianFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
                     80);
             }
 
@@ -5968,12 +5972,12 @@ void Task_MapMenu_2(MapMenuWork* work) {
         case LANGUAGE_GERMAN:
         default:
             if (work->cursorVisible) {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsGermanFrames[work->cursor], work->tiles6, work->palette5, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsGermanFrames[work->cursor], work->tiles6, work->palette5, NULL,
                     SPRITE_PRIORITY(1), 81);
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandHighlightGermanFrames[work->cursor], work->tiles6, work->palette4, NULL,
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandHighlightGermanFrames[work->cursor], work->tiles6, work->palette4, NULL,
                     SPRITE_PRIORITY(1), 81);
             } else {
-                DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsGermanFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
+                DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsGermanFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
                     80);
             }
 
@@ -5981,12 +5985,12 @@ void Task_MapMenu_2(MapMenuWork* work) {
         }
 #else
         if (work->cursorVisible) {
-            DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsFrames[work->cursor], work->tiles6, work->palette5, NULL,
+            DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsFrames[work->cursor], work->tiles6, work->palette5, NULL,
                 SPRITE_PRIORITY(1), 81);
-            DrawSprite(work->x6 >> 8, 26, gMapMenuCommandHighlightFrames[work->cursor], work->tiles6, work->palette4, NULL,
+            DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandHighlightFrames[work->cursor], work->tiles6, work->palette4, NULL,
                 SPRITE_PRIORITY(1), 81);
         } else {
-            DrawSprite(work->x6 >> 8, 26, gMapMenuCommandsFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
+            DrawSprite(PORT_MENU_LEFT(work->x6 >> 8), 26, gMapMenuCommandsFrames[7], work->tiles6, work->palette5, NULL, SPRITE_PRIORITY(1),
                 80);
         }
 #endif
@@ -6006,7 +6010,7 @@ void Task_MapMenu_2(MapMenuWork* work) {
             case MAP_CONFIRM_CURSOR_NONE:
             default:
                 ApproachValueHalf(&work->y3, (work->cursor * 19 + 16) << 8);
-                DrawSprite(24, work->y3 >> 8, AnimGetGfx(&work->anim), work->tiles, work->palette, NULL,
+                DrawSprite(PORT_MENU_LEFT(24), work->y3 >> 8, AnimGetGfx(&work->anim), work->tiles, work->palette, NULL,
                     SPRITE_PRIORITY(1) | SPRITE_FLAG_HFLIP, 60);
                 break;
             }
@@ -6025,6 +6029,9 @@ void Task_MapMenu_2(MapMenuWork* work) {
             DrawTextSlots(144, 84, work->textSlots4, work->confirmPalette, 70, work->textSlotCount4);
         }
     }
+#ifdef PLATFORM_PC
+    PortScreenEnd();
+#endif
 }
 
 void Task_MapMenu_3(MapMenuWork* work) {
@@ -6488,7 +6495,8 @@ s32 Task_MapSave_1(MapSaveWork* work) {
 
 void Task_MapSave_2(MapSaveWork* work) {
 #ifdef PLATFORM_PC
-    PortFitScreen(); /* GBA-size screen: fill the window's height */
+    PortScreenBegin(); /* menu: drawn on the screen layer, at the window's height */
+    PortBgSplit(0, 8); /* the file panel goes right with its text */
 #endif
     TaskPoolDraw(&work->tasks);
 
@@ -6497,91 +6505,97 @@ void Task_MapSave_2(MapSaveWork* work) {
     case LANGUAGE_ENGLISH:
         PORT_BAND(DrawSprite(128, work->y >> 8, gMapSaveTitleFrames[1], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
         PORT_BAND(DrawSprite(128, work->y2 >> 8, gMapSaveTitleFrames[2], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
-        DrawSprite(work->x >> 8, 0, gMapSaveTitleFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+        DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapSaveTitleFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
         break;
     case LANGUAGE_FRENCH:
         PORT_BAND(DrawSprite(128, work->y >> 8, gMapSaveTitleFrenchFrames[1], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
         PORT_BAND(DrawSprite(128, work->y2 >> 8, gMapSaveTitleFrenchFrames[2], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
-        DrawSprite(work->x >> 8, 0, gMapSaveTitleFrenchFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+        DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapSaveTitleFrenchFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
         break;
     case LANGUAGE_SPANISH:
         PORT_BAND(DrawSprite(128, work->y >> 8, gMapSaveTitleSpanishFrames[1], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
         PORT_BAND(DrawSprite(128, work->y2 >> 8, gMapSaveTitleSpanishFrames[2], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
-        DrawSprite(work->x >> 8, 0, gMapSaveTitleSpanishFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+        DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapSaveTitleSpanishFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
         break;
     case LANGUAGE_ITALIAN:
         PORT_BAND(DrawSprite(128, work->y >> 8, gMapSaveTitleItalianFrames[1], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
         PORT_BAND(DrawSprite(128, work->y2 >> 8, gMapSaveTitleItalianFrames[2], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
-        DrawSprite(work->x >> 8, 0, gMapSaveTitleItalianFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+        DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapSaveTitleItalianFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
         break;
     case LANGUAGE_GERMAN:
     default:
         PORT_BAND(DrawSprite(128, work->y >> 8, gMapSaveTitleGermanFrames[1], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
         PORT_BAND(DrawSprite(128, work->y2 >> 8, gMapSaveTitleGermanFrames[2], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
-        DrawSprite(work->x >> 8, 0, gMapSaveTitleGermanFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+        DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapSaveTitleGermanFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
         break;
     }
 #else
     PORT_BAND(DrawSprite(128, work->y >> 8, gMapSaveTitleFrames[1], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
     PORT_BAND(DrawSprite(128, work->y2 >> 8, gMapSaveTitleFrames[2], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 90));
-    DrawSprite(work->x >> 8, 0, gMapSaveTitleFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
+    DrawSprite(PORT_MENU_LEFT(work->x >> 8), 0, gMapSaveTitleFrames[0], work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1), 80);
 #endif
 
     if (gMapRoomState->flags & ROOM_FLAG_HIDE_PLAYER) {
         if (gGameState.flags & GAME_FLAG_RIKU) {
-            DrawSprite(work->x3 >> 8, work->y3 >> 8, gRikuFf00Frames[0], work->tiles4, work->palette5,
+            DrawSprite(PORT_MENU_LEFT(work->x3 >> 8), work->y3 >> 8, gRikuFf00Frames[0], work->tiles4, work->palette5,
                 NULL, SPRITE_PRIORITY(1), 80);
         } else {
-            DrawSprite(work->x3 >> 8, work->y3 >> 8, gSor1ff00Frames[0], work->tiles4,
+            DrawSprite(PORT_MENU_LEFT(work->x3 >> 8), work->y3 >> 8, gSor1ff00Frames[0], work->tiles4,
                 work->palette5, NULL, SPRITE_PRIORITY(1), 80);
         }
     }
 
     if (work->dialogVisible) {
         if (!(gGameState.flags & GAME_FLAG_RIKU)) {
-            DrawSprite(72, 96, gDonaFl00Frames[0], work->tiles5, work->palette6, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_HFLIP, 81);
-            DrawSprite(40, 96, gGoofyFl00Frames[0], work->tiles6, work->palette7, NULL, SPRITE_PRIORITY(1), 81);
+            DrawSprite(PORT_MENU_LEFT(72), 96, gDonaFl00Frames[0], work->tiles5, work->palette6, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_HFLIP, 81);
+            DrawSprite(PORT_MENU_LEFT(40), 96, gGoofyFl00Frames[0], work->tiles6, work->palette7, NULL, SPRITE_PRIORITY(1), 81);
         }
 
-        DrawSprite(0, 16, gSaveSlotCharaWinFrame0, work->tiles3, work->palette3, NULL, SPRITE_PRIORITY(1), 90);
-        DrawTextSlots(100, 59, work->textSlots, work->palette4, 50, work->textSlotCount);
+        DrawSprite(PORT_MENU_LEFT(0), 16, gSaveSlotCharaWinFrame0, work->tiles3, work->palette3, NULL, SPRITE_PRIORITY(1), 90);
+        DrawTextSlots(PORT_MENU_RIGHT(100), 59, work->textSlots, work->palette4, 50, work->textSlotCount);
 
         if (work->confirmCursor != MAP_CONFIRM_CURSOR_NONE) {
 #ifdef VERSION_EU
-            DrawTextSlots(166 - (GetTextSlotsWidth(work->textSlots2, work->textSlotCount2) >> 1), 92, work->textSlots2, work->palette8, 50, work->textSlotCount2);
+            DrawTextSlots(PORT_MENU_RIGHT(166 - (GetTextSlotsWidth(work->textSlots2, work->textSlotCount2) >> 1)), 92, work->textSlots2, work->palette8, 50, work->textSlotCount2);
 #elif defined(VERSION_JP)
-            DrawTextSlots(129, 92, work->textSlots2, work->palette8, 50, work->textSlotCount2);
+            DrawTextSlots(PORT_MENU_RIGHT(129), 92, work->textSlots2, work->palette8, 50, work->textSlotCount2);
 #else
-            DrawTextSlots(124, 92, work->textSlots2, work->palette8, 50, work->textSlotCount2);
+            DrawTextSlots(PORT_MENU_RIGHT(124), 92, work->textSlots2, work->palette8, 50, work->textSlotCount2);
 #endif
-            DrawTextSlots(128, 114, work->textSlots3, work->palette8, 50, work->textSlotCount3);
-            DrawTextSlots(184, 114, work->textSlots4, work->palette8, 50, work->textSlotCount4);
+            DrawTextSlots(PORT_MENU_RIGHT(128), 114, work->textSlots3, work->palette8, 50, work->textSlotCount3);
+            DrawTextSlots(PORT_MENU_RIGHT(184), 114, work->textSlots4, work->palette8, 50, work->textSlotCount4);
         } else {
 #ifdef VERSION_EU
-            DrawTextSlots(166 - (GetTextSlotsWidth(work->textSlots2, work->textSlotCount2) >> 1), 102, work->textSlots2, work->palette8, 50, work->textSlotCount2);
+            DrawTextSlots(PORT_MENU_RIGHT(166 - (GetTextSlotsWidth(work->textSlots2, work->textSlotCount2) >> 1)), 102, work->textSlots2, work->palette8, 50, work->textSlotCount2);
 #elif defined(VERSION_JP)
-            DrawTextSlots(129, 103, work->textSlots2, work->palette8, 50, work->textSlotCount2);
+            DrawTextSlots(PORT_MENU_RIGHT(129), 103, work->textSlots2, work->palette8, 50, work->textSlotCount2);
 #else
-            DrawTextSlots(130, 102, work->textSlots2, work->palette8, 50, work->textSlotCount2);
+            DrawTextSlots(PORT_MENU_RIGHT(130), 102, work->textSlots2, work->palette8, 50, work->textSlotCount2);
 #endif
         }
 
         switch (work->confirmCursor) {
         case MAP_CONFIRM_CURSOR_YES:
             ApproachValueHalf(&work->x2, 0x7800);
-            DrawSprite(work->x2 >> 8, 110, AnimGetGfx(&work->anim), work->tiles, work->palette, NULL, SPRITE_FLAG_HFLIP,
+            DrawSprite(PORT_MENU_RIGHT(work->x2 >> 8), 110, AnimGetGfx(&work->anim), work->tiles, work->palette, NULL, SPRITE_FLAG_HFLIP,
                 40);
             break;
         case MAP_CONFIRM_CURSOR_NO:
             ApproachValueHalf(&work->x2, 0xB000);
-            DrawSprite(work->x2 >> 8, 110, AnimGetGfx(&work->anim), work->tiles, work->palette, NULL, SPRITE_FLAG_HFLIP,
+            DrawSprite(PORT_MENU_RIGHT(work->x2 >> 8), 110, AnimGetGfx(&work->anim), work->tiles, work->palette, NULL, SPRITE_FLAG_HFLIP,
                 40);
             break;
         }
     }
+#ifdef PLATFORM_PC
+    PortScreenEnd();
+#endif
 }
 
 void Task_MapSave_3(MapSaveWork* work) {
+#ifdef PLATFORM_PC
+    PortBgSplit(0, 0);
+#endif
     u32 roomFlags;
 
     MapSaveSetCharaPalettesExcluded(work, FALSE);

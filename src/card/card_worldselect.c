@@ -63,6 +63,10 @@
 #include "jiminy_records_index_data.h"
 #include "gba/io_reg.h"
 
+#ifndef PORT_MENU_LEFT
+#define PORT_MENU_LEFT(x) (x)
+#define PORT_MENU_RIGHT(x) (x)
+#endif
 #ifndef PORT_BAND
 #define PORT_BAND(draw) draw /* GBA: one band */
 #endif
@@ -820,10 +824,10 @@ u8 UpdateMapSelectClose(MapSelectWork* work) {
 
 void MapSelect_2(MapSelectWork* work) {
 #ifdef PLATFORM_PC
-    PortFitScreen(); /* GBA-size screen: fill the window's height */
+    PortScreenBegin(); /* menu: drawn on the screen layer, at the window's height */
 #endif
     if (work->tiles3 != NULL && work->palette3 != NULL) {
-        DrawSprite(work->titleX >> 8, work->titleY >> 8,
+        DrawSprite(PORT_MENU_LEFT(work->titleX >> 8), work->titleY >> 8,
 #ifdef VERSION_EU
                    gMapSelectTitleSpritesByLanguage[gLanguage][0],
 #else
@@ -875,6 +879,9 @@ void MapSelect_2(MapSelectWork* work) {
     PORT_BAND(DrawSprite(128, work->bottomBarY >> 8, gMapSelectBarFrames[1], work->tiles7, work->palette3, NULL, SPRITE_PRIORITY(2), 80));
     DrawTextSlots(16, work->nameY >> 8, work->textSlots, work->palette4, 50, work->textSlotCounts[0]);
     TaskPoolDraw(&work->tasks);
+#ifdef PLATFORM_PC
+    PortScreenEnd();
+#endif
 }
 
 void MapSelect_3(MapSelectWork* work) {

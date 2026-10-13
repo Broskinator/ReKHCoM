@@ -91,6 +91,17 @@ def main():
         lines.append(f"{'Sora' if l == 0 else 'Riku'} {i:3d} {name:40s} {status:10s} "
                      + (f"bios sites: {' '.join(bios)}" if bios else ""))
     lines.append(f"{len(results) - bad}/{len(results)} events ok")
+    # Sanity check: distinct events end on distinct pictures. Many identical
+    # last screenshots mean the harness did not start the events at all.
+    import hashlib
+    hashes = {}
+    for (l, i) in results:
+        shots = sorted((work / f"{l}_{i:03d}").glob("shot_*.bmp"))
+        if shots:
+            h = hashlib.sha1(shots[-1].read_bytes()).hexdigest()
+            hashes[h] = hashes.get(h, 0) + 1
+    if hashes and max(hashes.values()) > len(results) // 4:
+        lines.append(f"WARNING: {max(hashes.values())} events end on the same picture; were they started?")
     (work / "report.txt").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 

@@ -201,6 +201,14 @@ static int sAutoScale;
 /* GBA-size screens (menus, battle start): the game marks each frame. The
    160 lines then fill the window's height at a fractional scale. */
 static int sFitMark, sFit;
+/* Screen layer (menus over the world), see port_ppu.c. */
+extern uint32_t gPortOverlay[];
+extern int gPortOverlayW, gPortScreenLayer;
+int PortTakeScreenMark(void);
+int PortPpuOverlayActive(void);
+static SDL_Texture* sOverlayTex;
+static int sOverlayTexW;
+static float sOverlayScale;
 
 void PortFitScreen(void) {
     sFitMark = 1;
@@ -211,6 +219,7 @@ static uint32_t sHudBuf[PORT_MAX_W * PORT_MAX_H];
 
 int gPortIntroRequested;
 int gPortEventTest = -1; /* KHCOM_EVENT=list:index (0 Sora, 1 Riku) */
+int gPortMovieTest = -1; /* KHCOM_MOVIE=id (mode_movie.h) */
 int gPortStartupLanguage = -1;
 
 /* Auto view: size the canvas to the window every frame. */
@@ -224,6 +233,14 @@ static void UpdateResolution(void) {
         if (!SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH) || outW <= 0 || outH <= 0)
             return;
         PortConfigAutoView(outW, outH, &w, &h, &sAutoScale);
+    }
+    /* screen layer: the 160 GBA lines at the window's height */
+    gPortOverlayW = GBA_SCREEN_W;
+    sOverlayScale = 0;
+    if (gPortConfig.viewMode == PORT_VIEW_AUTO) {
+        float f = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
+        gPortOverlayW = SDL_max(GBA_SCREEN_W, SDL_min((int)SDL_ceilf(outW / f), PORT_MAX_W));
+        sOverlayScale = f;
     }
     sFitScale = 0;
     if (sFit && gPortConfig.viewMode == PORT_VIEW_AUTO) {
@@ -347,6 +364,24 @@ static void Present(void) {
     }
     if (!PortUiActive())
         PortHdTextDraw(sRenderer, 0, worldX, worldY, worldScale);
+    if (PortPpuOverlayActive() && sOverlayScale > 0) {
+        SDL_FRect od;
+        if (sOverlayTex == NULL || sOverlayTexW != gPortOverlayW) {
+            if (sOverlayTex != NULL)
+                SDL_DestroyTexture(sOverlayTex);
+            sOverlayTexW = gPortOverlayW;
+            sOverlayTex = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+                                            sOverlayTexW, GBA_SCREEN_H);
+            SDL_SetTextureBlendMode(sOverlayTex, SDL_BLENDMODE_BLEND);
+            SDL_SetTextureScaleMode(sOverlayTex, SDL_SCALEMODE_PIXELART);
+        }
+        SDL_UpdateTexture(sOverlayTex, NULL, gPortOverlay, sOverlayTexW * 4);
+        od.w = sOverlayTexW * sOverlayScale;
+        od.h = GBA_SCREEN_H * sOverlayScale;
+        od.x = (float)(int)((outW - od.w) / 2);
+        od.y = (float)(int)((outH - od.h) / 2);
+        SDL_RenderTexture(sRenderer, sOverlayTex, NULL, &od);
+    }
     if (PortPpuHudActive()) {
         SDL_FRect hd;
         if (sHudTexture == NULL || sHudTexW != gPortHudW || sHudTexH != gPortHudH) {
@@ -640,6 +675,7 @@ static void VBlankCycle(void) {
     PortBiosAreaRefresh();
     sFit = sFitMark;
     sFitMark = 0;
+    gPortScreenLayer = PortTakeScreenMark() && gPortConfig.viewMode == PORT_VIEW_AUTO;
     UpdateResolution();
 
     /* Visible lines (HBlank / VCount events in between). */
@@ -747,6 +783,8 @@ int main(int argc, char** argv) {
         }
     }
 
+    if (SDL_getenv("KHCOM_MOVIE"))
+        gPortMovieTest = SDL_atoi(SDL_getenv("KHCOM_MOVIE"));
     if (SDL_getenv("KHCOM_EVENT")) {
         const char* e = SDL_getenv("KHCOM_EVENT");
         const char* colon = SDL_strchr(e, ':');

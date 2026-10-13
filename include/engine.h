@@ -66,11 +66,20 @@ void PortUiSkipPrompt(int visible);
 /* This frame shows a GBA-size screen (menus, the battle start): scale the
    160 lines to the window's height. Called every frame it applies. */
 void PortFitScreen(void);
+/* Menus drawn over the world: their sprites and screen layers go on their
+   own layer, scaled to the window's height, while the world keeps its scale.
+   PortScreenMarginX() is that layer's margin beyond the GBA screen. */
+void PortScreenBegin(void);
+void PortScreenEnd(void);
+int PortScreenMarginX(void);
+void PortBgSplit(int bg, int column);
+#define PORT_MENU_LEFT(x) ((x) - PortScreenMarginX())
+#define PORT_MENU_RIGHT(x) ((x) + PortScreenMarginX())
 /* A band across the GBA screen (menu title bars): drawn twice, moved into
    both margins of the wide view, so it reaches its edges. */
 #define PORT_BAND(draw)                \
     do {                               \
-        int m_ = PortWideMarginX();    \
+        int m_ = PortScreenMarginX();  \
         gPortSpriteShiftX -= m_;       \
         draw;                          \
         gPortSpriteShiftX += m_;       \

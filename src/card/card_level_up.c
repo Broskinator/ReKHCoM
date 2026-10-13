@@ -44,6 +44,10 @@
 #include "battle_ids.h"
 #include "macros.h"
 
+#ifndef PORT_MENU_LEFT
+#define PORT_MENU_LEFT(x) (x)
+#define PORT_MENU_RIGHT(x) (x)
+#endif
 #ifndef PORT_BAND
 #define PORT_BAND(draw) draw /* GBA: one band */
 #endif
@@ -82,6 +86,11 @@ enum LevelUpStat {
 };
 
 void Level_Up_0(LevelUpWork* work) {
+#ifdef PLATFORM_PC
+    /* screen layer: bonus boxes left, stat panels right */
+    PortBgSplit(0, 146);
+    PortBgSplit(1, 146);
+#endif
     s16 x;
     s16 y;
 
@@ -1097,13 +1106,13 @@ void Level_Up_2(LevelUpWork* work) {
     u8 i = 0;
 
 #ifdef PLATFORM_PC
-    PortFitScreen(); /* GBA-size screen: fill the window's height */
+    PortScreenBegin(); /* menu: drawn on the screen layer, at the window's height */
 #endif
 
     if (work->loaded[0] != 0) {
         switch (work->state) {
         case LEVEL_UP_STATE_SLIDE_IN:
-            DrawSprite(work->headerX, 0,
+            DrawSprite(PORT_MENU_LEFT(work->headerX), 0,
 #ifdef VERSION_EU
                        gLevelUpHeaderSpritesByLanguage[gLanguage][10],
 #else
@@ -1115,10 +1124,10 @@ void Level_Up_2(LevelUpWork* work) {
 #ifdef VERSION_EU
                 if (gLanguage != LANGUAGE_ITALIAN) {
 #endif
-                    DrawSprite(work->bonusX[0], work->bonusY[0], gLevelUpSoraBonusFrames[0], work->tilesPalettes[0], work->tilesPalettes[4], NULL, 0, 50);
+                    DrawSprite(PORT_MENU_LEFT(work->bonusX[0]), work->bonusY[0], gLevelUpSoraBonusFrames[0], work->tilesPalettes[0], work->tilesPalettes[4], NULL, 0, 50);
 #ifdef VERSION_EU
                 } else {
-                    DrawSprite(work->bonusX[0], work->bonusY[0], gLevelUpSoraBonusItalianFrames[0], work->tilesPalettes[0], work->tilesPalettes[4], NULL, 0, 50);
+                    DrawSprite(PORT_MENU_LEFT(work->bonusX[0]), work->bonusY[0], gLevelUpSoraBonusItalianFrames[0], work->tilesPalettes[0], work->tilesPalettes[4], NULL, 0, 50);
                 }
 #endif
             }
@@ -1127,10 +1136,10 @@ void Level_Up_2(LevelUpWork* work) {
 #ifdef VERSION_EU
                 if (gLanguage != LANGUAGE_ITALIAN) {
 #endif
-                    DrawSprite(work->bonusX[1], work->bonusY[1], gLevelUpSoraBonusFrames[1], work->tilesPalettes[1], work->tilesPalettes[4], NULL, 0, 50);
+                    DrawSprite(PORT_MENU_LEFT(work->bonusX[1]), work->bonusY[1], gLevelUpSoraBonusFrames[1], work->tilesPalettes[1], work->tilesPalettes[4], NULL, 0, 50);
 #ifdef VERSION_EU
                 } else {
-                    DrawSprite(work->bonusX[1], work->bonusY[1], gLevelUpSoraBonusItalianFrames[1], work->tilesPalettes[1], work->tilesPalettes[4], NULL, 0, 50);
+                    DrawSprite(PORT_MENU_LEFT(work->bonusX[1]), work->bonusY[1], gLevelUpSoraBonusItalianFrames[1], work->tilesPalettes[1], work->tilesPalettes[4], NULL, 0, 50);
                 }
 #endif
             }
@@ -1139,10 +1148,10 @@ void Level_Up_2(LevelUpWork* work) {
 #ifdef VERSION_EU
                 if (gLanguage != LANGUAGE_ITALIAN) {
 #endif
-                    DrawSprite(work->bonusX[2], work->bonusY[2], gLevelUpSoraBonusFrames[2], work->tilesPalettes[2], work->tilesPalettes[4], NULL, 0, 50);
+                    DrawSprite(PORT_MENU_LEFT(work->bonusX[2]), work->bonusY[2], gLevelUpSoraBonusFrames[2], work->tilesPalettes[2], work->tilesPalettes[4], NULL, 0, 50);
 #ifdef VERSION_EU
                 } else {
-                    DrawSprite(work->bonusX[2], work->bonusY[2], gLevelUpSoraBonusItalianFrames[2], work->tilesPalettes[2], work->tilesPalettes[4], NULL, 0, 50);
+                    DrawSprite(PORT_MENU_LEFT(work->bonusX[2]), work->bonusY[2], gLevelUpSoraBonusItalianFrames[2], work->tilesPalettes[2], work->tilesPalettes[4], NULL, 0, 50);
                 }
 #endif
             }
@@ -1154,65 +1163,65 @@ void Level_Up_2(LevelUpWork* work) {
             for (; i < ARRAY_COUNT(work->textX); i++) {
                 if (i == work->cursor) {
 #ifdef VERSION_EU
-                    DrawSprite(work->textX[i] + 5, work->textY[i] - 4, NULL, work->tiles5[i], work->palette, NULL, 0, 40);
+                    DrawSprite(PORT_MENU_LEFT(work->textX[i] + 5), work->textY[i] - 4, NULL, work->tiles5[i], work->palette, NULL, 0, 40);
 #else
-                    DrawTextSlots(work->textX[i] + 22, work->textY[i] - 5, work->textSlots[i], work->palette, 40, work->textSlotCounts[i]);
-                    DrawTextSlots(work->textX[i] + 4, work->textY[i] + 13, work->textSlots[i + 3], work->palette, 40, work->textSlotCounts[i + 3]);
+                    DrawTextSlots(PORT_MENU_LEFT(work->textX[i] + 22), work->textY[i] - 5, work->textSlots[i], work->palette, 40, work->textSlotCounts[i]);
+                    DrawTextSlots(PORT_MENU_LEFT(work->textX[i] + 4), work->textY[i] + 13, work->textSlots[i + 3], work->palette, 40, work->textSlotCounts[i + 3]);
 #endif
                 } else {
 #ifdef VERSION_EU
-                    DrawSprite(work->textX[i] + 3, work->textY[i] - 2, NULL, work->tiles5[i], work->palette2, NULL, 0, 40);
+                    DrawSprite(PORT_MENU_LEFT(work->textX[i] + 3), work->textY[i] - 2, NULL, work->tiles5[i], work->palette2, NULL, 0, 40);
 #else
-                    DrawTextSlots(work->textX[i] + 20, work->textY[i] - 3, work->textSlots[i], work->palette2, 40, work->textSlotCounts[i]);
-                    DrawTextSlots(work->textX[i] + 2, work->textY[i] + 15, work->textSlots[i + 3], work->palette2, 40, work->textSlotCounts[i + 3]);
+                    DrawTextSlots(PORT_MENU_LEFT(work->textX[i] + 20), work->textY[i] - 3, work->textSlots[i], work->palette2, 40, work->textSlotCounts[i]);
+                    DrawTextSlots(PORT_MENU_LEFT(work->textX[i] + 2), work->textY[i] + 15, work->textSlots[i + 3], work->palette2, 40, work->textSlotCounts[i + 3]);
 #endif
                 }
             }
 
-            DrawSprite(work->cursorX, work->cursorY, work->gfx2, work->tiles, work->palette3, NULL, 0, 40);
+            DrawSprite(PORT_MENU_LEFT(work->cursorX), work->cursorY, work->gfx2, work->tiles, work->palette3, NULL, 0, 40);
             break;
         case LEVEL_UP_STATE_RESULT:
             for (; i < ARRAY_COUNT(work->textX); i++) {
                 if (i == work->cursor) {
 #ifdef VERSION_EU
-                    DrawSprite(work->textX[i] + 4, work->textY[i] - 3, NULL, work->tiles5[i], work->palette, NULL, 0, 40);
+                    DrawSprite(PORT_MENU_LEFT(work->textX[i] + 4), work->textY[i] - 3, NULL, work->tiles5[i], work->palette, NULL, 0, 40);
 #else
-                    DrawTextSlots(work->textX[i] + 22, work->textY[i] - 5, work->textSlots[i], work->palette, 40, work->textSlotCounts[i]);
-                    DrawTextSlots(work->textX[i] + 4, work->textY[i] + 13, work->textSlots[i + 3], work->palette, 40, work->textSlotCounts[i + 3]);
+                    DrawTextSlots(PORT_MENU_LEFT(work->textX[i] + 22), work->textY[i] - 5, work->textSlots[i], work->palette, 40, work->textSlotCounts[i]);
+                    DrawTextSlots(PORT_MENU_LEFT(work->textX[i] + 4), work->textY[i] + 13, work->textSlots[i + 3], work->palette, 40, work->textSlotCounts[i + 3]);
 #endif
-                    DrawSprite(work->bonusX[i], work->bonusY[i], gLevelUpSoraBonusChosenFrames[i], work->tilesPalettes[i], work->tilesPalettes[5], NULL, 0, 50);
+                    DrawSprite(PORT_MENU_LEFT(work->bonusX[i]), work->bonusY[i], gLevelUpSoraBonusChosenFrames[i], work->tilesPalettes[i], work->tilesPalettes[5], NULL, 0, 50);
                 } else {
                     if (work->tilesPalettes[i] != NULL) {
 #ifdef VERSION_EU
-                        DrawSprite(work->textX[i] + 2, work->textY[i] - 1, NULL, work->tiles5[i], work->palette2, NULL, 0, 40);
+                        DrawSprite(PORT_MENU_LEFT(work->textX[i] + 2), work->textY[i] - 1, NULL, work->tiles5[i], work->palette2, NULL, 0, 40);
 #else
-                        DrawTextSlots(work->textX[i] + 20, work->textY[i] - 3, work->textSlots[i], work->palette2, 40, work->textSlotCounts[i]);
-                        DrawTextSlots(work->textX[i] + 2, work->textY[i] + 15, work->textSlots[i + 3], work->palette2, 40, work->textSlotCounts[i + 3]);
+                        DrawTextSlots(PORT_MENU_LEFT(work->textX[i] + 20), work->textY[i] - 3, work->textSlots[i], work->palette2, 40, work->textSlotCounts[i]);
+                        DrawTextSlots(PORT_MENU_LEFT(work->textX[i] + 2), work->textY[i] + 15, work->textSlots[i + 3], work->palette2, 40, work->textSlotCounts[i + 3]);
 #endif
 #ifdef VERSION_EU
                         if (gLanguage != LANGUAGE_ITALIAN) {
 #endif
-                            DrawSprite(work->bonusX[i], work->bonusY[i], gLevelUpSoraBonusFrames[i], work->tilesPalettes[i], work->tilesPalettes[4], NULL, 0, 50);
+                            DrawSprite(PORT_MENU_LEFT(work->bonusX[i]), work->bonusY[i], gLevelUpSoraBonusFrames[i], work->tilesPalettes[i], work->tilesPalettes[4], NULL, 0, 50);
 #ifdef VERSION_EU
                         } else {
-                            DrawSprite(work->bonusX[i], work->bonusY[i], gLevelUpSoraBonusItalianFrames[i], work->tilesPalettes[i], work->tilesPalettes[4], NULL, 0, 50);
+                            DrawSprite(PORT_MENU_LEFT(work->bonusX[i]), work->bonusY[i], gLevelUpSoraBonusItalianFrames[i], work->tilesPalettes[i], work->tilesPalettes[4], NULL, 0, 50);
                         }
 #endif
                     }
                 }
             }
 
-            DrawSprite(work->cursorX, work->cursorY, work->gfx2, work->tiles, work->palette3, NULL, 0, 40);
+            DrawSprite(PORT_MENU_LEFT(work->cursorX), work->cursorY, work->gfx2, work->tiles, work->palette3, NULL, 0, 40);
             break;
         case LEVEL_UP_STATE_SLIDE_OUT:
 #ifdef VERSION_EU
-            DrawSprite(work->textX[work->cursor] + 2, work->textY[work->cursor] - 1, NULL, work->tiles5[work->cursor], work->palette, NULL, 0, 40);
+            DrawSprite(PORT_MENU_LEFT(work->textX[work->cursor] + 2), work->textY[work->cursor] - 1, NULL, work->tiles5[work->cursor], work->palette, NULL, 0, 40);
 #else
-            DrawTextSlots(work->textX[work->cursor] + 22, work->textY[work->cursor] - 5, work->textSlots[work->cursor], work->palette, 40, work->textSlotCounts[work->cursor]);
-            DrawTextSlots(work->textX[work->cursor] + 4, work->textY[work->cursor] + 13, work->textSlots[work->cursor + 3], work->palette, 40, work->textSlotCounts[work->cursor + 3]);
+            DrawTextSlots(PORT_MENU_LEFT(work->textX[work->cursor] + 22), work->textY[work->cursor] - 5, work->textSlots[work->cursor], work->palette, 40, work->textSlotCounts[work->cursor]);
+            DrawTextSlots(PORT_MENU_LEFT(work->textX[work->cursor] + 4), work->textY[work->cursor] + 13, work->textSlots[work->cursor + 3], work->palette, 40, work->textSlotCounts[work->cursor + 3]);
 #endif
-            DrawSprite(work->bonusX[work->cursor], work->bonusY[work->cursor], NULL, work->tilesPalettes[work->cursor], work->tilesPalettes[5], NULL, 0, 50);
-            DrawSprite(work->headerX, 0,
+            DrawSprite(PORT_MENU_LEFT(work->bonusX[work->cursor]), work->bonusY[work->cursor], NULL, work->tilesPalettes[work->cursor], work->tilesPalettes[5], NULL, 0, 50);
+            DrawSprite(PORT_MENU_LEFT(work->headerX), 0,
 #ifdef VERSION_EU
                        gLevelUpHeaderSpritesByLanguage[gLanguage][10],
 #else
@@ -1226,26 +1235,26 @@ void Level_Up_2(LevelUpWork* work) {
 
 #ifdef VERSION_JP
         if (work->blinkOn != 0) {
-            DrawSprite(192, 82, gLvupLogoFrames[0], work->tiles3, work->palette4, NULL, 0, 10);
+            DrawSprite(PORT_MENU_RIGHT(192), 82, gLvupLogoFrames[0], work->tiles3, work->palette4, NULL, 0, 10);
         }
 #endif
 
         if (!(gGameState.flags & GAME_FLAG_RIKU)) {
-            DrawLevelUpStatDigits(work->statsOffsetX + 214, 17, work->tilesPalettes[6], work->tilesPalettes[7],
+            DrawLevelUpStatDigits(PORT_MENU_RIGHT(work->statsOffsetX + 214), 17, work->tilesPalettes[6], work->tilesPalettes[7],
 #ifdef VERSION_EU
                        gLevelUpHeaderSpritesByLanguage[gLanguage],
 #else
                        gLevelUpHeaderFrames,
 #endif
                        work->levelDigits, LEVEL_UP_STAT_LEVEL);
-            DrawLevelUpStatDigits(work->statsOffsetX + 214, 111, work->tilesPalettes[6], work->tilesPalettes[7],
+            DrawLevelUpStatDigits(PORT_MENU_RIGHT(work->statsOffsetX + 214), 111, work->tilesPalettes[6], work->tilesPalettes[7],
 #ifdef VERSION_EU
                        gLevelUpHeaderSpritesByLanguage[gLanguage],
 #else
                        gLevelUpHeaderFrames,
 #endif
                        work->maxHpDigits, LEVEL_UP_STAT_MAX_HP);
-            DrawLevelUpStatDigits(work->statsOffsetX + 206, 132, work->tilesPalettes[6], work->tilesPalettes[7],
+            DrawLevelUpStatDigits(PORT_MENU_RIGHT(work->statsOffsetX + 206), 132, work->tilesPalettes[6], work->tilesPalettes[7],
 #ifdef VERSION_EU
                        gLevelUpHeaderSpritesByLanguage[gLanguage],
 #else
@@ -1253,28 +1262,28 @@ void Level_Up_2(LevelUpWork* work) {
 #endif
                        work->cpDigits, LEVEL_UP_STAT_CP);
         } else {
-            DrawLevelUpStatDigits(work->statsOffsetX + 214, 17, work->tilesPalettes[6], work->tilesPalettes[7],
+            DrawLevelUpStatDigits(PORT_MENU_RIGHT(work->statsOffsetX + 214), 17, work->tilesPalettes[6], work->tilesPalettes[7],
 #ifdef VERSION_EU
                        gLevelUpHeaderSpritesByLanguage[gLanguage],
 #else
                        gLevelUpHeaderFrames,
 #endif
                        work->levelDigits, LEVEL_UP_STAT_LEVEL);
-            DrawLevelUpStatDigits(work->statsOffsetX + 214, 106, work->tilesPalettes[6], work->tilesPalettes[7],
+            DrawLevelUpStatDigits(PORT_MENU_RIGHT(work->statsOffsetX + 214), 106, work->tilesPalettes[6], work->tilesPalettes[7],
 #ifdef VERSION_EU
                        gLevelUpHeaderSpritesByLanguage[gLanguage],
 #else
                        gLevelUpHeaderFrames,
 #endif
                        work->maxHpDigits, LEVEL_UP_STAT_MAX_HP);
-            DrawLevelUpStatDigits(work->statsOffsetX + 214, 122, work->tilesPalettes[6], work->tilesPalettes[7],
+            DrawLevelUpStatDigits(PORT_MENU_RIGHT(work->statsOffsetX + 214), 122, work->tilesPalettes[6], work->tilesPalettes[7],
 #ifdef VERSION_EU
                        gLevelUpHeaderSpritesByLanguage[gLanguage],
 #else
                        gLevelUpHeaderFrames,
 #endif
                        work->apDigits, LEVEL_UP_STAT_AP);
-            DrawLevelUpStatDigits(work->statsOffsetX + 214, 137, work->tilesPalettes[6], work->tilesPalettes[7],
+            DrawLevelUpStatDigits(PORT_MENU_RIGHT(work->statsOffsetX + 214), 137, work->tilesPalettes[6], work->tilesPalettes[7],
 #ifdef VERSION_EU
                        gLevelUpHeaderSpritesByLanguage[gLanguage],
 #else
@@ -1284,11 +1293,18 @@ void Level_Up_2(LevelUpWork* work) {
         }
     }
 
-    DrawSprite(work->playerX >> 8, work->playerY >> 8, work->gfx, work->tiles4, work->palette5, NULL, SPRITE_PRIORITY(1), 40);
+    DrawSprite(PORT_MENU_RIGHT(work->playerX >> 8), work->playerY >> 8, work->gfx, work->tiles4, work->palette5, NULL, SPRITE_PRIORITY(1), 40);
     TaskPoolDraw(&work->pool);
+#ifdef PLATFORM_PC
+    PortScreenEnd();
+#endif
 }
 
 void Level_Up_3(LevelUpWork* work) {
+#ifdef PLATFORM_PC
+    PortBgSplit(0, 0);
+    PortBgSplit(1, 0);
+#endif
 #ifdef VERSION_EU
     if (work->tiles5[0] != NULL) {
         ReleaseObjTiles(work->tiles5[0]);

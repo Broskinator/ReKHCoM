@@ -33,6 +33,7 @@
 #include "mode_movie.h"
 extern int gPortIntroRequested;
 extern int gPortEventTest;
+extern int gPortMovieTest;
 extern Mode gModeEventselect;
 void PortEventSelectPreset(int list, int index);
 extern int gPortStartupLanguage;
@@ -166,14 +167,26 @@ void InitSystem() {
     ScanlineDmaReset();
 #ifdef VERSION_EU
     ModeInit(softReset);
+#else
+    ModeInit();
+#endif
 #ifdef PLATFORM_PC
+#ifdef VERSION_EU
     if (gPortStartupLanguage >= 0)
         gLanguage = gPortStartupLanguage;
+#endif
     if (gPortIntroRequested) {
         gPortIntroRequested = 0;
         ResetGameState(); /* as the title screen does before a new game */
         SetupSoraNewGame();
         ModeRequestHeapReset(&gModeMovie, MOVIE_OPENING);
+    }
+    /* Test harness: play one of the ROM's movies (then what follows it). */
+    if (gPortMovieTest >= 0) {
+        ResetGameState();
+        SetupSoraNewGame();
+        ModeRequestHeapReset(&gModeMovie, gPortMovieTest);
+        gPortMovieTest = -1;
     }
     /* Test harness: the debug event menu, preset to one event (A starts it). */
     if (gPortEventTest >= 0) {
@@ -182,9 +195,6 @@ void InitSystem() {
         ModeRequestHeapReset(&gModeEventselect, 0);
         gPortEventTest = -1;
     }
-#endif
-#else
-    ModeInit();
 #endif
 }
 

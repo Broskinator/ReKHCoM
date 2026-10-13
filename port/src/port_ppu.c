@@ -77,6 +77,8 @@ static int sBgDockedLatched[4];
 
 /* A docked layer is screen UI moved toward an edge: it shows only what the
    hardware would (no world-map continuation), so parked windows stay hidden. */
+static int sBgSplit[4]; /* PortBgSplit, below */
+
 void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgLatch, sizeof(sBgLatch));
     visit(sBgShift, sizeof(sBgShift));
@@ -86,6 +88,7 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(sOamExt, sizeof(sOamExt));
     visit(sBgWorld, sizeof(sBgWorld));
     visit(sBgWorldLatched, sizeof(sBgWorldLatched));
+    visit(sBgSplit, sizeof(sBgSplit));
 }
 
 void PortSetBgShiftX(int bg, int shift) {
@@ -157,12 +160,57 @@ typedef struct SpriteTag {
     int8_t ax;
     int8_t ay;
     uint16_t text; /* HD text: pixel-font character, 0 for other sprites */
+    uint8_t screen; /* drawn by a menu: goes on the screen layer */
 } SpriteTag;
 static SpriteTag sEntryTag[128];
 static SpriteTag sOamTag[128];
 static int sHudLayer;
 static int sHdText;
 int gPortTextChar;
+
+/* ---- screen layer ---------------------------------------------------------------
+ * Menus over the world (pause, save, world select, level up): their sprites
+ * (drawn between PortScreenBegin/End) and the layers that are not world maps
+ * are composed into gPortOverlay, gPortOverlayW x 160, which the presenter
+ * scales to the window's height; the world keeps its own scale underneath.
+ * The game marks every frame it draws such a menu.
+ */
+uint32_t gPortOverlay[PORT_MAX_W * GBA_SCREEN_H];
+int gPortOverlayW = GBA_SCREEN_W;
+int gPortScreenLayer; /* this frame uses the screen layer (set by the presenter) */
+static int sScreenDepth, sScreenMark, sOverlay;
+static int sScreenBg[4];
+static uint16_t sScrLine[PORT_MAX_W];
+static uint8_t sScrPrio[PORT_MAX_W];
+static uint8_t sScrSemi[PORT_MAX_W];
+
+void PortScreenBegin(void) {
+    sScreenDepth++;
+    sScreenMark = 1;
+}
+
+void PortScreenEnd(void) {
+    if (sScreenDepth > 0)
+        sScreenDepth--;
+}
+
+int PortTakeScreenMark(void) {
+    int m = sScreenMark;
+    sScreenMark = 0;
+    return m;
+}
+
+/* Screen-layer BG split (as in the Vita port): the columns left of `column`
+   move into the left margin, the rest into the right one. 0: off. */
+
+void PortBgSplit(int bg, int column) {
+    if (bg >= 0 && bg < 4)
+        sBgSplit[bg] = column;
+}
+
+int PortScreenMarginX(void) {
+    return gPortScreen.wide ? (gPortOverlayW - GBA_SCREEN_W) / 2 : 0;
+}
 
 int gPortHudScale;
 int gPortHudW;
@@ -174,6 +222,7 @@ void PortSpriteTag(int entry) {
         sEntryTag[entry].ax = (int8_t)sHudAx;
         sEntryTag[entry].ay = (int8_t)sHudAy;
         sEntryTag[entry].text = (uint16_t)gPortTextChar;
+        sEntryTag[entry].screen = sScreenDepth > 0;
     }
 }
 
@@ -194,6 +243,10 @@ static int HdTextGlyph(int oamIndex) {
 void PortOamSetSource(int oamIndex, int entry) {
     if (oamIndex >= 0 && oamIndex < 128 && entry >= 0 && entry < 128)
         sOamTag[oamIndex] = sEntryTag[entry];
+}
+
+int PortPpuOverlayActive(void) {
+    return sOverlay;
 }
 
 int PortPpuHudActive(void) {
@@ -608,6 +661,8 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
         sObjLine[i] = TRANSPARENT;
         sObjPrio[i] = 4;
         sObjSemi[i] = 0;
+        sScrLine[i] = TRANSPARENT;
+        sScrPrio[i] = 4;
         sObjWin[i] = 0;
     }
     if (!(dispcnt & 0x1000))
@@ -723,7 +778,13 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
                 sObjWin[x] = 1;
                 continue;
             }
-            if (sObjLine[x] == TRANSPARENT || prio < sObjPrio[x]) {
+            if (sOverlay && sOamTag[i].screen) {
+                if (sScrLine[x] == TRANSPARENT || prio < sScrPrio[x]) {
+                    sScrLine[x] = (uint16_t)col;
+                    sScrPrio[x] = (uint8_t)prio;
+                    sScrSemi[x] = (mode == 1);
+                }
+            } else if (sObjLine[x] == TRANSPARENT || prio < sObjPrio[x]) {
                 sObjLine[x] = (uint16_t)col;
                 sObjPrio[x] = (uint8_t)prio;
                 sObjIndex[x] = (uint8_t)i;
@@ -854,7 +915,7 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
     /* Backgrounds sorted by priority, lower index first on ties. */
     for (p = 0; p < 4; p++)
         for (b = 0; b < 4; b++)
-            if (bgOn[b] && bgPrio[b] == p)
+            if (bgOn[b] && !sScreenBg[b] && bgPrio[b] == p)
                 order[n++] = b;
 
     for (x = 0; x < w; x++) {
@@ -969,6 +1030,96 @@ static void StepAffine(int lines) {
     }
 }
 
+static void SplitBgLine(int b) {
+    static uint16_t tmp[PORT_MAX_W];
+    int w = gPortScreen.width, m = PortScreenMarginX(), split = sBgSplit[b], x;
+
+    memcpy(tmp, sBgLine[b], (size_t)w * 2);
+    for (x = 0; x < w; x++) {
+        int gx = x - gPortScreen.originX, c;
+        if (gx < split - m)
+            c = gx + m;
+        else if (gx >= split + m)
+            c = gx - m;
+        else {
+            sBgLine[b][x] = TRANSPARENT;
+            continue;
+        }
+        c += gPortScreen.originX;
+        sBgLine[b][x] = (c >= 0 && c < w) ? tmp[c] : TRANSPARENT;
+    }
+}
+
+/* The screen layer's line gy: menu layers only, transparent elsewhere. */
+static void ComposeOverlayLine(int gy, uint16_t dispcnt, const int* bgOn, const int* bgPrio) {
+    int wo = gPortOverlayW, w = gPortScreen.width;
+    int originO = (wo - GBA_SCREEN_W) / 2;
+    uint32_t* dst = gPortOverlay + gy * wo;
+    uint16_t bldcnt = IO16(0x50), bldalpha = IO16(0x52);
+    int eva = ((bldalpha & 31) > 16 ? 16 : (bldalpha & 31)), evb = (((bldalpha >> 8) & 31) > 16 ? 16 : ((bldalpha >> 8) & 31));
+    int evy = ((IO16(0x54) & 31) > 16 ? 16 : (IO16(0x54) & 31)), effect = (bldcnt >> 6) & 3;
+    int order[4], n = 0, p, b, ox;
+
+    for (p = 0; p < 4; p++)
+        for (b = 0; b < 4; b++)
+            if (bgOn[b] && sScreenBg[b] && bgPrio[b] == p)
+                order[n++] = b;
+    for (ox = 0; ox < wo; ox++) {
+        int gx = ox - originO, x = gx + gPortScreen.originX, i, found = 0, objDone = 0;
+        int topLayer = LAYER_BD, secondLayer = LAYER_BD;
+        uint16_t top = 0, second = 0, col;
+        uint8_t mask;
+
+        dst[ox] = 0;
+        if (x < 0 || x >= w || gx < sLeft || gx >= sRight)
+            continue;
+        mask = sWinMask[x];
+        for (i = 0; i <= n && found < 2; i++) {
+            int prio = (i < n) ? bgPrio[order[i]] : 4;
+            if (!objDone && (mask & WIN_OBJ) && sScrLine[x] != TRANSPARENT && sScrPrio[x] <= prio) {
+                objDone = 1;
+                if (found++ == 0) {
+                    top = sScrLine[x];
+                    topLayer = LAYER_OBJ;
+                } else {
+                    second = sScrLine[x];
+                    secondLayer = LAYER_OBJ;
+                }
+                if (found == 2)
+                    break;
+            }
+            if (i < n && (mask & WIN_BG(order[i])) && sBgLine[order[i]][x] != TRANSPARENT) {
+                if (found++ == 0) {
+                    top = sBgLine[order[i]][x];
+                    topLayer = order[i];
+                } else {
+                    second = sBgLine[order[i]][x];
+                    secondLayer = order[i];
+                }
+            }
+        }
+        if (found == 0)
+            continue;
+        col = top;
+        {
+            uint32_t alpha = 0xFF000000u;
+            int blend = (topLayer == LAYER_OBJ && sScrSemi[x]) || ((mask & WIN_SFX) && effect == 1 && (bldcnt & (1 << topLayer)));
+            if (blend) {
+                if (found == 2 && (bldcnt & (0x100 << secondLayer)))
+                    col = Blend(top, second, eva, evb);
+                else
+                    alpha = (uint32_t)(eva * 16 > 255 ? 255 : eva * 16) << 24; /* over the world below */
+            } else if ((mask & WIN_SFX) && (bldcnt & (1 << topLayer))) {
+                if (effect == 2)
+                    col = Brighten(top, evy);
+                else if (effect == 3)
+                    col = Darken(top, evy);
+            }
+            dst[ox] = (sColorLut[col] & 0x00FFFFFFu) | alpha;
+        }
+    }
+}
+
 static void RenderLine(int y, int gy) {
     uint16_t dispcnt = IO16(0x00);
     int mode = dispcnt & 7;
@@ -1022,10 +1173,14 @@ static void RenderLine(int y, int gy) {
             DrawAffineBg(b, dispcnt);
         else
             DrawTextBg(b, gy, dispcnt);
+        if (sOverlay && sScreenBg[b] && sBgSplit[b])
+            SplitBgLine(b);
     }
     DrawObjs(gy, dispcnt);
     BuildWindows(gy, dispcnt);
     ComposeLine(y, dispcnt, bgOn, bgPrio);
+    if (sOverlay && gy >= 0 && gy < GBA_SCREEN_H)
+        ComposeOverlayLine(gy, dispcnt, bgOn, bgPrio);
 }
 
 /* Start of a line: VCOUNT and the V-counter match flag. */
@@ -1077,6 +1232,14 @@ void PortPpuBeginFrame(void) {
         memset(sOccObj, 0xFF, (size_t)gPortScreen.width * gPortScreen.height * 2);
     }
     sHdText = gPortConfig.hdText;
+    sOverlay = gPortScreenLayer && gPortScreen.wide;
+    for (b = 0; b < 4; b++) {
+        int m = dispcnt & 7;
+        int arena = (m == 2 || (m == 1 && b == 2)) && b >= 2 && (IO16(0x08 + b * 2) >> 14) >= 2;
+        sScreenBg[b] = sOverlay && !sBgLatch[b].valid && !sBgWorldLatched[b].valid && !arena;
+    }
+    if (sOverlay)
+        memset(gPortOverlay, 0, (size_t)gPortOverlayW * GBA_SCREEN_H * 4);
     if (gPortScreen.wide) {
         sLeft = -gPortScreen.originX;
         sRight = gPortScreen.width - gPortScreen.originX;
