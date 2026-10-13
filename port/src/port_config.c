@@ -29,6 +29,7 @@ PortConfig gPortConfig = {
     1,                  /* dodgeButton */
     1,                  /* stockButton */
     0,                  /* hdText */
+    8,                  /* cardHudRaise */
 };
 
 #define CONFIG_VERSION 2
@@ -69,6 +70,7 @@ static const Key sKeys[] = {
     { "dodge_button", &gPortConfig.dodgeButton, 0, 1 },
     { "stock_button", &gPortConfig.stockButton, 0, 1 },
     { "hd_text", &gPortConfig.hdText, 0, 1 },
+    { "card_hud_raise", &gPortConfig.cardHudRaise, 0, 16 },
 };
 
 static char* Trim(char* s) {

@@ -90,6 +90,7 @@ typedef struct PortConfig {
     int dodgeButton;      /* one button for the battle dodge roll */
     int stockButton;      /* one button for L + R (stock a card / sleight) */
     int hdText;           /* dialogue text drawn with an outline font at output resolution */
+    int cardHudRaise;     /* battle: card hand lifted by this many GBA pixels (0..16) */
 } PortConfig;
 
 extern PortConfig gPortConfig;

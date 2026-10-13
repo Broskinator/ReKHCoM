@@ -3,6 +3,9 @@
  * Battle Mode
  */
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "malloc.h"
 #include "fade.h"
 #include "songs.h"
@@ -29,6 +32,9 @@
 #include "macros.h"
 
 void mode_battle_0(u32 mode) {
+#ifdef PLATFORM_PC
+    PortSetBattleView(1); /* the stage repeats sideways in the wide margins */
+#endif
     BtlWork** dest;
 
     gBtlWork = EwramAlloc(sizeof(BtlWork));
@@ -412,6 +418,9 @@ void mode_battle_1() {
 }
 
 void mode_battle_2() {
+#ifdef PLATFORM_PC
+    PortSetBattleView(0);
+#endif
     gGameState.flags &= ~GAME_FLAG_FIRST_STRIKE;
     BgFxFree();
     TaskPoolDestroy(&gBtlWork->taskPools[2]);

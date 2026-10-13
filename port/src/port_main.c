@@ -219,6 +219,7 @@ static uint32_t sHudBuf[PORT_MAX_W * PORT_MAX_H];
 
 int gPortIntroRequested;
 int gPortEventTest = -1; /* KHCOM_EVENT=list:index (0 Sora, 1 Riku) */
+int gPortBattleTest = -1; /* KHCOM_BATTLE=entry:stage of the debug battle menu */
 int gPortMovieTest = -1; /* KHCOM_MOVIE=id (mode_movie.h) */
 int gPortStartupLanguage = -1;
 
@@ -326,6 +327,93 @@ static void DrawScanlines(const SDL_FRect* dst) {
 
 void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float originY, float scale);
 
+/* Side bars of GBA-size scenes, filled the way the screen chooses
+   (PortSideStyle): its edge columns stretched (default), its background
+   colour, or its paper texture repeated mirrored from clean bands. */
+#define SIDE_STRIP 16
+static int sSideStyle; /* engine.h: 0 stretch, 1 colour, 2 texture */
+
+void PortSideStyle(int style) {
+    sSideStyle = style;
+}
+
+static uint32_t StripPixel(int sx, int sy, int x, int y) {
+    return sComposite[(sy + y) * gPortScreen.width + sx + x];
+}
+
+static void SideBar(int sx, int sy, int side, float y, float scale, float x0, float x1, int edgeX) {
+    float w = SIDE_STRIP * scale;
+    int band;
+
+    if (x1 - x0 <= 0)
+        return;
+    SDL_SetTextureScaleMode(sTexture, SDL_SCALEMODE_NEAREST);
+    if (sSideStyle == 1) {
+        /* the strip's most common colour: the screen's background */
+        static uint16_t count[4096];
+        uint32_t bd = 0;
+        int i, best = 0;
+        memset(count, 0, sizeof(count));
+        for (i = 0; i < GBA_SCREEN_H * SIDE_STRIP; i++) {
+            uint32_t c = StripPixel(sx, sy, i % SIDE_STRIP, i / SIDE_STRIP);
+            int q = ((c >> 20) & 15) << 8 | ((c >> 12) & 15) << 4 | ((c >> 4) & 15);
+            if (++count[q] > best) {
+                best = count[q];
+                bd = c;
+            }
+        }
+        SDL_FRect r = { x0, y, x1 - x0, GBA_SCREEN_H * scale };
+        SDL_SetRenderDrawColor(sRenderer, (bd >> 16) & 255, (bd >> 8) & 255, bd & 255, 255);
+        SDL_RenderFillRect(sRenderer, &r);
+        return;
+    }
+    if (sSideStyle != 2) {
+        /* the picture's edge column, stretched to the window's edge */
+        SDL_FRect es = { (float)edgeX, (float)sy, 1, GBA_SCREEN_H }, ed = { x0, y, x1 - x0, GBA_SCREEN_H * scale };
+        SDL_RenderTexture(sRenderer, sTexture, &es, &ed);
+        return;
+    }
+    {
+        /* texture: 8-line bands; a band with drawing in it (an emblem)
+           takes the nearest clean band above (or below) instead */
+        int clean[GBA_SCREEN_H / 8], n = GBA_SCREEN_H / 8, b;
+        for (b = 0; b < n; b++) {
+            int x, yy, lo = 255, hi = 0, colorful = 0;
+            for (yy = b * 8; yy < b * 8 + 8; yy++) {
+                for (x = 0; x < SIDE_STRIP; x++) {
+                    uint32_t c = StripPixel(sx, sy, x, yy);
+                    int r = (c >> 16) & 255, g = (c >> 8) & 255, bl = c & 255;
+                    int l = (r * 3 + g * 6 + bl) / 10;
+                    lo = SDL_min(lo, l);
+                    hi = SDL_max(hi, l);
+                    colorful |= SDL_max(r, SDL_max(g, bl)) - SDL_min(r, SDL_min(g, bl)) > 40;
+                }
+            }
+            clean[b] = !colorful && hi - lo <= 64;
+        }
+        for (band = 0; band < n; band++) {
+            int srcBand = band, k;
+            float by = y + band * 8 * scale, pos;
+            int flip = 1;
+            for (k = 0; !clean[srcBand] && k < n; k++) {
+                if (band - k >= 0 && clean[band - k]) {
+                    srcBand = band - k;
+                    break;
+                }
+                if (band + k < n && clean[band + k]) {
+                    srcBand = band + k;
+                    break;
+                }
+            }
+            for (pos = side < 0 ? x1 : x0; side < 0 ? pos > x0 : pos < x1; pos += side * w, flip ^= 1) {
+                SDL_FRect src = { (float)sx, (float)(sy + srcBand * 8), SIDE_STRIP, 8 };
+                SDL_FRect d = { side < 0 ? pos - w : pos, by, w, 8 * scale };
+                SDL_RenderTextureRotated(sRenderer, sTexture, &src, &d, 0, NULL, flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
+            }
+        }
+    }
+}
+
 static void Present(void) {
     int outW, outH;
     SDL_FRect dst;
@@ -352,6 +440,11 @@ static void Present(void) {
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
         SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
+        if (!PortUiActive()) {
+            SideBar((int)src.x, (int)src.y, -1, dst.y, scale, 0.0f, dst.x, (int)src.x);
+            SideBar((int)(src.x + src.w) - SIDE_STRIP, (int)src.y, 1, dst.y, scale, dst.x + dst.w, (float)outW,
+                    (int)(src.x + src.w) - 1);
+        }
         worldScale = scale;
         worldX = dst.x - src.x * scale;
         worldY = dst.y - src.y * scale;
@@ -434,6 +527,7 @@ static void Quit(void);
  * KHCOM_SHOTS=60,120   save shot_<frame>.bmp at those frames
  * KHCOM_KEYS=100-105:START,200:A   hold GBA keys during frame ranges
  * KHCOM_QUIT=400       exit after that frame
+ * KHCOM_BATTLE=10:4    debug battle menu preset to entry 10, stage 4 (A starts it)
  * KHCOM_FAST=1         do not pace frames (run as fast as possible)
  * KHCOM_VBM=movie.vbm  play a VBA-rr input movie (power-on start, controller 1);
  *                      KHCOM_VBM_OFFSET=n shifts it by n frames
@@ -675,7 +769,14 @@ static void VBlankCycle(void) {
     PortBiosAreaRefresh();
     sFit = sFitMark;
     sFitMark = 0;
-    gPortScreenLayer = PortTakeScreenMark() && gPortConfig.viewMode == PORT_VIEW_AUTO;
+    {
+        /* a menu's sprites reach OAM one frame after it marks the frame:
+           keep the layer one frame longer so they never land in the world */
+        static int sPrevMark;
+        int mark = PortTakeScreenMark();
+        gPortScreenLayer = (mark || sPrevMark) && gPortConfig.viewMode == PORT_VIEW_AUTO;
+        sPrevMark = mark;
+    }
     UpdateResolution();
 
     /* Visible lines (HBlank / VCount events in between). */
@@ -785,6 +886,11 @@ int main(int argc, char** argv) {
 
     if (SDL_getenv("KHCOM_MOVIE"))
         gPortMovieTest = SDL_atoi(SDL_getenv("KHCOM_MOVIE"));
+    if (SDL_getenv("KHCOM_BATTLE")) {
+        const char* b = SDL_getenv("KHCOM_BATTLE");
+        const char* colon = SDL_strchr(b, ':');
+        gPortBattleTest = (SDL_atoi(b) & 0xFF) | ((colon ? SDL_atoi(colon + 1) & 0xFF : 0) << 8);
+    }
     if (SDL_getenv("KHCOM_EVENT")) {
         const char* e = SDL_getenv("KHCOM_EVENT");
         const char* colon = SDL_strchr(e, ':');

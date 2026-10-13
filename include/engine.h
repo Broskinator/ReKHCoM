@@ -73,6 +73,11 @@ void PortScreenBegin(void);
 void PortScreenEnd(void);
 int PortScreenMarginX(void);
 void PortBgSplit(int bg, int column);
+/* Battles: world-map layers repeat sideways past their edge. */
+void PortSetBattleView(int on);
+/* GBA-size screens: how the side bars beyond them are filled. */
+enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE };
+void PortSideStyle(int style);
 #define PORT_MENU_LEFT(x) ((x) - PortScreenMarginX())
 #define PORT_MENU_RIGHT(x) ((x) + PortScreenMarginX())
 /* A band across the GBA screen (menu title bars): drawn twice, moved into
@@ -84,6 +89,7 @@ void PortBgSplit(int bg, int column);
         draw;                          \
         gPortSpriteShiftX += m_;       \
         if (m_ > 0) {                  \
+            draw;                      \
             gPortSpriteShiftX += m_;   \
             draw;                      \
             gPortSpriteShiftX -= m_;   \

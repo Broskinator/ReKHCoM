@@ -158,7 +158,11 @@ def decompui(n, toolchain, sdl_arch, debug):
     n.build("$builddir/assets/boxart.jpg", "copy_asset", rel(art),
             variables={"in_win": str(art), "out_win": str(BUILD / "assets" / "boxart.jpg"),
                        "dir_win": str(BUILD / "assets")})
-    return ["$builddir/ReKHCoM.exe", "$builddir/assets/boxart.jpg"]
+    font = ROOT / "port" / "assets" / "fonts" / "ComicHearts.otf"
+    n.build("$builddir/assets/fonts/ComicHearts.otf", "copy_asset", rel(font),
+            variables={"in_win": str(font), "out_win": str(BUILD / "assets" / "fonts" / "ComicHearts.otf"),
+                       "dir_win": str(BUILD / "assets" / "fonts")})
+    return ["$builddir/ReKHCoM.exe", "$builddir/assets/boxart.jpg", "$builddir/assets/fonts/ComicHearts.otf"]
 
 
 if __name__ == "__main__":

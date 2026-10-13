@@ -13,6 +13,7 @@
  */
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "port/port.h"
 #include "engine.h"
@@ -209,7 +210,7 @@ void PortBgSplit(int bg, int column) {
 }
 
 int PortScreenMarginX(void) {
-    return gPortScreen.wide ? (gPortOverlayW - GBA_SCREEN_W) / 2 : 0;
+    return (gPortOverlayW - GBA_SCREEN_W) / 2;
 }
 
 int gPortHudScale;
@@ -400,9 +401,27 @@ void PortLatchBgMaps(const BgEntry* entries) {
     }
 }
 
+static int sBattleView;
+
+/* Battle: the card hand sits partly below the GBA screen; the sprites are
+   whole, so the bottom HUD can be lifted to show more of them. */
+static int HudRaise(void) {
+    int r = gPortConfig.cardHudRaise;
+
+    return !sBattleView || r < 0 ? 0 : (r > 16 ? 16 : r);
+}
+
+void PortSetBattleView(int on) {
+    sBattleView = on;
+}
+
 /* Screen entry of the world map at world pixel (wx, wy); -1 outside it. */
 static int WorldEntry(const BgLatch* l, int wx, int wy) {
     const uint16_t* block;
+
+    /* battle stages continue sideways instead of ending in the void */
+    if (sBattleView && l->width > 0 && (wx < 0 || wx >= l->width * 256))
+        wx = ((wx % (l->width * 256)) + l->width * 256) % (l->width * 256);
 
     if (l->map == NULL || wx < 0 || wy < 0 || wx >= l->width * 256 || wy >= l->height * 256)
         return -1;
@@ -602,6 +621,10 @@ static void DrawAffineBg(int bg, uint16_t dispcnt) {
         if (wrap) {
             px &= size - 1;
             py &= size - 1;
+        } else if ((px < 0 || px >= size) && py >= 0 && py < size && size >= 512 && (gx < 0 || gx >= GBA_SCREEN_W)) {
+            /* wide margins of a battle arena: the stage repeats sideways
+               instead of ending in the void */
+            px &= size - 1;
         } else if (px < 0 || py < 0 || px >= size || py >= size) {
             out[x] = TRANSPARENT;
             continue;
@@ -1232,7 +1255,7 @@ void PortPpuBeginFrame(void) {
         memset(sOccObj, 0xFF, (size_t)gPortScreen.width * gPortScreen.height * 2);
     }
     sHdText = gPortConfig.hdText;
-    sOverlay = gPortScreenLayer && gPortScreen.wide;
+    sOverlay = gPortScreenLayer;
     for (b = 0; b < 4; b++) {
         int m = dispcnt & 7;
         int arena = (m == 2 || (m == 1 && b == 2)) && b >= 2 && (IO16(0x08 + b * 2) >> 14) >= 2;
@@ -1338,6 +1361,11 @@ static int ObjColor(uint16_t a0, uint16_t a2, int tx, int ty, int ow, int mappin
     return ci ? (PLTT16[256 + (a2 >> 12) * 16 + ci] & 0x7FFF) : -1;
 }
 
+/* The backdrop colour (palette 0), as displayed. */
+uint32_t PortPpuBackdrop(void) {
+    return sColorLut[PLTT16[0] & 0x7FFF];
+}
+
 void PortPpuRenderHud(uint32_t* buf) {
     uint16_t dispcnt = IO16(0x00);
     uint16_t bldcnt = IO16(0x50);
@@ -1377,6 +1405,8 @@ void PortPpuRenderHud(uint32_t* buf) {
         yg = oy - tag->ay * gPortScreen.originY;
         hx = tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
         hy = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) : yg + (h - GBA_SCREEN_H) / 2);
+        if (tag->ay > 0)
+            hy -= HudRaise();
         if (affine) {
             const uint16_t* p = OAM16 + ((a1 >> 9) & 31) * 16;
             pa = (int16_t)p[3];
@@ -1466,7 +1496,7 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
             int w = gPortHudW, h = gPortHudH;
             int xg = ox - tag->ax * gPortScreen.originX, yg = oy - tag->ay * gPortScreen.originY;
             out[n].x = tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
-            out[n].y = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) : yg + (h - GBA_SCREEN_H) / 2);
+            out[n].y = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) - HudRaise() : yg + (h - GBA_SCREEN_H) / 2);
         } else {
             if (ox + 16 <= sLeft || ox >= sRight || oy + 16 <= sTop || oy >= sBottom)
                 continue;

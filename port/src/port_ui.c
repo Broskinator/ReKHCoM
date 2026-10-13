@@ -35,6 +35,7 @@ enum {
     ITEM_SCANLINES,
     ITEM_LCD,
     ITEM_HDTEXT,
+    ITEM_CARDS,
     ITEM_FPS,
     ITEM_DODGE,
     ITEM_STOCK,
@@ -60,6 +61,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Scanlines", "Lignes de balayage", "Scanlines", "Linee di scansione", "Scanlines" },
     { "GBA LCD colours", "Couleurs LCD GBA", "GBA-LCD-Farben", "Colori LCD GBA", "Colores LCD GBA" },
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD" },
+    { "Battle cards raised", "Cartes de combat relevées", "Kampfkarten angehoben", "Carte di battaglia rialzate",
+      "Subir cartas en combate" },
     { "Show FPS", "Afficher FPS", "FPS anzeigen", "Mostra FPS", "Mostrar FPS" },
     { "One-button dodge roll", "Roulade en un bouton", "Ausweichrolle mit einer Taste", "Capriola con un tasto",
       "Voltereta con un botón" },
@@ -339,6 +342,12 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_HDTEXT:
             SDL_strlcpy(out, sOnOff[gPortConfig.hdText != 0][l], size);
             break;
+        case ITEM_CARDS:
+            if (gPortConfig.cardHudRaise == 0)
+                SDL_strlcpy(out, sOnOff[0][l], size);
+            else
+                SDL_snprintf(out, size, "%d px", gPortConfig.cardHudRaise);
+            break;
         case ITEM_FPS:
             SDL_strlcpy(out, sOnOff[gPortConfig.showFps != 0][l], size);
             break;
@@ -410,6 +419,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_HDTEXT:
             gPortConfig.hdText = !gPortConfig.hdText;
+            break;
+        case ITEM_CARDS:
+            gPortConfig.cardHudRaise = Wrap(gPortConfig.cardHudRaise / 4 + dir, 5) * 4;
             break;
         case ITEM_FPS:
             gPortConfig.showFps = !gPortConfig.showFps;

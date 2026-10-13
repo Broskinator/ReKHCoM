@@ -221,6 +221,7 @@ static const Setting kSettings[] = {
     { "window_scale", 4 },   { "fullscreen_width", 1920 }, { "fullscreen_height", 1080 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
+    { "card_hud_raise", 8 },
 };
 
 static std::map<std::string, int> sIni;
@@ -775,6 +776,19 @@ static void PageExtras() {
                            "Dialogue is drawn with a crisp font at the window's resolution, in the game's own "
                            "places and colours."),
                          Ini("hd_text"));
+    ImGui::Separator();
+    {
+        static const char* raise[] = { "Off", "4 px", "8 px", "12 px", "16 px" };
+        int r = std::clamp(Ini("card_hud_raise") / 4, 0, 4);
+        if (CycleRow(T("Subir cartas en combate", "Battle cards raised"),
+                     T("La mano de cartas queda en parte bajo el borde de la pantalla; subirla muestra más de cada "
+                       "carta.",
+                       "The card hand sits partly below the screen edge; raising it shows more of each card."),
+                     r, 5, raise)) {
+            Ini("card_hud_raise") = r * 4;
+            changed = true;
+        }
+    }
     ImGui::Separator();
     changed |= ToggleRow(T("Voltereta con un botón", "One-button dodge roll"),
                          T("X en el mando, C en el teclado: rueda hacia la dirección que mantienes o hacia donde "

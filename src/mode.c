@@ -3,6 +3,9 @@
  * Game Mode Manager
  */
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "registration_data.h"
 #include "chara_api.h"
 #include "display.h"
@@ -87,6 +90,9 @@ void ModeStart(Mode* mode, s32 arg) {
     MosaicReset();
     gCurrentMode = mode;
 
+#ifdef PLATFORM_PC
+    PortSideStyle(PORT_SIDE_STRETCH); /* modes choose their own in init */
+#endif
     if (mode->init != NULL) {
         mode->init(arg);
     }

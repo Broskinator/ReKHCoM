@@ -3,6 +3,9 @@
  * Language Select Screen
  */
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "mode_lang.h"
 #include "sprites_language_select.h"
 #include "malloc.h"
@@ -33,6 +36,9 @@ enum LangState {
 static LangWork* sLangWork;
 
 void mode_lang_0(s32 arg) {
+#ifdef PLATFORM_PC
+    PortSideStyle(PORT_SIDE_TEXTURE); /* side bars continue the paper texture */
+#endif
     sLangWork = EwramAlloc(sizeof(LangWork));
     SetBgMode0();
     SetupBg(0, 0, 29, 0);

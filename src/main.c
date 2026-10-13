@@ -31,9 +31,12 @@
 #include "game_state.h"
 #include "registration_data.h"
 #include "mode_movie.h"
+#include "mode_chkbtl.h"
+#include "battle.h"
 extern int gPortIntroRequested;
 extern int gPortEventTest;
 extern int gPortMovieTest;
+extern int gPortBattleTest;
 extern Mode gModeEventselect;
 void PortEventSelectPreset(int list, int index);
 extern int gPortStartupLanguage;
@@ -187,6 +190,16 @@ void InitSystem() {
         SetupSoraNewGame();
         ModeRequestHeapReset(&gModeMovie, gPortMovieTest);
         gPortMovieTest = -1;
+    }
+    /* Test harness: the debug battle menu, preset to one battle and stage
+       (A starts it). */
+    if (gPortBattleTest >= 0) {
+        ResetGameState();
+        SetupSoraNewGame();
+        gChkBtlWork->enemy = gPortBattleTest & 0xFF;
+        gChkBtlWork->bg = gPortBattleTest >> 8;
+        ModeRequestHeapReset(&gModeChkbtl, 0);
+        gPortBattleTest = -1;
     }
     /* Test harness: the debug event menu, preset to one event (A starts it). */
     if (gPortEventTest >= 0) {

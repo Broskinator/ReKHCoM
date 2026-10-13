@@ -3,6 +3,9 @@
  * Title Screen
  */
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "macros.h"
 #include "registration_data.h"
 #include "title_api.h"
@@ -151,6 +154,9 @@ void TitleFadeOut() {
 }
 
 void mode_title_0() {
+#ifdef PLATFORM_PC
+    PortSideStyle(PORT_SIDE_COLOR); /* side bars in the screen's background colour */
+#endif
     sTitleCancelled = FALSE;
     ResetGameState();
     SaveLoadHeader();

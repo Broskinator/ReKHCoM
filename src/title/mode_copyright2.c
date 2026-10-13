@@ -3,6 +3,9 @@
  * Second Copyright Screen
  */
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "registration_data.h"
 #include "copyright_screens.h"
 #include "fade.h"
@@ -13,6 +16,9 @@
 static u16 sCopyright2Timer;
 
 void mode_copyright2_0(s32 arg) {
+#ifdef PLATFORM_PC
+    PortSideStyle(PORT_SIDE_COLOR); /* side bars in the screen's background colour */
+#endif
     SetBgMode0();
     SetupBg(0, 0, 0x1F, 0);
     SetBgPriority(0, 3);
