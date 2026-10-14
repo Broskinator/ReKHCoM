@@ -1,5 +1,5 @@
 /**
- * pc_bot.c
+ * port_testbot.c (linked after port_state.c: editing it keeps save states valid)
  * PC port: a playthrough bot for gameplay verification (KHCOM_BOT=1).
  *
  * It plays from power-on with ordinary pad input decided from the game's own
@@ -8,7 +8,6 @@
  * that leads toward unexplored rooms (event doors first) and strikes it; in
  * battles the nearest enemy is approached and attacked, holding A on reload.
  */
-#ifdef PLATFORM_PC
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -34,6 +33,13 @@ static uint32_t sLastLog;
 static int sStuck, sLastX, sLastY, sWiggle;
 static int sTargetSide = -1;
 static uint8_t sTriedSide[32][4];
+static FldPos* sDoorPos[4];
+
+/* map.c: a door task records where it can be struck (NULL when it goes). */
+void PortBotDoor(int side, FldPos* pos) {
+    if ((unsigned)side < 4)
+        sDoorPos[side] = pos;
+}
 
 static uint16_t Toward(int dx, int dy, int dead) {
     uint16_t k = 0;
@@ -76,7 +82,7 @@ static int ChooseDoor(int room) {
 static uint16_t FieldKeys(uint32_t frame) {
     FldPos* p = &gFieldState->actor.fieldPosition;
     int room = gMapFloorState.room;
-    int px = p->x >> 8, py = (p->y - p->z) >> 8;
+    int px = p->x >> 8, py = p->y >> 8;
     MapDoor* door;
     int dx, dy, tx, ty;
 
@@ -90,8 +96,16 @@ static uint16_t FieldKeys(uint32_t frame) {
     if (sTargetSide < 0)
         return (frame % 30) < 2 ? K_A : 0;
     door = GetMapDoor(sTargetSide);
-    tx = (door->cellX << 5) + 16;
-    ty = (door->cellY << 4) + 8;
+    if (sDoorPos[sTargetSide] != NULL) {
+        tx = sDoorPos[sTargetSide]->x >> 8;
+        ty = sDoorPos[sTargetSide]->y >> 8;
+    } else {
+        tx = (door->cellX << 5) + 16;
+        ty = (door->cellY << 4) + 8;
+    }
+    if ((frame % 300) == 0)
+        PortLog("bot: field room %d door side %d target %d,%d player %d,%d z %d", room, sTargetSide, tx, ty,
+                px, py, (int)(p->z >> 8));
     dx = tx - px;
     dy = ty - py;
 
@@ -112,7 +126,7 @@ static uint16_t FieldKeys(uint32_t frame) {
         sWiggle--;
         return ((frame / 20) & 1 ? K_LEFT : K_RIGHT) | (sWiggle % 20 == 10 ? K_B : 0);
     }
-    if (abs(dx) < 20 && abs(dy) < 14)
+    if (abs(dx) < 14 && abs(dy) < 12)
         return (frame % 12) < 2 ? K_A : Toward(dx, dy, 2); /* strike the door */
     return Toward(dx, dy, 4);
 }
@@ -188,4 +202,3 @@ uint16_t PortBotKeys(uint32_t frame) {
     /* title, events, movies, menus, level up, game over: confirm */
     return (frame % 20) < 2 ? K_A : 0;
 }
-#endif

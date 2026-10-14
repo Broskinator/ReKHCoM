@@ -5087,6 +5087,9 @@ u8 MapDoorIdle(MapDoorWork* work) {
     return 1;
 }
 
+#ifdef PLATFORM_PC
+void PortBotDoor(int side, FldPos* pos);
+#endif
 void Task_MapDoor_0(MapDoorWork* work, MapDoor* door) {
     FldObj* obj = &work->obj;
     FldPos* pos = &obj->fieldPosition;
@@ -5138,6 +5141,9 @@ void Task_MapDoor_0(MapDoorWork* work, MapDoor* door) {
     pos->y -= pos->z;
     obj->height = 32;
     obj->kind = FLD_OBJ_KIND_FIXTURE;
+#ifdef PLATFORM_PC
+    PortBotDoor(door->side, pos); /* port_testbot.c: where the door can be struck */
+#endif
     work->tiles = AllocSpriteFrameTiles(0x400);
     work->palette = LoadObjPalette(doorGfx->palette, 32);
     work->palette2 = LoadObjPalette(gMapDoorEmblemPalette, sizeof(gMapDoorEmblemPalette));
@@ -5237,6 +5243,9 @@ void Task_MapDoor_2(MapDoorWork* work) {
 }
 
 void Task_MapDoor_3(MapDoorWork* work) {
+#ifdef PLATFORM_PC
+    PortBotDoor(work->door->side, NULL);
+#endif
     ReleaseObjTiles(work->tiles);
     ReleaseObjPalette(work->palette);
     ReleaseObjTiles(work->tiles2);

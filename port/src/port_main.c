@@ -864,7 +864,7 @@ static uint16_t MonkeyKeys(uint32_t frame) {
     }
 }
 
-extern uint16_t PortBotKeys(uint32_t frame); /* src/pc_bot.c, KHCOM_BOT */
+extern uint16_t PortBotKeys(uint32_t frame); /* port_testbot.c, KHCOM_BOT */
 
 static uint16_t HarnessKeys(uint32_t frame) {
     static const struct { const char* name; uint16_t bit; } names[] = {
