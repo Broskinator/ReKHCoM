@@ -344,6 +344,120 @@ static void BackupSave(int v) {
         Notice(T("No se pudo copiar la partida.", "Could not copy the save."), true);
 }
 
+/* ---- importing a save from an emulator or a backup device ------------------- */
+
+/* The game's SRAM is 64 KB of blocks, each starting with a 24-byte signature
+   ("KHCOM_BACKUP_VER00000013" in Europe, "...12" in the USA and Japan), a
+   ones'-complement checksum and the data; the layout is the same in all three
+   versions. Any container (raw .sav/.srm, GameShark, Action Replay, ...) is
+   read by finding the first signature, which the cartridge keeps at 0x10. */
+static const char kSaveSig[] = "KHCOM_BACKUP_VER000000";
+
+static uint16_t SaveSum(const unsigned char* p, size_t size) {
+    uint32_t sum = 0;
+    size_t i;
+    for (i = 0; i + 1 < size; i += 2)
+        sum += (uint32_t)(p[i] | (p[i + 1] << 8));
+    if (size & 1)
+        sum += p[size - 1];
+    sum = (sum & 0xFFFF) + (sum >> 16);
+    return (uint16_t)~(sum + (sum >> 16));
+}
+
+/* Returns the number of blocks converted, -1 when the file holds no save. */
+static int ConvertGbaSave(const std::vector<unsigned char>& in, int v, std::vector<unsigned char>& out,
+                          int& fromVersion) {
+    static const size_t sizes[] = { 0x40, 0xF14, 0x418 };
+    const size_t sigLen = sizeof(kSaveSig) - 1;
+    size_t at = std::string::npos, o;
+    int blocks = 0;
+
+    for (o = 0; o + sigLen + 2 <= in.size(); o++)
+        if (std::memcmp(in.data() + o, kSaveSig, sigLen) == 0) {
+            at = o;
+            break;
+        }
+    if (at == std::string::npos || at < 0x10)
+        return -1;
+    out.assign(0x10000, 0xFF);
+    std::memcpy(out.data(), in.data() + at - 0x10, std::min<size_t>(0x10000, in.size() - (at - 0x10)));
+    fromVersion = in[at + sigLen + 1] == '3' ? 0 : 1; /* 1: USA or Japan, the same signature */
+
+    for (o = 0; o + 0x40 <= out.size(); o++) {
+        size_t k;
+        if (std::memcmp(out.data() + o, kSaveSig, sigLen) != 0)
+            continue;
+        for (k = 0; k < 3; k++) {
+            size_t size = sizes[k];
+            if (o + size > out.size() || SaveSum(out.data() + o, size) != 0)
+                continue;
+            out[o + sigLen] = '1';
+            out[o + sigLen + 1] = v == 0 ? '3' : '2';
+            /* the header's menu language: the USA and Japan have only one */
+            if (size == 0x40 && v != 0)
+                out[o + 0x1C] = out[o + 0x1D] = 0;
+            out[o + 0x18] = out[o + 0x19] = 0;
+            {
+                uint16_t c = SaveSum(out.data() + o, size);
+                out[o + 0x18] = (unsigned char)(c & 0xFF);
+                out[o + 0x19] = (unsigned char)(c >> 8);
+            }
+            blocks++;
+            o += size - 1;
+            break;
+        }
+    }
+    return blocks;
+}
+
+static void ImportSave(SDL_Window* window, int v) {
+    wchar_t file[MAX_PATH] = L"";
+    OPENFILENAMEW ofn = {};
+    SDL_PropertiesID props = SDL_GetWindowProperties(window);
+    std::vector<unsigned char> in, out;
+    std::error_code ec;
+    int from = 0, blocks;
+
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = (HWND)SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+    ofn.lpstrFilter = L"GBA save (*.sav;*.srm;*.sa1;*.sps;*.xps;*.gsv;*.dsv;*.bin)\0"
+                      L"*.sav;*.srm;*.sa1;*.sps;*.xps;*.gsv;*.dsv;*.bin\0*.*\0*.*\0";
+    ofn.lpstrFile = file;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    if (!GetOpenFileNameW(&ofn))
+        return;
+    if (!ReadFile(fs::path(file), in) || in.size() > (4u << 20)) {
+        Notice(T("No se pudo leer el archivo.", "Could not read the file."), true);
+        return;
+    }
+    blocks = ConvertGbaSave(in, v, out, from);
+    if (blocks <= 0) {
+        Notice(T("El archivo no contiene una partida de Chain of Memories.",
+                 "The file holds no Chain of Memories save."), true);
+        return;
+    }
+    if (fs::exists(SavePath(v), ec))
+        BackupSave(v);
+    {
+        std::ofstream f(SavePath(v), std::ios::binary | std::ios::trunc);
+        f.write((const char*)out.data(), (std::streamsize)out.size());
+        if (!f) {
+            Notice(T("No se pudo escribir la partida.", "Could not write the save."), true);
+            return;
+        }
+    }
+    {
+        char msg[200];
+        bool cross = (from == 0) != (v == 0);
+        std::snprintf(msg, sizeof(msg), "%s %s (%d %s)%s",
+                      T("Partida importada en", "Save imported into"), SavePath(v).filename().string().c_str(),
+                      blocks, T("bloques", "blocks"),
+                      cross ? T(", convertida de otra regi\xC3\xB3n", ", converted from another region") : "");
+        Notice(msg, false);
+    }
+}
+
 /* ---- theme ------------------------------------------------------------------- */
 
 static float sScale = 1.0f;
@@ -846,6 +960,16 @@ static void PageHome(SDL_Window* window) {
         if (ImGui::Button(T("Copia de seguridad", "Back up save"), ImVec2(half, 0)))
             BackupSave(sSelected);
         ImGui::EndDisabled();
+        if (ImGui::Button(T("Importar partida de GBA... (experimental)", "Import GBA save... (experimental)"),
+                          ImVec2(-FLT_MIN, 0)))
+            ImportSave(window, sSelected);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("%s", T("Una partida de emulador (mGBA, VBA, NO$GBA...) o de GameShark / Action Replay. "
+                                      "Se convierte a esta versiÃ³n si viene de otra regiÃ³n; la actual "
+                                      "se guarda antes en backups.",
+                                      "A save from an emulator (mGBA, VBA, NO$GBA...) or GameShark / Action Replay. "
+                                      "It is converted to this version if it comes from another region; the current "
+                                      "one is backed up first."));
     }
     ImGui::EndChild();
 
