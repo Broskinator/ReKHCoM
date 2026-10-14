@@ -1116,9 +1116,9 @@ static void SplitBgLine(int b, int gy) {
             c = gx - m;
         else {
             if (sBgSplitBands[b] && (gy < 8 || gy >= 152)) {
-                /* Repeat the last complete background tile of the left band.
+                /* Repeat the outermost complete tile of the stat-side band.
                    This excludes OBJ cursors, text and the battle backdrop. */
-                c = gPortScreen.originX + split - 8 + ((gx - split + m) & 7);
+                c = gPortScreen.originX + GBA_SCREEN_W - 8 + ((gx - split + m) & 7);
                 sBgLine[b][x] = (c >= 0 && c < w) ? tmp[c] : TRANSPARENT;
                 continue;
             }

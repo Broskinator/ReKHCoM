@@ -129,6 +129,11 @@ int PortHarnessMode(const char* name, int arg) {
     }
     /* the level-up screen, as the end of a battle opens it */
     if (strcmp(name, "levelup") == 0 && gBtlWork != NULL) {
+        /* The debug battle menu maxes every stat; restore selectable reward
+           options for this fixture instead of indexing a nonexistent option. */
+        gGameState.progression.maxHp = 80;
+        gGameState.progression.cp = 275;
+        gGameState.progression.levelMilestone = 0;
         gBtlWork->pendingLevelUps = 1;
         /* Use the battle's closing sequence, so cards/camera and effects
            stop before their tile allocations are reused by the menu. */
@@ -138,6 +143,7 @@ int PortHarnessMode(const char* name, int arg) {
         /* Debug encounters still have live actors; prevent their animation
            uploads from touching tile allocations released for the reward UI. */
         gBtlWork->hitStop = 32767;
+        gBtlWork->flags |= BTL_FLAG_BGFX_PAUSED;
         return 1;
     }
     /* the save point's menu, opened as talking to it does */
