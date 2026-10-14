@@ -101,6 +101,8 @@ def main():
         n.rule("cc_port", "$cc $port_cflags -MD -MF $out.d -c $in -o $out", description="CC $in",
                depfile="$out.d", deps="gcc")
         n.rule("as", "$cc -c $in -o $out", description="AS $in")
+        n.variable("windres", "\"" + str(toolchain / "bin" / "i686-w64-mingw32-windres.exe").replace("\\", "/") + "\"")
+        n.rule("rc", "$windres -I port/decompui/assets $in -O coff -o $out", description="RC $in")
         n.rule("link", "$cc @$out.rsp -o $out $ldflags", rspfile="$out.rsp", rspfile_content="$in",
                description="LINK $out")
         n.rule("copy", 'cmd /c copy /y "$in_win" "$out_win" >nul', description="COPY $out")
@@ -121,6 +123,10 @@ def main():
             obj = f"$builddir/port/{src.stem}_s.o"
             n.build(obj, "as", rel(src))
             objs.append(obj)
+        # the icon (port/decompui/assets/rekhcom.ico), for the game and the launcher
+        n.build("$builddir/port/rekhcom_rc.o", "rc", "port/decompui/rekhcom.rc",
+                implicit=["port/decompui/assets/rekhcom.ico"])
+        objs.append("$builddir/port/rekhcom_rc.o")
         n.newline()
         n.build("$builddir/khcom.exe", "link", objs)
         dll = sdl_arch / "bin" / "SDL3.dll"
@@ -155,12 +161,17 @@ def decompui(n, toolchain, sdl_arch, debug):
         obj = f"$builddir/decompui/{src.stem}.o"
         n.build(obj, "cxx_ui", rel(src))
         objs.append(obj)
+    objs.append("$builddir/port/rekhcom_rc.o")
     n.build("$builddir/ReKHCoM.exe", "link_ui", objs)
     art = ui / "assets" / "boxart.jpg"
     n.rule("copy_asset", 'cmd /c (if not exist "$dir_win" mkdir "$dir_win") & copy /y "$in_win" "$out_win" >nul',
            description="COPY $out")
     n.build("$builddir/assets/boxart.jpg", "copy_asset", rel(art),
             variables={"in_win": str(art), "out_win": str(BUILD / "assets" / "boxart.jpg"),
+                       "dir_win": str(BUILD / "assets")})
+    logo = ui / "assets" / "logo.png"
+    n.build("$builddir/assets/logo.png", "copy_asset", rel(logo),
+            variables={"in_win": str(logo), "out_win": str(BUILD / "assets" / "logo.png"),
                        "dir_win": str(BUILD / "assets")})
     font = ROOT / "port" / "assets" / "fonts" / "KHMenu.otf"
     n.build("$builddir/assets/fonts/KHMenu.otf", "copy_asset", rel(font),
@@ -170,7 +181,8 @@ def decompui(n, toolchain, sdl_arch, debug):
     n.build("$builddir/assets/fonts/ComicHearts.otf", "copy_asset", rel(font2),
             variables={"in_win": str(font2), "out_win": str(BUILD / "assets" / "fonts" / "ComicHearts.otf"),
                        "dir_win": str(BUILD / "assets" / "fonts")})
-    return ["$builddir/ReKHCoM.exe", "$builddir/assets/boxart.jpg", "$builddir/assets/fonts/KHMenu.otf",
+    return ["$builddir/ReKHCoM.exe", "$builddir/assets/boxart.jpg", "$builddir/assets/logo.png",
+            "$builddir/assets/fonts/KHMenu.otf",
             "$builddir/assets/fonts/ComicHearts.otf"]
 
 

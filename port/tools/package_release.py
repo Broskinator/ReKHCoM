@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Package existing Windows builds using an explicit, ROM-free file list.
 
-The package holds the launcher (ReKHCoM.exe) and one game executable per
-cartridge version, built with port/configure_pc.py --version eu|us|jp.
+The package holds the launcher (ReKHCoM.exe, the only executable at the
+root) and, in bin/, one game executable per cartridge version, built with
+port/configure_pc.py --version eu|us|jp.
 """
 import argparse
 import hashlib
@@ -26,9 +27,10 @@ def main():
         parser.error("version must look like v0.1 or v0.1.1")
     files = {
         "ReKHCoM.exe": args.build / "ReKHCoM.exe",
-        "khcom_eu.exe": args.build / "khcom.exe",
-        "khcom_us.exe": args.build_us / "khcom.exe",
-        "khcom_jp.exe": args.build_jp / "khcom.exe",
+        "bin/khcom_eu.exe": args.build / "khcom.exe",
+        "bin/khcom_us.exe": args.build_us / "khcom.exe",
+        "bin/khcom_jp.exe": args.build_jp / "khcom.exe",
+        "bin/SDL3.dll": args.build / "SDL3.dll",
         "SDL3.dll": args.build / "SDL3.dll",
         "README.md": ROOT / "README.md",
         "CHANGELOG.md": ROOT / "CHANGELOG.md",
@@ -36,6 +38,7 @@ def main():
         "SDL3-LICENSE.txt": args.sdl / "LICENSE.txt",
         "licenses/imgui-LICENSE.txt": ROOT / "port/decompui/third_party/imgui/LICENSE.txt",
         "assets/boxart.jpg": ROOT / "port/decompui/assets/boxart.jpg",
+        "assets/logo.png": ROOT / "port/decompui/assets/logo.png",
         "assets/NOTICE.md": ROOT / "port/decompui/assets/NOTICE.md",
         "assets/fonts/KHMenu.otf": ROOT / "port/assets/fonts/KHMenu.otf",
         "assets/fonts/ComicHearts.otf": ROOT / "port/assets/fonts/ComicHearts.otf",

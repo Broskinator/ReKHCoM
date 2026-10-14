@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- The launcher is the only executable at the root of the package; the game
+  executables moved to bin/ (the launcher still finds them at the root in
+  older installs).
+- Icon (the Kingdom Hearts heart) for the launcher and the game, and the
+  Re:Chain of Memories logo in the launcher's header.
+- HD-2D: less bloom and no haze in scenes that are bright all over (the white
+  castle); message windows stay untouched.
+
 ## v0.6 — 2026-10-13
 
 Windows x86 prerelease.

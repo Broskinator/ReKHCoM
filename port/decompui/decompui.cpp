@@ -138,7 +138,10 @@ static void ScanInstall() {
     for (int v = 0; v < kVersionCount; v++) {
         std::vector<unsigned char> rom;
         sState[v].installed = ReadFile(RomPath(v), rom) && Sha1Hex(rom) == kVersions[v].sha1;
-        sState[v].exe = sRoot / (std::string("khcom_") + kVersions[v].id + ".exe");
+        /* the game executables live in bin/, so the launcher is the only one at the root */
+        sState[v].exe = sRoot / "bin" / (std::string("khcom_") + kVersions[v].id + ".exe");
+        if (!fs::exists(sState[v].exe))
+            sState[v].exe = sRoot / (std::string("khcom_") + kVersions[v].id + ".exe");
         if (!fs::exists(sState[v].exe)) {
             /* development tree: build/decompui next to build/pc, build/pc-us, ... */
             fs::path dev = sRoot.parent_path() / devDirs[v] / "khcom.exe";
@@ -637,23 +640,32 @@ static GLuint sBoxArt;
 static int sBoxW, sBoxH;
 static bool sLaunch;
 
+static GLuint sLogo;
+static int sLogoW, sLogoH;
+
+static bool LoadTexture(const fs::path& path, GLuint* tex, int* w, int* h) {
+    std::vector<unsigned char> file;
+    if (!ReadFile(path, file))
+        return false;
+    int n;
+    unsigned char* rgba = stbi_load_from_memory(file.data(), (int)file.size(), w, h, &n, 4);
+    if (rgba == nullptr)
+        return false;
+    glGenTextures(1, tex);
+    glBindTexture(GL_TEXTURE_2D, *tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, *w, *h, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    stbi_image_free(rgba);
+    return true;
+}
+
 static void LoadBoxArt() {
     fs::path path = sRoot / "assets" / "boxart.png";
     if (!fs::exists(path))
         path = sRoot / "assets" / "boxart.jpg";
-    std::vector<unsigned char> file;
-    if (!ReadFile(path, file))
-        return;
-    int n;
-    unsigned char* rgba = stbi_load_from_memory(file.data(), (int)file.size(), &sBoxW, &sBoxH, &n, 4);
-    if (rgba == nullptr)
-        return;
-    glGenTextures(1, &sBoxArt);
-    glBindTexture(GL_TEXTURE_2D, sBoxArt);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sBoxW, sBoxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
-    stbi_image_free(rgba);
+    LoadTexture(path, &sBoxArt, &sBoxW, &sBoxH);
+    LoadTexture(sRoot / "assets" / "logo.png", &sLogo, &sLogoW, &sLogoH);
 }
 
 /* Box art, or a typographic cover when assets/boxart.png is missing. */
@@ -1117,9 +1129,15 @@ static void Header() {
         ImGui::PopStyleColor();
     }
     ImGui::PopFont();
-    ImGui::PushFont(sFontTitle);
-    ImGui::TextUnformatted("Kingdom Hearts: Chain of Memories");
-    ImGui::PopFont();
+    if (sLogo != 0) {
+        /* the game's logo in place of the title */
+        float lh = Px(124), lw = lh * sLogoW / sLogoH;
+        ImGui::Image((ImTextureID)(intptr_t)sLogo, ImVec2(lw, lh));
+    } else {
+        ImGui::PushFont(sFontTitle);
+        ImGui::TextUnformatted("Kingdom Hearts: Chain of Memories");
+        ImGui::PopFont();
+    }
 
     const char* tabs[PAGE_COUNT] = { T("Inicio", "Home"), T("Gráficos", "Graphics"), T("Sonido", "Sound"),
                                      T("Mejoras", "Enhancements"), T("Controles", "Controls") };
