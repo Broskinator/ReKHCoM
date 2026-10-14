@@ -22,6 +22,33 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 - Último: partida completa / TAS. Después del 100 %, la función experimental
   con las QoL de la versión de PS2 (Re:Chain of Memories) en la de GBA.
 
+## Reparto actual (14/10, tarde) — todas las barras al 100 %
+
+| Quién | Trabajo |
+|---|---|
+| Claude, junto con el usuario | Las 17 ventanas con márgenes laterales, una por una con su revisión (lista abajo). Base: las versiones de la mañana del 14/10; solo mejoras puntuales. |
+| Codex | Seguir mejorando el modo Re:CoM y sus QoL (port_ps2qol.c, la ventana de nueva partida en port_ui.c, kh_com_recom.ini). Regla: con el modo apagado o en la versión Original nada cambia respecto al cartucho. |
+
+### Las 17 ventanas (Claude + usuario, en orden)
+
+1. Diario — en revisión con el usuario
+2. Ver barajas / Añadir-Quitar
+3. Estado
+4. Naipes mapa
+5. Naipes mundo (quitar el tramado)
+6. Mapamundi
+7. Elige un mundo
+8. Vórtice
+9. Bonus élite (selección de cartas)
+10. Tienda moguri
+11. Menú START
+12. Síntesis de estancias (puerta y carta)
+13. Guardar
+14. Subida de nivel
+15. Selección de idioma
+16. Copyright y título
+17. Películas y entrada al combate
+
 ## Barras pendientes y dueño (actualizado 14/10, 08:40 — total 98,9 %)
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
