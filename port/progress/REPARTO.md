@@ -33,7 +33,7 @@ Cerradas hoy por Claude (con evidencia en port/progress/evidence/):
   fixture `battlewin` (combate de depuración y de campo), entrada con el
   corazón en su proporción (battles_wide.txt).
 - Widescreen: field maps 100 % — todas las salas de historia en EU/US/JP
-  (129/131 cada una; las otras dos son un encuentro antes de la captura,
+  (118/120 salas únicas cada una; las otras dos son un encuentro antes de la captura,
   revisadas aparte), vestíbulos y Bosque de los 100 Acres (fieldmaps_wide.txt).
 
 Ya al 100 %: build, assets, memoria, BIOS, DMA, interrupciones, entrada, m4a,
@@ -80,7 +80,7 @@ intro, versiones USA y japonesa, menú de opciones, PPU, texto HD.
   KHCOM_FRAMELOG: 16,7 ms estables, sin tirones ni fotogramas de lógica perdidos
   (renderizador por software; los picos vistos antes eran carga de otra prueba).
 - [x] Gameplay verification: salas de Riku (Reverse/Rebirth) 88/88 en EU y de Sora
-  en EU/US/JP 129/131 (las otras dos, un encuentro antes de la captura).
+  en EU/US/JP 118/120 salas únicas (las otras dos, un encuentro antes de la captura).
 - [ ] Gameplay verification: partida completa de Sora y de Reverse/Rebirth en
   las tres regiones (rutas reproducibles y problemas anotados).
 - [x] USA/JP: combates JP 209/209 como Sora y como Riku; eventos 192/194 (los dos

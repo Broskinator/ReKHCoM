@@ -1,8 +1,8 @@
 Widescreen field maps: closing reviews (2026-10-14, view_mode=4)
 
 Every reachable room of the story floors (test_gameplay_rooms.py --all-rooms,
-one process per world, Sora): 131 rooms per region
-  EU 129/131   US 129/131   JP 129/131
+one process per world, Sora): 120 unique rooms per region (131 entries
+including repeats); captured on the field EU 118/120, US 118/120, JP 118/120
 The two cases that fail in every region (world 8 floor 11 room 1, world 10
 floor 10 room 6) are a Heartless touching Sora before the capture frame
 (observed mode_battle). Captured earlier in build/roomfail: both rooms render,
