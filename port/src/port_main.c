@@ -335,6 +335,8 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
    colour, or its paper texture repeated mirrored from clean bands. */
 #define SIDE_STRIP 16
 static SDL_Texture* sMenuSideTexture;
+static SDL_Texture* sFadeSideTexture;
+static int sFadeSideWidth;
 static int sSideStyle; /* engine.h: stretch, colour, texture, blur, menu, pattern */
 static int sMenuPanelSide = -1;
 void PortMenuPanelSide(int side) { sMenuPanelSide = side; }
@@ -357,6 +359,46 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
        The presentation was copying that padding into otherwise black bars. */
     if (PortSpotlightActive())
         return;
+    if (sSideStyle == 6) {
+        static const uint8_t dither[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
+        static uint32_t pixels[PORT_MAX_W * GBA_SCREEN_H];
+        int fw = SDL_clamp((int)SDL_ceilf((x1 - x0) / scale), 1, PORT_MAX_W);
+        int xx, yy;
+        uint32_t base = gPortMenuBackground[(sy + 16) * gPortScreen.width + edgeX];
+        if (sFadeSideWidth != fw) {
+            if (sFadeSideTexture) SDL_DestroyTexture(sFadeSideTexture);
+            sFadeSideTexture = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_XRGB8888,
+                                                 SDL_TEXTUREACCESS_STREAMING, fw, GBA_SCREEN_H);
+            sFadeSideWidth = sFadeSideTexture ? fw : 0;
+        }
+        if (!sFadeSideTexture) return;
+        for (yy = 0; yy < GBA_SCREEN_H; yy++) {
+            for (xx = 0; xx < fw; xx++) {
+                int distance = side < 0 ? fw - xx - 1 : xx;
+                int phase = distance & 15;
+                int sample = edgeX + (side < 0 ? phase : -phase);
+                uint32_t color = gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
+                /* Ordered pixel-art fade: retain original palette colours,
+                   never magnify a framebuffer column or copy foreground OBJs. */
+                if (yy >= 16 && yy < 152 && !(side > 0 && yy >= 24 && yy < 48) &&
+                    dither[(yy & 3) * 4 + (distance & 3)] <
+                        SDL_min(distance * 16 / SDL_max(1, SDL_min(fw - 1, 48)), 16))
+                    color = base;
+                if (yy < 16 && side < 0) {
+                    uint32_t header = PortMenuHeaderPixel(yy, xx);
+                    if (header) color = header;
+                }
+                pixels[yy * fw + xx] = color;
+            }
+        }
+        SDL_UpdateTexture(sFadeSideTexture, NULL, pixels, fw * 4);
+        SDL_SetTextureScaleMode(sFadeSideTexture, SDL_SCALEMODE_NEAREST);
+        {
+            SDL_FRect dst = {x0, y, x1 - x0, GBA_SCREEN_H * scale};
+            SDL_RenderTexture(sRenderer, sFadeSideTexture, NULL, &dst);
+        }
+        return;
+    }
     SDL_SetTextureScaleMode(sTexture, SDL_SCALEMODE_NEAREST);
     if (sSideStyle == 4 || sSideStyle == 5 || (sSideStyle == 0 && PortMenuHeaderPixel(4, 0))) {
         /* Extend background tiles, never the foreground labels or cursor.

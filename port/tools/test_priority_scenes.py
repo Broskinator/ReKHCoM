@@ -19,9 +19,12 @@ ROOT = Path(__file__).resolve().parents[2]
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build", default="build/pcpriority")
+    parser.add_argument("--version", choices=('eu', 'us', 'jp'), default='eu')
     parser.add_argument("--save", default="build/pc/kh_com.sav")
     parser.add_argument("--cycles", type=int, default=12)
     parser.add_argument("--timeout", type=int, default=300)
+    parser.add_argument("--scenes", nargs='+', choices=('castle', 'spotlight', 'doorselect', 'status', 'world'),
+                        default=('castle', 'spotlight', 'doorselect', 'status'))
     args = parser.parse_args()
     if args.cycles < 1:
         parser.error("--cycles must be positive")
@@ -50,6 +53,8 @@ def main():
             modes, shots, end = ["1400:spotlight"], [1445, 1480, 1520], 1540
         elif case == "doorselect":
             modes, shots, end = ["1400:spotlight", "1480:doorselect"], [1560, 1640, 1760], 1800
+        elif case == "world":
+            modes, shots, end = ["1400:mode_worldinspect"], [1500, 1600, 1700], 1710
         else:
             modes, shots, end = ["1400:mode_status"], [1700, 1800, 1900], 1920
             keys.extend(("1720-1723:UP", "1760-1763:UP", "1840-1843:DOWN"))
@@ -57,7 +62,8 @@ def main():
                    KHCOM_KEYS=",".join(keys), KHCOM_MODE=",".join(modes), KHCOM_TRACE_MODES="1",
                    KHCOM_OUTPUT_SHOT=",".join(map(str, shots)), KHCOM_QUIT=str(end))
         try:
-            result = subprocess.run([str(folder / "khcom.exe"), "--rom", str(ROOT / "roms/B8CP.gba"),
+            rom = {'eu': 'B8CP', 'us': 'B8CE', 'jp': 'B8CJ'}[args.version]
+            result = subprocess.run([str(folder / "khcom.exe"), "--rom", str(ROOT / 'roms' / (rom + '.gba')),
                                      "--language", "es"], cwd=folder, env=env, timeout=args.timeout,
                                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             code = result.returncode
@@ -85,7 +91,7 @@ def main():
         return report, passed
 
     with ThreadPoolExecutor(3) as pool:
-        results = list(pool.map(run, ("castle", "spotlight", "doorselect", "status")))
+        results = list(pool.map(run, args.scenes))
     report = "".join(item[0] for item in results)
     (work / "report.txt").write_text(report)
     print(work)

@@ -33,8 +33,11 @@ Todos los puntos siguientes están pendientes salvo indicación explícita.
   que el usuario aprobó. Revisar el píxel residual del margen derecho.
 - [ ] Entradas/salidas de submenús: headers sin ecos ni distorsión durante
   el movimiento. Mapamundi: footer completo desde el inicio y al volver.
-- [ ] Naipes mundo: extensión del fondo mediante un fundido de pixel art
+- [~] Naipes mundo: extensión del fondo mediante un fundido de pixel art
   escalonado/tramado basado en la paleta original, sin estirar la ilustración.
+  Implementado y revisado en EU: build/priority-regressions/20261013_231639_172982/world.
+  El tramado termina en el color del fondo y respeta header/footer/barra del nombre.
+  Compila US/JP; captura con partidas de esas regiones aún pendiente.
 - [x] Entrada a combate: fondo difuminado como en las películas para llenar
   la ventana, manteniendo la animación central en su proporción.
   Implementado y revisado en EU: build/battle-entry-check/20261013_230710.

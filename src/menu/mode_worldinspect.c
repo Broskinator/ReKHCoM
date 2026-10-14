@@ -4,6 +4,9 @@
  */
 
 #include "types.h"
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "worldinspect_data.h"
 #include "registration_data.h"
 #include "system_state.h"
@@ -655,6 +658,9 @@ void WorldInspectDraw() {
 }
 
 void mode_worldinspect_0() {
+#ifdef PLATFORM_PC
+    PortSideStyle(PORT_SIDE_PIXEL_FADE);
+#endif
     s16 i;
     s32 floor;
     s16 id;
