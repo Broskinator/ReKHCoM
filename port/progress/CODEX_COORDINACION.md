@@ -18,6 +18,21 @@ partidas/ejecutables del usuario desde este bloque.
   El cuadro antiguo de REPARTO y varios informes históricos conservan
   porcentajes anteriores; leer el estado actual y sus commits de evidencia.
 
+### Avance posterior
+
+- Claude integró los headers y cerró menús/eventos en ae59ef83a/22733e166.
+  No repetir ese trabajo. Gameplay sigue en 85 %.
+- La auditoría `HDTEXT_CIERRE_AUDIT.md` identificó familias numéricas de texto
+  aún sin convertir pese al 100 % de la barra. Codex toma exclusivamente
+  category/value/CP de los tres archivos de barajas y `mode_status.c`;
+  pruebas regionales off/on y comparación exacta del modo pixel en curso.
+  Map/save, números OBJ del mapa, teclado de 64 bytes y subida de nivel
+  permanecen pendientes, distintos de los números artísticos de naipes.
+- `WIDESCREEN_CIERRE_AUDIT.md` no encontró un defecto nuevo de extensión;
+  sí un error de contabilidad de las salas: 120 casos únicos por región,
+  118 capturas de campo y dos encuentros, no 131/129. Esto no reemplaza
+  las partidas completas de Sora/Riku pendientes.
+
 ## Lo que queda por demostrar en gameplay
 
 El replay local USA de 20.000 frames terminó sin crash pero seguía en el
@@ -25,6 +40,25 @@ primer combate tutorial, nivel 1. Esto no demuestra una partida completa.
 La cinta tiene 283.693 frames; antes de ejecutarla completa hay que contrastar
 la misma secuencia en emulador y encontrar el primer punto de divergencia.
 No inyectar progreso ni convertir batallas/eventos de debug en una campaña.
+
+El contraste original mGBA también se desincroniza respecto de la cinta
+VBA-rr: permanece en selección de archivo hasta el siguiente grupo de
+inputs, mientras el port aceptó la A anterior. Por eso el tutorial diferente
+en frame 20.000 no demuestra por sí solo un bug del port.
+
+`test_tas_boot_sync.py` observa los modos originales mediante punteros de
+IWRAM, sin escribir memoria. Evidencia
+`build/codex-tas-boot-sync/20261014_085720_415173`: copyright2 408, título 605,
+selección de partida nueva 931, todavía ahí en 1600. El mismo prefijo nativo
+entra en copyright2 394, título 591, selección 820, película 948. Mover la
+cinta 14 frames no resuelve el desfase de navegación: película 934. No
+modificar el juego para hacer coincidir a la fuerza un TAS de otro core.
+
+El siguiente paso es adaptar las entradas normales con checkpoints de solo
+lectura. Riku tiene además un archivo SRAM original desbloqueado extraído
+byte a byte de la cinta BK2 (no se editan estadísticas ni progreso Riku);
+el probe inicia una campaña Riku nueva por el menú y llega al primer combate.
+La continuidad y el final de ambas campañas siguen sin demostrar.
 
 Las herramientas `test_gameplay_*` quedan como evidencia de salas, submenús,
 pacing y replay; `test_rooms`, `test_submenus`, `test_ppu` y `test_options`
