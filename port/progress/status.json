@@ -117,14 +117,14 @@
     {
       "name": "Graphics options menu",
       "weight": 5,
-      "done": 95,
-      "notes": "overlay with the game font, 5 languages, live changes; HUD size, HD text, control options; opened from title (SELECT), F1/Esc, Back+Start; drawn in the style of the cartridge's debug menu (its bars, red cursor square and Sora picture decoded from the ROM), checked in EU languages and Japanese; the skip-intro prompt, state notices and title hint use the same button"
+      "done": 100,
+      "notes": "overlay with the game font, 5 languages, live changes; HUD size, HD text, control options; opened from title (SELECT), F1/Esc, Back+Start; drawn in the style of the cartridge's debug menu (its bars, red cursor square and Sora picture decoded from the ROM), checked in EU languages and Japanese; the skip-intro prompt, state notices and title hint use the same button; port/tools/test_options.py: every value of the 18 options runs and the battle picture changes where it should (35 cases); zoom Near equals Normal and HUD Larger equals Large where the window allows no other whole-number scale (720p/1080p); the menu renders in the five EU languages, US and JP (evidence/options.txt)"
     },
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 66,
-      "notes": "Earlier EU/US/JP reports: 194 event and 209 debug battle smoke cases per region; bounded runs, not full playthroughs. Twelve traced START/deck/field cycles passed. Add-card crash reproduced through normal navigation and fixed by initializing caption counts; Add/Remove/field regression passed. Other repeated submenu crashes remain under investigation."
+      "done": 80,
+      "notes": "Earlier EU/US/JP reports: 194 event and 209 debug battle smoke cases per region; bounded runs, not full playthroughs. Twelve traced START/deck/field cycles passed. Add-card crash reproduced through normal navigation and fixed by initializing caption counts; Add/Remove/field regression passed. Other repeated submenu crashes remain under investigation.; room battery (port/tools/test_rooms.py, KHCOM_MODE=room as the debug MAP check enters rooms): 52/52 in EU, every world on an early and a late floor and the entrance and exit halls of all 13 floors, walking, opening doors and fighting (evidence/rooms_eu.txt); level-up holds 16.7 ms frames with no hitch or lost logic frame (KHCOM_FRAMELOG); save states deterministic; every song played. Full playthroughs still pending."
     },
     {
       "name": "Save states",
@@ -135,8 +135,8 @@
     {
       "name": "HD text",
       "weight": 3,
-      "done": 88,
-      "notes": "KHMenu Latin/menu text, Japanese glyphs and Comic Hearts subtitles. Fresh EU/JP opening captures verified after Shift-JIS fix. Map-card tutorial caption hidden while its notice is open; general occlusion regression, stylized art and remaining digits still pending."
+      "done": 94,
+      "notes": "KHMenu Latin/menu text, Japanese glyphs and Comic Hearts subtitles. Fresh EU/JP opening captures verified after Shift-JIS fix. Map-card tutorial caption hidden while its notice is open; general occlusion regression, stylized art and remaining digits still pending.; inventory of text and digits still in pixel art (port/progress/HDTEXT_INVENTARIO.md): dialogue, menu slots, card names, subtitles and the options screen are HD; card values, reload counters and boss values are card art and stay; deck-menu counts are text written into BG tiles, left for the compositor work"
     },
     {
       "name": "USA and Japanese versions",

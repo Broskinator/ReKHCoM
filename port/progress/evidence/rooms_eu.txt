@@ -1,0 +1,53 @@
+room_1_00_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_00_09       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_01_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_01_09       ok         mode_lang > Mode_MapFld > mode_battle > Continue
+room_1_02_00       ok         mode_lang > Mode_MapFld > Mode_MapFix
+room_1_02_09       ok         mode_lang > Mode_MapFld > Mode_MapFix
+room_1_03_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_03_09       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_04_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_04_09       ok         mode_lang > Mode_MapFld > mode_battle > Continue
+room_1_05_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_05_09       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_06_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_06_09       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_07_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_07_09       ok         mode_lang > Mode_MapFld > mode_battle > Continue > Mode_MapFix > Event
+room_1_08_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_08_09       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_09_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_09_09       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_10_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_10_09       ok         mode_lang > Mode_MapFld > mode_battle > Continue
+room_1_11_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_11_09       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_12_00       ok         mode_lang > Mode_MapFld > mode_battle
+room_1_12_09       ok         mode_lang > Mode_MapFld > mode_battle
+room_2_00_00       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_00       ok         mode_lang > Mode_MapFix > Event
+room_2_00_01       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_01       ok         mode_lang > Mode_MapFix > Event
+room_2_00_02       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_02       ok         mode_lang > Mode_MapFix > Event
+room_2_00_03       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_03       ok         mode_lang > Mode_MapFix > Event
+room_2_00_04       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_04       ok         mode_lang > Mode_MapFix > Event
+room_2_00_05       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_05       ok         mode_lang > Mode_MapFix > Event
+room_2_00_06       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_06       ok         mode_lang > Mode_MapFix
+room_2_00_07       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_07       ok         mode_lang > Mode_MapFix > Event
+room_2_00_08       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_08       ok         mode_lang > Mode_MapFix > Event
+room_2_00_09       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_09       ok         mode_lang > Mode_MapFix > Event
+room_2_00_10       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_10       ok         mode_lang > Mode_MapFix > Event
+room_2_00_11       ok         mode_lang > Mode_MapFix > mode_worldselect > Event
+room_3_00_11       ok         mode_lang > Mode_MapFix > Event
+room_2_00_12       ok         mode_lang > Mode_MapFix > Event
+room_3_00_12       ok         mode_lang > Mode_MapFix > Mode_MapFld
+52/52 rooms ok

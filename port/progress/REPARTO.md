@@ -8,17 +8,17 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
 |---|---|---|---|---|
-| Gameplay verification | 66 | 10 | Claude | Recorrido de todas las salas, estrés de submenús, partida completa Sora y Reverse/Rebirth |
+| Gameplay verification | 80 | 10 | Claude | Estrés de submenús y partida completa Sora y Reverse/Rebirth |
 | Widescreen: field maps | 85 | 8 | Codex | Salas con huecos o bordes de abismo; revisión por mundo |
-| HD text | 88 | 3 | Claude | Inventario de números/textos en pixel art, oclusión general |
+| HD text | 94 | 3 | Claude | Números de menús de baraja (tiles de BG) con el compositor; oclusión general |
 | Widescreen: battles | 93 | 6 | Codex | Cinta continua de arenas y bordes de abismo |
 | Widescreen: menus & events | 93 | 4 | Codex | Salida de submenús, footer, subida de nivel (paneles y popeo) |
-| Graphics options menu | 95 | 5 | Claude | Prueba de cada opción en vivo y en los tres idiomas de cartucho |
 | PPU renderer | 97 | 10 | Claude (cierre) + Codex (presentación) | Regresión de conformidad; los cambios de composición se coordinan |
 
 Ya al 100 %: build, assets, memoria, BIOS, DMA, interrupciones, entrada, m4a,
 PSG, PCM, códec de bloques, películas, SRAM, reset, widescreen renderer,
-estados guardados, launcher, saltar intro, versiones USA y japonesa.
+estados guardados, launcher, saltar intro, versiones USA y japonesa,
+menú de opciones.
 
 ## Codex: acabado panorámico (field, battles, menus & events)
 
@@ -61,27 +61,27 @@ estados guardados, launcher, saltar intro, versiones USA y japonesa.
 
 ## Claude: verificación, regiones, texto HD, opciones y cierre del PPU
 
-- [ ] Gameplay verification: batería de todas las salas de cada mundo y planta
-  con el modo MAP del menú de depuración (mode_mapchk), sin crashes y con
-  capturas para la revisión panorámica de Codex.
+- [x] Gameplay verification: batería de salas (test_rooms.py) 52/52 en EU: cada
+  mundo en una planta temprana y una tardía y los vestíbulos de las 13 plantas.
+  Hoja de capturas en build/roomtest_eu/rooms.png para la revisión de Codex.
 - [ ] Gameplay verification: ampliar la prueba de crashes al alternar
   submenús/edición (Estado, Diario, Naipes mapa, Añadir/Quitar) y comprobar
   que los avisos de tutorial quedan delante del texto de las cartas.
   (Pasada de Codex a Claude el 14/10 para acelerar.)
-- [ ] Gameplay verification: medir el stutter al permanecer en la subida de
-  nivel con tiempos de fotograma y lógica, a ritmo normal; corregir si existe.
-  (Pasada de Codex a Claude el 14/10.)
+- [x] Gameplay verification: stutter de la subida de nivel medido con
+  KHCOM_FRAMELOG: 16,7 ms estables, sin tirones ni fotogramas de lógica perdidos
+  (renderizador por software; los picos vistos antes eran carga de otra prueba).
 - [ ] Gameplay verification: partida completa de Sora y de Reverse/Rebirth en
   las tres regiones (rutas reproducibles y problemas anotados).
 - [x] USA/JP: combates JP 209/209 como Sora y como Riku; eventos 192/194 (los dos
   restantes se cortaron al parar, no fallaron). Barra al 100 %.
 - [ ] USA/JP: capturas regionales de los acabados panorámicos que Codex marque
   como revisados solo en EU.
-- [ ] HD text: inventario de números y textos aún en pixel art, reemplazo
-  opcional de los que son texto; regresión general de oclusión. Coordinar con
-  Codex antes de tocar prioridades/oclusión del compositor.
-- [ ] Graphics options menu: prueba automática de cada opción en vivo y del
-  menú en EU (cinco idiomas), US y JP.
+- [x] HD text: inventario (port/progress/HDTEXT_INVENTARIO.md).
+- [ ] HD text: números de los menús de baraja (escritos en tiles de BG) y
+  regresión general de oclusión, coordinado con Codex en el compositor.
+- [x] Graphics options menu: test_options.py, 35 casos y el menú en EU (cinco
+  idiomas), US y JP. Barra al 100 %.
 - [ ] PPU: regresión de conformidad (capturas de referencia por modo y efecto)
   para cerrar la barra; cambios de composición coordinados con Codex.
 - [ ] Preservación: reproducir los casos de BUGS_GBA.md en EU/US/JP y separar

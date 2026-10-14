@@ -1,0 +1,37 @@
+default            exit 0
+view_mode=0    ok  exit 0  picture changed
+view_mode=1    ok  exit 0  picture changed
+view_mode=2    FAIL exit 0
+view_mode=3    ok  exit 0  picture changed
+zoom=0    FAIL exit 0
+zoom=2    ok  exit 0  picture changed
+zoom=3    ok  exit 0  picture changed
+hud_size=0    FAIL exit 0
+hud_size=2    FAIL exit 0
+filter=1    FAIL exit 0
+filter=2    ok  exit 0  picture changed
+scale_mode=1    ok  exit 0
+scale_mode=2    ok  exit 0
+scanlines=50   ok  exit 0  picture changed
+scanlines=100  ok  exit 0  picture changed
+color_correction=1    ok  exit 0  picture changed
+hd_text=1    ok  exit 0
+card_hud_raise=0    FAIL exit 0
+card_hud_raise=16   FAIL exit 0
+show_fps=1    ok  exit 0  picture changed
+hd2d=1    ok  exit 0  picture changed
+smooth_audio=1    ok  exit 0
+master_volume=0    ok  exit 0
+music_volume=0    ok  exit 0
+sfx_volume=0    ok  exit 0
+dodge_button=0    ok  exit 0
+stock_button=0    ok  exit 0
+unstock_button=0    ok  exit 0
+menu EU English   ok  exit 0
+menu EU Italiano  ok  exit 0
+menu EU Francais  ok  exit 0
+menu EU Espanol   ok  exit 0
+menu EU Deutsch   ok  exit 0
+menu US              ok  exit 0
+menu JP              ok  exit 0
+28/35 options ok
