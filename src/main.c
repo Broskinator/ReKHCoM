@@ -42,6 +42,13 @@
 #include "mode_movie.h"
 #include "mode_chkbtl.h"
 #include "battle.h"
+#include "mode_mapchk.h"
+#include "map_runtime.h"
+#include "card_api.h"
+#include "player_progression_types.h"
+#include "map_check_worlds.h"
+#include "btl4.h"
+#include "sprites_btl_hud.h"
 #ifdef PLATFORM_PC
 #include "mode_mapchk.h"
 #include "map_runtime.h"
@@ -84,6 +91,115 @@ int PortHarnessMode(const char* name, int arg) {
         &gModeSioBtlOption, &gModeDebug,
     };
     u32 i;
+
+    /* Small numeric text fixture: use the existing battle task and its
+       original DrawSprite path. This does not award experience or a level. */
+    if (strcmp(name, "textdigits") == 0 && gBtlWork != NULL) {
+        Task* task = ListPoolFirst(&gBtlWork->taskPools[1].head);
+        BtlExpWork* work;
+        extern void PortLog(const char* format, ...);
+        while (task != NULL && task->desc != &gTaskDescBtlExp)
+            task = ListPoolNext(&task->node);
+        if (task == NULL)
+            task = TaskCreate(&gBtlWork->taskPools[1], &gTaskDescBtlExp, NULL);
+        if (task == NULL)
+            return 0;
+        work = task->work;
+        work->level = gGameState.progression.level;
+        work->lastExp = gGameState.progression.exp;
+        work->timer = 0;
+        work->state = 1; /* BTL_EXP_STATE_GAIN, local to btl_exp.c */
+#ifdef VERSION_JP
+        work->gfx = gBtlExpNextFrame2;
+#else
+        work->gfx = gBtlExpNextLvFrame2;
+#endif
+        BtlExpSetNumber(work, (u32)arg % 100000);
+        PortLog("harness: textdigits %d", arg % 100000);
+        return 1;
+    }
+
+    if (strcmp(name, "progress") == 0) {
+        extern void PortLog(const char* format, ...);
+        PortLog("harness: progress flags=%u floor=%u world=%u room=%u story=%u level=%u mode=%s",
+                (unsigned)gGameState.flags, (unsigned)gGameState.floor,
+                (unsigned)gMapFloorState.world, (unsigned)gMapFloorState.room,
+                (unsigned)gMapFloorState.progress, (unsigned)gGameState.progression.level,
+                PortHarnessModeName());
+        return 1;
+    }
+    if (strcmp(name, "roomgraph") == 0 || strcmp(name, "roomgoto") == 0) {
+        u8 seen[32] = {0}, queue[32], sides[32] = {0};
+        int head = 0, count = 1, side, room, neighbor;
+        extern void PortLog(const char* format, ...);
+        if (gFieldState == NULL || gGameState.floor >= ((gGameState.flags & GAME_FLAG_RIKU) ? 12 : 13))
+            return 0;
+        queue[0] = GetMapFloorDef(gGameState.floor)->entryRoom;
+        if (queue[0] >= 32) return 0;
+        seen[queue[0]] = 1;
+        /* The final Riku boss room is disconnected from the ordinary links,
+           but is explicitly part of the floor definition. Include its graph. */
+        neighbor = GetMapFloorDef(gGameState.floor)->exitRoom;
+        if (neighbor < 32 && !seen[neighbor]) {
+            seen[neighbor] = 1;
+            queue[count++] = neighbor;
+        }
+        while (head < count) {
+            room = queue[head++];
+            for (side = 0; side < 4; side++) {
+                neighbor = GetMapRoomLink(room, side);
+                if (neighbor < 32 && !seen[neighbor]) {
+                    seen[neighbor] = 1;
+                    sides[neighbor] = side;
+                    queue[count++] = neighbor;
+                }
+            }
+            PortLog("harness: roomgraph floor=%u world=%u room=%d", (unsigned)gGameState.floor,
+                    (unsigned)gMapFloorState.world, room);
+        }
+        if (strcmp(name, "roomgoto") == 0) {
+            if (arg < 0 || arg >= 32 || !seen[arg]) return 0;
+            CreateMapRoom(arg, NULL);
+            SetCurrentMapRoom(arg, sides[arg]);
+            RequestMapMode();
+        }
+        return 1;
+    }
+
+    /* Reproduce the MAP debug menu's entry, without bypassing map setup.
+       arg = mode*10000 + world*100 + floor; roomriku selects Reverse/Rebirth.
+       These are fixtures, not proof of a completed story playthrough. */
+    if (strcmp(name, "room") == 0 || strcmp(name, "roomriku") == 0) {
+        int mode = arg / 10000, world = (arg / 100) % 100, floor = arg % 100;
+        int riku = strcmp(name, "roomriku") == 0;
+        extern u8 gMapChkUseParams;
+        extern void PortLog(const char* format, ...);
+        if (arg < 0 || mode < 1 || mode > 3 || world > 12 || floor >= (riku ? 12 : 13))
+            return 0;
+        ResetGameState();
+        if (riku) SetupRikuNewGame();
+        else SetupSoraNewGame();
+        InitMapCardInventory();
+        gMapChkUseParams = 0;
+        gGameState.progression.tutorialFlags |= TUTORIAL_FLAG_MAP_SELECT | TUTORIAL_FLAG_SAVE_POINT |
+            TUTORIAL_FLAG_MAP | TUTORIAL_FLAG_MAP_SELECT_EVENT_DOOR | TUTORIAL_FLAG_WARP_POINT |
+            TUTORIAL_FLAG_ROOM_CREATE | TUTORIAL_FLAG_MAP_STAIR;
+        gGameState.floors[floor].world = mode == 2 ? 0 : gMapChkWorldNames[world][0];
+        MapChkSetFloorProgress(floor, mode == 3);
+        GoToFloor(floor);
+        if (mode == 1) {
+            SetFloorWorld(gMapChkWorldNames[world][0]);
+            gMapFloorState.flags |= FLOOR_FLAG_LOGO_SHOWN;
+            EnterFloorWorld();
+        } else {
+            gMapFloorState.room = mode == 3 ? MAP_ROOM_EXIT_HALL : MAP_ROOM_ENTRANCE_HALL;
+            gMapFloorState.entrySide = MAP_DOOR_SIDE_NONE;
+        }
+        PortLog("harness: room fixture actor=%s mode=%d world=%d floor=%d room=%d",
+                riku ? "riku" : "sora", mode, world, floor, gMapFloorState.room);
+        RequestMapMode();
+        return 1;
+    }
 
     if (strcmp(name, "castle") == 0) {
         ResetGameState();

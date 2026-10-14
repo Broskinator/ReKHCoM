@@ -18,6 +18,17 @@
 #include "gba/io_reg.h"
 #include "gba/defines.h"
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+/* Repeat only authored side ornaments. The camera, objects, collision and
+ * 240x160 canvas retain their cartridge behavior; the PPU owns sampling. */
+#define BTL_ARENA_BANDS(lw, rw) PortSetBattleArenaBands(48, 464, 48, (lw), 464 - (rw), (rw))
+#define BTL_HOOK_BANDS() PortSetBattleArenaBands(24, 488, 24, 64, 24, 64)
+#else
+#define BTL_ARENA_BANDS(lw, rw) ((void)0)
+#define BTL_HOOK_BANDS() ((void)0)
+#endif
+
 #define BTL_MAP_VIEW_Y_MIN 144
 #define BTL_MAP_VIEW_Y_MAX_EXTRA 32
 
@@ -38,6 +49,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_TUTORIAL_1:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgTraverseTownTiles, sizeof(gBtlBgTraverseTownTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgTraverseTownPalette, sizeof(gBtlBgTraverseTownPalette));
+            BTL_ARENA_BANDS(96, 96);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgTraverseTownMap);
 #else
@@ -52,6 +64,7 @@ void task_btl_map_0(BtlMapWork* work) {
             LoadBgTiles(gBtlWork->mapBg, gBtlBgAnsem2Tiles, sizeof(gBtlBgAnsem2Tiles));
 #endif
             LoadBgPalette(gBtlWork->mapBg, gBtlBgAnsem2Palette, sizeof(gBtlBgAnsem2Palette));
+            BTL_ARENA_BANDS(64, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgAnsem2Map);
 #else
@@ -66,6 +79,7 @@ void task_btl_map_0(BtlMapWork* work) {
             LoadBgTiles(gBtlWork->mapBg, gBtlBgHadesTiles, sizeof(gBtlBgHadesTiles));
 #endif
             LoadBgPalette(gBtlWork->mapBg, gBtlBgHadesPalette, sizeof(gBtlBgHadesPalette));
+            BTL_ARENA_BANDS(64, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgHadesMap);
 #else
@@ -80,6 +94,7 @@ void task_btl_map_0(BtlMapWork* work) {
             LoadBgTiles(gBtlWork->mapBg, gBtlBgHookTiles, sizeof(gBtlBgHookTiles));
 #endif
             LoadBgPalette(gBtlWork->mapBg, gBtlBgHookPalette, sizeof(gBtlBgHookPalette));
+            BTL_HOOK_BANDS();
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgHookMap);
 #else
@@ -90,6 +105,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_CLOUD:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgOlympusColiseumTiles, sizeof(gBtlBgOlympusColiseumTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgOlympusColiseumPalette, sizeof(gBtlBgOlympusColiseumPalette));
+            BTL_ARENA_BANDS(72, 72);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgOlympusColiseumMap);
 #else
@@ -105,6 +121,7 @@ void task_btl_map_0(BtlMapWork* work) {
             LoadBgTiles(gBtlWork->mapBg, gBtlBgMansionTiles, sizeof(gBtlBgMansionTiles));
 #endif
             LoadBgPalette(gBtlWork->mapBg, gBtlBgMansionPalette, sizeof(gBtlBgMansionPalette));
+            BTL_ARENA_BANDS(64, 88);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgMansionMap);
 #else
@@ -119,6 +136,7 @@ void task_btl_map_0(BtlMapWork* work) {
             LoadBgTiles(gBtlWork->mapBg, gBtlBgMarluxiaTiles, sizeof(gBtlBgMarluxiaTiles));
 #endif
             LoadBgPalette(gBtlWork->mapBg, gBtlBgMarluxiaPalette, sizeof(gBtlBgMarluxiaPalette));
+            BTL_ARENA_BANDS(72, 80);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgMarluxiaMap);
 #else
@@ -133,6 +151,7 @@ void task_btl_map_0(BtlMapWork* work) {
             LoadBgTiles(gBtlWork->mapBg, gBtlBgHumTiles, sizeof(gBtlBgHumTiles));
 #endif
             LoadBgPalette(gBtlWork->mapBg, gBtlBgHumPalette, sizeof(gBtlBgHumPalette));
+            BTL_ARENA_BANDS(96, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgHumMap);
 #else
@@ -144,6 +163,7 @@ void task_btl_map_0(BtlMapWork* work) {
     } else if (gBtlWork->battleId == BATTLE_CARD_SOLDIERS) {
         LoadBgTiles(gBtlWork->mapBg, gBtlBgGardenTiles, sizeof(gBtlBgGardenTiles));
         LoadBgPalette(gBtlWork->mapBg, gBtlBgGardenPalette, sizeof(gBtlBgGardenPalette));
+        BTL_ARENA_BANDS(64, 72);
 #ifdef VERSION_EU
         LoadBgMapLz77(gBtlWork->mapBg, gBtlBgGardenMap);
 #else
@@ -155,6 +175,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_WONDERLAND:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgWonderlandTiles, sizeof(gBtlBgWonderlandTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgWonderlandPalette, sizeof(gBtlBgWonderlandPalette));
+            BTL_ARENA_BANDS(96, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgWonderlandMap);
 #else
@@ -165,6 +186,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_GARDEN:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgGardenTiles, sizeof(gBtlBgGardenTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgGardenPalette, sizeof(gBtlBgGardenPalette));
+            BTL_ARENA_BANDS(64, 72);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgGardenMap);
 #else
@@ -175,6 +197,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_AGRABAH:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgAgrabahTiles, sizeof(gBtlBgAgrabahTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgAgrabahPalette, sizeof(gBtlBgAgrabahPalette));
+            BTL_ARENA_BANDS(72, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgAgrabahMap);
 #else
@@ -185,6 +208,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_ATLANTICA:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgAtlanticaTiles, sizeof(gBtlBgAtlanticaTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgAtlanticaPalette, sizeof(gBtlBgAtlanticaPalette));
+            BTL_ARENA_BANDS(64, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgAtlanticaMap);
 #else
@@ -195,6 +219,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_MONSTRO:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgMonstroTiles, sizeof(gBtlBgMonstroTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgMonstroPalette, sizeof(gBtlBgMonstroPalette));
+            BTL_ARENA_BANDS(96, 96);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgMonstroMap);
 #else
@@ -205,6 +230,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_HALLOWEEN_TOWN:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgHalloweenTownTiles, sizeof(gBtlBgHalloweenTownTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgHalloweenTownPalette, sizeof(gBtlBgHalloweenTownPalette));
+            BTL_ARENA_BANDS(64, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgHalloweenTownMap);
 #else
@@ -215,6 +241,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_NEVER_LAND:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgNeverLandTiles, sizeof(gBtlBgNeverLandTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgNeverLandPalette, sizeof(gBtlBgNeverLandPalette));
+            BTL_ARENA_BANDS(96, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgNeverLandMap);
 #else
@@ -225,6 +252,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_DESTINY_ISLANDS:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgDestinyIslandsTiles, sizeof(gBtlBgDestinyIslandsTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgDestinyIslandsPalette, sizeof(gBtlBgDestinyIslandsPalette));
+            BTL_ARENA_BANDS(64, 80);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgDestinyIslandsMap);
 #else
@@ -235,6 +263,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_HOLLOW_BASTION:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgHollowBastionTiles, sizeof(gBtlBgHollowBastionTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgHollowBastionPalette, sizeof(gBtlBgHollowBastionPalette));
+            BTL_ARENA_BANDS(96, 96);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgHollowBastionMap);
 #else
@@ -245,6 +274,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_TRAVERSE_TOWN:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgTraverseTownTiles, sizeof(gBtlBgTraverseTownTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgTraverseTownPalette, sizeof(gBtlBgTraverseTownPalette));
+            BTL_ARENA_BANDS(96, 96);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgTraverseTownMap);
 #else
@@ -255,6 +285,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_CASTLE_OBLIVION:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgCastleOblivionTiles, sizeof(gBtlBgCastleOblivionTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgCastleOblivionPalette, sizeof(gBtlBgCastleOblivionPalette));
+            BTL_ARENA_BANDS(64, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgCastleOblivionMap);
 #else
@@ -265,6 +296,7 @@ void task_btl_map_0(BtlMapWork* work) {
         case BATTLE_STAGE_TWILIGHT_TOWN:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgTwilightTownTiles, sizeof(gBtlBgTwilightTownTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgTwilightTownPalette, sizeof(gBtlBgTwilightTownPalette));
+            BTL_ARENA_BANDS(64, 64);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgTwilightTownMap);
 #else
@@ -275,6 +307,7 @@ void task_btl_map_0(BtlMapWork* work) {
         default:
             LoadBgTiles(gBtlWork->mapBg, gBtlBgOlympusColiseumTiles, sizeof(gBtlBgOlympusColiseumTiles));
             LoadBgPalette(gBtlWork->mapBg, gBtlBgOlympusColiseumPalette, sizeof(gBtlBgOlympusColiseumPalette));
+            BTL_ARENA_BANDS(72, 72);
 #ifdef VERSION_EU
             LoadBgMapLz77(gBtlWork->mapBg, gBtlBgOlympusColiseumMap);
 #else

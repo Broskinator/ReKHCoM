@@ -22,6 +22,25 @@
 #include "malloc.h"
 #include "card.h"
 #include "sprites_deck_menu.h"
+
+#ifdef PLATFORM_PC
+void PortRegisterBgTextTile(void* address, int code, int style, const void* source32);
+void PortClearBgTextTiles(void);
+#endif
+
+/* Keep cartridge tile transfers intact; attach optional HD metadata to
+   numeric cells. The renderer checks the tile signature before using it. */
+static void PortCopyDeckDigit(const void* source, void* destination, u16 size) {
+    RequestDma3Copy(source, destination, size);
+#ifdef PLATFORM_PC
+    {
+        int digit = ((const u8*)source - gDeckCountDigitTiles) / 32 - 1;
+        if (size == 32 && digit >= 0 && digit <= 9)
+            PortRegisterBgTextTile(destination, '0' + digit, 2, source);
+    }
+#endif
+}
+
 #include "sprites_card_pictures.h"
 #include "gba/keys.h"
 #include "songs.h"
@@ -60,6 +79,9 @@ const s16 gRikuDeckValueGridY[5] = { 80, 88, 96, 104, 112 };
 static const u16 sRikuDeckRowY[4] = { 45, 93, 141, 30 };
 
 static void Deckmenu2_0(RikuDeckMenuWork* work, void* resultOut) {
+#ifdef PLATFORM_PC
+    PortClearBgTextTiles();
+#endif
     u16 rowY;
 
     work->resultOut = resultOut;
@@ -534,6 +556,9 @@ static void Deckmenu2_2(RikuDeckMenuWork* work) {
 }
 
 static void Deckmenu2_3(RikuDeckMenuWork* work) {
+#ifdef PLATFORM_PC
+    PortClearBgTextTiles();
+#endif
     ClearRikuCardGrid(work);
     // @bug Leaves the card preview's tiles allocated.
     ReleaseObjTiles(work->tiles);
@@ -779,15 +804,15 @@ void DrawRikuDeckCardCount(u8 deck) {
     }
 
 #ifdef VERSION_EU
-    RequestDma3Copy(&gDeckCountDigitTiles[(countDigits[0] + 1) * 32], base + 0x2C00, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(countDigits[1] + 1) * 32], base + 0x2C20, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(maxDigits[0] + 1) * 32], base + 0x2C40, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(maxDigits[1] + 1) * 32], base + 0x2C60, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(countDigits[0] + 1) * 32], base + 0x2C00, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(countDigits[1] + 1) * 32], base + 0x2C20, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(maxDigits[0] + 1) * 32], base + 0x2C40, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(maxDigits[1] + 1) * 32], base + 0x2C60, 32);
 #else
-    RequestDma3Copy(&gDeckCountDigitTiles[(countDigits[0] + 1) * 32], base + 0x20, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(countDigits[1] + 1) * 32], base + 0x40, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(maxDigits[0] + 1) * 32], base + 0x60, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(maxDigits[1] + 1) * 32], base + 0x80, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(countDigits[0] + 1) * 32], base + 0x20, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(countDigits[1] + 1) * 32], base + 0x40, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(maxDigits[0] + 1) * 32], base + 0x60, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(maxDigits[1] + 1) * 32], base + 0x80, 32);
 #endif
 }
 
@@ -807,12 +832,12 @@ void DrawRikuCardTotals() {
     collectionDigits[1] = collectionCount / 10 - collectionDigits[0] * 10;
     collectionDigits[2] = collectionCount - collectionDigits[0] * 100 - collectionDigits[1] * 10;
     base = GetBgCharBase(3);
-    RequestDma3Copy(&gDeckCountDigitTiles[(inDeckDigits[0] + 1) * 32], base + 0x2A0, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(inDeckDigits[1] + 1) * 32], base + 0x2C0, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(inDeckDigits[2] + 1) * 32], base + 0x2E0, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(collectionDigits[0] + 1) * 32], base + 0x300, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(collectionDigits[1] + 1) * 32], base + 0x320, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(collectionDigits[2] + 1) * 32], base + 0x340, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(inDeckDigits[0] + 1) * 32], base + 0x2A0, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(inDeckDigits[1] + 1) * 32], base + 0x2C0, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(inDeckDigits[2] + 1) * 32], base + 0x2E0, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(collectionDigits[0] + 1) * 32], base + 0x300, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(collectionDigits[1] + 1) * 32], base + 0x320, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(collectionDigits[2] + 1) * 32], base + 0x340, 32);
 }
 
 void LoadRikuDeckNameTexts(RikuDeckMenuWork* work) {

@@ -76,6 +76,34 @@ static int sBgShift[4];
 static int sBgShiftLatched[4];
 static int sBgDocked[4];
 static int sBgDockedLatched[4];
+static int sBattleView;
+static int sArenaBands[6]; /* bounds, left source/width, right source/width */
+typedef struct BgTextTile {
+    uint16_t code;
+    uint8_t style, faceIndex, shadowIndex;
+    uint8_t source[32];
+} BgTextTile;
+static BgTextTile sBgTextTiles[2048];
+typedef struct BgTextGlyph {
+    PortTextGlyph glyph;
+    uint8_t bg, priority, screen;
+} BgTextGlyph;
+static BgTextGlyph sBgTextGlyphs[1024];
+static int sBgTextCount;
+
+void PortClearBgTextTiles(void) { memset(sBgTextTiles, 0, sizeof(sBgTextTiles)); }
+
+void PortRegisterBgTextTile(void* address, int code, int style, const void* source32) {
+    uintptr_t offset = (uintptr_t)address - GBA_VRAM;
+    BgTextTile* tile;
+    if (offset >= 0x10000 || (offset & 31) || !source32) return;
+    tile = &sBgTextTiles[offset / 32];
+    tile->code = (uint16_t)code;
+    tile->style = (uint8_t)style;
+    tile->faceIndex = (uint8_t)((style & 0xFF00) ? (style >> 8) & 15 : 15);
+    tile->shadowIndex = (uint8_t)((style & 0xFF00) ? (style >> 12) & 15 : 14);
+    memcpy(tile->source, source32, 32);
+}
 
 /* A docked layer is screen UI moved toward an edge: it shows only what the
    hardware would (no world-map continuation), so parked windows stay hidden. */
@@ -106,6 +134,9 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgShiftLatched, sizeof(sBgShiftLatched));
     visit(sBgDocked, sizeof(sBgDocked));
     visit(sBgDockedLatched, sizeof(sBgDockedLatched));
+    visit(&sBattleView, sizeof(sBattleView));
+    visit(sArenaBands, sizeof(sArenaBands));
+    visit(sBgTextTiles, sizeof(sBgTextTiles));
     visit(sOamExt, sizeof(sOamExt));
     visit(sBgWorld, sizeof(sBgWorld));
     visit(sBgWorldLatched, sizeof(sBgWorldLatched));
@@ -204,6 +235,7 @@ static SpriteTag sOamTag[128];
 static int sHudLayer;
 static int sHdText;
 int gPortTextChar;
+int gPortTextStyle;
 
 /* ---- screen layer ---------------------------------------------------------------
  * Menus over the world (pause, save, world select, level up): their sprites
@@ -221,6 +253,7 @@ static uint16_t sScrLine[PORT_MAX_W];
 static uint8_t sScrPrio[PORT_MAX_W];
 static uint8_t sScrIndex[PORT_MAX_W];
 static uint8_t sScreenOccBg[PORT_MAX_W * GBA_SCREEN_H];
+static uint8_t sScreenOccBgLayer[PORT_MAX_W * GBA_SCREEN_H];
 static uint16_t sScreenOccObj[PORT_MAX_W * GBA_SCREEN_H];
 static uint8_t sScrSemi[PORT_MAX_W];
 
@@ -262,6 +295,7 @@ void PortSpriteTag(int entry) {
         sEntryTag[entry].ax = (int8_t)sHudAx;
         sEntryTag[entry].ay = (int8_t)sHudAy;
         sEntryTag[entry].text = (uint16_t)gPortTextChar;
+        sEntryTag[entry].style = (uint8_t)gPortTextStyle;
         sEntryTag[entry].screen = sScreenDepth > 0;
     }
 }
@@ -336,6 +370,7 @@ static uint8_t sObjIndex[PORT_MAX_W];
    priority * 128 + OAM index (0xFFFF: none). A window that hides OBJs there
    reads as 0 / 0. */
 static uint8_t sOccBg[PORT_MAX_W * PORT_MAX_H];
+static uint8_t sOccBgLayer[PORT_MAX_W * PORT_MAX_H];
 /* HD-2D: 1 where a message window (docked layer) shows; allocated on use. */
 static uint8_t* sMsgMask;
 static uint16_t sOccObj[PORT_MAX_W * PORT_MAX_H];
@@ -454,7 +489,24 @@ void PortLatchBgMaps(const BgEntry* entries) {
     }
 }
 
-static int sBattleView;
+void PortSetBattleArenaBands(int left, int right, int leftStart, int leftWidth,
+                             int rightStart, int rightWidth) {
+    if (left < 0 || right > 1024 || left >= right || leftWidth <= 0 || rightWidth <= 0 ||
+        leftStart < left || leftStart + leftWidth > right ||
+        rightStart < left || rightStart + rightWidth > right) {
+        memset(sArenaBands, 0, sizeof(sArenaBands));
+        return;
+    }
+    sArenaBands[0] = left; sArenaBands[1] = right;
+    sArenaBands[2] = leftStart; sArenaBands[3] = leftWidth;
+    sArenaBands[4] = rightStart; sArenaBands[5] = rightWidth;
+}
+
+static int ArenaBandPixel(int distance, int start, int width, int right) {
+    int phase = distance % (width * 2);
+    if (phase >= width) phase = width * 2 - 1 - phase;
+    return start + (right ? width - 1 - phase : phase);
+}
 
 /* Battle: the card hand sits partly below the GBA screen; the sprites are
    whole, so the bottom HUD can be lifted to show more of them. */
@@ -466,6 +518,7 @@ static int HudRaise(void) {
 
 void PortSetBattleView(int on) {
     sBattleView = on;
+    memset(sArenaBands, 0, sizeof(sArenaBands));
 }
 
 /* Screen entry of the world map at world pixel (wx, wy); -1 outside it. */
@@ -582,7 +635,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             const BgLatch* l = &sBgLatch[bg];
             int we;
 
-            if (sBgDockedLatched[bg] || (!l->valid && !sBgWorldLatched[bg].valid)) {
+            if (sScreenBg[bg] || sBgDockedLatched[bg] || (!l->valid && !sBgWorldLatched[bg].valid)) {
                 out[x] = TRANSPARENT;
                 continue;
             }
@@ -642,6 +695,35 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             ci = (fx & 1) ? (b >> 4) : (b & 15);
             pal = entry >> 12;
             out[x] = ci ? (PLTT16[pal * 16 + ci] & 0x7FFF) : TRANSPARENT;
+            if (sHdText && !(entry & 0xC00)) {
+                unsigned offset = ((cnt >> 2) & 3) * 0x4000 + tile * 32;
+                if (offset < 0x10000) {
+                    const BgTextTile* text = &sBgTextTiles[offset / 32];
+                    if (text->code > 0x20 && !memcmp(text->source, VRAM8 + offset, 32)) {
+                        if ((px & 7) == 0 && ((py & 7) == 0 || gy == 0) && sBgTextCount < 1024) {
+                            BgTextGlyph* glyph = &sBgTextGlyphs[sBgTextCount++];
+                            int xx = x - (px & 7), yy = gy - (py & 7);
+                            glyph->bg = (uint8_t)bg;
+                            glyph->priority = cnt & 3;
+                            glyph->screen = sOverlay && sScreenBg[bg];
+                            if (glyph->screen) {
+                                xx -= gPortScreen.originX;
+                                if (sBgSplit[bg]) xx += xx < sBgSplit[bg] ? -PortScreenMarginX() : PortScreenMarginX();
+                                xx += (gPortOverlayW - GBA_SCREEN_W) / 2;
+                            } else yy += gPortScreen.originY;
+                            memset(&glyph->glyph, 0, sizeof(glyph->glyph));
+                            glyph->glyph.x = xx; glyph->glyph.y = yy;
+                            glyph->glyph.code = text->code;
+                            glyph->glyph.style = text->style;
+                            /* Numeric BG cells use the same 13/14/15 panel,
+                               shadow and face convention as EXP cells. */
+                            glyph->glyph.face = PLTT16[pal * 16 + text->faceIndex] & 0x7FFF;
+                            glyph->glyph.shadow = PLTT16[pal * 16 + text->shadowIndex] & 0x7FFF;
+                        }
+                        if (ci == text->shadowIndex || ci == text->faceIndex) out[x] = TRANSPARENT;
+                    }
+                }
+            }
         }
     }
 }
@@ -697,6 +779,20 @@ static void DrawAffineBg(int bg, int gy, uint16_t dispcnt) {
             out[x] = TRANSPARENT;
             continue;
         }
+        /* Continue authored arena ornaments only in the wide margins. The
+           original hardware viewport, camera and collision remain exact.
+           Reflecting each short side band joins its edge without bringing
+           padding or unique centre landmarks into the added view. */
+        if (sBattleView && sArenaBands[1] && size >= 512 &&
+            ((cnt >> 2) & 3) == 0 && ((cnt >> 8) & 31) == 12 &&
+            (gx < 0 || gx >= GBA_SCREEN_W) && py >= 0 && py < size) {
+            if (px < sArenaBands[0])
+                px = ArenaBandPixel(sArenaBands[0] - 1 - px,
+                                    sArenaBands[2], sArenaBands[3], 0);
+            else if (px >= sArenaBands[1])
+                px = ArenaBandPixel(px - sArenaBands[1],
+                                    sArenaBands[4], sArenaBands[5], 1);
+        }
         if (wrap) {
             px &= size - 1;
             py &= size - 1;
@@ -715,7 +811,7 @@ static void DrawAffineBg(int bg, int gy, uint16_t dispcnt) {
     }
 }
 
-static void DrawBitmapBg(int mode, uint16_t dispcnt) {
+static void DrawBitmapBg(int mode, int gy, uint16_t dispcnt) {
     int16_t pa = (int16_t)IO16(0x20);
     int16_t pc = (int16_t)IO16(0x24);
     uint16_t* out = sBgLine[2];
@@ -723,12 +819,33 @@ static void DrawBitmapBg(int mode, uint16_t dispcnt) {
     int bw = (mode == 5) ? 160 : 240;
     int bh = (mode == 5) ? 128 : 160;
     uint32_t page = (mode != 3 && (dispcnt & 0x10)) ? 0xA000 : 0;
-    int32_t rx = sAffX[0] + (int32_t)pa * (-gPortScreen.originX);
-    int32_t ry = sAffY[0] + (int32_t)pc * (-gPortScreen.originX);
+    int mosaic = (IO16(0x0C) >> 6) & 1;
+    int mosH = mosaic ? (IO16(0x4C) & 15) + 1 : 1;
+    int mosV = mosaic ? ((IO16(0x4C) >> 4) & 15) + 1 : 1;
+    int32_t refX = sAffX[0], refY = sAffY[0], rx, ry;
+
+    /* Bitmap modes use BG2's affine engine, including its screen-space
+       mosaic. Reuse the first line's reference point within each block. */
+    if (mosV > 1) {
+        if (((gy % mosV) + mosV) % mosV == 0) {
+            sMosAffX[0] = refX;
+            sMosAffY[0] = refY;
+        }
+        refX = sMosAffX[0];
+        refY = sMosAffY[0];
+    }
+    rx = refX + (int32_t)pa * (-gPortScreen.originX);
+    ry = refY + (int32_t)pc * (-gPortScreen.originX);
 
     for (x = 0; x < w; x++, rx += pa, ry += pc) {
         int gx = x - gPortScreen.originX;
         int px = rx >> 8, py = ry >> 8;
+
+        if (mosH > 1) {
+            int first = gx - ((gx % mosH) + mosH) % mosH;
+            px = (refX + (int32_t)pa * first) >> 8;
+            py = (refY + (int32_t)pc * first) >> 8;
+        }
 
         if (gx < sLeft || gx >= sRight || px < 0 || py < 0 || px >= bw || py >= bh) {
             out[x] = TRANSPARENT;
@@ -794,7 +911,7 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
             continue;
         if (sHudLayer && sOamTag[i].hud)
             continue; /* drawn by PortPpuRenderHud */
-        if (HdTextGlyph(i))
+        if (HdTextGlyph(i) && sOamTag[i].style != 2)
             continue; /* drawn by port_hdtext.c */
         ow = sObjSize[shape][size][0];
         oh = sObjSize[shape][size][1];
@@ -817,10 +934,12 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
             continue;
 
         line = gy - oy;
-        if (objMosaic && mosV > 1)
-            line -= line % mosV;
+        /* Reject lines outside the sprite before mosaic quantisation:
+           truncating a negative remainder would turn -1 into line zero. */
         if (line < 0 || line >= bh)
             continue;
+        if (objMosaic && mosV > 1)
+            line -= line % mosV;
         if (bitmapMode && tileBase < 512)
             continue;
 
@@ -854,6 +973,8 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
                 if (tx < 0 || ty < 0 || tx >= ow || ty >= oh)
                     continue;
             } else {
+                if (fx < 0 || fx >= ow)
+                    continue;
                 tx = (a1 & 0x1000) ? ow - 1 - fx : fx;
                 ty = (a1 & 0x2000) ? oh - 1 - line : line;
             }
@@ -877,6 +998,8 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
             }
             if (col < 0)
                 continue;
+            if (HdTextGlyph(i) && sOamTag[i].style == 2 && (ci == 14 || ci == 15))
+                continue; /* EXP cells keep their authored blue panel pixels. */
             if (mode == 2) {
                 sObjWin[x] = 1;
                 continue;
@@ -1038,10 +1161,11 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
             continue;
         }
         if ((sHudLayer || sHdText || PortHd2dActive()) && objects) {
-            int k, occ = 4, message = 0;
+            int k, occ = 4, occLayer = 4, message = 0;
             for (k = 0; k < n; k++) {
                 if ((mask & WIN_BG(order[k])) && sBgLine[order[k]][x] != TRANSPARENT) {
                     occ = bgPrio[order[k]];
+                    occLayer = order[k];
                     break;
                 }
             }
@@ -1053,9 +1177,11 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
                 sMsgMask[y * w + x] = (uint8_t)message;
             if (!(mask & WIN_OBJ) || (message && sHudLayer)) {
                 sOccBg[y * w + x] = 0;
+                sOccBgLayer[y * w + x] = 0;
                 sOccObj[y * w + x] = 0;
             } else {
                 sOccBg[y * w + x] = (uint8_t)occ;
+                sOccBgLayer[y * w + x] = (uint8_t)occLayer;
                 sOccObj[y * w + x] = sObjLine[x] != TRANSPARENT ? (uint16_t)(sObjPrio[x] * 128 + sObjIndex[x]) : 0xFFFFu;
             }
         }
@@ -1191,19 +1317,22 @@ static void ComposeOverlayLine(int gy, uint16_t dispcnt, const int* bgOn, const 
 
         dst[ox] = 0;
         sScreenOccBg[gy * wo + ox] = 0;
+        sScreenOccBgLayer[gy * wo + ox] = 0;
         sScreenOccObj[gy * wo + ox] = 0;
         if (x < 0 || x >= w || gx < sLeft || gx >= sRight)
             continue;
         mask = sWinMask[x];
         if (sHdText && (mask & WIN_OBJ)) {
-            int occ = 4;
+            int occ = 4, occLayer = 4;
             for (i = 0; i < n; i++) {
                 if ((mask & WIN_BG(order[i])) && sBgLine[order[i]][x] != TRANSPARENT) {
                     occ = bgPrio[order[i]];
+                    occLayer = order[i];
                     break;
                 }
             }
             sScreenOccBg[gy * wo + ox] = (uint8_t)occ;
+            sScreenOccBgLayer[gy * wo + ox] = (uint8_t)occLayer;
             sScreenOccObj[gy * wo + ox] = sScrLine[x] != TRANSPARENT ?
                 (uint16_t)(sScrPrio[x] * 128 + sScrIndex[x]) : 0xFFFF;
         }
@@ -1302,7 +1431,7 @@ static void RenderLine(int y, int gy) {
         if (!bgOn[b])
             continue;
         if (mode >= 3)
-            DrawBitmapBg(mode, dispcnt);
+            DrawBitmapBg(mode, gy, dispcnt);
         else if (b >= 2 && (mode == 2 || (mode == 1 && b == 2)))
             DrawAffineBg(b, gy, dispcnt);
         else
@@ -1366,6 +1495,7 @@ static void UpdateSceneNarrow(uint16_t dispcnt) {
 void PortPpuBeginFrame(void) {
     uint16_t dispcnt = IO16(0x00);
     int b, any = 0;
+    sBgTextCount = 0;
 
     BuildLut();
     UpdateSceneNarrow(dispcnt);
@@ -1391,6 +1521,7 @@ void PortPpuBeginFrame(void) {
     sHdText = gPortConfig.hdText;
     if (sHudLayer || sHdText) {
         memset(sOccBg, 4, (size_t)gPortScreen.width * gPortScreen.height);
+        memset(sOccBgLayer, 4, (size_t)gPortScreen.width * gPortScreen.height);
         memset(sOccObj, 0xFF, (size_t)gPortScreen.width * gPortScreen.height * 2);
     }
     sOverlay = gPortScreenLayer;
@@ -1653,7 +1784,8 @@ void PortPpuRenderHud(uint32_t* buf) {
         int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
         const SpriteTag* tag = &sOamTag[i];
 
-        if (!tag->hud || (!affine && dbl) || shape == 3 || mode >= 2 || HdTextGlyph(i))
+        if (!tag->hud || (!affine && dbl) || shape == 3 || mode >= 2 ||
+            (HdTextGlyph(i) && tag->style != 2))
             continue;
         ow = sObjSize[shape][size][0];
         oh = sObjSize[shape][size][1];
@@ -1701,6 +1833,10 @@ void PortPpuRenderHud(uint32_t* buf) {
                 col = ObjColor(a0, a2, tx, ty, ow, mapping1d);
                 if (col < 0)
                     continue;
+                if (HdTextGlyph(i) && tag->style == 2 &&
+                    (col == (PLTT16[256 + (a2 >> 12) * 16 + 14] & 0x7FFF) ||
+                     col == (PLTT16[256 + (a2 >> 12) * 16 + 15] & 0x7FFF)))
+                    continue;
                 {
                     /* hidden where the cartridge draws something in front */
                     int cx = ox + sx + gPortScreen.originX, cy = oy + sy + gPortScreen.originY;
@@ -1733,11 +1869,43 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
     int effect = (bldcnt >> 6) & 3, evy = IO16(0x54) & 31;
     int n = 0, i;
 
-    if (!sHdText || (dispcnt & 0x80) || !(dispcnt & 0x1000))
+    if (!sHdText || (dispcnt & 0x80))
         return 0;
     if (evy > 16)
         evy = 16;
-    for (i = 127; i >= 0 && n < max; i--) {
+    /* BG numbers enter before OBJ text, in the same back-to-front order as
+       their authored backgrounds. Their panel pixels still obey windows. */
+    {
+        int priority, bg, j;
+        for (priority = 3; priority >= 0; priority--) for (bg = 3; bg >= 0; bg--)
+            for (j = 0; j < sBgTextCount && n < max; j++) {
+                const BgTextGlyph* source = &sBgTextGlyphs[j];
+                const PortTextGlyph* glyph = &source->glyph;
+                int layer = source->screen ? 2 : 0;
+                int width = source->screen ? gPortOverlayW : gPortScreen.width;
+                int height = source->screen ? GBA_SCREEN_H : gPortScreen.height;
+                int px = glyph->x + 4, py = glyph->y + 4, at;
+                const uint8_t* occBg = source->screen ? sScreenOccBg : sOccBg;
+                const uint8_t* occLayer = source->screen ? sScreenOccBgLayer : sOccBgLayer;
+                const uint16_t* occObj = source->screen ? sScreenOccObj : sOccObj;
+                uint16_t face, shadow;
+                if (source->priority != priority || source->bg != bg || layer != hud ||
+                    px < 0 || px >= width || py < 0 || py >= height) continue;
+                at = py * width + px;
+                if ((occBg[at] == 0 && occObj[at] == 0) || occBg[at] < priority ||
+                    (occBg[at] == priority && occLayer[at] < bg) ||
+                    occObj[at] < (priority + 1) * 128) continue; /* OBJ wins ties with BG. */
+                out[n] = *glyph;
+                face = (uint16_t)glyph->face; shadow = (uint16_t)glyph->shadow;
+                if (bldcnt & (1 << bg)) {
+                    if (effect == 2) { face = Brighten(face, evy); shadow = Brighten(shadow, evy); }
+                    if (effect == 3) { face = Darken(face, evy); shadow = Darken(shadow, evy); }
+                }
+                out[n].face = sColorLut[face]; out[n].shadow = sColorLut[shadow];
+                n++;
+            }
+    }
+    for (i = 127; i >= 0 && n < max && (dispcnt & 0x1000); i--) {
         uint16_t a0 = OAM16[i * 4 + 0], a1 = OAM16[i * 4 + 1], a2 = OAM16[i * 4 + 2];
         const SpriteTag* tag = &sOamTag[i];
         int onHud = sHudLayer && tag->hud;
@@ -1764,11 +1932,12 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
             int py = oy + 6, prio = (a2 >> 10) & 3;
             if (px >= 0 && px < gPortOverlayW && py >= 0 && py < GBA_SCREEN_H) {
                 int at = py * gPortOverlayW + px;
-                if (sScreenOccBg[at] < prio || sScreenOccObj[at] < prio * 128 + i)
+                if ((sScreenOccBg[at] == 0 && sScreenOccObj[at] == 0) ||
+                    sScreenOccBg[at] < prio || sScreenOccObj[at] < prio * 128 + i)
                     continue;
             }
         }
-        if (!onScreen && !onHud) {
+        if (!onScreen) {
             /* HD glyphs bypass DrawObjs, but must still obey the cartridge's
                background/window and object priority. A covered glyph must
                not be painted over a tutorial or confirmation panel. */
@@ -1777,7 +1946,8 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
             int prio = (a2 >> 10) & 3;
             if (px >= 0 && px < gPortScreen.width && py >= 0 && py < gPortScreen.height) {
                 int at = py * gPortScreen.width + px;
-                if (sOccBg[at] < prio || (sOccObj[at] != 0 && sOccObj[at] < prio * 128 + i))
+                if ((sOccBg[at] == 0 && sOccObj[at] == 0) || sOccBg[at] < prio ||
+                    sOccObj[at] < prio * 128 + i)
                     continue;
             }
         }
@@ -1799,7 +1969,7 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
         /* colour 1 is the face, colour 2 the shadow, as the game fades them */
         bank = a2 >> 12;
         for (k = 0; k < 2; k++) {
-            col[k] = PLTT16[256 + bank * 16 + 1 + k] & 0x7FFF;
+            col[k] = PLTT16[256 + bank * 16 + (tag->style == 2 ? 15 - k : 1 + k)] & 0x7FFF;
             if (bldcnt & 0x10) {
                 if (effect == 2)
                     col[k] = Brighten(col[k], evy);

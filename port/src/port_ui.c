@@ -572,6 +572,7 @@ int PortUiActive(void) {
 static int sFade;    /* frames since the menu opened */
 static int sClosing; /* frames left of the menu fading to white */
 static int sReturn;  /* frames left of the white fading back to the game */
+static int sHarnessTick;
 
 void PortUiOpenOptions(void) {
     if (sOpen)
@@ -582,6 +583,7 @@ void PortUiOpenOptions(void) {
     sReturn = 0;
     sCursor = 0;
     sScroll = 0;
+    sHarnessTick = 0;
     if (SDL_getenv("KHCOM_OPTIONS_CURSOR")) /* test harness: shot of a lower row */
         sCursor = SDL_clamp(SDL_atoi(SDL_getenv("KHCOM_OPTIONS_CURSOR")), 0, ITEM_COUNT - 1);
     RefreshModes();
@@ -1007,8 +1009,69 @@ static void HarnessFadeShot(int width, int height) {
     }
 }
 
+/* Opt-in regression route, evaluated while the game is paused by this menu.
+   KHCOM_OPTIONS_ACTIONS=tick:item:direction,... uses the same Change() as
+   keyboard/controller input. Each action records its translated value and a
+   rendered menu BMP; KHCOM_OPTIONS_HOLD supplies the ordinary close route.
+   Tests must run in an isolated config/save directory (save bank is real). */
+static int HarnessOptionsAction(void) {
+    const char* route = SDL_getenv("KHCOM_OPTIONS_ACTIONS");
+    int changed = 0;
+    if (!route)
+        return 0;
+    sHarnessTick++;
+    while (route && *route) {
+        const char* comma = SDL_strchr(route, ',');
+        const char* item = SDL_strchr(route, ':');
+        const char* dir = item ? SDL_strchr(item + 1, ':') : NULL;
+        if (item && dir && (!comma || dir < comma) && SDL_atoi(route) == sHarnessTick) {
+            int row = SDL_atoi(item + 1), direction = SDL_atoi(dir + 1);
+            if (row >= 0 && row < ITEM_COUNT && row != ITEM_EXPERIMENTAL && row != ITEM_CLOSE) {
+                char before[128], after[128];
+                ValueText(row, before, sizeof(before));
+                sCursor = row;
+                Change(row, direction < 0 ? -1 : 1);
+                ValueText(row, after, sizeof(after));
+                PortLog("options-test: tick=%d item=%d enabled=%d before=[%s] after=[%s]",
+                        sHarnessTick, row, ItemEnabled(row), before, after);
+                if (row == ITEM_FULLSCREEN || row == ITEM_FS_RES || row == ITEM_VSYNC) {
+                    int count = 0, vsync = -999, winW = 0, winH = 0;
+                    SDL_Window** windows = SDL_GetWindows(&count);
+                    if (windows && count > 0) {
+                        SDL_SyncWindow(windows[0]);
+                        const SDL_DisplayMode* mode = SDL_GetWindowFullscreenMode(windows[0]);
+                        SDL_Renderer* renderer = SDL_GetRenderer(windows[0]);
+                        SDL_GetWindowSizeInPixels(windows[0], &winW, &winH);
+                        if (renderer)
+                            SDL_GetRenderVSync(renderer, &vsync);
+                        PortLog("options-video: tick=%d fullscreen=%d size=%dx%d mode=%dx%d vsync=%d driver=%s",
+                                sHarnessTick, (SDL_GetWindowFlags(windows[0]) & SDL_WINDOW_FULLSCREEN) != 0,
+                                winW, winH, mode ? mode->w : 0, mode ? mode->h : 0, vsync,
+                                SDL_GetCurrentVideoDriver());
+                    }
+                    SDL_free(windows);
+                }
+                changed = 1;
+            }
+        }
+        route = comma ? comma + 1 : NULL;
+    }
+    return changed;
+}
+
+static void HarnessOptionsShot(uint32_t* frame, int width, int height) {
+    char name[64];
+    SDL_Surface* surface = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_XRGB8888, frame, width * 4);
+    if (!surface)
+        return;
+    SDL_snprintf(name, sizeof(name), "options_%04d_%02d.bmp", sHarnessTick, sCursor);
+    SDL_SaveBMP(surface, PortConfigPath(name));
+    SDL_DestroySurface(surface);
+}
+
 void PortUiDraw(uint32_t* frame, int width, int height) {
     int l = Lang();
+    int harnessShot = 0;
 
     sFb = frame;
     sFbW = width;
@@ -1048,7 +1111,11 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
         HarnessFadeShot(width, height);
         return;
     }
+    if (sFade >= MENU_FADE * 2)
+        harnessShot = HarnessOptionsAction();
     DrawMenu(l, width, height);
+    if (harnessShot)
+        HarnessOptionsShot(frame, width, height);
     if (sFade < MENU_FADE * 2) { /* the menu in from white */
         Shade(0, 0, width, height, 0xFFFFFFFFu, (MENU_FADE * 2 - sFade) * 256 / MENU_FADE - 32);
         sFade++;

@@ -20,6 +20,25 @@
 #include "malloc.h"
 #include "card.h"
 #include "sprites_deck_menu.h"
+
+#ifdef PLATFORM_PC
+void PortRegisterBgTextTile(void* address, int code, int style, const void* source32);
+void PortClearBgTextTiles(void);
+#endif
+
+/* Keep cartridge tile transfers intact; attach optional HD metadata to
+   numeric cells. The renderer checks the tile signature before using it. */
+static void PortCopyDeckDigit(const void* source, void* destination, u16 size) {
+    RequestDma3Copy(source, destination, size);
+#ifdef PLATFORM_PC
+    {
+        int digit = ((const u8*)source - gDeckCountDigitTiles) / 32 - 1;
+        if (size == 32 && digit >= 0 && digit <= 9)
+            PortRegisterBgTextTile(destination, '0' + digit, 2, source);
+    }
+#endif
+}
+
 #include "gba/keys.h"
 #include "songs.h"
 #include "card_api.h"
@@ -59,6 +78,9 @@ static const s16 sDeckExchangeValueGridY[5] = { 80, 88, 96, 104, 112 };
 static const u16 sDeckExchangeRowY[4] = { 45, 93, 141, 30 };
 
 void deckexchange_0(DeckExchangeWork* work, void* resultOut) {
+#ifdef PLATFORM_PC
+    PortClearBgTextTiles();
+#endif
     u16 n;
 
     CpuFill32(0, work, sizeof(DeckExchangeWork));
@@ -995,6 +1017,9 @@ void deckexchange_2(DeckExchangeWork* work) {
 }
 
 void deckexchange_3(DeckExchangeWork* work) {
+#ifdef PLATFORM_PC
+    PortClearBgTextTiles();
+#endif
     ObjPalette** palette4;
 
     if (work->tiles8 != NULL) {
@@ -1354,10 +1379,10 @@ void DrawDeckExchangeDeckCardCount(u8 deck) {
         break;
     }
 
-    RequestDma3Copy(&gDeckCountDigitTiles[(countDigits[0] + 1) * 32], base + 0x20, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(countDigits[1] + 1) * 32], base + 0x40, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(maxDigits[0] + 1) * 32], base + 0x60, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(maxDigits[1] + 1) * 32], base + 0x80, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(countDigits[0] + 1) * 32], base + 0x20, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(countDigits[1] + 1) * 32], base + 0x40, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(maxDigits[0] + 1) * 32], base + 0x60, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(maxDigits[1] + 1) * 32], base + 0x80, 32);
 }
 
 void DrawDeckExchangeEquipMarker(u8 deck) {
@@ -1417,12 +1442,12 @@ void DrawDeckExchangeDeckCpCost(u8 deck) {
         break;
     }
 
-    RequestDma3Copy(&gDeckCountDigitTiles[(costDigits[0] + 1) * 32], base + 0xA0, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(costDigits[1] + 1) * 32], base + 0xC0, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(costDigits[2] + 1) * 32], base + 0xE0, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(cpDigits[0] + 1) * 32], base + 0x100, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(cpDigits[1] + 1) * 32], base + 0x120, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(cpDigits[2] + 1) * 32], base + 0x140, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(costDigits[0] + 1) * 32], base + 0xA0, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(costDigits[1] + 1) * 32], base + 0xC0, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(costDigits[2] + 1) * 32], base + 0xE0, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(cpDigits[0] + 1) * 32], base + 0x100, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(cpDigits[1] + 1) * 32], base + 0x120, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(cpDigits[2] + 1) * 32], base + 0x140, 32);
 }
 
 void DrawDeckExchangeCollectionFilterTab(u8 categoryFilter, u8 mode) {
@@ -1472,12 +1497,12 @@ void DrawDeckExchangeCardTotals() {
     collectionDigits[1] = collectionCount / 10 - collectionDigits[0] * 10;
     collectionDigits[2] = collectionCount - collectionDigits[0] * 100 - collectionDigits[1] * 10;
     base = GetBgCharBase(3);
-    RequestDma3Copy(&gDeckCountDigitTiles[(inDeckDigits[0] + 1) * 32], base + 0x2A0, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(inDeckDigits[1] + 1) * 32], base + 0x2C0, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(inDeckDigits[2] + 1) * 32], base + 0x2E0, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(collectionDigits[0] + 1) * 32], base + 0x300, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(collectionDigits[1] + 1) * 32], base + 0x320, 32);
-    RequestDma3Copy(&gDeckCountDigitTiles[(collectionDigits[2] + 1) * 32], base + 0x340, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(inDeckDigits[0] + 1) * 32], base + 0x2A0, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(inDeckDigits[1] + 1) * 32], base + 0x2C0, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(inDeckDigits[2] + 1) * 32], base + 0x2E0, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(collectionDigits[0] + 1) * 32], base + 0x300, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(collectionDigits[1] + 1) * 32], base + 0x320, 32);
+    PortCopyDeckDigit(&gDeckCountDigitTiles[(collectionDigits[2] + 1) * 32], base + 0x340, 32);
 }
 
 void LoadDeckExchangeDeckNameTexts(DeckExchangeWork* work) {

@@ -813,6 +813,57 @@ static uint16_t MovieKeys(uint32_t frame) {
     return (uint16_t)((data[index * 2] | data[index * 2 + 1] << 8) & 0x3FF);
 }
 
+/* KHCOM_MONKEY=seed:start: from frame `start` on, play with random but
+   reproducible input: walk in one direction for a while, attack often, roll
+   and use L / R in battle, open and leave the pause menu now and then.
+   Never Start + Select together (options) nor A + B + Select + Start. */
+static uint16_t MonkeyKeys(uint32_t frame) {
+    static uint32_t seed, start, state, until, dir, menuUntil;
+    static int ready;
+    const char* m;
+
+    if (!ready) {
+        ready = 1;
+        m = SDL_getenv("KHCOM_MONKEY");
+        if (m == NULL)
+            return 0;
+        seed = (uint32_t)SDL_atoi(m) * 2654435761u + 1;
+        start = SDL_strchr(m, ':') ? (uint32_t)SDL_atoi(SDL_strchr(m, ':') + 1) : 0;
+        state = seed;
+    }
+    if (seed == 0 || frame < start)
+        return 0;
+    if (frame >= until) {
+        static const uint16_t dirs[8] = { 16, 32, 64, 128, 16 | 64, 16 | 128, 32 | 64, 32 | 128 };
+        state = state * 1664525u + 1013904223u;
+        dir = (state >> 24) % 10 < 8 ? dirs[(state >> 8) & 7] : 0;
+        until = frame + 20 + (state >> 16) % 90;
+        /* about one menu visit a minute: START, a few frames, B out */
+        if ((state >> 4) % 40 == 0)
+            menuUntil = frame + 40;
+    }
+    if (frame < menuUntil) {
+        uint32_t t = menuUntil - frame;
+        return t == 39 ? 8 : (t < 20 && (t & 7) == 0 ? 2 : 0);
+    }
+    {
+        uint32_t h = (frame * 2246822519u) ^ seed;
+        uint16_t keys = (uint16_t)dir;
+        h ^= h >> 13;
+        h *= 3266489917u;
+        h ^= h >> 16;
+        if ((frame % 12) < 3)
+            keys |= 1; /* A: attack, talk, confirm */
+        if (h % 97 == 0)
+            keys |= 2; /* B */
+        if (h % 61 == 0)
+            keys |= 256; /* R: next card */
+        if (h % 83 == 0)
+            keys |= 512; /* L: previous card */
+        return keys;
+    }
+}
+
 static uint16_t HarnessKeys(uint32_t frame) {
     static const struct { const char* name; uint16_t bit; } names[] = {
         { "A", 1 }, { "B", 2 }, { "SELECT", 4 }, { "START", 8 }, { "RIGHT", 16 },
@@ -820,7 +871,7 @@ static uint16_t HarnessKeys(uint32_t frame) {
         { "STOCK", PORT_KEY_STOCK }, { "DODGE", PORT_KEY_DODGE }, { "UNSTOCK", PORT_KEY_UNSTOCK },
     };
     const char* p = SDL_getenv("KHCOM_KEYS");
-    uint16_t keys = MovieKeys(frame);
+    uint16_t keys = MovieKeys(frame) | MonkeyKeys(frame);
 
     while (p && *p) {
         int a = SDL_atoi(p), b = a;
@@ -1047,6 +1098,9 @@ int PortPacedByVsync(void) {
 
 /* One display frame: draw, vertical blank, present, input, pacing. */
 static void VBlankCycle(void) {
+    const char* frameLogPath = SDL_getenv("KHCOM_FRAMELOG");
+    uint64_t frameLogStart = frameLogPath ? SDL_GetPerformanceCounter() : 0;
+    uint64_t frameLogWork = 0;
     *(volatile uint16_t*)(uintptr_t)0x03007FF8 &= ~1; /* BIOS IntrCheck */
     PortBiosAreaRefresh();
     sFit = sFitMark;
@@ -1090,10 +1144,29 @@ static void VBlankCycle(void) {
     }
     IO16(0x130) = (uint16_t)(~PortInputResolve(PortInputKeys() | HarnessKeys(sFrameCount)) & 0x3FF);
     HarnessFrame();
+    if (frameLogStart) frameLogWork = SDL_GetPerformanceCounter();
     Pace();
 
     if (++sFrameCount % 60 == 0)
         PortSramSyncIfDirty();
+    if (frameLogStart) {
+        static FILE* frameLog;
+        static int attempted;
+        static uint64_t previous;
+        uint64_t end = SDL_GetPerformanceCounter();
+        extern volatile uint32_t gFrameCounter;
+        if (!attempted) {
+            attempted = 1;
+            frameLog = fopen(frameLogPath, "w");
+            if (frameLog) fprintf(frameLog, "frame,interval_ms,render_work_ms,logic,screen\n");
+        }
+        if (frameLog && previous)
+            fprintf(frameLog, "%u,%.6f,%.6f,%u,%d\n", (unsigned)sFrameCount,
+                    1000.0 * (end - previous) / sPerfFreq,
+                    1000.0 * (frameLogWork - frameLogStart) / sPerfFreq,
+                    (unsigned)gFrameCounter, gPortScreenLayer);
+        previous = end;
+    }
     if (SDL_getenv("KHCOM_TIMING") && sFrameCount % 300 == 0) {
         static uint64_t last;
         uint64_t t = SDL_GetPerformanceCounter();

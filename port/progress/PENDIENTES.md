@@ -3,6 +3,14 @@
 Lista de trabajo pedida por el usuario, con sus ejemplos. Se actualiza en cada
 commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pendiente.
 
+## Reparto entre agentes (actualizar al tomar o soltar una tarea)
+
+- **Claude**: verificación de jugabilidad (rutas reales con savestates y entradas),
+  mapas de campo en 16:9 (batería de eventos `--wide`), versiones USA/JP.
+- **Codex**: correcciones visuales de menús y transiciones (subida de nivel,
+  Mapamundi, Naipes mundo, headers/tabs, estrés de submenús, entrada de combate).
+- Si una tarea cambia de manos, moverla aquí antes de empezar.
+
 ## Pantallas y menús 16:9
 
 - [x] Menú START: popeaba al cerrarlo y se "achicaba" al entrar en una subopción.

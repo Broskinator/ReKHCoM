@@ -32,6 +32,7 @@
 #define HD_TEXT_JP_CACHE 1024
 
 const uint16_t* PortLatinGlyphWidths(void);
+uint32_t PortFrameCount(void);
 
 typedef struct HdGlyph {
     SDL_Texture* tex;
@@ -547,9 +548,28 @@ static void DrawSubtitles(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n, 
     }
 }
 
+/* Small numeric HUD cells (EXP and next-level counters). Keep each cell in
+   place instead of applying dialogue word spacing to tabular numbers. */
+static void DrawSmallNumbers(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n,
+                             float originX, float originY, float scale) {
+    HdFont* font = FontForScale(scale * (5.0f / HD_TEXT_CAP), 0);
+    float shadow = SDL_max(1.0f, SDL_floorf(scale * 0.5f));
+    int i;
+    if (font->font == NULL)
+        return;
+    for (i = 0; i < n; i++) {
+        HdGlyph* glyph = Glyph(renderer, font, glyphs[i].code);
+        float x = originX + glyphs[i].x * scale + (8.0f * scale - glyph->advance) * 0.5f;
+        float baseline = originY + (glyphs[i].y + 7) * scale;
+        int alpha = glyphs[i].semi ? glyphs[i].semi : 0xFF;
+        DrawGlyph(renderer, glyph, x + shadow, baseline + shadow, glyphs[i].shadow, alpha);
+        DrawGlyph(renderer, glyph, x, baseline, glyphs[i].face, alpha);
+    }
+}
+
 void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float originY, float scale) {
     static PortTextGlyph glyphs[HD_TEXT_MAX_GLYPHS];
-    int n, i, flowing = 0, subs;
+    int n, i, flowing = 0, subs, smallCount;
 
     if (!gPortConfig.hdText || scale <= 0.0f)
         return;
@@ -560,16 +580,34 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
     /* style 0 first (in place), then the subtitles after them */
     {
         static PortTextGlyph sub[HD_TEXT_MAX_GLYPHS];
-        for (i = subs = 0; i < n; i++) {
-            if (glyphs[i].style)
+        static PortTextGlyph small[HD_TEXT_MAX_GLYPHS];
+        for (i = subs = smallCount = 0; i < n; i++) {
+            if (glyphs[i].style == 2)
+                small[smallCount++] = glyphs[i];
+            else if (glyphs[i].style)
                 sub[subs++] = glyphs[i];
             else
                 glyphs[flowing++] = glyphs[i];
+        }
+        /* Opt-in evidence of the glyph classes actually emitted by the PPU. */
+        {
+            const char* trace = SDL_getenv("KHCOM_HD_TEXT_TRACE");
+            while (trace && *trace) {
+                const char* comma = SDL_strchr(trace, ',');
+                if ((uint32_t)SDL_atoi(trace) == PortFrameCount()) {
+                    PortLog("hd-text: frame=%u layer=%d flowing=%d subtitles=%d small=%d",
+                            (unsigned)PortFrameCount(), hudLayer, flowing, subs, smallCount);
+                    break;
+                }
+                trace = comma ? comma + 1 : NULL;
+            }
         }
         if (flowing > 0)
             DrawFlowing(renderer, glyphs, flowing, originX, originY, scale);
         if (subs > 0)
             DrawSubtitles(renderer, sub, subs, originX, originY, scale);
+        if (smallCount > 0)
+            DrawSmallNumbers(renderer, small, smallCount, originX, originY, scale);
     }
 }
 

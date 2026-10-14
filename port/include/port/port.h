@@ -212,6 +212,8 @@ typedef struct PortTextGlyph {
     uint32_t face, shadow;
 } PortTextGlyph;
 int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud);
+/* Frames presented since start (port_main.c). */
+uint32_t PortFrameCount(void);
 
 /* ---- audio (port_audio.c) ------------------------------------------------ */
 
