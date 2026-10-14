@@ -47,6 +47,13 @@ idénticos a la referencia; barra/letras verdes conservan píxeles y posiciones.
 El marco toma límites nativos por frame, siguiendo la precisión solicitada
 por el usuario. No activar piezas con fondo residual o halos.
 
+Base actual sincronizada: prerelease v0.8 y commits de márgenes/README del
+14/10. Codex continúa encima: extracción local de referencias HUD (25 piezas
+en combate básico), dígitos de naipes con contornos CFF de KHMenu y oclusión
+por sprite. Barras propias en `status.json` → `experiments`, sin modificar
+el 100 % del port base. VT y relleno sombreado HD están en elaboración;
+las letras del piloto publicado todavía son originales.
+
 1. Diario — en revisión con el usuario
 2. Ver barajas / Añadir-Quitar
 3. Estado

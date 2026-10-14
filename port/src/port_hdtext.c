@@ -452,6 +452,8 @@ void PortHdTextHudDigits(SDL_Renderer* renderer, float originX, float originY, f
                          digits[i].w * scale, digits[i].h * scale};
         uint32_t color = digits[i].color;
         if (!g->tex || !digits[i].w || !digits[i].h) continue;
+        if (SDL_getenv("KHCOM_HDHUDLOG")) PortLog("HD HUD digit %c: slot %d box %d,%d %dx%d", digits[i].code,
+                                                digits[i].slot, digits[i].x, digits[i].y, digits[i].w, digits[i].h);
         SDL_SetTextureScaleMode(g->tex, SDL_strcmp(SDL_GetRendererName(renderer), "software") == 0 ?
                                SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
         SDL_SetTextureColorMod(g->tex, color >> 16, color >> 8, color);
