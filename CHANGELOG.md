@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Battle card breaks pixelate the arena too: affine backgrounds take the
+  mosaic, as on the GBA (only the sprites did before).
+
 ## v0.7 — 2026-10-14
 
 Windows x86 prerelease.

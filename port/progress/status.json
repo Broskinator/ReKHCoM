@@ -39,8 +39,8 @@
     {
       "name": "PPU renderer",
       "weight": 10,
-      "done": 92,
-      "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window; HUD layer follows GBA priorities (message windows stay in front)"
+      "done": 97,
+      "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window; HUD layer follows GBA priorities (message windows stay in front); affine BGs now take the mosaic (the battle card-break effect pixelates the arena as on the GBA); reviewed against the hardware rules: window priority (WIN0 > WIN1 > OBJ window > outside), semi-transparent OBJ blending regardless of the window's effect bit, backdrop as second target"
     },
     {
       "name": "Input (keyboard / gamepad)",

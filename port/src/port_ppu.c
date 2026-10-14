@@ -646,7 +646,11 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     }
 }
 
-static void DrawAffineBg(int bg, uint16_t dispcnt) {
+/* Affine BG mosaic: the reference point of the first line of each block of
+   mosV lines, which the following lines of the block reuse. */
+static int32_t sMosAffX[2], sMosAffY[2];
+
+static void DrawAffineBg(int bg, int gy, uint16_t dispcnt) {
     int a = bg - 2;
     uint16_t cnt = IO16(0x08 + bg * 2);
     int16_t pa = (int16_t)IO16(0x20 + a * 0x10);
@@ -658,14 +662,36 @@ static void DrawAffineBg(int bg, uint16_t dispcnt) {
     int wrap = (cnt >> 13) & 1;
     uint16_t* out = sBgLine[bg];
     int x, w = gPortScreen.width;
-    int32_t rx = sAffX[a] + (int32_t)pa * (-gPortScreen.originX);
-    int32_t ry = sAffY[a] + (int32_t)pc * (-gPortScreen.originX);
+    int mosaic = (cnt >> 6) & 1;
+    int mosH = mosaic ? (IO16(0x4C) & 15) + 1 : 1;
+    int mosV = mosaic ? ((IO16(0x4C) >> 4) & 15) + 1 : 1;
+    int32_t refX = sAffX[a], refY = sAffY[a];
+    int32_t rx, ry;
 
     (void)dispcnt;
+    if (mosV > 1) {
+        if (((gy % mosV) + mosV) % mosV == 0) {
+            sMosAffX[a] = refX;
+            sMosAffY[a] = refY;
+        }
+        refX = sMosAffX[a];
+        refY = sMosAffY[a];
+    }
+    rx = refX + (int32_t)pa * (-gPortScreen.originX);
+    ry = refY + (int32_t)pc * (-gPortScreen.originX);
     for (x = 0; x < w; x++, rx += pa, ry += pc) {
         int gx = x - gPortScreen.originX;
-        int px = rx >> 8, py = ry >> 8;
+        int px, py;
         int tile, ci;
+
+        if (mosH > 1) { /* every block of mosH pixels shows its first one */
+            int gq = gx - ((gx % mosH) + mosH) % mosH;
+            px = (refX + (int32_t)pa * gq) >> 8;
+            py = (refY + (int32_t)pc * gq) >> 8;
+        } else {
+            px = rx >> 8;
+            py = ry >> 8;
+        }
 
         if (gx < sLeft || gx >= sRight) {
             out[x] = TRANSPARENT;
@@ -1278,7 +1304,7 @@ static void RenderLine(int y, int gy) {
         if (mode >= 3)
             DrawBitmapBg(mode, dispcnt);
         else if (b >= 2 && (mode == 2 || (mode == 1 && b == 2)))
-            DrawAffineBg(b, dispcnt);
+            DrawAffineBg(b, gy, dispcnt);
         else
             DrawTextBg(b, gy, dispcnt);
         if (sOverlay && sScreenBg[b] && sBgSplit[b])

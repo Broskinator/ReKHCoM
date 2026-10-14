@@ -128,6 +128,11 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
     /* the level-up screen, as the end of a battle opens it */
+    /* the card-break mosaic over every layer (battle_runtime.c) */
+    if (strcmp(name, "mosaic") == 0) {
+        MosaicStartIn(16, 15);
+        return 1;
+    }
     if (strcmp(name, "levelup") == 0 && gBtlWork != NULL) {
         /* The debug battle menu maxes every stat; restore selectable reward
            options for this fixture instead of indexing a nonexistent option. */
