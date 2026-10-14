@@ -417,7 +417,9 @@ static int HdTextGlyph(int oamIndex) {
 void PortOamSetText(int oamIndex, int code, int style) {
     if (oamIndex >= 0 && oamIndex < 128) {
         memset(&sOamTag[oamIndex], 0, sizeof(sOamTag[0]));
-        sOamTag[oamIndex].text = (uint16_t)code;
+        /* Cartridge horizontal bar is glyph 25, below printable Latin.
+           Subtitle punctuation belongs in the HD line, unlike button icons. */
+        sOamTag[oamIndex].text = (uint16_t)(style == 1 && code == 25 ? 0x97 : code);
         sOamTag[oamIndex].style = (uint8_t)style;
     }
 }
@@ -2138,6 +2140,12 @@ void PortPpuRenderHud(uint32_t* buf) {
         hy = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) : yg + (h - GBA_SCREEN_H) / 2);
         if (tag->ay > 0)
             hy -= HudRaise();
+        {
+            const char* frame = getenv("KHCOM_HUD_LAYOUT");
+            if (frame && (uint32_t)atoi(frame) == PortFrameCount())
+                PortLog("hud-layout: frame=%u slot=%d x=%d y=%d w=%d h=%d tile=%d palette=%d part=%d affine=%d",
+                    PortFrameCount(), i, hx, hy, bw, bh, a2 & 1023, a2 >> 12, tag->hdHudPart, affine);
+        }
         if (affine) {
             const uint16_t* p = OAM16 + ((a1 >> 9) & 31) * 16;
             pa = (int16_t)p[3];

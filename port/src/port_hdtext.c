@@ -573,7 +573,7 @@ static void DrawSubtitles(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n, 
             if (j > i && gap > 0)
                 hdWidth += space * SDL_max(1, (gap + gameSpace / 2) / gameSpace);
             hdWidth += jp ? HD_TEXT_JP_CELL * scale : (float)Glyph(renderer, font, glyphs[j].code)->advance;
-            prevEnd = glyphs[j].x + (jp ? HD_TEXT_JP_CELL : widths[glyphs[j].code & 255]);
+            prevEnd = glyphs[j].x + (jp ? HD_TEXT_JP_CELL : widths[glyphs[j].code == 0x97 ? 25 : glyphs[j].code & 255]);
         }
         gameEnd = prevEnd;
         pen = originX + ((gameStart + gameEnd) * 0.5f) * scale - hdWidth * 0.5f;
@@ -595,7 +595,7 @@ static void DrawSubtitles(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n, 
                 DrawGlyph(renderer, g, pen + shadow, baseline + shadow, glyphs[t].shadow, alpha);
                 DrawGlyph(renderer, g, pen, baseline, glyphs[t].face, alpha);
                 pen += g->advance;
-                prevEnd = glyphs[t].x + widths[glyphs[t].code & 255];
+                prevEnd = glyphs[t].x + widths[glyphs[t].code == 0x97 ? 25 : glyphs[t].code & 255];
             }
         }
     }

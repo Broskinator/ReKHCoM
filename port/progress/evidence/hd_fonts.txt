@@ -13,3 +13,11 @@ the actual GDI-selected face, rather than just successful font registration.
 
 Reproduce: python port/tools/capture_hd_fonts.py
 No user save/config changed. HUD portrait draft is not integrated or packaged.
+
+Subtitle dash regression: the EU charmap maps 0x19 to the horizontal bar.
+The US copy routine maps its 0xE000 character to the same glyph25. Those
+codes previously bypassed HD as nonprintable icons, leaving native punctuation
+at the old position while the HD line was recentered. Subtitle tagging now
+maps glyph25 to CP1252 em dash 0x97; line fitting retains glyph25's native
+advance. Mapping is limited to movie subtitles; Original text and icons retain
+their existing draw paths. EU/US/JP builds pass.
