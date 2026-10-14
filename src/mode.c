@@ -108,7 +108,7 @@ void ModeStart(Mode* mode, s32 arg) {
     PortMenuHeaderSource(NULL, NULL, NULL);
     PortSideStyle(mode == &gModeAllmap ? PORT_SIDE_PATTERN :
                   (mode == &gModeDeck || mode == &gModeStatus || mode == &gModeMapinspect)
-                      ? PORT_SIDE_MENU : PORT_SIDE_STRETCH);
+                      ? PORT_SIDE_MENU : PORT_SIDE_EDGE_FADE); /* no stretched columns anywhere */
     PortSceneNarrow(ModeIsFullScreenMenu(mode));
 #endif
     if (mode->init != NULL) {

@@ -360,7 +360,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
        The presentation was copying that padding into otherwise black bars. */
     if (PortSpotlightActive())
         return;
-    if (sSideStyle == 6) {
+    if (sSideStyle == 6 || sSideStyle == 7) {
         static const uint8_t dither[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
         static uint32_t pixels[PORT_MAX_W * GBA_SCREEN_H];
         int fw = SDL_clamp((int)SDL_ceilf((x1 - x0) / scale), 1, PORT_MAX_W);
@@ -374,8 +374,33 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
         }
         if (!sFadeSideTexture) return;
         for (yy = 0; yy < GBA_SCREEN_H; yy++) {
+            /* Edge fade (style 7): a row whose four outermost columns are one
+               colour is a band or plain ground and carries on as that colour;
+               any other row keeps its own outermost pixels for a few columns
+               and dissolves into the scene's ground in an ordered dither.
+               Nothing is copied from further in and no column is magnified. */
+            const uint32_t* row = &gPortMenuBackground[(sy + yy) * gPortScreen.width];
+            int flat = 1, k;
+            for (k = 1; k < 4; k++)
+                if (row[edgeX + (side < 0 ? k : -k)] != row[edgeX])
+                    flat = 0;
             for (xx = 0; xx < fw; xx++) {
                 int distance = side < 0 ? fw - xx - 1 : xx;
+                if (sSideStyle == 7) {
+                    uint32_t color = row[edgeX + (side < 0 ? (distance & 3) : -(distance & 3))];
+                    if (!flat && dither[(yy & 3) * 4 + (distance & 3)] < SDL_min(distance * 16 / 24, 16))
+                        color = base;
+                    if (yy < 16 && side < 0) {
+                        uint32_t header = PortMenuHeaderPixel(yy, xx);
+                        if (header) color = header;
+                    }
+                    pixels[yy * fw + xx] = flat ? row[edgeX] : color;
+                    if (flat && yy < 16 && side < 0) {
+                        uint32_t header = PortMenuHeaderPixel(yy, xx);
+                        if (header) pixels[yy * fw + xx] = header;
+                    }
+                    continue;
+                }
                 int phase = distance & 15;
                 int sample = edgeX + (side < 0 ? phase : -phase);
                 uint32_t color = gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
