@@ -16,6 +16,7 @@
 #include "battle_actor.h"
 #include "card.h"
 #include "taskpool.h"
+#include "listpool.h"
 #include "pallet.h"
 #include "sprite.h"
 #include "sroll.h"
@@ -257,13 +258,27 @@ int PortHarnessMode(const char* name, int arg) {
         MosaicStartIn(16, 15);
         return 1;
     }
-    if (strcmp(name, "levelup") == 0 && gBtlWork != NULL) {
+    /* battlewin: every enemy leaves as Oogie Boogie's helpers do, so the game
+       ends the battle by its own route (white fade, rewards, back to the room) */
+    if (strcmp(name, "battlewin") == 0 && gBtlWork != NULL
+        && strcmp(PortHarnessModeName(), "mode_battle") == 0) {
+        BtlObj* obj = ListPoolFirst(&gBtlWork->pool);
+        gBtlWork->pendingEnemies = 0;
+        while (obj != NULL) {
+            obj->flags |= BTLOBJ_FLAG_WARP_PENDING;
+            obj->hitFlags = 0;
+            obj = ListPoolNext(&obj->node);
+        }
+        return 1;
+    }
+    /* battleend: the same closing sequence without a level up, for the exit */
+    if ((strcmp(name, "levelup") == 0 || strcmp(name, "battleend") == 0) && gBtlWork != NULL) {
         /* The debug battle menu maxes every stat; restore selectable reward
            options for this fixture instead of indexing a nonexistent option. */
         gGameState.progression.maxHp = 80;
         gGameState.progression.cp = 275;
         gGameState.progression.levelMilestone = 0;
-        gBtlWork->pendingLevelUps = 1;
+        gBtlWork->pendingLevelUps = strcmp(name, "levelup") == 0;
         /* Use the battle's closing sequence, so cards/camera and effects
            stop before their tile allocations are reused by the menu. */
         gBtlWork->phase = BTL_PHASE_END;

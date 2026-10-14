@@ -1,0 +1,17 @@
+Widescreen battles: closing reviews (2026-10-14, view_mode=4, 1280x720 window)
+
+Regional arenas: test_wide_world_battles.py on the current builds, 19/19 arena
+fixtures with no crash in US (build/codex-wide-battles/20261014_044015_773287)
+and JP (20261014_044345_123046); frame 600 of every arena reviewed on a contact
+sheet: same bands and HUD as EU, Japanese battle text in place (Firewall).
+
+Exit: KHCOM_MODE=frame:battlewin (src/main.c) makes every enemy leave the way
+Oogie Boogie's helpers do, so the game ends the battle by its own route.
+  debug battle 10:4:0   battlewin at 300 -> white fade, prizes, level/EXP
+                        labels, card prize message, fade -> mode_chkbtl (756)
+  field room 10000      Mode_MapFld 301 > mode_battle 445 > Mode_MapFld 1234 >
+                        mode_battle 1480; the room returns with its void colour,
+                        the next entry keeps the native-aspect heart; no bios
+                        fault, no crash
+Rotation/zoom: the battle-entry heart (zoom + rotation) stays at native aspect
+with dimmed surroundings in both entries above.

@@ -105,8 +105,8 @@
     {
       "name": "Widescreen: battles",
       "weight": 6,
-      "done": 95,
-      "notes": "affine arenas extend and repeat sideways; HUD on its own scaled layer anchored to the corners, card hand lifted to show whole cards; tutorial pointers follow the HUD; battle messages docked. Battle-entry animation retains its native aspect with dim blurred surroundings; EU/US/JP capture regression completed and inspected. Seamless arena strips and some abyss edges remain under review.; arenas extend with bands of their own original tiles chosen per arena (btl_map.c), leaving unique motifs out: 19/19 arena fixtures with no crash, each reviewed at 1280x720 in EU (WIDE_WORLD_VERIFICATION.md); regional, rotation/zoom and exit reviews pending"
+      "done": 100,
+      "notes": "affine arenas extend with bands of their own original tiles chosen per arena (btl_map.c); HUD on its own scaled layer, card hand lifted, tutorial pointers follow the HUD, battle messages docked; battle entry keeps its native aspect with dim surroundings. 19/19 arenas reviewed in EU, US and JP; exit reviewed with the battlewin fixture from a debug battle and a field room (back to the room, next entry), no crash (evidence/battles_wide.txt)"
     },
     {
       "name": "Widescreen: menus & events",
