@@ -118,7 +118,8 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   crash, pero no validaba cada transición. Ampliar a los demás submenús y edición.
 - [x] Otros crashes al alternar submenús: test_submenus.py, las seis entradas del menú
   de pausa, cuatro idas y vueltas cada una, 6/6 sin crash.
-- [ ] Animación superior de salida de submenús: revisar fotogramas de transición.
+- [x] Animación superior de salida de submenús: los seis submenús revisados cada 3 fotogramas;
+  la salida coincide con la GBA. Las cabeceras ya no muestran letras ocultas en el margen (US/JP).
 - [x] Sprite a la izquierda después de subir de nivel: era el panel de estadísticas (BG1) que sale
   por la derecha y, al dar la vuelta el mapa de 256 px, aparecía en el margen izquierdo. PortBgClip
   deja esa capa en las columnas de la GBA hasta el final del combate.

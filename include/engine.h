@@ -58,6 +58,9 @@ void PortOamSetSource(int oamIndex, int entry);
 void PortOamTagsReset(void);
 /* HD text: the pixel-font character of the sprites being drawn (0: none). */
 extern int gPortTextChar;
+/* Set while a menu header is drawn: its pixels left of the GBA screen show
+   the band of the asset instead of what the cartridge kept off screen. */
+extern int gPortHeaderDraw;
 /* 0 menu/dialogue, 1 movie subtitles, 2 compact numeric labels. */
 extern int gPortTextStyle;
 /* A 4bpp numeric BG cell; source fingerprint prevents stale tile metadata.

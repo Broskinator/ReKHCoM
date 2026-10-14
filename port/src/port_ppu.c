@@ -268,6 +268,7 @@ typedef struct SpriteTag {
     uint16_t text; /* HD text: pixel-font character (Shift-JIS in Japanese), 0 for other sprites */
     uint8_t style; /* HD text font: 0 dialogue / menu, 1 movie subtitles */
     uint8_t screen; /* drawn by a menu: goes on the screen layer */
+    uint8_t header; /* a menu header (DrawMenuHeader) */
 } SpriteTag;
 static SpriteTag sEntryTag[128];
 static SpriteTag sOamTag[128];
@@ -325,6 +326,8 @@ int PortScreenMarginX(void) {
 }
 
 int gPortHudScale;
+int gPortHeaderDraw;
+static int HeaderBandColor(int y, int phase);
 int gPortHudW;
 int gPortHudH;
 
@@ -336,6 +339,7 @@ void PortSpriteTag(int entry) {
         sEntryTag[entry].text = (uint16_t)gPortTextChar;
         sEntryTag[entry].style = (uint8_t)gPortTextStyle;
         sEntryTag[entry].screen = sScreenDepth > 0;
+        sEntryTag[entry].header = gPortHeaderDraw != 0;
     }
 }
 
@@ -1053,6 +1057,12 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
             }
             if (col < 0)
                 continue;
+            if (sOamTag[i].header && x < gPortScreen.originX) {
+                /* off the GBA screen: the band, not hidden lettering */
+                int band = HeaderBandColor(gy, x - gPortScreen.originX); /* headers are drawn at y 0 */
+                if (band >= 0)
+                    col = band;
+            }
             if (HdTextGlyph(i) && sOamTag[i].style == 2 && (ci == 14 || ci == 15))
                 continue; /* EXP cells keep their authored blue panel pixels. */
             if (mode == 2) {
@@ -1719,22 +1729,29 @@ static int ObjColor(uint16_t a0, uint16_t a2, int tx, int ty, int ow, int mappin
     return ci ? (PLTT16[256 + (a2 >> 12) * 16 + ci] & 0x7FFF) : -1;
 }
 
-/* A repeatable piece of the actual header asset, independent of its animated
-   screen position. Neither cursor OAM nor the finished framebuffer enters it. */
-static uint32_t MenuSpritePixel(const uint16_t* frame, const ObjTiles* tiles,
-                                const ObjPalette* palette, int y, int phase) {
+/* Colour of the header asset at (tx, y), tx counted from its left edge; -1
+   when transparent or not drawable. Neither cursor OAM nor the finished
+   framebuffer enters it. */
+static int MenuSpriteColor(const uint16_t* frame, const ObjTiles* tiles,
+                           const ObjPalette* palette, int y, int col0, int* top, int* bottom) {
     const uint16_t* p = frame;
     int n, i, left = 32767, offset = 0, col = -1;
     if (!p || !tiles || !palette ||
         tiles->self != tiles || palette->self != palette ||
         (IO16(0) & 0x80) || !(IO16(0) & 0x1000))
-        return 0;
+        return -2;
     n = *p++;
-    if (n > 128) return 0;
+    if (n > 128) return -2;
     for (i = 0; i < n; i++) {
-        int x = p[i * 3 + 1] & 511;
+        int x = p[i * 3 + 1] & 511, oy = p[i * 3] & 255, shape = p[i * 3] >> 14;
         if (x >= 256) x -= 512;
         if (x < left) left = x;
+        if (oy >= 128) oy -= 256;
+        if (top && shape < 3) {
+            int oh = sObjSize[shape][p[i * 3 + 1] >> 14][1];
+            if (oy < *top) *top = oy;
+            if (oy + oh > *bottom) *bottom = oy + oh;
+        }
     }
     for (i = 0; i < n; i++) {
         uint16_t a0 = p[i * 3], a1 = p[i * 3 + 1], a2 = p[i * 3 + 2];
@@ -1744,7 +1761,7 @@ static uint32_t MenuSpritePixel(const uint16_t* frame, const ObjTiles* tiles,
         ow = sObjSize[shape][size][0]; oh = sObjSize[shape][size][1];
         if (x >= 256) x -= 512;
         if (oy >= 128) oy -= 256;
-        tx = left + (phase & 1) - x; ty = y - oy;
+        tx = left + col0 - x; ty = y - oy;
         tile = tiles->allocated ? offset : (a2 & 1023);
         offset += (ow * oh / 64) * ((a0 & 0x2000) ? 2 : 1);
         if (tx < 0 || tx >= ow || ty < 0 || ty >= oh) continue;
@@ -1755,6 +1772,14 @@ static uint32_t MenuSpritePixel(const uint16_t* frame, const ObjTiles* tiles,
         col = ObjColor(a0, a2, tx, ty, ow, (IO16(0) & 0x40) != 0);
         if (col >= 0) break;
     }
+    return col;
+}
+
+/* A repeatable piece of an asset, independent of its animated screen
+   position: columns col0 and col0 + 1 from its left end. */
+static uint32_t MenuSpritePixel(const uint16_t* frame, const ObjTiles* tiles,
+                                const ObjPalette* palette, int y, int phase, int col0) {
+    int col = MenuSpriteColor(frame, tiles, palette, y, col0 + (phase & 1), NULL, NULL);
     if (col < 0) return 0;
     if (IO16(0x50) & 0x10) {
         int effect = (IO16(0x50) >> 6) & 3, evy = IO16(0x54) & 31;
@@ -1765,8 +1790,74 @@ static uint32_t MenuSpritePixel(const uint16_t* frame, const ObjTiles* tiles,
     return sColorLut[col];
 }
 
+/* The header's band: the pair of columns near its left end with the fewest
+   colour changes top to bottom, so a title that starts at the very edge
+   (US "WORLD CARDS") does not lend a letter stroke to the band. Its colours
+   are kept: outside Europe the title is redrawn on a BG once it has slid in
+   and its sprite palette is released, while the band must stay. */
+static int sHeaderBand[2][32];
+
+static int HeaderPick(void) {
+    static const void* key[3];
+    static int pick, valid;
+    static uint32_t stamp;
+
+    /* once a frame: the asset's tiles and palette arrive after it is first drawn */
+    if (stamp != PortFrameCount() || key[0] != sMenuHeaderFrame || key[1] != sMenuHeaderTiles ||
+        key[2] != sMenuHeaderPalette) {
+        int top = 32767, bottom = -32767, best = 1 << 30, k, j, yy;
+        stamp = PortFrameCount();
+        if (MenuSpriteColor(sMenuHeaderFrame, sMenuHeaderTiles, sMenuHeaderPalette, 0, 0, &top, &bottom) == -2)
+            return sMenuHeaderFrame && key[0] == sMenuHeaderFrame && valid ? pick : -1;
+        valid = 0;
+        pick = 0;
+        /* most opaque first (the band, not its transparent ends or the
+           arrow), then fewest changes (no lettering) */
+        for (k = 0; k < 96; k += 2) {
+            int changes = 0, opaque = 0, score;
+            for (j = 0; j < 2; j++) {
+                int prev = -3;
+                for (yy = top; yy < bottom && yy < 32; yy++) {
+                    int c = MenuSpriteColor(sMenuHeaderFrame, sMenuHeaderTiles, sMenuHeaderPalette, yy, k + j, NULL, NULL);
+                    if (c >= 0) opaque++;
+                    if (yy > top && c != prev) changes++;
+                    prev = c;
+                }
+            }
+            score = changes - opaque * 64;
+            if (opaque > 0 && score < best) {
+                best = score;
+                pick = k;
+            }
+        }
+        for (j = 0; j < 2; j++)
+            for (yy = 0; yy < 32; yy++)
+                sHeaderBand[j][yy] = MenuSpriteColor(sMenuHeaderFrame, sMenuHeaderTiles, sMenuHeaderPalette, yy, pick + j, NULL, NULL);
+        key[0] = sMenuHeaderFrame; key[1] = sMenuHeaderTiles; key[2] = sMenuHeaderPalette;
+        valid = 1;
+    }
+    return valid || key[0] == sMenuHeaderFrame ? pick : -1;
+}
+
+static int HeaderBandColor(int y, int phase) {
+    if (HeaderPick() < 0 || y < 0 || y >= 32)
+        return -1;
+    return sHeaderBand[phase & 1][y];
+}
+
 uint32_t PortMenuHeaderPixel(int y, int phase) {
-    return MenuSpritePixel(sMenuHeaderFrame, sMenuHeaderTiles, sMenuHeaderPalette, y, phase);
+    int col;
+    if (!sMenuHeaderFrame)
+        return 0;
+    col = HeaderBandColor(y, phase);
+    if (col < 0) return 0;
+    if (IO16(0x50) & 0x10) {
+        int effect = (IO16(0x50) >> 6) & 3, evy = IO16(0x54) & 31;
+        if (evy > 16) evy = 16;
+        if (effect == 2) col = Brighten(col, evy);
+        if (effect == 3) col = Darken(col, evy);
+    }
+    return sColorLut[col];
 }
 
 void PortMenuBandSource(int band, int y, void* frame, void* tiles, void* palette) {
@@ -1781,7 +1872,7 @@ uint32_t PortMenuBandPixel(int y, int phase) {
     int i;
     for (i = 0; i < 2; i++) {
         const MenuBandSource* band = &sMenuBands[i];
-        uint32_t color = MenuSpritePixel(band->frame, band->tiles, band->palette, y - band->y, phase);
+        uint32_t color = MenuSpritePixel(band->frame, band->tiles, band->palette, y - band->y, phase, 0);
         if (color) return color;
     }
     return 0;
@@ -1792,7 +1883,7 @@ uint32_t PortMenuTabPixel(int y, int phase, int side) {
     uint16_t cnt, entry;
     uint32_t map, chr, address;
     if (sMenuTabFrame && side < 0)
-        return MenuSpritePixel(sMenuTabFrame, sMenuTabTiles, sMenuTabPalette, y - 16, 0);
+        return MenuSpritePixel(sMenuTabFrame, sMenuTabTiles, sMenuTabPalette, y - 16, 0, 0);
     if (bg < 0 || y < 16 || y >= 32 || (IO16(0) & 0x80)) return 0;
     cnt = IO16(8 + bg * 2);
     map = ((cnt >> 8) & 31) * 2048; chr = ((cnt >> 2) & 3) * 16384;

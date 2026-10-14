@@ -22,58 +22,50 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 - Último: partida completa / TAS. Después del 100 %, la función experimental
   con las QoL de la versión de PS2 (Re:Chain of Memories) en la de GBA.
 
-## Barras pendientes y dueño
+## Barras pendientes y dueño (actualizado 14/10, 08:40 — total 98,4 %)
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
 |---|---|---|---|---|
-| Gameplay verification | 85 | 10 | Claude + Codex | Partida completa de Sora y de Reverse/Rebirth |
-| Widescreen: field maps | 87 | 8 | Codex | Salas con huecos o bordes de abismo; revisión por mundo |
-| Widescreen: battles | 95 | 6 | Codex | Cinta continua de arenas y bordes de abismo |
-| Widescreen: menus & events | 93 | 4 | Codex | Salida de submenús, footer, subida de nivel (paneles y popeo) |
+| Gameplay verification | 85 | 10 | Claude (Codex al volver) | Partida completa de Sora y de Reverse/Rebirth (lo último) |
+| Widescreen: menus & events | 93 | 4 | Claude | Tabs del ojo, estirado/píxel del margen derecho |
+
+Cerradas hoy por Claude (con evidencia en port/progress/evidence/):
+- Widescreen: battles 100 % — arenas US/JP 19/19, salida de combate con el
+  fixture `battlewin` (combate de depuración y de campo), entrada con el
+  corazón en su proporción (battles_wide.txt).
+- Widescreen: field maps 100 % — todas las salas de historia en EU/US/JP
+  (129/131 cada una; las otras dos son un encuentro antes de la captura,
+  revisadas aparte), vestíbulos y Bosque de los 100 Acres (fieldmaps_wide.txt).
 
 Ya al 100 %: build, assets, memoria, BIOS, DMA, interrupciones, entrada, m4a,
 PSG, PCM, códec de bloques, películas, SRAM, reset, widescreen renderer,
-estados guardados, launcher, saltar intro, versiones USA y japonesa,
-menú de opciones, PPU.
+widescreen field maps, widescreen battles, estados guardados, launcher, saltar
+intro, versiones USA y japonesa, menú de opciones, PPU, texto HD.
 
-## Codex: acabado panorámico (field, battles, menus & events)
+## Acabado panorámico (era de Codex; lo lleva Claude mientras Codex no vuelva)
 
-- [x] Cristal del castillo: desaparece tras abrir/cerrar repetidamente su menú.
-  Corregida la sustitución de tareas retenidas en salas fijas. Doce ciclos del
-  menú conservan una sola tarea y el cristal visible; añadir uso real de A/B
-  a la batería ampliada de navegación.
-- [x] Cian en selección de carta de puerta (estado 7) y animación posterior
-  de apertura (estado 9). El spotlight delimita su canvas y conserva márgenes
-  negros; fixtures de spotlight/selección pasan sin cian en márgenes.
-- [x] Entrada a combate: fondo difuminado como en las películas, animación
-  central en su proporción. Revisado en EU/US/JP (test_levelup.py --entry).
-- [~] Headers de Ver barajas, Añadir/Quitar, Naipes mapa, Estado/magias,
-  Mapamundi, Naipes mundo y Diario desde los elementos originales, sin tomar
-  columnas de la imagen final. Muestreo de una pieza limpia del asset original;
-  Estado y barajas capturados; completar recorrido visual y cursor arriba/abajo.
-- [~] Tabs del ojo a izquierda y derecha: relleno y contorno propios desde el
-  tilemap/fotograma del tab. Completar captura de cada pestaña y transición.
-- [~] Naipes mundo: fundido de pixel art tramado desde la paleta original.
-  Revisado en EU (build/priority-regressions/20261013_231639_172982/world);
-  capturas con partidas US/JP pendientes.
-- [ ] Entradas/salidas de submenús sin ecos ni distorsión; Mapamundi con footer
-  completo desde el inicio y al volver. Barras animadas de Mapamundi desde sus
-  assets OBJ, revisadas en EU (build/priority-regressions/20261013_232146_939954/allmap).
-  Otros submenús y ejecución regional pendientes.
-- [~] Subida de nivel: paneles derechos revisados en reposo en EU a 640×360 y
-  1280×720; relleno y contorno llegan al borde, sin cambio visual necesario.
-  Evidencia: build/codex-resume-review/levelup/out_01600.bmp. Franjas unidas.
-  Queda verificar el popeo en una entrada natural y la salida: en el fixture
-  forzado, el fondo del panel reaparece a la izquierda (frames 2120–2136).
-  No clasificarlo aún como defecto del port sin contrastar la ruta natural.
-- [ ] Sustituir el estirado de píxeles por patrones o piezas de fondo donde sea
-  viable; conservar los patrones aprobados de barajas y Mapamundi; revisar el
-  píxel residual del margen derecho.
-- [ ] Arenas como cinta circular de tiles: clasificar fondos repetibles y con
-  elementos únicos; no duplicar jefes ni sprites ni cambiar colisiones.
-- [ ] Widescreen field: recorrer por mundo las salas con huecos o abismo usando
-  la batería de salas de Claude (abajo) y corregir lo que aparezca.
-- [ ] Al cerrar cada barra: actualizar evidencia y porcentaje en status.json.
+- [x] Cristal del castillo: doce ciclos del menú conservan una sola tarea.
+- [x] Cian en selección de carta de puerta; márgenes negros.
+- [x] Entrada a combate: fondo difuminado, animación central en su proporción.
+- [x] Arenas como cinta de tiles: bandas de sus propios tiles elegidas por
+  arena (btl_map.c), sin duplicar jefes ni motivos únicos; EU/US/JP revisadas.
+- [x] Subida de nivel: entrada natural desde un combate de campo revisada
+  fotograma a fotograma (sin pop, barras de borde a borde). El fondo que
+  reaparecía a la izquierda al salir era defecto del port: el BG1 del panel
+  daba la vuelta al mapa de 256 px; corregido con PortBgClip.
+- [x] Menú de síntesis de salas: panel 6 líneas por encima de la barra inferior.
+- [x] Entradas/salidas de los seis submenús (Ver barajas, Mapamundi, Naipes
+  mapa, Naipes mundo, Estado, Diario) revisadas cada 3 fotogramas en EU; la
+  salida de Ver barajas coincide con la GBA (el panel de naipes activos
+  desaparece de golpe también en el original). Mapamundi con footer completo.
+- [x] Naipes mundo y Mapamundi en US/JP (fixture de sala + modo directo).
+- [x] Cabeceras: en US/JP el margen mostraba letras ocultas del sprite (y, al
+  pasar el título a BG, columnas copiadas del cuadro). Ahora la banda usa el
+  par de columnas más opaco y sin letras, guardado mientras la cabecera sigue en
+  pantalla. Naipes mundo, Mapamundi, Estado, Diario y Barajas revisados en EU/US/JP.
+- [~] Tabs del ojo: completar captura de cada pestaña y transición.
+- [ ] Revisar el píxel residual del margen derecho y dónde queda estirado.
+- [x] Widescreen field: recorrido por mundo completo (arriba).
 
 ## Claude: verificación, regiones, texto HD, opciones y cierre del PPU
 
@@ -91,11 +83,9 @@ menú de opciones, PPU.
   las tres regiones (rutas reproducibles y problemas anotados).
 - [x] USA/JP: combates JP 209/209 como Sora y como Riku; eventos 192/194 (los dos
   restantes se cortaron al parar, no fallaron). Barra al 100 %.
-- [ ] USA/JP: capturas regionales de los acabados panorámicos que Codex marque
-  como revisados solo en EU.
+- [x] USA/JP: capturas regionales de arenas, salas, Naipes mundo y Mapamundi.
 - [x] HD text: inventario (port/progress/HDTEXT_INVENTARIO.md).
-- [ ] HD text: números de los menús de baraja (escritos en tiles de BG) y
-  regresión general de oclusión, coordinado con Codex en el compositor.
+- [x] HD text: números de barajas y EXP en HD con su color y tamaño (barra al 100 %).
 - [x] Graphics options menu: test_options.py, 35 casos y el menú en EU (cinco
   idiomas), US y JP. Barra al 100 %.
 - [x] PPU: regresión de escenas (test_ppu.py, 12 escenas con referencia
