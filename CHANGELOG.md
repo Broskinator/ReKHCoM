@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## v0.7 — 2026-10-14
+
+Windows x86 prerelease.
 
 - Experimental smooth audio: Catmull-Rom interpolation of the samples in the
   m4a mixer and a 2-pole low-pass at 9 kHz on the output; the treble images
