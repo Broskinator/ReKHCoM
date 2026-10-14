@@ -38,7 +38,7 @@ static int DamagePercent(int player) {
 int PortScaleDamage(int damage, int player) {
     int scaled;
     /* the original version, or Standard: the cartridge's own value, untouched */
-    if (!PortRecomActive() || gPortConfig.ps2Difficulty == 0)
+    if (!PortRecomActive() || gPortConfig.ps2Difficulty == 0 || damage <= 0)
         return damage;
     scaled = damage * DamagePercent(player) / 100;
     if (scaled < 1)
@@ -60,7 +60,14 @@ int PortFastText(void) {
 
 /* key: bank and file (-1: the quick save) -> 0 when never recorded (a save
    from before: the current settings stay), else bit 0 set, bit 1 Re:CoM,
-   bits 2-3 its difficulty, bit 4 HD text, bit 5 the QoL buttons. */
+   bits 2-3 its difficulty, bit 4 HD text, bit 5 the legacy QoL bundle.
+   Bit 6 marks individual controls: bits 7-9 dodge/stock/unstock,
+   bit 10 fast dialogue. Old records retain their original interpretation. */
+#define RECOM_INDIVIDUAL (1 << 6)
+#define RECOM_DODGE (1 << 7)
+#define RECOM_STOCK (1 << 8)
+#define RECOM_UNSTOCK (1 << 9)
+#define RECOM_FAST_TEXT (1 << 10)
 static int sTable[RECOM_KEYS];
 static int sLoaded;
 
@@ -94,6 +101,7 @@ static void Store(void) {
         return;
     fprintf(f, "; ReKHCoM: how each save file's game was started (never inside the save itself)\n");
     fprintf(f, "; slot = (bank - 1) * 8 + file + 1; bits: 1 set, 2 Re:CoM, 4-8 difficulty, 16 HD text, 32 QoL buttons\n");
+    fprintf(f, "; 64 individual options recorded, 128 dodge, 256 stock, 512 unstock, 1024 fast dialogue\n");
     for (k = 0; k < RECOM_KEYS; k++)
         if (sTable[k])
             fprintf(f, "slot%d=%d\n", k, sTable[k]);
@@ -113,7 +121,11 @@ void PortRecomSaved(int file) {
     int v;
     Load();
     v = 1 | (sActive ? 2 : 0) | (SDL_clamp(gPortConfig.ps2Difficulty, 0, 2) << 2) | (gPortConfig.hdText ? 16 : 0)
-        | (PortQolButtons() ? 32 : 0);
+        | (PortQolButtons() ? 32 : 0) | RECOM_INDIVIDUAL
+        | (gPortConfig.dodgeButton ? RECOM_DODGE : 0)
+        | (gPortConfig.stockButton ? RECOM_STOCK : 0)
+        | (gPortConfig.unstockButton ? RECOM_UNSTOCK : 0)
+        | (gPortConfig.ps2FastText ? RECOM_FAST_TEXT : 0);
     if (sTable[Key(file)] != v) {
         sTable[Key(file)] = v;
         Store();
@@ -133,8 +145,15 @@ void PortRecomLoaded(int file) {
         return;
     }
     sActive = (v & 2) != 0;
-    gPortConfig.ps2Difficulty = (v >> 2) & 3;
+    gPortConfig.ps2Difficulty = SDL_clamp((v >> 2) & 3, 0, 2);
     gPortConfig.hdText = (v & 16) != 0;
-    PortSetQolButtons((v & 32) != 0);
+    if (v & RECOM_INDIVIDUAL) {
+        gPortConfig.dodgeButton = (v & RECOM_DODGE) != 0;
+        gPortConfig.stockButton = (v & RECOM_STOCK) != 0;
+        gPortConfig.unstockButton = (v & RECOM_UNSTOCK) != 0;
+        gPortConfig.ps2FastText = (v & RECOM_FAST_TEXT) != 0;
+    } else {
+        PortSetQolButtons((v & 32) != 0);
+    }
     PortVideoApplyConfig();
 }

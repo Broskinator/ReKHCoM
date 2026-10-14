@@ -31,6 +31,12 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 
 ### Las 17 ventanas (Claude + usuario, en orden)
 
+Avance Codex (14/10): controles QoL y texto rápido guardados por separado
+por partida/banco en `kh_com_recom.ini`, compatible con registros anteriores.
+La dificultad conserva daño cero y valores negativos. Verificación:
+`python port/tools/test_recom.py` (80 combinaciones, cinco bancos, reinicio,
+registros antiguos y aislamiento de Original). Sin cambios en los márgenes.
+
 1. Diario — en revisión con el usuario
 2. Ver barajas / Añadir-Quitar
 3. Estado
