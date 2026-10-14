@@ -37,3 +37,17 @@ background glow; it is not part of the pack.
 `player-double-frame-v1.png` separates the connected metallic frame from
 portrait and sample fills. Both channels have transparent centres (verified
 alpha zero). It remains a fitting candidate, not a loaded runtime replacement.
+
+Owner's style reference remains `sora-player-assembly-v1.png`: restrained
+metallic bevel, connected thin contours and smooth green/blue shading.
+`player-fill-tip-v2.png` is the rounded fill-end candidate, drawn in neutral
+greys for palette tint. It still has exterior alpha specks and must be cleaned
+before integration. Do not use its texture as a permanent frame endpoint.
+The render state exposes full HP from the original task's animated displayHp,
+not a separately calculated HD value. EU Sora/Riku probes recorded full=1 at
+frame300 and full=0 at frame430. Tip drawing and geometric comparison pending.
+
+Frame fitting probe: `KHCOM_HDHUD_FRAME_PROBE=1`. This is developer-only;
+the default HUD retains the native frame because the proposed separator
+revealed one extra row of coloured fill. Do not enable the candidate generally
+until the shared separator aligns with native bands and occlusion.
