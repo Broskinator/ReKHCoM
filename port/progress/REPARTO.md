@@ -6,18 +6,28 @@ Todos los puntos siguientes están pendientes salvo indicación explícita.
 
 ## Codex: bugs prioritarios y acabado visual solicitado
 
-- [ ] Cristal del castillo: desaparece tras abrir/cerrar repetidamente su menú.
+- [x] Cristal del castillo: desaparece tras abrir/cerrar repetidamente su menú.
   Reproducir en vista panorámica y 16:9, corregir el ciclo de vida de sus tareas
   y recursos, y verificar varias interacciones. Estado 4 desaparecido;
   estado 8 actual frente al cristal, antes de desaparecer.
-- [ ] Cian en selección de carta de puerta (estado 7) y animación posterior
+  Corregida la sustitución de tareas retenidas en salas fijas. Doce ciclos del
+  menú conservan una sola tarea y el cristal visible; añadir uso real de A/B
+  a la batería ampliada de navegación.
+- [x] Cian en selección de carta de puerta (estado 7) y animación posterior
   de apertura (estado 9, pulsar A). Corregir ambos y sus transiciones.
-- [ ] Headers de Ver barajas, Añadir/Quitar, Naipes mapa, Estado/magias,
+  Reproducido el padding cian después de A en la build de referencia. El
+  spotlight ahora delimita su canvas y conserva márgenes negros; fixtures de
+  spotlight/selección pasan la comprobación de ausencia de cian en márgenes.
+- [~] Headers de Ver barajas, Añadir/Quitar, Naipes mapa, Estado/magias,
   Mapamundi, Naipes mundo y Diario: dibujar sus extensiones desde los
   elementos de fondo/arte originales. No tomar columnas de la imagen final,
   que contiene el guante, letras e iconos. Verificar cursor arriba y abajo.
-- [ ] Tabs del ojo a izquierda y derecha: extender relleno y contorno propios,
+  Implementado muestreo de una pieza limpia del asset original, independiente
+  de la posición animada. Estado y barajas capturados; completar recorrido visual.
+- [~] Tabs del ojo a izquierda y derecha: extender relleno y contorno propios,
   conservar el ojo y eliminar los rastros blancos del guante.
+  Ahora se dibujan desde el tilemap/fotograma del tab; eliminada la selección
+  de colores de la imagen final. Completar captura de cada pestaña y transición.
 - [ ] Sustituir el estirado de píxeles donde sea viable por patrones o piezas
   de fondo. Conservar el patrón inferior de barajas y el de Mapamundi,
   que el usuario aprobó. Revisar el píxel residual del margen derecho.
@@ -33,6 +43,9 @@ Todos los puntos siguientes están pendientes salvo indicación explícita.
   reproducir desde 3 y guardar una copia aislada del punto de subida de nivel.
 - [ ] Medir el stutter al permanecer en subida de nivel y corregirlo si se
   reproduce. Usar tiempos de fotograma y lógica, con pacing normal.
+- [ ] Evaluar continuidad de arenas como una cinta circular de tiles: clasificar
+  fondos repetibles y fondos con elementos únicos, probar uniones y cámara;
+  no duplicar jefes, sprites ni cambiar límites de colisión. Después del bloque crítico.
 - [ ] Ampliar la prueba de crashes al alternar submenús/edición, y comprobar
   que los avisos de tutorial quedan delante del texto de las cartas.
 - [ ] Revisar después qué entradas de PENDIENTES.md quedan resueltas por
@@ -51,8 +64,9 @@ Todos los puntos siguientes están pendientes salvo indicación explícita.
   Coordinar cualquier cambio de gameplay antes de implementarlo.
 - [ ] Audio: comparación con referencias de hardware/emulador de PSG,
   mezcla, FIFO, música y efectos; documentar diferencias medibles.
-- [ ] Launcher e instalación: cerrar pruebas de importación de las tres ROM,
+- [x] Launcher e instalación: cerrar pruebas de importación de las tres ROM,
   opciones, controles, idiomas, instalación limpia y recuperación de errores.
+  Cerrado por Claude: batería de instalación 11/11; ver status.json.
 - [ ] QoL pendientes previamente propuestos: devolver cartas acumuladas,
   aviso de puntos moguri, bancos de partidas, revancha y repetir tutoriales.
   Revisar alcance y dependencias antes de implementar extras.
@@ -70,3 +84,5 @@ Todos los puntos siguientes están pendientes salvo indicación explícita.
 - Probar en directorios aislados. No modificar partidas/configuración del usuario.
 - No subir ROM ni recursos extraídos al repositorio.
 - Subir porcentajes sólo con evidencia y distinguir implementado de verificado.
+- Usar emuladores únicamente para contrastar bugs o comportamientos dudosos del
+  original. Validar acabados visuales y transiciones directamente en el port.

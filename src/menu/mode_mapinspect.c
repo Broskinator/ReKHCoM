@@ -455,6 +455,9 @@ void MapInspectDrawValueCounts() {
 }
 
 void MapInspectDrawTab(s16 tab) {
+#ifdef PLATFORM_PC
+    PortMenuTabBg(-1, 0, 0, 16);
+#endif
     RequestTilemapRectCopy(gMapInspectTabsMap, GetBgScreenBase(0), 0, sMapCardCategoryDefs[tab].displayIndex * 2, 0, 2, 11, 2);
 }
 
@@ -959,7 +962,7 @@ void MapInspectDraw() {
     void* anim;
 
     if (sMapInspectState != MAP_INSPECT_STATE_MENU) {
-        DrawSprite(sMapInspectBarX >> 8, 0,
+        DrawMenuHeader(sMapInspectBarX >> 8, 0,
 #ifdef VERSION_EU
             sMapInspectTitleSpritesByLanguage[gLanguage],
 #else

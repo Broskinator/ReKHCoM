@@ -564,7 +564,7 @@ void WorldInspectDraw() {
 #else
     if (sWorldInspectState != WORLD_INSPECT_STATE_SELECT) {
 #endif
-        DrawSprite(sWorldInspectBarX >> 8, 0,
+        DrawMenuHeader(sWorldInspectBarX >> 8, 0,
 #ifdef VERSION_EU
                       titleSprite,
 #else

@@ -1928,10 +1928,10 @@ void mode_jiminy_1() {
         switch (gLanguage) {
         case LANGUAGE_ENGLISH:
             if (gGameState.flags & GAME_FLAG_RIKU) {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleFrame3, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleFrame3, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             } else {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleFrame0, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleFrame0, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             }
 
@@ -1943,10 +1943,10 @@ void mode_jiminy_1() {
             break;
         case LANGUAGE_FRENCH:
             if (gGameState.flags & GAME_FLAG_RIKU) {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame3, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame3, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             } else {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame0, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame0, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             }
 
@@ -1958,10 +1958,10 @@ void mode_jiminy_1() {
             break;
         case LANGUAGE_SPANISH:
             if (gGameState.flags & GAME_FLAG_RIKU) {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame5, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame5, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             } else {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame4, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame4, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             }
 
@@ -1973,10 +1973,10 @@ void mode_jiminy_1() {
             break;
         case LANGUAGE_ITALIAN:
             if (gGameState.flags & GAME_FLAG_RIKU) {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame7, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame7, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             } else {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame6, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame6, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             }
 
@@ -1989,10 +1989,10 @@ void mode_jiminy_1() {
         case LANGUAGE_GERMAN:
         default:
             if (gGameState.flags & GAME_FLAG_RIKU) {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame9, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame9, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             } else {
-                DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame8, sJiminyWork->tiles,
+                DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleLocalizedFrame8, sJiminyWork->tiles,
                     sJiminyWork->palette, NULL, 0, 0);
             }
 
@@ -2005,10 +2005,10 @@ void mode_jiminy_1() {
         }
 #else
         if (gGameState.flags & GAME_FLAG_RIKU) {
-            DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleFrame3, sJiminyWork->tiles,
+            DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleFrame3, sJiminyWork->tiles,
                 sJiminyWork->palette, NULL, 0, 0);
         } else {
-            DrawSprite(sJiminyWork->x3 >> 8, 0, gJiminyTitleFrame0, sJiminyWork->tiles,
+            DrawMenuHeader(sJiminyWork->x3 >> 8, 0, gJiminyTitleFrame0, sJiminyWork->tiles,
                 sJiminyWork->palette, NULL, 0, 0);
         }
 

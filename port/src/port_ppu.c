@@ -79,7 +79,17 @@ static int sBgDockedLatched[4];
 /* A docked layer is screen UI moved toward an edge: it shows only what the
    hardware would (no world-map continuation), so parked windows stay hidden. */
 static int sBgSplit[4]; /* PortBgSplit, below */
+static const uint16_t* sMenuHeaderFrame;
+static const ObjTiles* sMenuHeaderTiles;
+static const ObjPalette* sMenuHeaderPalette;
+static const uint16_t* sMenuTabFrame;
+static const ObjTiles* sMenuTabTiles;
+static const ObjPalette* sMenuTabPalette;
+static int sMenuTabBg[2] = {-1, -1}, sMenuTabX[2], sMenuTabY[2];
 static int sSceneNarrow, sNarrowWanted, sNarrowWait; /* PortSceneNarrow, below */
+static int sSpotlight;
+void PortSetSpotlight(int active) { sSpotlight = active; }
+int PortSpotlightActive(void) { return sSpotlight; }
 
 void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgLatch, sizeof(sBgLatch));
@@ -94,6 +104,16 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(&sSceneNarrow, sizeof(sSceneNarrow));
     visit(&sNarrowWanted, sizeof(sNarrowWanted));
     visit(&sNarrowWait, sizeof(sNarrowWait));
+    visit(&sSpotlight, sizeof(sSpotlight));
+    visit(&sMenuHeaderFrame, sizeof(sMenuHeaderFrame));
+    visit(&sMenuHeaderTiles, sizeof(sMenuHeaderTiles));
+    visit(&sMenuHeaderPalette, sizeof(sMenuHeaderPalette));
+    visit(&sMenuTabFrame, sizeof(sMenuTabFrame));
+    visit(&sMenuTabTiles, sizeof(sMenuTabTiles));
+    visit(&sMenuTabPalette, sizeof(sMenuTabPalette));
+    visit(sMenuTabBg, sizeof(sMenuTabBg));
+    visit(sMenuTabX, sizeof(sMenuTabX));
+    visit(sMenuTabY, sizeof(sMenuTabY));
 }
 
 void PortSetBgShiftX(int bg, int shift) {
@@ -972,7 +992,9 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
         int found = 0, i, objDone = 0;
         uint16_t col;
 
-        if (gx < sLeft || gx >= sRight) {
+        if (gx < sLeft || gx >= sRight ||
+            (sSpotlight && (gx < 0 || gx >= GBA_SCREEN_W || y < gPortScreen.originY ||
+                           y >= gPortScreen.originY + GBA_SCREEN_H))) {
             dst[x] = 0xFF000000u;
             continue;
         }
@@ -1407,6 +1429,25 @@ void PortPpuVBlankLines(void) {
  * gPortHudScale: larger than the world while staying pixel-exact. Each
  * sprite keeps its distance to the screen edge it is anchored to.
  */
+void PortMenuTabBg(int side, int bg, int x, int y) {
+    int i = side > 0;
+    sMenuTabBg[i] = bg; sMenuTabX[i] = x; sMenuTabY[i] = y;
+    sMenuTabFrame = NULL;
+}
+void PortMenuTabSprite(void* frame, void* tiles, void* palette) {
+    sMenuTabFrame = frame; sMenuTabTiles = tiles; sMenuTabPalette = palette;
+}
+
+void PortMenuHeaderSource(void* frame, void* tiles, void* palette) {
+    sMenuHeaderFrame = frame;
+    sMenuHeaderTiles = tiles;
+    sMenuHeaderPalette = palette;
+    if (!frame) {
+        sMenuTabFrame = NULL;
+        sMenuTabBg[0] = sMenuTabBg[1] = -1;
+    }
+}
+
 static int ObjColor(uint16_t a0, uint16_t a2, int tx, int ty, int ow, int mapping1d) {
     int bpp8 = (a0 >> 13) & 1;
     int tileBase = a2 & 0x3FF;
@@ -1423,6 +1464,92 @@ static int ObjColor(uint16_t a0, uint16_t a2, int tx, int ty, int ow, int mappin
     off = 0x10000 + (tile & 0x3FF) * 32 + (ty & 7) * 4 + ((tx & 7) >> 1);
     ci = (tx & 1) ? (VRAM8[off] >> 4) : (VRAM8[off] & 15);
     return ci ? (PLTT16[256 + (a2 >> 12) * 16 + ci] & 0x7FFF) : -1;
+}
+
+/* A repeatable piece of the actual header asset, independent of its animated
+   screen position. Neither cursor OAM nor the finished framebuffer enters it. */
+static uint32_t MenuSpritePixel(const uint16_t* frame, const ObjTiles* tiles,
+                                const ObjPalette* palette, int y, int phase) {
+    const uint16_t* p = frame;
+    int n, i, left = 32767, offset = 0, col = -1;
+    if (!p || !tiles || !palette ||
+        tiles->self != tiles || palette->self != palette ||
+        (IO16(0) & 0x80) || !(IO16(0) & 0x1000))
+        return 0;
+    n = *p++;
+    if (n > 128) return 0;
+    for (i = 0; i < n; i++) {
+        int x = p[i * 3 + 1] & 511;
+        if (x >= 256) x -= 512;
+        if (x < left) left = x;
+    }
+    for (i = 0; i < n; i++) {
+        uint16_t a0 = p[i * 3], a1 = p[i * 3 + 1], a2 = p[i * 3 + 2];
+        int shape = a0 >> 14, size = a1 >> 14, x = a1 & 511, oy = a0 & 255;
+        int ow, oh, tx, ty, tile;
+        if (shape >= 3) continue;
+        ow = sObjSize[shape][size][0]; oh = sObjSize[shape][size][1];
+        if (x >= 256) x -= 512;
+        if (oy >= 128) oy -= 256;
+        tx = left + (phase & 1) - x; ty = y - oy;
+        tile = tiles->allocated ? offset : (a2 & 1023);
+        offset += (ow * oh / 64) * ((a0 & 0x2000) ? 2 : 1);
+        if (tx < 0 || tx >= ow || ty < 0 || ty >= oh) continue;
+        if (a1 & 0x1000) tx = ow - 1 - tx;
+        if (a1 & 0x2000) ty = oh - 1 - ty;
+        a2 = ((tile + tiles->index) & 1023) |
+             (((a2 >> 12) + palette->index) << 12);
+        col = ObjColor(a0, a2, tx, ty, ow, (IO16(0) & 0x40) != 0);
+        if (col >= 0) break;
+    }
+    if (col < 0) return 0;
+    if (IO16(0x50) & 0x10) {
+        int effect = (IO16(0x50) >> 6) & 3, evy = IO16(0x54) & 31;
+        if (evy > 16) evy = 16;
+        if (effect == 2) col = Brighten(col, evy);
+        if (effect == 3) col = Darken(col, evy);
+    }
+    return sColorLut[col];
+}
+
+uint32_t PortMenuHeaderPixel(int y, int phase) {
+    return MenuSpritePixel(sMenuHeaderFrame, sMenuHeaderTiles, sMenuHeaderPalette, y, phase);
+}
+
+uint32_t PortMenuTabPixel(int y, int phase, int side) {
+    int i = side > 0, bg = sMenuTabBg[i], x, yy, ci, col;
+    uint16_t cnt, entry;
+    uint32_t map, chr, address;
+    if (sMenuTabFrame && side < 0)
+        return MenuSpritePixel(sMenuTabFrame, sMenuTabTiles, sMenuTabPalette, y - 16, 0);
+    if (bg < 0 || y < 16 || y >= 32 || (IO16(0) & 0x80)) return 0;
+    cnt = IO16(8 + bg * 2);
+    map = ((cnt >> 8) & 31) * 2048; chr = ((cnt >> 2) & 3) * 16384;
+    /* Read the clean end of the authored tab tile, ignoring animated scroll
+       and all foreground OAM. It remains the same piece when the hand moves. */
+    x = sMenuTabX[i]; yy = sMenuTabY[i] + y - 16;
+    entry = ((const uint16_t*)VRAM8)[(map + ((yy >> 3) * 32 + (x >> 3)) * 2) / 2];
+    x &= 7; yy &= 7;
+    if (entry & 0x400) x = 7 - x;
+    if (entry & 0x800) yy = 7 - yy;
+    address = chr + (entry & 1023) * ((cnt & 0x80) ? 64 : 32);
+    if (cnt & 0x80) {
+        ci = VRAM8[address + yy * 8 + x];
+        col = ci;
+    } else {
+        int packed = VRAM8[address + yy * 4 + x / 2];
+        ci = (x & 1) ? packed >> 4 : packed & 15;
+        col = (entry >> 12) * 16 + ci;
+    }
+    if (!ci) return 0;
+    col = PLTT16[col] & 0x7FFF;
+    if (IO16(0x50) & (1 << bg)) {
+        int effect = (IO16(0x50) >> 6) & 3, evy = IO16(0x54) & 31;
+        if (evy > 16) evy = 16;
+        if (effect == 2) col = Brighten(col, evy);
+        if (effect == 3) col = Darken(col, evy);
+    }
+    return sColorLut[col];
 }
 
 /* The backdrop colour (palette 0), as displayed. */

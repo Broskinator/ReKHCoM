@@ -37,6 +37,7 @@
 #include "types.h"
 #ifdef PLATFORM_PC
 #include "game_state.h"
+#include "map_api.h"
 #include "registration_data.h"
 #include "mode_movie.h"
 #include "mode_chkbtl.h"
@@ -75,6 +76,46 @@ int PortHarnessMode(const char* name, int arg) {
         &gModeSioBtlOption, &gModeDebug,
     };
     u32 i;
+
+    if (strcmp(name, "castle") == 0) {
+        ResetGameState();
+        SetupSoraNewGame();
+        gMapFloorState.room = MAP_ROOM_ENTRANCE_HALL;
+        ModeRequestHeapReset(&gModeMapFix, 0);
+        return 1;
+    }
+    if (strcmp(name, "spotlight") == 0 && gFieldState != NULL) {
+        SetBgPriority(0, 2);
+        SetBgPriority(1, 2);
+        TaskCreate(&gFieldState->tasks, &gTaskDescSpotLight, NULL);
+        return 1;
+    }
+    if ((strcmp(name, "gmkcount") == 0 || strcmp(name, "crystalview") == 0) && gFieldState != NULL) {
+        extern void PortLog(const char* format, ...);
+        Task* task = ListPoolFirst(&gFieldState->tasks.head);
+        int count = 0;
+        while (task != NULL) {
+            count += task->desc == &gTaskDescMapGmk04;
+            if (task->desc == &gTaskDescMapGmk04 && strcmp(name, "crystalview") == 0) {
+                MapGmk04Work* crystal = task->work;
+                gFieldState->actor.fieldPosition = crystal->obj.fieldPosition;
+                gFieldState->actor.fieldPosition.x -= 0x1200;
+                gFieldState->actor.fieldPosition.y += 0x1C00;
+                MapSetCameraTarget(gFieldState->actor.fieldPosition.x, gFieldState->actor.fieldPosition.y);
+            }
+            task = ListPoolNext(&task->node);
+        }
+        PortLog("harness: save crystals %d", count);
+        return 1;
+    }
+    if (strcmp(name, "doorselect") == 0 && gFieldState != NULL) {
+        static u8 status;
+        gFieldState->flags |= FIELD_FLAG_ROOM_CREATE | FIELD_FLAG_FREEZE_PLAYER;
+        MapFreezeBg1();
+        CreateMapCardSelection(&gFieldState->tasks, &status);
+        SetBgPriority(1, 1);
+        return 1;
+    }
 
     /* a save point beside Sora */
     if (strcmp(name, "crystal") == 0 && gFieldState != NULL) {

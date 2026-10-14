@@ -28,7 +28,9 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   probado: banco 1 carga la partida, banco 2 vacío ofrece solo Nueva partida y escribe su propio archivo; [ ] revancha de jefes; [ ] repetir tutoriales.
 - [~] Fondos blancos fuera del mapa del castillo → negro. En el vestíbulo ya sale negro;
   si aparece blanco en otra sala, hace falta un estado allí.
-- [ ] Transición de puerta: el usuario volvió a observar un flash cian; reproducir la ruta natural y corregirlo.
+- [x] Padding cian del spotlight en puerta: reproducido en la ranura 9 después
+  de A. El canvas se delimita y los márgenes se dibujan negros, sin tomar el
+  borde coloreado. Fixtures de spotlight y selección verifican ausencia de cian.
 - [x] Barras laterales: título/menú inicial blanco, copyright crema, idioma con
   grano (sin copiar emblemas), pantalla de carga estirando el último píxel.
 - [x] Arenas de combate: el escenario se repite más allá de los bordes (209 combates revisados).
@@ -121,3 +123,17 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 Validación reciente: subtítulos EU/JP en build/subtitles-current. La misma lectura
 inválida de UpdateSpriteOam apareció tanto con modo forzado como entrando desde
 START; la ruta de reproducción está en test_menu_cycles.py --edit.
+
+## Cierre parcial del bloque prioritario
+
+- [x] Cristal del castillo: objetos retenidos durante guardado se destruyen antes
+  de recrearlos en salas fijas; se evita acumulación de tareas, tiles y colliders.
+  Doce ciclos conservan una tarea del cristal y su dibujo antes/después.
+- [~] Headers y tabs: ya no se toma el guante ni texto de la imagen final.
+  Se usa una pieza del asset o tilemap original. Capturados Estado y Añadir/Quitar;
+  revisar todavía Diario, Naipes mundo y las transiciones de Mapamundi.
+- [x] Herramienta de regresión aislada: test_priority_scenes.py. El fixture de
+  castillo abre la tarea real de guardado directamente, cuenta cristales y captura
+  antes/después; no equivale a una partida ni a entradas grabadas del cartucho.
+- [ ] Continuar: subida de nivel (líneas, sprite, stutter), footer de Mapamundi,
+  fade pixel art de Naipes mundo, fondo de entrada de combate y estrés de submenús.

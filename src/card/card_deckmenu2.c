@@ -4203,7 +4203,7 @@ static void Deckmenu2_2(DeckMenuWork* work) {
     }
 
     if (work->tiles12 != NULL) {
-        DrawSprite(work->bannerX >> 8, 0,
+        DrawMenuHeader(work->bannerX >> 8, 0,
 #ifdef VERSION_EU
                    gDeckTitleBannerSpritesByLanguage[gLanguage][0],
 #elif defined(VERSION_US)
@@ -5065,6 +5065,9 @@ void DrawDeckCpCost(u8 deck) {
 #define FILTER_TAB_OFFSET(mode, euBlock) ((mode) * 128)
 #endif
 void DrawDeckFilterTab(u8 categoryFilter, u8 mode) {
+#ifdef PLATFORM_PC
+    PortMenuTabBg(-1, 3, 0, 16);
+#endif
     u8* dst;
 
     dst = (u8*)GetBgScreenBase(3) + 0x80;
@@ -5094,6 +5097,9 @@ void DrawDeckFilterTab(u8 categoryFilter, u8 mode) {
 }
 
 void DrawCollectionFilterTab(u8 categoryFilter, u8 mode) {
+#ifdef PLATFORM_PC
+    PortMenuTabBg(1, 3, 239, 16);
+#endif
     u8* dst;
 
     dst = (u8*)GetBgScreenBase(3) + 0xA8;

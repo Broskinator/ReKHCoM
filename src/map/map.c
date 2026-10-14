@@ -1779,6 +1779,9 @@ void PortMapKeepGmkDesc(const TaskDesc* desc) {
 static int IsRoomGmkTask(const Task* task) {
     s32 i;
 
+    if (gMapRoomState->flags & ROOM_FLAG_FIXED_ROOM)
+        return task->desc == &gTaskDescMapGmk00 || task->desc == &gTaskDescMapGmk04 ||
+               task->desc == &gTaskDescMapGmk06;
     if (task->desc == &gTaskDescMapGmkJump || task->desc == &gTaskDescMapGmkDmy)
         return 1;
     for (i = 0; i < sMapGmkCount; i++) {
@@ -1821,6 +1824,20 @@ static void DestroyRoomGmkTasks(void) {
 
 void PortMapUpdateFieldTasks(void) {
     UpdateFieldTasks();
+}
+
+void PortMapReplaceFixedGimmicks(void) {
+    TaskPool* pool = &gFieldState->tasks;
+    Task* task = ListPoolFirst(&pool->head);
+    /* Fixed rooms recreate these after a menu too. Retained tasks must
+       release their tiles, colliders and object registrations first. */
+    while (task != NULL) {
+        if (task->desc == &gTaskDescMapGmk00 || task->desc == &gTaskDescMapGmk04 ||
+            task->desc == &gTaskDescMapGmk06)
+            task = TaskDestroy(pool, task);
+        else
+            task = ListPoolNext(&task->node);
+    }
 }
 #endif
 

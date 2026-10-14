@@ -1404,6 +1404,9 @@ void CreatePrizeMapCardTask(TaskPool* pool, s32* args) {
 }
 
 void SpotLight_0(SpotlightWork* work, u8* src) {
+#ifdef PLATFORM_PC
+    PortSetSpotlight(1);
+#endif
     if (src != NULL) {
         work->endFlag = src;
     } else {
@@ -1461,6 +1464,9 @@ void SpotLight_2() {
 }
 
 void SpotLight_3() {
+#ifdef PLATFORM_PC
+    PortSetSpotlight(0);
+#endif
     FadeSetPaletteExcluded(13, FALSE);
 }
 

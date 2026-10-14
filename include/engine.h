@@ -81,6 +81,10 @@ void PortSetBattleView(int on);
 enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE, PORT_SIDE_BLUR, PORT_SIDE_MENU, PORT_SIDE_PATTERN };
 void PortSideStyle(int style);
 void PortMenuPanelSide(int side);
+void PortMenuHeaderSource(void* frame, void* tiles, void* palette);
+void PortSetSpotlight(int active);
+void PortMenuTabBg(int side, int bg, int x, int y);
+void PortMenuTabSprite(void* frame, void* tiles, void* palette);
 /* Full-screen menus: shown as the GBA picture (full height, side bars). */
 void PortSceneNarrow(int on);
 #define PORT_MENU_LEFT(x) ((x) - PortScreenMarginX())

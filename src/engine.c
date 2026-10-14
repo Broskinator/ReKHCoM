@@ -203,6 +203,17 @@ enum ObjTilesType {
     OBJ_TILES_TYPE_FRAME
 };
 
+#ifdef PLATFORM_PC
+u8 DrawMenuHeader(s16 x, s16 y, void* sprite, void* obj, void* palette, ObjAffine* affine, u16 flags, u16 priority) {
+    PortMenuHeaderSource(sprite, obj, palette);
+    return DrawSprite(x, y, sprite, obj, palette, affine, flags, priority);
+}
+u8 DrawMenuTab(s16 x, s16 y, void* sprite, void* obj, void* palette, ObjAffine* affine, u16 flags, u16 priority) {
+    PortMenuTabSprite(sprite, obj, palette);
+    return DrawSprite(x, y, sprite, obj, palette, affine, flags, priority);
+}
+#endif
+
 u8 DrawSprite(s16 x, s16 y, void* sprite, void* obj, void* palette, ObjAffine* affine, u16 flags, u16 priority) {
     if (gSpriteWork->entryCount <= 127 && obj != NULL) {
         switch (((ObjTiles*)obj)->type) {

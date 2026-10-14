@@ -3320,6 +3320,12 @@ void MapFixCreateGimmicks(void* gimmicks) {
         return;
     }
 
+#ifdef PLATFORM_PC
+    {
+        extern void PortMapReplaceFixedGimmicks(void);
+        PortMapReplaceFixedGimmicks();
+    }
+#endif
     placement = gMapGmkPlacements;
 
     while (fixedGmk->defIndex != MAP_FIXED_GMK_END) {

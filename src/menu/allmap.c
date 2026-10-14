@@ -596,10 +596,10 @@ void task_allmap_bar_2(AllmapBarWork* work) {
     }
 
 #ifdef VERSION_EU
-    DrawSprite(work->x >> 8, 0, sAllmapBarSprites[gLanguage], work->tiles, work->palette, NULL,
+    DrawMenuHeader(work->x >> 8, 0, sAllmapBarSprites[gLanguage], work->tiles, work->palette, NULL,
         SPRITE_PRIORITY(3), 1000);
 #else
-    DrawSprite(work->x >> 8, 0, gAllmapBarTitleFrame0, work->tiles, work->palette, NULL, SPRITE_PRIORITY(3), 1000);
+    DrawMenuHeader(work->x >> 8, 0, gAllmapBarTitleFrame0, work->tiles, work->palette, NULL, SPRITE_PRIORITY(3), 1000);
 #endif
     DrawSprite(128, work->y >> 8, gAllmapBarBandFrame0, work->tiles2, work->palette, NULL, SPRITE_PRIORITY(3), 1001);
     DrawSprite(128, work->y2 >> 8, gAllmapBarBandFrame1, work->tiles2, work->palette, NULL, SPRITE_PRIORITY(3), 1002);

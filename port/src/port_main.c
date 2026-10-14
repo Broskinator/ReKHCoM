@@ -353,8 +353,12 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
 
     if (x1 - x0 <= 0)
         return;
+    /* The spotlight's map has coloured padding outside its GBA canvas.
+       The presentation was copying that padding into otherwise black bars. */
+    if (PortSpotlightActive())
+        return;
     SDL_SetTextureScaleMode(sTexture, SDL_SCALEMODE_NEAREST);
-    if (sSideStyle == 4 || sSideStyle == 5) {
+    if (sSideStyle == 4 || sSideStyle == 5 || (sSideStyle == 0 && PortMenuHeaderPixel(4, 0))) {
         /* Extend background tiles, never the foreground labels or cursor.
            The title band keeps its existing edge treatment. */
         uint32_t strip[SIDE_STRIP * GBA_SCREEN_H];
@@ -365,23 +369,6 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
         if (!sMenuSideTexture)
             return;
         for (yy = 0; yy < GBA_SCREEN_H; yy++) {
-            uint32_t tabColor = 0;
-            if (sSideStyle == 4 && side == sMenuPanelSide && yy >= 16 && yy < 32) {
-                int a, b, best = 0;
-                /* The tab is a sprite. Use its row's dominant colour so
-                   the eye and an overlapping hand cannot smear outward. */
-                for (a = 0; a < 24; a++) {
-                    int tabX = side < 0 ? sx : edgeX - 23;
-                    uint32_t color = sComposite[(sy + yy) * gPortScreen.width + tabX + a];
-                    int count = 0;
-                    for (b = 0; b < 24; b++)
-                        count += sComposite[(sy + yy) * gPortScreen.width + tabX + b] == color;
-                    if (count > best) {
-                        best = count;
-                        tabColor = color;
-                    }
-                }
-            }
             for (xx = 0; xx < SIDE_STRIP; xx++) {
                 int sample = edgeX;
                 /* The outside gutter is clear of the grid silhouettes.
@@ -392,11 +379,15 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                    its floor badge and text retain the plain edge fill. */
                 if (sSideStyle == 5 && ((yy >= 16 && yy < 24) || (yy >= 136 && yy < (side > 0 ? 154 : 145))))
                     sample = sx + xx;
-                strip[yy * SIDE_STRIP + xx] = yy < 16 ?
-                    sComposite[(sy + yy) * gPortScreen.width + edgeX] :
-                    gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
-                if (tabColor)
-                    strip[yy * SIDE_STRIP + xx] = tabColor;
+                strip[yy * SIDE_STRIP + xx] = gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
+                if (yy < 16 && side < 0) {
+                    uint32_t header = PortMenuHeaderPixel(yy, xx);
+                    if (header) strip[yy * SIDE_STRIP + xx] = header;
+                }
+                if (sSideStyle == 4 && side == sMenuPanelSide && yy >= 16 && yy < 32) {
+                    uint32_t tab = PortMenuTabPixel(yy, xx, side);
+                    if (tab) strip[yy * SIDE_STRIP + xx] = tab;
+                }
             }
         }
         SDL_UpdateTexture(sMenuSideTexture, NULL, strip, SIDE_STRIP * 4);

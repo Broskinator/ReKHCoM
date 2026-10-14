@@ -491,10 +491,10 @@ u8 task_status_bar_1(StatusBarWork* work) {
 
 void task_status_bar_2(StatusBarWork* work) {
 #ifdef VERSION_EU
-    DrawSprite(work->x >> 8, 0, (sStatusBarSprites[gLanguage])[2], work->tiles,
+    DrawMenuHeader(work->x >> 8, 0, (sStatusBarSprites[gLanguage])[2], work->tiles,
         work->palette, NULL, SPRITE_PRIORITY(3), 29);
 #else
-    DrawSprite(work->x >> 8, 0, gStatusBarFrame2, work->tiles, work->palette, NULL, SPRITE_PRIORITY(3), 29);
+    DrawMenuHeader(work->x >> 8, 0, gStatusBarFrame2, work->tiles, work->palette, NULL, SPRITE_PRIORITY(3), 29);
 #endif
 
     if (gStatusBarState != STATUS_BAR_STATE_IDLE) {
@@ -553,7 +553,7 @@ u8 task_status_tab_1(StatusTabWork* work) {
 }
 
 void task_status_tab_2(StatusTabWork* work) {
-    DrawSprite(0, 16, work->gfx, work->tiles, work->palette, NULL, SPRITE_PRIORITY(2), 10);
+    DrawMenuTab(0, 16, work->gfx, work->tiles, work->palette, NULL, SPRITE_PRIORITY(2), 10);
     DrawSprite(0, 16, work->gfx2, work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(2), 11);
 }
 
