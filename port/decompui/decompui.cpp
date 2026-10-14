@@ -229,6 +229,7 @@ static const Setting kSettings[] = {
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
     { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 },
+    { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
     { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
@@ -971,6 +972,31 @@ static void PageExtras() {
                            "Cubic sample interpolation and a gentle low-pass: less of the metallic edge the GBA's "
                            "low sample rates leave in the treble."),
                          Ini("smooth_audio"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Modo Re:CoM", "Re:CoM mode"),
+                         T("Funciones de Kingdom Hearts Re:Chain of Memories (PS2). Apagado, el juego queda "
+                           "exactamente como el cartucho original.",
+                           "Features from Kingdom Hearts Re:Chain of Memories (PS2). Off, the game stays exactly "
+                           "as the original cartridge."),
+                         Ini("ps2_mode"));
+    if (Ini("ps2_mode")) {
+    Eyebrow(T("DE KINGDOM HEARTS RE:CHAIN OF MEMORIES (PS2)", "FROM KINGDOM HEARTS RE:CHAIN OF MEMORIES (PS2)"));
+    {
+        static const char* const es[] = { "Estándar", "Principiante", "Orgulloso" };
+        static const char* const en[] = { "Standard", "Beginner", "Proud" };
+        changed |= CycleRow(T("Dificultad", "Difficulty"),
+                            T("Como en Re:CoM. Principiante: Sora recibe la mitad del daño y causa un 25 % más. "
+                              "Orgulloso: recibe un 50 % más y causa un 20 % menos.",
+                              "As in Re:CoM. Beginner: Sora takes half damage and deals 25% more. Proud: he takes "
+                              "50% more and deals 20% less."),
+                            Ini("ps2_difficulty"), 3, sSpanish ? es : en);
+    }
+    ImGui::Separator();
+    changed |= ToggleRow(T("Diálogos rápidos", "Fast dialogue"),
+                         T("El texto de las escenas aparece una letra por fotograma, sin la pausa entre letras.",
+                           "Scene text appears one letter a frame, without the pause between letters."),
+                         Ini("ps2_fast_text"));
+    }
     ImGui::EndChild();
     if (changed)
         SaveIni();

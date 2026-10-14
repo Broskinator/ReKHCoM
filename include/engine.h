@@ -69,6 +69,11 @@ extern int gPortTextStyle;
 void PortRegisterBgTextTile(void* address, int code, int style, const void* source32);
 void PortClearBgTextTiles(void);
 void PortHudEnd(void);
+/* Experimental Re:Chain of Memories options: percentage applied to damage
+   taken by the player (player != 0) or by everyone else; whether event
+   dialogue types without its per-character delay. */
+int PortScaleDamage(int damage, int player);
+int PortFastText(void);
 /* One-button dodge roll: the d-pad direction to roll toward, or 0. */
 int PortTakeDodge(int held, int facingLeft);
 /* Return-stocked-cards button: 1 once per completed hold. */

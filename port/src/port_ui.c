@@ -47,9 +47,21 @@ enum {
     ITEM_HDTEXT,
     ITEM_HD2D,
     ITEM_SMOOTHAUDIO,
+    ITEM_PS2_MODE,
+    ITEM_PS2_MENU,     /* opens the Re:CoM page */
     ITEM_CLOSE,
+    /* the Re:Chain of Memories page */
+    ITEM_PS2_DIFFICULTY,
+    ITEM_PS2_FASTTEXT,
+    ITEM_PS2_BACK,
     ITEM_COUNT
 };
+
+/* Two pages, each a run of items: the options and the Re:CoM settings. */
+enum { PAGE_MAIN, PAGE_PS2 };
+static int sPage;
+static int PageFirst(void) { return sPage == PAGE_PS2 ? ITEM_PS2_DIFFICULTY : 0; }
+static int PageEnd(void) { return sPage == PAGE_PS2 ? ITEM_COUNT : ITEM_CLOSE + 1; }
 
 /* Strings: UTF-8, one row per item, columns in LANG_* order. */
 static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
@@ -83,8 +95,17 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
     { "Smooth audio", "Son adouci", "Weicher Klang", "Audio morbido", "Audio suave", "なめらかな音" },
+    { "Re:CoM mode", "Mode Re:CoM", "Re:CoM-Modus", "Modalità Re:CoM", "Modo Re:CoM", "Re:CoMモード" },
+    { "Re:CoM settings", "Réglages Re:CoM", "Re:CoM-Einstellungen", "Impostazioni Re:CoM", "Ajustes Re:CoM",
+      "Re:CoM設定" },
+    { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
+    { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
+    { "Fast dialogue", "Dialogues rapides", "Schnelle Dialoge", "Dialoghi veloci", "Diálogos rápidos",
+      "会話を早く" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
 };
+static const char* const sPs2Title[LANG_COUNT] = { "Re:Chain of Memories", "Re:Chain of Memories",
+    "Re:Chain of Memories", "Re:Chain of Memories", "Re:Chain of Memories", "Re:チェイン オブ メモリーズ" };
 
 static const char* const sTitle[LANG_COUNT] = { "Options", "Options", "Optionen", "Opzioni", "Opciones",
     "オプション",
@@ -100,6 +121,11 @@ static const char* const sHelp[LANG_COUNT] = {
 static const char* const sTitleHint[LANG_COUNT] = { "SELECT  Options", "SELECT  Options", "SELECT  Optionen",
                                                     "SELECT  Opzioni", "SELECT  Opciones",
     "SELECT  オプション",
+};
+static const char* const sDifficulty[3][LANG_COUNT] = {
+    { "Standard", "Standard", "Standard", "Standard", "Estándar", "スタンダード" },
+    { "Beginner", "Débutant", "Anfänger", "Principiante", "Principiante", "ビギナー" },
+    { "Proud", "Fier", "Stolz", "Orgoglioso", "Orgulloso", "プラウド" },
 };
 static const char* const sOnOff[2][LANG_COUNT] = {
     { "Off", "Non", "Aus", "No", "No", "オフ" },
@@ -375,6 +401,8 @@ static int ItemEnabled(int item) {
             return gPortConfig.viewMode == PORT_VIEW_AUTO;
         case ITEM_SCALE:
             return gPortConfig.viewMode != PORT_VIEW_AUTO;
+        case ITEM_PS2_MENU:
+            return gPortConfig.ps2Mode != 0;
         default:
             return 1;
     }
@@ -455,6 +483,18 @@ static void ValueText(int item, char* out, size_t size) {
             break;
         case ITEM_SMOOTHAUDIO:
             SDL_strlcpy(out, sOnOff[gPortConfig.smoothAudio != 0][l], size);
+            break;
+        case ITEM_PS2_MODE:
+            SDL_strlcpy(out, sOnOff[gPortConfig.ps2Mode != 0][l], size);
+            break;
+        case ITEM_PS2_MENU:
+            SDL_strlcpy(out, "â", size);
+            break;
+        case ITEM_PS2_DIFFICULTY:
+            SDL_strlcpy(out, sDifficulty[SDL_clamp(gPortConfig.ps2Difficulty, 0, 2)][l], size);
+            break;
+        case ITEM_PS2_FASTTEXT:
+            SDL_strlcpy(out, sOnOff[gPortConfig.ps2FastText != 0][l], size);
             break;
         case ITEM_MUSIC:
             SDL_snprintf(out, size, "%d%%", gPortConfig.musicVolume);
@@ -544,6 +584,26 @@ static void Change(int item, int dir) {
         case ITEM_SMOOTHAUDIO:
             gPortConfig.smoothAudio = !gPortConfig.smoothAudio;
             break;
+        case ITEM_PS2_MODE:
+            gPortConfig.ps2Mode = !gPortConfig.ps2Mode;
+            break;
+        case ITEM_PS2_MENU:
+            if (dir > 0 && gPortConfig.ps2Mode) {
+                sPage = PAGE_PS2;
+                sCursor = ITEM_PS2_DIFFICULTY;
+                sScroll = ITEM_PS2_DIFFICULTY;
+            }
+            break;
+        case ITEM_PS2_BACK:
+            sPage = PAGE_MAIN;
+            sCursor = ITEM_PS2_MENU;
+            break;
+        case ITEM_PS2_DIFFICULTY:
+            gPortConfig.ps2Difficulty = Wrap(gPortConfig.ps2Difficulty + dir, 3);
+            break;
+        case ITEM_PS2_FASTTEXT:
+            gPortConfig.ps2FastText = !gPortConfig.ps2FastText;
+            break;
         case ITEM_MUSIC:
             gPortConfig.musicVolume = SDL_clamp(gPortConfig.musicVolume + dir * 10, 0, 100);
             break;
@@ -566,12 +626,13 @@ int PortUiActive(void) {
     return sOpen;
 }
 
-/* Fades, as the game's own menus: the picture goes white, the menu comes in
-   from white, and the reverse on closing (MENU_FADE frames each way). */
+/* Fades: the picture goes to black, the menu comes in from black, and the
+   reverse on closing (MENU_FADE frames each way). */
 #define MENU_FADE 8
+#define MENU_FADE_COLOR 0xFF000000u
 static int sFade;    /* frames since the menu opened */
-static int sClosing; /* frames left of the menu fading to white */
-static int sReturn;  /* frames left of the white fading back to the game */
+static int sClosing; /* frames left of the menu fading to black */
+static int sReturn;  /* frames left of the black fading back to the game */
 static int sHarnessTick;
 
 void PortUiOpenOptions(void) {
@@ -583,6 +644,7 @@ void PortUiOpenOptions(void) {
     sReturn = 0;
     sCursor = 0;
     sScroll = 0;
+    sPage = PAGE_MAIN;
     sHarnessTick = 0;
     if (SDL_getenv("KHCOM_OPTIONS_CURSOR")) /* test harness: shot of a lower row */
         sCursor = SDL_clamp(SDL_atoi(SDL_getenv("KHCOM_OPTIONS_CURSOR")), 0, ITEM_COUNT - 1);
@@ -642,9 +704,10 @@ void PortUiTitleHint(void) {
 
 static void Move(int dir) {
     do {
-        sCursor = Wrap(sCursor + dir, ITEM_COUNT);
+        int first = PageFirst(), n = PageEnd() - first;
+        sCursor = first + Wrap(sCursor - first + dir, n);
         if (sCursor == ITEM_EXPERIMENTAL)
-            sCursor = Wrap(sCursor + dir, ITEM_COUNT);
+            sCursor = first + Wrap(sCursor - first + dir, n);
     } while (!ItemEnabled(sCursor));
 }
 
@@ -728,8 +791,12 @@ int PortUiHandleEvent(const void* p) {
             case SDLK_F1:
             case SDLK_Z:
             case SDLK_J:
-                if (!ev->key.repeat)
-                    Close();
+                if (!ev->key.repeat) {
+                    if (sPage == PAGE_PS2)
+                        Change(ITEM_PS2_BACK, 1);
+                    else
+                        Close();
+                }
                 break;
         }
         return 1;
@@ -755,6 +822,12 @@ int PortUiHandleEvent(const void* p) {
                     Change(sCursor, 1);
                 break;
             case SDL_GAMEPAD_BUTTON_EAST:
+                if (sPage == PAGE_PS2) {
+                    Change(ITEM_PS2_BACK, 1);
+                    break;
+                }
+                Close();
+                break;
             case SDL_GAMEPAD_BUTTON_START:
             case SDL_GAMEPAD_BUTTON_BACK:
             case SDL_GAMEPAD_BUTTON_GUIDE:
@@ -933,13 +1006,15 @@ static void DrawMenu(int l, int width, int height) {
 
     if (!sMenuArtReady)
         DecodeMenuArt();
-    for (i = 0; i < ITEM_COUNT; i++) {
+    for (i = PageFirst(); i < PageEnd(); i++) {
         labelW = SDL_max(labelW, TextWidth(sLabels[i][l]));
         ShortValue(i, value, sizeof(value));
         valueW = SDL_max(valueW, TextWidth(value));
     }
     barW = SDL_min(labelW + valueW + 40, width - barX - 6);
-    rows = SDL_min(ITEM_COUNT, (height - top - 14) / 16);
+    rows = SDL_min(PageEnd() - PageFirst(), (height - top - 14) / 16);
+    if (sScroll < PageFirst() || sScroll >= PageEnd())
+        sScroll = PageFirst();
     if (sCursor < sScroll)
         sScroll = sCursor;
     if (sCursor >= sScroll + rows)
@@ -960,8 +1035,8 @@ static void DrawMenu(int l, int width, int height) {
     if (barX + barW - 24 > artX + MENU_ART_X)
         Shade(artX + MENU_ART_X, 0, barX + barW - 24 - (artX + MENU_ART_X), top + rows * 16, 0xFFFFFFFFu, 230);
 
-    DrawText(sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
-    if (sScroll > 0)
+    DrawText(sPage == PAGE_PS2 ? sPs2Title[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
+    if (sScroll > PageFirst())
         DrawText("\xE2\x86\x91", barX + barW - 8, 2, MENU_INK, 0xFFD8D8D8u);
     for (i = sScroll, y = top; i < sScroll + rows; i++, y += 16) {
         int on = ItemEnabled(i), sel = i == sCursor;
@@ -975,7 +1050,7 @@ static void DrawMenu(int l, int width, int height) {
         }
         MenuBar(barX, y, barW, sel);
         DrawText(sLabels[i][l], barX + 16, y - 2, face, 0xFFD8D8D8u);
-        if (i == ITEM_CLOSE)
+        if (i == ITEM_CLOSE || i == ITEM_PS2_BACK)
             continue;
         ShortValue(i, value, sizeof(value));
         x = barX + barW - 4 - TextWidth(value);
@@ -986,7 +1061,7 @@ static void DrawMenu(int l, int width, int height) {
         }
         DrawText(value, x, y - 2, face, 0xFFD8D8D8u);
     }
-    if (sScroll + rows < ITEM_COUNT)
+    if (sScroll + rows < PageEnd())
         DrawText("\xE2\x86\x93", barX + barW - 8, top + rows * 16 - 2, MENU_INK, 0xFFD8D8D8u);
     DrawText(sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
 }
@@ -1078,7 +1153,7 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
     sFbH = height;
 
     if (!sOpen && sReturn > 0) {
-        Shade(0, 0, width, height, 0xFFFFFFFFu, SDL_min(256, sReturn * 256 / MENU_FADE));
+        Shade(0, 0, width, height, MENU_FADE_COLOR, SDL_min(256, sReturn * 256 / MENU_FADE));
         sReturn--;
         HarnessFadeShot(width, height);
     }
@@ -1097,7 +1172,7 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
 
     if (sClosing > 0) {
         DrawMenu(l, width, height);
-        Shade(0, 0, width, height, 0xFFFFFFFFu, SDL_min(256, (MENU_FADE - sClosing + 1) * 256 / MENU_FADE));
+        Shade(0, 0, width, height, MENU_FADE_COLOR, SDL_min(256, (MENU_FADE - sClosing + 1) * 256 / MENU_FADE));
         HarnessFadeShot(width, height);
         if (--sClosing == 0) {
             sOpen = 0;
@@ -1105,8 +1180,8 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
         }
         return;
     }
-    if (sFade < MENU_FADE) { /* the game's picture to white */
-        Shade(0, 0, width, height, 0xFFFFFFFFu, SDL_min(256, (sFade + 1) * 256 / MENU_FADE));
+    if (sFade < MENU_FADE) { /* the game's picture to black */
+        Shade(0, 0, width, height, MENU_FADE_COLOR, SDL_min(256, (sFade + 1) * 256 / MENU_FADE));
         sFade++;
         HarnessFadeShot(width, height);
         return;
@@ -1116,8 +1191,8 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
     DrawMenu(l, width, height);
     if (harnessShot)
         HarnessOptionsShot(frame, width, height);
-    if (sFade < MENU_FADE * 2) { /* the menu in from white */
-        Shade(0, 0, width, height, 0xFFFFFFFFu, (MENU_FADE * 2 - sFade) * 256 / MENU_FADE - 32);
+    if (sFade < MENU_FADE * 2) { /* the menu in from black */
+        Shade(0, 0, width, height, MENU_FADE_COLOR, (MENU_FADE * 2 - sFade) * 256 / MENU_FADE - 32);
         sFade++;
         HarnessFadeShot(width, height);
     } else if (SDL_getenv("KHCOM_OPTIONS_HOLD") && ++sFade >= MENU_FADE * 2 + SDL_atoi(SDL_getenv("KHCOM_OPTIONS_HOLD"))) {

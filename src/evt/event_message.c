@@ -6589,6 +6589,11 @@ void MsgwinTypeStep(MsgWinWork* work) {
     const MessageScriptEntry* entry = &work->script[work->scriptIndex];
     u8 nextPosition;
 
+#ifdef PLATFORM_PC
+    if (PortFastText()) /* experimental: one character a frame */
+        work->charTimer = entry->charDelay;
+#endif
+
     if (work->charTimer >= entry->charDelay) {
         if (work->shownChars < work->charCount) {
             work->shownChars++;

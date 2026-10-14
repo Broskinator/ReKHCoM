@@ -1176,6 +1176,11 @@ s32 ApplyBtlObjHit(BtlObj* obj) {
 
     if (obj->flags & BTLOBJ_FLAG_DAMAGE_PENDING) {
         obj->flags &= ~(BTLOBJ_FLAG_CARD_ACTION_PENDING | BTLOBJ_FLAG_DAMAGE_PENDING);
+#ifdef PLATFORM_PC
+        /* experimental Re:Chain of Memories difficulty (100 % when off) */
+        if (obj->damage > 0)
+            obj->damage = PortScaleDamage(obj->damage, obj == gBtlWork->actor);
+#endif
         obj->hp -= obj->damage;
 
         if (obj->hp < 0) {
