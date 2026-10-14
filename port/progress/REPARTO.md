@@ -37,6 +37,11 @@ La dificultad conserva daño cero y valores negativos. Verificación:
 `python port/tools/test_recom.py` (80 combinaciones, cinco bancos, reinicio,
 registros antiguos y aislamiento de Original). Sin cambios en los márgenes.
 
+Nuevo experimental a cargo de Codex: HUD HD redibujado con IA y alfa real.
+Formato preparado: atlas PNG RGBA + JSON, validación y vistas claro/oscuro
+con `port/tools/pack_hd_hud.py`. Integración y pieza piloto pendientes;
+ver `HUD_HD_EXPERIMENTAL.md`. No activar piezas con fondo residual o halos.
+
 1. Diario — en revisión con el usuario
 2. Ver barajas / Añadir-Quitar
 3. Estado
