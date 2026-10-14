@@ -23,7 +23,7 @@ def main():
     parser.add_argument("--save", default="build/pc/kh_com.sav")
     parser.add_argument("--cycles", type=int, default=12)
     parser.add_argument("--timeout", type=int, default=300)
-    parser.add_argument("--scenes", nargs='+', choices=('castle', 'spotlight', 'doorselect', 'status', 'world'),
+    parser.add_argument("--scenes", nargs='+', choices=('castle', 'spotlight', 'doorselect', 'status', 'world', 'allmap'),
                         default=('castle', 'spotlight', 'doorselect', 'status'))
     args = parser.parse_args()
     if args.cycles < 1:
@@ -55,6 +55,11 @@ def main():
             modes, shots, end = ["1400:spotlight", "1480:doorselect"], [1560, 1640, 1760], 1800
         elif case == "world":
             modes, shots, end = ["1400:mode_worldinspect"], [1500, 1600, 1700], 1710
+        elif case == "allmap":
+            modes = ["1400:mode_allmap"]
+            shots = [1402, 1408, 1416, 1424, 1432, 1500, 1552, 1560, 1568, 1576, 1584]
+            end = 1600
+            keys.append('1550-1553:B')
         else:
             modes, shots, end = ["1400:mode_status"], [1700, 1800, 1900], 1920
             keys.extend(("1720-1723:UP", "1760-1763:UP", "1840-1843:DOWN"))
