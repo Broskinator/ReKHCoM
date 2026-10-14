@@ -353,21 +353,36 @@ static ImU32 Col(float r, float g, float b, float a = 1.0f) {
 }
 
 /* recomp-ui's "Game Boy Advance" palette. */
-static const ImVec4 kInk(0.047f, 0.043f, 0.090f, 1.0f);
-static const ImVec4 kInkLift(0.082f, 0.075f, 0.145f, 1.0f);
-static const ImVec4 kPanel(0.094f, 0.086f, 0.165f, 1.0f);
-static const ImVec4 kPanelHover(0.145f, 0.133f, 0.247f, 1.0f);
-static const ImVec4 kControl(0.118f, 0.110f, 0.200f, 1.0f);
-static const ImVec4 kControlHover(0.161f, 0.149f, 0.271f, 1.0f);
-static const ImVec4 kBorder(0.204f, 0.188f, 0.325f, 1.0f);
-static const ImVec4 kAccent(0.463f, 0.427f, 0.945f, 1.0f);
-static const ImVec4 kAccentDim(0.325f, 0.290f, 0.741f, 1.0f);
-static const ImVec4 kText(0.922f, 0.918f, 0.957f, 1.0f);
-static const ImVec4 kMuted(0.525f, 0.510f, 0.647f, 1.0f);
-static const ImVec4 kGood(0.275f, 0.890f, 0.608f, 1.0f);
-static const ImVec4 kWarn(0.961f, 0.698f, 0.235f, 1.0f);
-static const ImVec4 kBad(0.950f, 0.380f, 0.420f, 1.0f);
-static const ImVec4 kFocus(0.220f, 0.882f, 0.902f, 1.0f);
+/* The game's look (its debug menu, which the in-game options copy): white,
+   the grey of its bars, near-black text and the red of its cursor square. */
+static const ImVec4 kInk(1.0f, 1.0f, 1.0f, 1.0f);
+static const ImVec4 kInkLift(0.965f, 0.957f, 0.957f, 1.0f);
+static const ImVec4 kPanel(0.988f, 0.984f, 0.984f, 1.0f);
+static const ImVec4 kPanelHover(0.925f, 0.910f, 0.910f, 1.0f);
+static const ImVec4 kControl(0.910f, 0.894f, 0.894f, 1.0f);
+static const ImVec4 kControlHover(0.835f, 0.812f, 0.812f, 1.0f);
+static const ImVec4 kBorder(0.710f, 0.678f, 0.678f, 1.0f);
+static const ImVec4 kAccent(1.0f, 0.063f, 0.0f, 1.0f);
+static const ImVec4 kAccentDim(0.612f, 0.063f, 0.0f, 1.0f);
+static const ImVec4 kText(0.031f, 0.031f, 0.031f, 1.0f);
+static const ImVec4 kMuted(0.420f, 0.396f, 0.396f, 1.0f);
+static const ImVec4 kGood(0.090f, 0.520f, 0.220f, 1.0f);
+static const ImVec4 kWarn(0.780f, 0.420f, 0.0f, 1.0f);
+static const ImVec4 kBad(0.800f, 0.063f, 0.0f, 1.0f);
+static const ImVec4 kFocus(0.031f, 0.031f, 0.031f, 1.0f);
+
+/* The debug menu's cursor square: black with red inside (on), or grey. */
+static void GameSquare(ImDrawList* dl, ImVec2 c, float size, bool on) {
+    float h = size * 0.5f, in = size * 0.25f, edge = size * 0.08f;
+    if (!on) {
+        dl->AddRectFilled(ImVec2(c.x - h, c.y - h), ImVec2(c.x + h, c.y + h), ImGui::GetColorU32(kBorder));
+        return;
+    }
+    dl->AddRectFilled(ImVec2(c.x - h, c.y - h), ImVec2(c.x + h, c.y + h), ImGui::GetColorU32(kText));
+    dl->AddRectFilled(ImVec2(c.x - in, c.y - in), ImVec2(c.x + in, c.y + in), ImGui::GetColorU32(kAccent));
+    dl->AddRectFilled(ImVec2(c.x - in, c.y - in), ImVec2(c.x - in + edge, c.y + in), ImGui::GetColorU32(kAccentDim));
+    dl->AddRectFilled(ImVec2(c.x - in, c.y - in), ImVec2(c.x + in, c.y - in + edge), ImGui::GetColorU32(kAccentDim));
+}
 
 static ImFont* sFontBody;
 static ImFont* sFontTitle;
@@ -379,10 +394,10 @@ static void ApplyStyle() {
     s.WindowPadding = ImVec2(Px(24), Px(20));
     s.FramePadding = ImVec2(Px(14), Px(9));
     s.ItemSpacing = ImVec2(Px(10), Px(10));
-    s.ChildRounding = Px(14);
-    s.FrameRounding = Px(6);
-    s.GrabRounding = Px(6);
-    s.ScrollbarRounding = Px(6);
+    s.ChildRounding = 0;
+    s.FrameRounding = 0;
+    s.GrabRounding = 0;
+    s.ScrollbarRounding = 0;
     s.ChildBorderSize = 1.0f;
     s.FrameBorderSize = 1.0f;
     s.ScrollbarSize = Px(12);
@@ -410,7 +425,7 @@ static void ApplyStyle() {
     c[ImGuiCol_ScrollbarGrab] = kBorder;
     c[ImGuiCol_TableBorderLight] = kBorder;
     c[ImGuiCol_TableBorderStrong] = kBorder;
-    c[ImGuiCol_TableRowBgAlt] = ImVec4(1, 1, 1, 0.025f);
+    c[ImGuiCol_TableRowBgAlt] = ImVec4(0, 0, 0, 0.025f);
     c[ImGuiCol_PopupBg] = kPanel;
 }
 
@@ -447,8 +462,6 @@ static void Background(ImVec2 size) {
     float mid = size.y * 0.42f;
     bg->AddRectFilledMultiColor(ImVec2(0, 0), ImVec2(size.x, mid), ink, ink, lift, lift);
     bg->AddRectFilledMultiColor(ImVec2(0, mid), size, lift, lift, ink, ink);
-    bg->AddRectFilledMultiColor(ImVec2(0, 0), ImVec2(size.x, Px(110)), Col(kAccent.x, kAccent.y, kAccent.z, 0.12f),
-                                Col(kAccent.x, kAccent.y, kAccent.z, 0.12f), Col(0, 0, 0, 0), Col(0, 0, 0, 0));
 }
 
 /* Uppercase section heading with an accent tick. */
@@ -457,13 +470,12 @@ static void Eyebrow(const char* text) {
     ImVec2 p = ImGui::GetCursorScreenPos();
     ImGui::PushFont(sFontSmall);
     float h = ImGui::GetTextLineHeight();
-    dl->AddRectFilled(ImVec2(p.x, p.y + h * 0.12f), ImVec2(p.x + Px(3), p.y + h * 0.9f),
-                      ImGui::GetColorU32(kAccent), Px(1.5f));
-    float x = p.x + Px(10);
+    GameSquare(dl, ImVec2(p.x + h * 0.4f, p.y + h * 0.5f), h * 0.8f, true);
+    float x = p.x + h * 1.1f;
     char one[2] = { 0, 0 };
     for (const char* q = text; *q; q++) {
         one[0] = *q;
-        dl->AddText(ImVec2(x, p.y), ImGui::GetColorU32(kAccent), one);
+        dl->AddText(ImVec2(x, p.y), ImGui::GetColorU32(kText), one);
         x += ImGui::CalcTextSize(one).x + Px(2.2f);
     }
     ImGui::Dummy(ImVec2(x - p.x, h));
@@ -491,26 +503,25 @@ static bool PlayButton(const char* label, ImVec2 size, bool enabled) {
     float r = Px(8);
     float a = enabled ? 1.0f : 0.35f;
 
-    for (int i = 6; i >= 1; i--) {
-        float grow = Px(2) * i;
-        dl->AddRectFilled(ImVec2(p.x - grow, p.y - grow), ImVec2(mx.x + grow, mx.y + grow),
-                          Col(kAccent.x, kAccent.y, kAccent.z, a * (hover ? 0.16f : 0.10f) * (7 - i) / 6), r + grow);
-    }
-    /* vertical gradient with rounded corners: rounded caps, gradient between */
-    ImU32 top = Col(kAccent.x, kAccent.y, kAccent.z, a), bottom = Col(kAccentDim.x, kAccentDim.y, kAccentDim.z, a);
-    dl->AddRectFilled(p, ImVec2(mx.x, p.y + r), top, r, ImDrawFlags_RoundCornersTop);
-    dl->AddRectFilled(ImVec2(p.x, mx.y - r), mx, bottom, r, ImDrawFlags_RoundCornersBottom);
-    dl->AddRectFilledMultiColor(ImVec2(p.x, p.y + r), ImVec2(mx.x, mx.y - r), top, top, bottom, bottom);
+    /* a debug-menu row: black, the red cursor square, a grey shadow */
+    dl->AddRectFilled(ImVec2(p.x + Px(4), p.y + Px(4)), ImVec2(mx.x + Px(4), mx.y + Px(4)),
+                      Col(kBorder.x, kBorder.y, kBorder.z, a));
+    dl->AddRectFilled(p, mx, hover ? Col(0.18f, 0.17f, 0.17f, a) : Col(kText.x, kText.y, kText.z, a));
+    (void)r;
     if (focus)
         dl->AddRect(ImVec2(p.x - Px(3), p.y - Px(3)), ImVec2(mx.x + Px(3), mx.y + Px(3)),
-                    ImGui::GetColorU32(kFocus), r + Px(3), 0, Px(2.5f));
+                    ImGui::GetColorU32(kAccent), 0, 0, Px(2.5f));
     ImGui::PushFont(sFontTitle);
     float th = ImGui::GetTextLineHeight(), tw = ImGui::CalcTextSize(label).x;
-    float tri = Px(16), gap = Px(14);
-    float cx = p.x + (size.x - tri - gap - tw) * 0.5f, cy = p.y + size.y * 0.5f;
-    dl->AddTriangleFilled(ImVec2(cx, cy - tri * 0.55f), ImVec2(cx, cy + tri * 0.55f), ImVec2(cx + tri, cy),
-                          Col(1, 1, 1, a));
-    dl->AddText(ImVec2(cx + tri + gap, cy - th * 0.5f), Col(1, 1, 1, a), label);
+    float sq = Px(22), gap = Px(16);
+    float cx = p.x + (size.x - sq - gap - tw) * 0.5f, cy = p.y + size.y * 0.5f;
+    if (enabled) {
+        dl->AddRectFilled(ImVec2(cx, cy - sq * 0.5f), ImVec2(cx + sq, cy + sq * 0.5f), Col(1, 1, 1, a));
+        GameSquare(dl, ImVec2(cx + sq * 0.5f, cy), sq * 0.8f, true);
+    } else {
+        GameSquare(dl, ImVec2(cx + sq * 0.5f, cy), sq * 0.8f, false);
+    }
+    dl->AddText(ImVec2(cx + sq + gap, cy - th * 0.5f), Col(1, 1, 1, a), label);
     ImGui::PopFont();
     if (!enabled)
         ImGui::EndDisabled();
@@ -588,13 +599,17 @@ static bool ToggleRow(const char* label, const char* description, int& value) {
         changed = true;
     }
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->AddRectFilled(p, ImVec2(p.x + tw, p.y + th), ImGui::GetColorU32(value ? kAccent : kControlHover), th * 0.5f);
-    float knob = th * 0.5f - Px(4);
-    float kx = value ? p.x + tw - th * 0.5f : p.x + th * 0.5f;
-    dl->AddCircleFilled(ImVec2(kx, p.y + th * 0.5f), knob, Col(1, 1, 1));
+    /* on: the debug menu's black square with the red one inside; off: grey */
+    GameSquare(dl, ImVec2(p.x + tw - th * 0.5f, p.y + th * 0.5f), th * 0.8f, value);
+    ImGui::PushFont(sFontSmall);
+    const char* state = value ? T("S\xC3\xAD", "On") : T("No", "Off");
+    ImVec2 ss = ImGui::CalcTextSize(state);
+    dl->AddText(ImVec2(p.x + tw - th - Px(6) - ss.x, p.y + (th - ss.y) * 0.5f),
+                ImGui::GetColorU32(value ? kText : kMuted), state);
+    ImGui::PopFont();
     if (ImGui::IsItemFocused())
         dl->AddRect(ImVec2(p.x - Px(3), p.y - Px(3)), ImVec2(p.x + tw + Px(3), p.y + th + Px(3)),
-                    ImGui::GetColorU32(kFocus), th * 0.5f + Px(3), 0, Px(2));
+                    ImGui::GetColorU32(kFocus), 0, 0, Px(2));
     ImGui::PopID();
     return changed;
 }
@@ -705,17 +720,14 @@ static void PageHome(SDL_Window* window) {
         }
         bool hover = ImGui::IsItemHovered();
         dl->AddRectFilled(rowMin, ImVec2(rowMin.x + rowW, rowMin.y + rowH),
-                          ImGui::GetColorU32(selected ? kPanelHover : (hover ? kControl : kPanel)), Px(8));
-        dl->AddRect(rowMin, ImVec2(rowMin.x + rowW, rowMin.y + rowH),
-                    ImGui::GetColorU32(selected ? kAccent : kBorder), Px(8), 0, selected ? Px(2) : 1.0f);
+                          ImGui::GetColorU32(selected ? kPanelHover : (hover ? kControl : kPanel)));
+        dl->AddRectFilled(ImVec2(rowMin.x, rowMin.y + rowH - Px(3)), ImVec2(rowMin.x + rowW, rowMin.y + rowH),
+                          ImGui::GetColorU32(selected ? kText : kBorder));
         if (ImGui::IsItemFocused())
             dl->AddRect(ImVec2(rowMin.x - Px(2), rowMin.y - Px(2)), ImVec2(rowMin.x + rowW + Px(2), rowMin.y + rowH + Px(2)),
-                        ImGui::GetColorU32(kFocus), Px(10), 0, Px(2));
-        /* radio */
-        ImVec2 rc(rowMin.x + Px(22), rowMin.y + rowH * 0.5f);
-        dl->AddCircle(rc, Px(8), ImGui::GetColorU32(selected ? kAccent : kMuted), 0, Px(2));
-        if (selected)
-            dl->AddCircleFilled(rc, Px(4.5f), ImGui::GetColorU32(kAccent));
+                        ImGui::GetColorU32(kFocus), 0, 0, Px(2));
+        /* the debug menu's square, as a radio */
+        GameSquare(dl, ImVec2(rowMin.x + Px(22), rowMin.y + rowH * 0.5f), Px(16), selected);
         /* region, code and languages */
         float tx = rowMin.x + Px(44);
         dl->AddText(sFontBody, sFontBody->FontSize, ImVec2(tx, rowMin.y + Px(10)), ImGui::GetColorU32(kText),
@@ -1101,11 +1113,13 @@ static void Header() {
     ImGui::Spacing();
     for (int i = 0; i < PAGE_COUNT; i++) {
         bool active = sPage == i;
-        ImGui::PushStyleColor(ImGuiCol_Button, active ? kAccentDim : kControl);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, active ? kAccent : kControlHover);
+        /* the current page: black like the debug menu's selected row */
+        ImGui::PushStyleColor(ImGuiCol_Button, active ? kText : kControl);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, active ? kText : kControlHover);
+        ImGui::PushStyleColor(ImGuiCol_Text, active ? kInk : kText);
         if (ImGui::Button(tabs[i]))
             sPage = i;
-        ImGui::PopStyleColor(2);
+        ImGui::PopStyleColor(3);
         if (i + 1 < PAGE_COUNT)
             ImGui::SameLine(0, Px(6));
     }

@@ -32,7 +32,10 @@ Windows x86 prerelease.
 - The options screen takes the look of the cartridge's own debug menu: white,
   grey bars with the red cursor square, and its picture of Sora (decoded from
   the ROM). The skip-intro prompt, the state notices and the title's options
-  hint use the same button.
+  hint use the same button, and so does the FPS readout. The options screen
+  fades in and out through white, as the game's menus do.
+- The launcher takes the same look: white, the grey of the bars, black text
+  and the red cursor square for headings, toggles, the version list and Play.
 - Launcher install tests (`port/tools/test_launcher.py`): the three dumps,
   reinstalling, wrong size, wrong SHA-1, a non-KH file, a missing file and an
   unwritable roms folder, English interface; 11/11 pass.

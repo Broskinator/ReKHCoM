@@ -548,10 +548,20 @@ int PortUiActive(void) {
     return sOpen;
 }
 
+/* Fades, as the game's own menus: the picture goes white, the menu comes in
+   from white, and the reverse on closing (MENU_FADE frames each way). */
+#define MENU_FADE 8
+static int sFade;    /* frames since the menu opened */
+static int sClosing; /* frames left of the menu fading to white */
+static int sReturn;  /* frames left of the white fading back to the game */
+
 void PortUiOpenOptions(void) {
     if (sOpen)
         return;
     sOpen = 1;
+    sFade = SDL_getenv("KHCOM_OPTIONS_SHOT") ? MENU_FADE * 2 : 0; /* test shots: no fade */
+    sClosing = 0;
+    sReturn = 0;
     sCursor = 0;
     sScroll = 0;
     if (SDL_getenv("KHCOM_OPTIONS_CURSOR")) /* test harness: shot of a lower row */
@@ -561,10 +571,24 @@ void PortUiOpenOptions(void) {
 
 void PortUiForceClose(void) {
     sOpen = 0;
+    sClosing = 0;
+    sReturn = 0;
 }
 
+static void Close(void);
+
+void PortUiHarnessToggle(void) {
+    if (!sOpen)
+        PortUiOpenOptions();
+    else
+        Close();
+}
+
+/* The game stays paused (sOpen) until the menu has faded out. */
 static void Close(void) {
-    sOpen = 0;
+    if (sClosing > 0)
+        return;
+    sClosing = MENU_FADE;
     PortConfigSave();
     PortInputSuppressUntilRelease();
 }
@@ -605,6 +629,9 @@ static void Move(int dir) {
 int PortUiHandleEvent(const void* p) {
     const SDL_Event* ev = (const SDL_Event*)p;
 
+    if (sOpen && (sClosing > 0 || sFade < MENU_FADE)) /* fading: the menu takes no input */
+        return ev->type == SDL_EVENT_KEY_DOWN || ev->type == SDL_EVENT_KEY_UP ||
+               ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || ev->type == SDL_EVENT_GAMEPAD_BUTTON_UP;
     if (!sOpen) {
         if (ev->type == SDL_EVENT_KEY_DOWN && !ev->key.repeat && (ev->key.key == SDLK_F1 || ev->key.key == SDLK_ESCAPE)) {
             PortUiOpenOptions();
@@ -936,6 +963,24 @@ static void DrawMenu(int l, int width, int height) {
     DrawText(sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
 }
 
+/* Test harness: KHCOM_OPTIONS_HOLD=n closes the menu n frames after it has
+   faded in (the game is paused meanwhile, so frame-based keys cannot);
+   KHCOM_FADE_SHOTS saves every frame of the fades as fade_<n>.bmp. */
+static void HarnessFadeShot(int width, int height) {
+    static int n;
+    char name[32];
+    SDL_Surface* s;
+
+    if (!SDL_getenv("KHCOM_FADE_SHOTS"))
+        return;
+    s = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_XRGB8888, sFb, width * 4);
+    SDL_snprintf(name, sizeof(name), "fade_%03d.bmp", n++);
+    if (s) {
+        SDL_SaveBMP(s, PortConfigPath(name));
+        SDL_DestroySurface(s);
+    }
+}
+
 void PortUiDraw(uint32_t* frame, int width, int height) {
     int l = Lang();
 
@@ -943,6 +988,11 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
     sFbW = width;
     sFbH = height;
 
+    if (!sOpen && sReturn > 0) {
+        Shade(0, 0, width, height, 0xFFFFFFFFu, SDL_min(256, sReturn * 256 / MENU_FADE));
+        sReturn--;
+        HarnessFadeShot(width, height);
+    }
     if (!sOpen) {
         if (sSkipPrompt)
             DrawSkipPrompt(l);
@@ -956,5 +1006,28 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
         return;
     }
 
+    if (sClosing > 0) {
+        DrawMenu(l, width, height);
+        Shade(0, 0, width, height, 0xFFFFFFFFu, SDL_min(256, (MENU_FADE - sClosing + 1) * 256 / MENU_FADE));
+        HarnessFadeShot(width, height);
+        if (--sClosing == 0) {
+            sOpen = 0;
+            sReturn = MENU_FADE;
+        }
+        return;
+    }
+    if (sFade < MENU_FADE) { /* the game's picture to white */
+        Shade(0, 0, width, height, 0xFFFFFFFFu, SDL_min(256, (sFade + 1) * 256 / MENU_FADE));
+        sFade++;
+        HarnessFadeShot(width, height);
+        return;
+    }
     DrawMenu(l, width, height);
+    if (sFade < MENU_FADE * 2) { /* the menu in from white */
+        Shade(0, 0, width, height, 0xFFFFFFFFu, (MENU_FADE * 2 - sFade) * 256 / MENU_FADE - 32);
+        sFade++;
+        HarnessFadeShot(width, height);
+    } else if (SDL_getenv("KHCOM_OPTIONS_HOLD") && ++sFade >= MENU_FADE * 2 + SDL_atoi(SDL_getenv("KHCOM_OPTIONS_HOLD"))) {
+        Close();
+    }
 }

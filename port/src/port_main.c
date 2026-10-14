@@ -836,6 +836,8 @@ static void HarnessFrame(void) {
         PortPpuDumpOam();
     }
 
+    if (HarnessListHas(SDL_getenv("KHCOM_OPTIONS_TOGGLE"), sFrameCount))
+        PortUiHarnessToggle();
     if (ui && HarnessListHas(ui, sFrameCount)) {
         extern void PortUiForceClose(void);
         SDL_Surface* s;
