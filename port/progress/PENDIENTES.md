@@ -24,7 +24,8 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   [x] devolver a la mano las cartas acumuladas (Sora): mantener V / stick derecho (pulsado
   o abajo) medio segundo; opcional en el juego y el launcher. Probado: 6 ciclos acumular/devolver
   y un truco sin crash; desactivada, la carta sigue acumulada; [ ] aviso de puntos moguri en el campo;
-  [ ] bancos de guardado (varios .sav); [ ] revancha de jefes; [ ] repetir tutoriales.
+  [x] bancos de guardado: 5 bancos (kh_com_bank<n>.sav), opción en el juego y el launcher;
+  probado: banco 1 carga la partida, banco 2 vacío ofrece solo Nueva partida y escribe su propio archivo; [ ] revancha de jefes; [ ] repetir tutoriales.
 - [~] Fondos blancos fuera del mapa del castillo → negro. En el vestíbulo ya sale negro;
   si aparece blanco en otra sala, hace falta un estado allí.
 - [ ] Transición de puerta: el usuario volvió a observar un flash cian; reproducir la ruta natural y corregirlo.

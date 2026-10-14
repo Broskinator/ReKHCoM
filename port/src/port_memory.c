@@ -129,15 +129,41 @@ int PortRomLoad(void) {
     return 1;
 }
 
+/* The bank the SRAM was loaded from (gPortConfig.saveBank can change first). */
+static int sSramBank = 1;
+
+static const char* BankName(int bank) {
+    static char name[64];
+    size_t len = strlen(PORT_SAVE_NAME) - 4; /* without ".sav" */
+
+    if (bank <= 1)
+        return PORT_SAVE_NAME;
+    snprintf(name, sizeof(name), "%.*s_bank%d.sav", (int)len, PORT_SAVE_NAME, bank);
+    return name;
+}
+
+const char* PortSaveName(void) {
+    return BankName(sSramBank);
+}
+
+void PortSramSwitchBank(void) {
+    if (gPortConfig.saveBank == sSramBank)
+        return;
+    PortSramSyncIfDirty();
+    PortSramLoad();
+}
+
 void PortSramLoad(void) {
-    FILE* f = fopen(PortConfigPath(PORT_SAVE_NAME), "rb");
+    FILE* f;
+    sSramBank = gPortConfig.saveBank < 1 ? 1 : gPortConfig.saveBank > PORT_SAVE_BANKS ? PORT_SAVE_BANKS : gPortConfig.saveBank;
+    f = fopen(PortConfigPath(BankName(sSramBank)), "rb");
     uint8_t* sram = (uint8_t*)(uintptr_t)GBA_SRAM;
 
     memset(sram, 0xFF, GBA_SRAM_SIZE);
     if (f != NULL) {
         size_t n = fread(sram, 1, GBA_SRAM_SIZE, f);
         fclose(f);
-        PortLog("Save: loaded %u bytes", (unsigned)n);
+        PortLog("Save: loaded %u bytes from %s", (unsigned)n, BankName(sSramBank));
     }
     memcpy(sSramShadow, sram, GBA_SRAM_SIZE);
     sSramLoaded = 1;
@@ -150,12 +176,12 @@ void PortSramSyncIfDirty(void) {
 
     if (!sSramLoaded || memcmp(sSramShadow, sram, GBA_SRAM_SIZE) == 0)
         return;
-    snprintf(tmp, sizeof(tmp), "%s.tmp", PortConfigPath(PORT_SAVE_NAME));
+    snprintf(tmp, sizeof(tmp), "%s.tmp", PortConfigPath(BankName(sSramBank)));
     f = fopen(tmp, "wb");
     if (f == NULL)
         return;
     if (fwrite(sram, 1, GBA_SRAM_SIZE, f) == GBA_SRAM_SIZE && fclose(f) == 0) {
-        if (MoveFileExA(tmp, PortConfigPath(PORT_SAVE_NAME), MOVEFILE_REPLACE_EXISTING))
+        if (MoveFileExA(tmp, PortConfigPath(BankName(sSramBank)), MOVEFILE_REPLACE_EXISTING))
             memcpy(sSramShadow, sram, GBA_SRAM_SIZE);
     } else {
         fclose(f);

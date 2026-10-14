@@ -225,7 +225,7 @@ static const Setting kSettings[] = {
     { "window_scale", 4 },   { "fullscreen_width", 1920 }, { "fullscreen_height", 1080 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
-    { "card_hud_raise", 8 }, { "unstock_button", 1 },
+    { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
     { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
@@ -314,9 +314,12 @@ static void SaveLauncherState() {
 
 /* ---- saves -------------------------------------------------------------------- */
 
+/* The selected save bank's file: bank 1 is the version's .sav, bank n
+   <name>_bank<n>.sav (port_memory.c). */
 static fs::path SavePath(int v) {
-    static const char* const names[] = { "kh_com.sav", "kh_com_us.sav", "kh_com_jp.sav" };
-    return sRoot / names[v];
+    static const char* const names[] = { "kh_com", "kh_com_us", "kh_com_jp" };
+    int bank = std::clamp(Ini("save_bank"), 1, 5);
+    return sRoot / (std::string(names[v]) + (bank > 1 ? "_bank" + std::to_string(bank) : "") + ".sav");
 }
 
 /* Copies the version's save to backups/<name>-<date>-<time>.sav. */
@@ -773,6 +776,17 @@ static void PageHome(SDL_Window* window) {
                                 "Italiano", "Espa\xC3\xB1ol" };
         if (CycleRow(T("Idioma del juego", "Game language"), nullptr, sGameLanguage, 6, langs))
             SaveLauncherState();
+    }
+    {
+        static const char* const banks[] = { "1", "2", "3", "4", "5" };
+        int bank = std::clamp(Ini("save_bank"), 1, 5) - 1;
+        if (CycleRow(T("Banco de partidas", "Save bank"),
+                     T("Cinco bancos de las dos ranuras del juego; el 1 es la partida de siempre.",
+                       "Five banks of the game's two slots; bank 1 is the usual save."),
+                     bank, 5, banks)) {
+            Ini("save_bank") = bank + 1;
+            SaveIni();
+        }
     }
     {
         std::error_code ec;

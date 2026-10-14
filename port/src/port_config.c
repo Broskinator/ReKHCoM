@@ -31,6 +31,7 @@ PortConfig gPortConfig = {
     0,                  /* hdText */
     8,                  /* cardHudRaise */
     1,                  /* unstockButton */
+    1,                  /* saveBank */
     {
         { SDLK_X, SDLK_K },             /* A */
         { SDLK_Z, SDLK_J },             /* B */
@@ -95,6 +96,7 @@ static const Key sKeys[] = {
     { "hd_text", &gPortConfig.hdText, 0, 1 },
     { "card_hud_raise", &gPortConfig.cardHudRaise, 0, 16 },
     { "unstock_button", &gPortConfig.unstockButton, 0, 1 },
+    { "save_bank", &gPortConfig.saveBank, 1, PORT_SAVE_BANKS },
 #define BIND(name, act)                                                           { "kb_" name, &gPortConfig.keys[act][0], 0, 0x7FFFFFFF },                     { "kb_" name "_2", &gPortConfig.keys[act][1], 0, 0x7FFFFFFF },                { "pad_" name, &gPortConfig.pad[act], -1, SDL_GAMEPAD_BUTTON_COUNT - 1 }
     BIND("a", PORT_ACT_A), BIND("b", PORT_ACT_B), BIND("l", PORT_ACT_L), BIND("r", PORT_ACT_R),
     BIND("start", PORT_ACT_START), BIND("select", PORT_ACT_SELECT), BIND("up", PORT_ACT_UP),

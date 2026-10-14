@@ -23,6 +23,10 @@ Windows x86 prerelease.
   pushing down the right stick, for half a second puts Sora's stocked cards
   back in the hand, in their places in the deck (idea from ggdrn/KH_COM_VITA).
   Toggle in the in-game options and the launcher; bindable in the launcher.
+- Save banks: five banks of the game's two slots (bank 1 is the usual
+  kh_com.sav, bank n kh_com_bank<n>.sav, per version). Chosen in the in-game
+  options (switches at once, writing the current bank first) or on the
+  launcher's save card, which follows the selected bank.
 - Launcher install tests (`port/tools/test_launcher.py`): the three dumps,
   reinstalling, wrong size, wrong SHA-1, a non-KH file, a missing file and an
   unwritable roms folder; 10/10 pass.

@@ -110,6 +110,7 @@ typedef struct PortConfig {
     int hdText;           /* dialogue text drawn with an outline font at output resolution */
     int cardHudRaise;     /* battle: card hand lifted by this many GBA pixels (0..16) */
     int unstockButton;    /* held button / right stick down returns the stocked cards (Sora) */
+    int saveBank;         /* 1..PORT_SAVE_BANKS: which save file holds the game's two slots */
     int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
     int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
 } PortConfig;
@@ -148,6 +149,11 @@ int PortMemoryInit(void);
 int PortRomLoad(void);
 void PortSramLoad(void);
 void PortSramSyncIfDirty(void);
+/* Save banks: bank 1 is PORT_SAVE_NAME, bank n kh_com[_us|_jp]_bank<n>.sav. */
+#define PORT_SAVE_BANKS 5
+const char* PortSaveName(void);
+/* Writes the current bank, then loads gPortConfig.saveBank. */
+void PortSramSwitchBank(void);
 void PortBiosAreaRefresh(void);
 /* The game's globals: initialised data and zero-initialised data. */
 void PortGameSections(char** data, size_t* dataSize, char** bss, size_t* bssSize);

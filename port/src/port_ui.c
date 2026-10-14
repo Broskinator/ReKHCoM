@@ -40,6 +40,7 @@ enum {
     ITEM_DODGE,
     ITEM_STOCK,
     ITEM_UNSTOCK,
+    ITEM_SAVEBANK,
     ITEM_MUSIC,
     ITEM_SFX,
     ITEM_MASTER,
@@ -71,6 +72,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
     { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
       "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
+    { "Save bank", "Banque de sauvegarde", "Speicherbank", "Banco di salvataggio", "Banco de partidas",
+      "セーブバンク" },
     { "Music volume", "Volume musique", "Musiklautstärke", "Volume musica", "Volumen música", "音楽の音量" },
     { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos", "効果音の音量" },
     { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general", "全体の音量" },
@@ -438,6 +441,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_UNSTOCK:
             SDL_strlcpy(out, sOnOff[gPortConfig.unstockButton != 0][l], size);
             break;
+        case ITEM_SAVEBANK:
+            SDL_snprintf(out, size, "%d / %d", gPortConfig.saveBank, PORT_SAVE_BANKS);
+            break;
         case ITEM_MUSIC:
             SDL_snprintf(out, size, "%d%%", gPortConfig.musicVolume);
             break;
@@ -515,6 +521,10 @@ static void Change(int item, int dir) {
             break;
         case ITEM_UNSTOCK:
             gPortConfig.unstockButton = !gPortConfig.unstockButton;
+            break;
+        case ITEM_SAVEBANK:
+            gPortConfig.saveBank = Wrap(gPortConfig.saveBank - 1 + dir, PORT_SAVE_BANKS) + 1;
+            PortSramSwitchBank();
             break;
         case ITEM_MUSIC:
             gPortConfig.musicVolume = SDL_clamp(gPortConfig.musicVolume + dir * 10, 0, 100);
