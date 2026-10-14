@@ -108,7 +108,12 @@ void ModeStart(Mode* mode, s32 arg) {
     PortMenuHeaderSource(NULL, NULL, NULL);
     PortSideStyle(mode == &gModeAllmap ? PORT_SIDE_PATTERN :
                   (mode == &gModeDeck || mode == &gModeStatus || mode == &gModeMapinspect)
-                      ? PORT_SIDE_MENU : PORT_SIDE_EDGE_FADE); /* no stretched columns anywhere */
+                      ? PORT_SIDE_MENU :
+                  /* live backgrounds: the blurred reflection, with the bars carried on */
+                  (mode == &gModeWORLDSELECT || mode == &gModeWorldwarp) ? PORT_SIDE_BLUR_BANDS
+                  /* the journal: green paper, its title and footer bars carried on */
+                  : mode == &gModeJiminy ? PORT_SIDE_GROUND_BANDS
+                  : PORT_SIDE_EDGE_FADE); /* no stretched columns anywhere */
     PortSceneNarrow(ModeIsFullScreenMenu(mode));
 #endif
     if (mode->init != NULL) {

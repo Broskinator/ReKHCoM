@@ -605,6 +605,62 @@ static void DrawBlurredReflection(const SDL_FRect* src, int outW, int outH) {
     SDL_RenderTexture(sRenderer, sBlurTex, NULL, NULL);
 }
 
+/* Style 8 over the blurred reflection: a row whose sprites reach the edge
+   as one colour for 24 pixels or more, or whose layers do for 80, is a bar
+   (a title, the world warp's player bars) and is drawn on to the window's
+   edge in that colour. */
+static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, int minBlock) {
+    static uint8_t mask[PORT_MAX_W * PORT_MAX_H];
+    extern void PortPpuSpriteMask(uint8_t* out);
+    int side, y;
+    float scale = dst->w / src->w;
+    PortPpuSpriteMask(mask); /* bars are sprites; the scenery's own runs are not bars */
+    for (side = 0; side < 2; side++) {
+        int edge = side ? (int)(src->x + src->w) - 1 : (int)src->x, step = side ? -1 : 1;
+        uint8_t bar[GBA_SCREEN_H];
+        uint32_t color[GBA_SCREEN_H];
+        for (y = 0; y < GBA_SCREEN_H; y++) {
+            const uint32_t* row = &sComposite[((int)src->y + y) * gPortScreen.width];
+            uint32_t c = row[edge];
+            int k, run = 0, sprites = 0;
+            for (k = 0; k < 120 && row[edge + k * step] == c; k++) {
+                run++;
+                sprites += mask[((int)src->y + y) * gPortScreen.width + edge + k * step] != 0;
+            }
+            color[y] = c;
+            /* a sprite bar, or a BG bar far longer than any run of scenery */
+            bar[y] = (sprites >= 24 && sprites == run) || run >= 80;
+        }
+        /* a bar's textured rows (gaps of up to four) belong to it; lone rows are scenery */
+        for (y = 0; y < GBA_SCREEN_H; y++)
+            if (!bar[y]) {
+                int up, dn;
+                for (up = 1; up <= 4 && y - up >= 0 && !bar[y - up]; up++) {}
+                for (dn = 1; dn <= 4 && y + dn < GBA_SCREEN_H && !bar[y + dn]; dn++) {}
+                if (up <= 4 && y - up >= 0 && dn <= 4 && y + dn < GBA_SCREEN_H)
+                    bar[y] = 2;
+            }
+        for (y = 0; y < GBA_SCREEN_H; y++) {
+            int a2 = y, b2 = y;
+            if (!bar[y])
+                continue;
+            while (a2 > 0 && bar[a2 - 1]) a2--;
+            while (b2 < GBA_SCREEN_H - 1 && bar[b2 + 1]) b2++;
+            if (b2 - a2 + 1 >= minBlock) {
+                uint32_t c = color[y];
+                SDL_FRect r;
+                r.x = side ? dst->x + dst->w : 0.0f;
+                r.w = side ? (float)outW - r.x : dst->x;
+                /* whole pixels: fractional rows would leave seams between them */
+                r.y = SDL_floorf(dst->y + y * scale);
+                r.h = SDL_floorf(dst->y + (y + 1) * scale) - r.y;
+                SDL_SetRenderDrawColor(sRenderer, (Uint8)(c >> 16), (Uint8)(c >> 8), (Uint8)c, 255);
+                SDL_RenderFillRect(sRenderer, &r);
+            }
+        }
+    }
+}
+
 static void Present(void) {
     int outW, outH;
     SDL_FRect dst;
@@ -628,12 +684,87 @@ static void Present(void) {
         dst.h = GBA_SCREEN_H * scale;
         dst.x = (float)(int)((outW - dst.w) / 2);
         dst.y = (float)(int)((outH - dst.h) / 2);
-        if ((sSideStyle == 3 || sFitScale > 0) && !PortUiActive())
+        if ((sSideStyle == 3 || sSideStyle == 8 || sFitScale > 0) && !PortUiActive())
             DrawBlurredReflection(&src, outW, outH);
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
         SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
-        if (!PortUiActive() && sSideStyle != 3 && sFitScale <= 0) {
+        if (!PortUiActive() && sSideStyle == 8 && sFitScale <= 0)
+            DrawEdgeBands(&src, &dst, outW, 3);
+        if (!PortUiActive() && sSideStyle == 9 && sFitScale <= 0) {
+            /* style 9: the scene's ground (its commonest colour) and its thick
+               bars (blocks of six rows or more, so a frame's thin border is
+               not one) carried on; nothing mirrored, nothing repeated */
+            static uint32_t colors[64];
+            static int counts[64];
+            int n = 0, best = 0, i, gx, gy2;
+            SDL_FRect left = { 0.0f, dst.y, dst.x, dst.h }, right = { dst.x + dst.w, dst.y, (float)outW - dst.x - dst.w, dst.h };
+            /* the ground: the commonest colour along the picture's two outer edges */
+            for (gy2 = 16; gy2 < GBA_SCREEN_H - 8; gy2++)
+                for (gx = 0; gx < 16; gx++) {
+                    int col = gx < 8 ? gx : GBA_SCREEN_W - 16 + gx;
+                    uint32_t c = sComposite[((int)src.y + gy2) * gPortScreen.width + (int)src.x + col];
+                    for (i = 0; i < n && colors[i] != c; i++) {}
+                    if (i == n) {
+                        if (n == 64) continue;
+                        colors[n] = c;
+                        counts[n++] = 0;
+                    }
+                    if (++counts[i] > counts[best]) best = i;
+                }
+            if (n) {
+                uint32_t g = colors[best];
+                SDL_SetRenderDrawColor(sRenderer, (Uint8)(g >> 16), (Uint8)(g >> 8), (Uint8)g, 255);
+                SDL_RenderFillRect(sRenderer, &left);
+                SDL_RenderFillRect(sRenderer, &right);
+            }
+            DrawEdgeBands(&src, &dst, outW, 6);
+            /* the frame's top and bottom bars run the whole width: where a
+               panel covers one end on the GBA (the journal's notebook over
+               the footer), the bar seen at the other end carries on there */
+            {
+                int yy, k;
+                float sc = dst.w / src.w;
+                for (yy = 0; yy < GBA_SCREEN_H; yy++) {
+                    const uint32_t* row = &sComposite[((int)src.y + yy) * gPortScreen.width + (int)src.x];
+                    uint32_t lc = row[0], rc = row[GBA_SCREEN_W - 1];
+                    int lrun = 0, rrun = 0;
+                    if (yy >= 24 && yy < GBA_SCREEN_H - 24)
+                        continue;
+                    for (k = 0; k < 120 && row[k] == lc; k++) lrun++;
+                    for (k = 0; k < 120 && row[GBA_SCREEN_W - 1 - k] == rc; k++) rrun++;
+                    if (lrun >= 80 && rrun < 80) {
+                        SDL_FRect r = { dst.x + dst.w, SDL_floorf(dst.y + yy * sc), (float)outW - dst.x - dst.w, 0 };
+                        r.h = SDL_floorf(dst.y + (yy + 1) * sc) - r.y;
+                        SDL_SetRenderDrawColor(sRenderer, (Uint8)(lc >> 16), (Uint8)(lc >> 8), (Uint8)lc, 255);
+                        SDL_RenderFillRect(sRenderer, &r);
+                    } else if (rrun >= 80 && lrun < 80) {
+                        SDL_FRect r = { 0, SDL_floorf(dst.y + yy * sc), dst.x, 0 };
+                        r.h = SDL_floorf(dst.y + (yy + 1) * sc) - r.y;
+                        SDL_SetRenderDrawColor(sRenderer, (Uint8)(rc >> 16), (Uint8)(rc >> 8), (Uint8)rc, 255);
+                        SDL_RenderFillRect(sRenderer, &r);
+                    }
+                }
+            }
+            /* the title bar on the left: its own piece of the header asset */
+            {
+                int yy, xx;
+                float sc = dst.w / src.w;
+                for (yy = 0; yy < 16; yy++)
+                    for (xx = 0; xx < (int)SDL_ceilf(dst.x / sc); xx++) {
+                        uint32_t h = PortMenuHeaderPixel(yy, xx);
+                        SDL_FRect r;
+                        if (!h) continue;
+                        r.x = SDL_floorf(dst.x - (xx + 1) * sc);
+                        r.w = SDL_floorf(dst.x - xx * sc) - r.x;
+                        r.y = SDL_floorf(dst.y + yy * sc);
+                        r.h = SDL_floorf(dst.y + (yy + 1) * sc) - r.y;
+                        SDL_SetRenderDrawColor(sRenderer, (Uint8)(h >> 16), (Uint8)(h >> 8), (Uint8)h, 255);
+                        SDL_RenderFillRect(sRenderer, &r);
+                    }
+            }
+        }
+        if (!PortUiActive() && sSideStyle != 3 && sSideStyle != 8 && sSideStyle != 9 && sFitScale <= 0) {
             SideBar((int)src.x, (int)src.y, -1, dst.y, scale, 0.0f, dst.x, (int)src.x);
             SideBar((int)(src.x + src.w) - SIDE_STRIP, (int)src.y, 1, dst.y, scale, dst.x + dst.w, (float)outW,
                     (int)(src.x + src.w) - 1);
