@@ -22,11 +22,11 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 - Último: partida completa / TAS. Después del 100 %, la función experimental
   con las QoL de la versión de PS2 (Re:Chain of Memories) en la de GBA.
 
-## Barras pendientes y dueño (actualizado 14/10, 08:40 — total 98,7 %)
+## Barras pendientes y dueño (actualizado 14/10, 08:40 — total 99,0 %)
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
 |---|---|---|---|---|
-| Gameplay verification | 85 | 10 | Claude (Codex al volver) | Partida completa de Sora y de Reverse/Rebirth (lo último) |
+| Gameplay verification | 88 | 10 | Claude (Codex al volver) | Partida completa de Sora y de Reverse/Rebirth (lo último) |
 
 Cerradas hoy por Claude (con evidencia en port/progress/evidence/):
 - Widescreen: battles 100 % — arenas US/JP 19/19, salida de combate con el
@@ -38,7 +38,8 @@ Cerradas hoy por Claude (con evidencia en port/progress/evidence/):
 
 Ya al 100 %: build, assets, memoria, BIOS, DMA, interrupciones, entrada, m4a,
 PSG, PCM, códec de bloques, películas, SRAM, reset, widescreen renderer,
-widescreen field maps, widescreen battles, estados guardados, launcher, saltar
+widescreen field maps, widescreen battles, widescreen menus & events, estados
+guardados, launcher, saltar
 intro, versiones USA y japonesa, menú de opciones, PPU, texto HD.
 
 ## Acabado panorámico (era de Codex; lo lleva Claude mientras Codex no vuelva)
@@ -78,6 +79,8 @@ intro, versiones USA y japonesa, menú de opciones, PPU, texto HD.
 - [x] Gameplay verification: stutter de la subida de nivel medido con
   KHCOM_FRAMELOG: 16,7 ms estables, sin tirones ni fotogramas de lógica perdidos
   (renderizador por software; los picos vistos antes eran carga de otra prueba).
+- [x] Gameplay verification: salas de Riku (Reverse/Rebirth) 88/88 en EU y de Sora
+  en EU/US/JP 129/131 (las otras dos, un encuentro antes de la captura).
 - [ ] Gameplay verification: partida completa de Sora y de Reverse/Rebirth en
   las tres regiones (rutas reproducibles y problemas anotados).
 - [x] USA/JP: combates JP 209/209 como Sora y como Riku; eventos 192/194 (los dos
