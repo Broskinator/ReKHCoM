@@ -126,6 +126,8 @@ void PortRecomLoaded(int file) {
     int v;
     Load();
     v = sTable[Key(file)];
+    PortLog("recom: loaded file %d (bank %d): %s", file, gPortConfig.saveBank,
+            !(v & 1) ? "not recorded, settings kept" : (v & 2) ? "Re:CoM" : "original");
     if (!(v & 1)) {
         sActive = 0;
         return;

@@ -1098,29 +1098,15 @@ static void PageExtras() {
                          Ini("smooth_audio"));
     ImGui::Separator();
     changed |= ToggleRow(T("Modo Re:CoM", "Re:CoM mode"),
-                         T("Funciones de Kingdom Hearts Re:Chain of Memories (PS2). Apagado, el juego queda "
-                           "exactamente como el cartucho original.",
-                           "Features from Kingdom Hearts Re:Chain of Memories (PS2). Off, the game stays exactly "
-                           "as the original cartridge."),
+                         T("Al empezar una partida nueva puedes elegir la versiÃ³n: la original de GBA o la Re:CoM, "
+                           "con mejoras de Kingdom Hearts Re:Chain of Memories (PS2) como niveles de dificultad y "
+                           "diÃ¡logos rÃ¡pidos. Cada partida recuerda la suya. Apagado, todo queda como el "
+                           "cartucho original.",
+                           "When starting a new game you can choose the version: the original GBA one or Re:CoM, with "
+                           "improvements from Kingdom Hearts Re:Chain of Memories (PS2) such as difficulty levels and "
+                           "faster dialogue. Each game remembers its own. Off, everything stays as the original "
+                           "cartridge."),
                          Ini("ps2_mode"));
-    if (Ini("ps2_mode")) {
-    Eyebrow(T("DE KINGDOM HEARTS RE:CHAIN OF MEMORIES (PS2)", "FROM KINGDOM HEARTS RE:CHAIN OF MEMORIES (PS2)"));
-    {
-        static const char* const es[] = { "Estándar", "Principiante", "Orgulloso" };
-        static const char* const en[] = { "Standard", "Beginner", "Proud" };
-        changed |= CycleRow(T("Dificultad", "Difficulty"),
-                            T("Como en Re:CoM. Principiante: Sora recibe la mitad del daño y causa un 25 % más. "
-                              "Orgulloso: recibe un 50 % más y causa un 20 % menos.",
-                              "As in Re:CoM. Beginner: Sora takes half damage and deals 25% more. Proud: he takes "
-                              "50% more and deals 20% less."),
-                            Ini("ps2_difficulty"), 3, sSpanish ? es : en);
-    }
-    ImGui::Separator();
-    changed |= ToggleRow(T("Diálogos rápidos", "Fast dialogue"),
-                         T("El texto de las escenas aparece una letra por fotograma, sin la pausa entre letras.",
-                           "Scene text appears one letter a frame, without the pause between letters."),
-                         Ini("ps2_fast_text"));
-    }
     ImGui::EndChild();
     if (changed)
         SaveIni();

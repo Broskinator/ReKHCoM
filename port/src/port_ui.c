@@ -67,6 +67,9 @@ enum {
 enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME };
 static int sPage;
 static int sNgRecom; /* new game page: the Re:CoM version chosen */
+enum { WIZ_VERSION, WIZ_DIFFICULTY, WIZ_OPTIONS };
+static int sWizStep, sWizCursor; /* the new game window's step and row */
+static void WizKey(int key);
 static int PageFirst(void) {
     return sPage == PAGE_PS2 ? ITEM_PS2_DIFFICULTY : sPage == PAGE_NEWGAME ? ITEM_NG_VERSION : 0;
 }
@@ -790,7 +793,7 @@ void PortUiOpenOptions(void) {
 void PortUiOpenNewGame(void) {
     /* unattended runs (KHCOM_FAST batteries, the bot, replays) start as the
        original unless a test drives this page */
-    if ((SDL_getenv("KHCOM_FAST") || SDL_getenv("KHCOM_BOT")) && !SDL_getenv("KHCOM_OPTIONS_ACTIONS")) {
+    if ((SDL_getenv("KHCOM_FAST") || SDL_getenv("KHCOM_BOT")) && !SDL_getenv("KHCOM_OPTIONS_ACTIONS") && !SDL_getenv("KHCOM_WIZARD_KEYS")) {
         PortRecomSetActive(0);
         return;
     }
@@ -799,8 +802,8 @@ void PortUiOpenNewGame(void) {
     sNgRecom = 0;
     gPortConfig.hdText = 0;
     PortSetQolButtons(0);
-    sCursor = ItemVisible(ITEM_NG_VERSION) ? ITEM_NG_VERSION : ITEM_NG_HDTEXT;
-    sScroll = ITEM_NG_VERSION;
+    sWizStep = gPortConfig.ps2Mode ? WIZ_VERSION : WIZ_OPTIONS;
+    sWizCursor = 0;
     PortVideoApplyConfig();
 }
 
@@ -912,6 +915,29 @@ int PortUiHandleEvent(const void* p) {
         return 0;
     }
 
+    if (sPage == PAGE_NEWGAME && (ev->type == SDL_EVENT_KEY_DOWN || ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)) {
+        int key = -1;
+        if (ev->type == SDL_EVENT_KEY_DOWN) {
+            switch (ev->key.key) {
+                case SDLK_UP: case SDLK_W: key = 0; break;
+                case SDLK_DOWN: case SDLK_S: key = 1; break;
+                case SDLK_LEFT: case SDLK_RIGHT: case SDLK_A: case SDLK_D: key = 2; break;
+                case SDLK_RETURN: case SDLK_SPACE: case SDLK_X: case SDLK_K: key = 3; break;
+                case SDLK_ESCAPE: case SDLK_BACKSPACE: case SDLK_Z: case SDLK_J: key = ev->key.repeat ? -1 : 4; break;
+            }
+        } else {
+            switch (ev->gbutton.button) {
+                case SDL_GAMEPAD_BUTTON_DPAD_UP: key = 0; break;
+                case SDL_GAMEPAD_BUTTON_DPAD_DOWN: key = 1; break;
+                case SDL_GAMEPAD_BUTTON_DPAD_LEFT: case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: key = 2; break;
+                case SDL_GAMEPAD_BUTTON_SOUTH: case SDL_GAMEPAD_BUTTON_START: key = 3; break;
+                case SDL_GAMEPAD_BUTTON_EAST: key = 4; break;
+            }
+        }
+        if (key >= 0)
+            WizKey(key);
+        return 1;
+    }
     if (ev->type == SDL_EVENT_KEY_DOWN) {
         switch (ev->key.key) {
             case SDLK_UP:
@@ -1159,9 +1185,175 @@ static void ShortValue(int item, char* out, size_t size) {
         *paren = 0;
 }
 
+/* ---- the new game window: a few steps, as modern games ask on first start - */
+
+static const char* const sWizAsk[3][LANG_COUNT] = {
+    { "Which version do you want to play?", "Quelle version veux-tu jouer ?", "Welche Version möchtest du spielen?",
+      "Quale versione vuoi giocare?", "¿Qué versión quieres jugar?", "どのバージョンで遊びますか？" },
+    { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
+    { "Before you start", "Avant de commencer", "Bevor es losgeht", "Prima di iniziare", "Antes de empezar",
+      "はじめる前に" },
+};
+static const char* const sWizConfirm[LANG_COUNT] = { "Confirm", "Confirmer", "Bestätigen", "Conferma", "Confirmar",
+    "決定" };
+static const char* const sWizHelp[LANG_COUNT] = {
+    "\xE2\x86\x91\xE2\x86\x93 Select   A OK   B Back",
+    "\xE2\x86\x91\xE2\x86\x93 Choisir   A OK   B Retour",
+    "\xE2\x86\x91\xE2\x86\x93 Wählen   A OK   B Zurück",
+    "\xE2\x86\x91\xE2\x86\x93 Scegli   A OK   B Indietro",
+    "\xE2\x86\x91\xE2\x86\x93 Elegir   A Aceptar   B Atrás",
+    "\xE2\x86\x91\xE2\x86\x93 選択   A 決定   B 戻る",
+};
+
+static int WizRows(void) {
+    return sWizStep == WIZ_VERSION ? 2 : sWizStep == WIZ_DIFFICULTY ? 3 : 3;
+}
+
+static void WizFinish(void) {
+    PortRecomSetActive(sNgRecom);
+    Close();
+}
+
+/* key: 0 up, 1 down, 2 left/right (toggle), 3 A, 4 B */
+static void WizKey(int key) {
+    int rows = WizRows();
+    switch (key) {
+        case 0: sWizCursor = (sWizCursor + rows - 1) % rows; return;
+        case 1: sWizCursor = (sWizCursor + 1) % rows; return;
+        case 4:
+            if (sWizStep == WIZ_OPTIONS) {
+                sWizStep = sNgRecom ? WIZ_DIFFICULTY : WIZ_VERSION;
+                sWizCursor = sNgRecom ? (gPortConfig.ps2Difficulty == 1 ? 0 : gPortConfig.ps2Difficulty == 0 ? 1 : 2) : 0;
+                if (!gPortConfig.ps2Mode) sWizStep = WIZ_OPTIONS; /* nothing before it */
+            } else if (sWizStep == WIZ_DIFFICULTY) {
+                sWizStep = WIZ_VERSION;
+                sWizCursor = 1;
+            }
+            return;
+        default:
+            break;
+    }
+    if (sWizStep == WIZ_VERSION && key == 3) {
+        /* each version comes with its presets: the original as on the
+           cartridge, Re:CoM with HD text and the one-button controls */
+        sNgRecom = sWizCursor == 1;
+        gPortConfig.hdText = sNgRecom;
+        PortSetQolButtons(sNgRecom);
+        PortVideoApplyConfig();
+        sWizStep = sNgRecom ? WIZ_DIFFICULTY : WIZ_OPTIONS;
+        sWizCursor = sNgRecom ? 1 : 0; /* Standard first */
+    } else if (sWizStep == WIZ_DIFFICULTY && key == 3) {
+        static const int pick[3] = { 1, 0, 2 }; /* rows: Beginner, Standard, Proud */
+        gPortConfig.ps2Difficulty = pick[sWizCursor];
+        sWizStep = WIZ_OPTIONS;
+        sWizCursor = 0;
+    } else if (sWizStep == WIZ_OPTIONS) {
+        if (sWizCursor == 0 && (key == 2 || key == 3)) {
+            gPortConfig.hdText = !gPortConfig.hdText;
+            PortVideoApplyConfig();
+        } else if (sWizCursor == 1 && (key == 2 || key == 3)) {
+            PortSetQolButtons(!PortQolButtons());
+        } else if (sWizCursor == 2 && key == 3) {
+            WizFinish();
+        }
+    }
+}
+
+/* Text wrapped to maxW; returns the lines drawn (draw = 0: only measures). */
+static int DrawWrapped(const char* text, int x, int y, int maxW, uint32_t color, int draw) {
+    char line[200];
+    const char* p = text;
+    int lines = 0;
+    while (*p) {
+        const char* best = NULL;
+        const char* q = p;
+        int n;
+        while (1) {
+            const char* e = q;
+            while (*e && *e != ' ') e++;
+            n = (int)(e - p);
+            if (n >= (int)sizeof(line)) break;
+            SDL_memcpy(line, p, (size_t)n);
+            line[n] = 0;
+            if (TextWidth(line) > maxW && best != NULL) break;
+            best = e;
+            if (!*e) break;
+            q = e + 1;
+        }
+        if (best == NULL) best = p + SDL_strlen(p);
+        n = SDL_min((int)(best - p), (int)sizeof(line) - 1);
+        SDL_memcpy(line, p, (size_t)n);
+        line[n] = 0;
+        if (draw) DrawText(line, x, y + lines * 11, color, 0xFFD8D8D8u);
+        lines++;
+        p = *best ? best + 1 : best;
+    }
+    return lines;
+}
+
+static void DrawWizard(int l, int width, int height) {
+    const char* labels[3];
+    const char* subs[3];
+    const char* values[3] = { NULL, NULL, NULL };
+    int rows = WizRows(), i, panelW = SDL_min(width - 24, 250), x0, y0, h, y, textW;
+    static const int order[3] = { 1, 0, 2 };
+
+    if (sWizStep == WIZ_VERSION) {
+        labels[0] = sVersions[0][l]; subs[0] = sNgDescOriginal[l];
+        labels[1] = sVersions[1][l]; subs[1] = sNgDescRecom[l];
+    } else if (sWizStep == WIZ_DIFFICULTY) {
+        for (i = 0; i < 3; i++) {
+            labels[i] = sDifficulty[order[i]][l];
+            subs[i] = sNgDescDifficulty[order[i]][l];
+        }
+    } else {
+        labels[0] = sLabels[ITEM_NG_HDTEXT][l]; subs[0] = sNgDescHd[l];
+        values[0] = sOnOff[gPortConfig.hdText != 0][l];
+        labels[1] = sLabels[ITEM_NG_QOL][l]; subs[1] = sNgDescQol[l];
+        values[1] = sOnOff[PortQolButtons() != 0][l];
+        labels[2] = sWizConfirm[l]; subs[2] = sNgDescStart[l];
+    }
+    textW = panelW - 30;
+    /* measure, then a white window in the middle of a darkened screen */
+    h = 22;
+    for (i = 0; i < rows; i++)
+        h += 14 + DrawWrapped(subs[i], 0, 0, textW, 0, 0) * 11 + 4;
+    h += 14;
+    x0 = (width - panelW) / 2;
+    y0 = SDL_max(2, (height - h) / 2);
+    Fill(0, 0, width, height, 0xFF000000u);
+    Fill(x0 - 2, y0 - 2, panelW + 4, h + 4, MENU_GREY);
+    Fill(x0, y0, panelW, h, 0xFFFFFFFFu);
+    DrawText(sWizAsk[sWizStep][l], x0 + 8, y0 + 4, MENU_RED_DARK, 0xFFD8D8D8u);
+    Fill(x0 + 8, y0 + 17, panelW - 16, 1, MENU_GREY);
+    y = y0 + 22;
+    for (i = 0; i < rows; i++) {
+        int sel = i == sWizCursor;
+        MenuBar(x0 + 8, y + 2, panelW - 16, sel);
+        DrawText(labels[i], x0 + 24, y, MENU_INK, 0xFFD8D8D8u);
+        if (values[i]) {
+            int vx = x0 + panelW - 12 - TextWidth(values[i]);
+            if (sel) {
+                vx -= 8;
+                DrawText("\xE2\x86\x90", vx - 10, y, MENU_RED_DARK, 0xFFD8D8D8u);
+                DrawText("\xE2\x86\x92", vx + TextWidth(values[i]) + 2, y, MENU_RED_DARK, 0xFFD8D8D8u);
+            }
+            DrawText(values[i], vx, y, MENU_INK, 0xFFD8D8D8u);
+        }
+        y += 14;
+        y += DrawWrapped(subs[i], x0 + 24, y, textW, sel ? MENU_INK : MENU_DIM, 1) * 11 + 4;
+    }
+    DrawText(sWizHelp[l], x0 + 8, y0 + h - 12, MENU_DIM, 0xFFFFFFFFu);
+}
+
 static void DrawMenu(int l, int width, int height) {
     int rows, i, x, y, labelW = 0, valueW = 0, barX = 10, barW, top = MENU_TOP, artX, artY;
     char value[64];
+
+    if (sPage == PAGE_NEWGAME) {
+        DrawWizard(l, width, height);
+        return;
+    }
 
     if (!sMenuArtReady)
         DecodeMenuArt();
@@ -1226,43 +1418,6 @@ static void DrawMenu(int l, int width, int height) {
     }
     if (sScroll + rows < PageEnd())
         DrawText("\xE2\x86\x93", barX + barW - 8, top + rows * 16 - 2, MENU_INK, 0xFFD8D8D8u);
-    if (sPage == PAGE_NEWGAME) {
-        /* the selected row explained, wrapped over the lines above the help */
-        const char* text = NewGameDescription(sCursor, l);
-        char line[160];
-        int lines = 0, maxW = barW, yy;
-        const char* p = text;
-        const char* starts[4];
-        int lens[4];
-        while (*p && lines < 4) {
-            const char* best = NULL;
-            const char* q = p;
-            while (*q) {
-                const char* e = q;
-                int n;
-                while (*e && *e != ' ') e++;
-                n = (int)(e - p);
-                if (n >= (int)sizeof(line)) break;
-                SDL_memcpy(line, p, (size_t)n);
-                line[n] = 0;
-                if (TextWidth(line) > maxW && best != NULL) break;
-                best = e;
-                if (!*e) break;
-                q = e + 1;
-            }
-            if (best == NULL) best = p + SDL_strlen(p);
-            starts[lines] = p;
-            lens[lines] = (int)(best - p);
-            lines++;
-            p = *best ? best + 1 : best;
-        }
-        for (i = 0, yy = height - 15 - lines * 12; i < lines; i++, yy += 12) {
-            int n = SDL_min(lens[i], (int)sizeof(line) - 1);
-            SDL_memcpy(line, starts[i], (size_t)n);
-            line[n] = 0;
-            DrawText(line, barX, yy, MENU_INK, 0xFFD8D8D8u);
-        }
-    }
     DrawText(sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
 }
 
@@ -1292,6 +1447,22 @@ static void HarnessFadeShot(int width, int height) {
 static int HarnessOptionsAction(void) {
     const char* route = SDL_getenv("KHCOM_OPTIONS_ACTIONS");
     int changed = 0;
+    if (sPage == PAGE_NEWGAME && SDL_getenv("KHCOM_WIZARD_KEYS")) {
+        const char* w = SDL_getenv("KHCOM_WIZARD_KEYS");
+        sHarnessTick++;
+        while (w && *w) {
+            const char* comma = SDL_strchr(w, ',');
+            const char* colon = SDL_strchr(w, ':');
+            if (colon && (!comma || colon < comma) && SDL_atoi(w) == sHarnessTick) {
+                PortLog("wizard-test: tick=%d step=%d cursor=%d key=%d", sHarnessTick, sWizStep, sWizCursor,
+                        SDL_atoi(colon + 1));
+                WizKey(SDL_atoi(colon + 1));
+                changed = 1;
+            }
+            w = comma ? comma + 1 : NULL;
+        }
+        return changed;
+    }
     if (!route)
         return 0;
     sHarnessTick++;
