@@ -1,106 +1,114 @@
-# Reparto de pendientes — 13 de octubre de 2026
+# Reparto de pendientes — reordenado el 14 de octubre de 2026
 
-Responsabilidades propuestas por el usuario para trabajar sin solaparse.
-Esta lista no implica que se haya enviado una tarea a Claude.
-Todos los puntos siguientes están pendientes salvo indicación explícita.
+Responsabilidades acordadas con el usuario para trabajar sin solaparse,
+ordenadas por las barras de `status.json` que faltan para el 100 %.
+`[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pendiente.
 
-## Codex: bugs prioritarios y acabado visual solicitado
+## Barras pendientes y dueño
+
+| Barra | % | Peso | Dueño | Qué falta para el 100 % |
+|---|---|---|---|---|
+| Gameplay verification | 66 | 10 | Claude | Recorrido de todas las salas, estrés de submenús, partida completa Sora y Reverse/Rebirth |
+| Widescreen: field maps | 85 | 8 | Codex | Salas con huecos o bordes de abismo; revisión por mundo |
+| HD text | 88 | 3 | Claude | Inventario de números/textos en pixel art, oclusión general |
+| USA and Japanese versions | 88 | 6 | Claude | Combates JP (Sora/Riku) y capturas regionales de lo panorámico |
+| Widescreen: battles | 93 | 6 | Codex | Cinta continua de arenas y bordes de abismo |
+| Widescreen: menus & events | 93 | 4 | Codex | Salida de submenús, footer, subida de nivel (paneles y popeo) |
+| Graphics options menu | 95 | 5 | Claude | Prueba de cada opción en vivo y en los tres idiomas de cartucho |
+| PPU renderer | 97 | 10 | Claude (cierre) + Codex (presentación) | Regresión de conformidad; los cambios de composición se coordinan |
+
+Ya al 100 %: build, assets, memoria, BIOS, DMA, interrupciones, entrada, m4a,
+PSG, PCM, códec de bloques, películas, SRAM, reset, widescreen renderer,
+estados guardados, launcher, saltar intro.
+
+## Codex: acabado panorámico (field, battles, menus & events)
 
 - [x] Cristal del castillo: desaparece tras abrir/cerrar repetidamente su menú.
-  Reproducir en vista panorámica y 16:9, corregir el ciclo de vida de sus tareas
-  y recursos, y verificar varias interacciones. Estado 4 desaparecido;
-  estado 8 actual frente al cristal, antes de desaparecer.
   Corregida la sustitución de tareas retenidas en salas fijas. Doce ciclos del
   menú conservan una sola tarea y el cristal visible; añadir uso real de A/B
   a la batería ampliada de navegación.
 - [x] Cian en selección de carta de puerta (estado 7) y animación posterior
-  de apertura (estado 9, pulsar A). Corregir ambos y sus transiciones.
-  Reproducido el padding cian después de A en la build de referencia. El
-  spotlight ahora delimita su canvas y conserva márgenes negros; fixtures de
-  spotlight/selección pasan la comprobación de ausencia de cian en márgenes.
+  de apertura (estado 9). El spotlight delimita su canvas y conserva márgenes
+  negros; fixtures de spotlight/selección pasan sin cian en márgenes.
+- [x] Entrada a combate: fondo difuminado como en las películas, animación
+  central en su proporción. Revisado en EU/US/JP (test_levelup.py --entry).
 - [~] Headers de Ver barajas, Añadir/Quitar, Naipes mapa, Estado/magias,
-  Mapamundi, Naipes mundo y Diario: dibujar sus extensiones desde los
-  elementos de fondo/arte originales. No tomar columnas de la imagen final,
-  que contiene el guante, letras e iconos. Verificar cursor arriba y abajo.
-  Implementado muestreo de una pieza limpia del asset original, independiente
-  de la posición animada. Estado y barajas capturados; completar recorrido visual.
-- [~] Tabs del ojo a izquierda y derecha: extender relleno y contorno propios,
-  conservar el ojo y eliminar los rastros blancos del guante.
-  Ahora se dibujan desde el tilemap/fotograma del tab; eliminada la selección
-  de colores de la imagen final. Completar captura de cada pestaña y transición.
-- [ ] Sustituir el estirado de píxeles donde sea viable por patrones o piezas
-  de fondo. Conservar el patrón inferior de barajas y el de Mapamundi,
-  que el usuario aprobó. Revisar el píxel residual del margen derecho.
-- [ ] Entradas/salidas de submenús: headers sin ecos ni distorsión durante
-  el movimiento. Mapamundi: footer completo desde el inicio y al volver.
-  Extensión animada de barras de Mapamundi implementada desde sus assets OBJ
-  originales y su posición Y, sin copiar el framebuffer. EU: entrada/salida
-  capturada y revisada en build/priority-regressions/20261013_232146_939954/allmap;
-  el footer llega al borde derecho durante el movimiento. Compila EU/US/JP.
-  Estado visitado en savestates. Otros submenús y ejecución regional pendientes.
-- [~] Naipes mundo: extensión del fondo mediante un fundido de pixel art
-  escalonado/tramado basado en la paleta original, sin estirar la ilustración.
-  Implementado y revisado en EU: build/priority-regressions/20261013_231639_172982/world.
-  El tramado termina en el color del fondo y respeta header/footer/barra del nombre.
-  Compila US/JP; captura con partidas de esas regiones aún pendiente.
-- [x] Entrada a combate: fondo difuminado como en las películas para llenar
-  la ventana, manteniendo la animación central en su proporción.
-  Implementado y revisado en EU: build/battle-entry-check/20261013_230710.
-  El canvas central se recorta a 240x160 y los laterales usan el blur de películas.
-  Añadida captura reproducible: test_levelup.py --entry. EU/US/JP compilan y
-  completan las capturas; revisada la animación con blur en las tres regiones.
-- [ ] Subida de nivel: conectar header/footer; eliminar sprite/fondo que
-  aparece antes/después y al seleccionar un stat. Estado 3 antes de ganar EXP.
-  La antigua ranura 8 de subida de nivel fue reemplazada por el cristal;
-  reproducir desde 3 y guardar una copia aislada del punto de subida de nivel.
-  Franjas unidas en capturas EU antes/después de elegir VT mediante tiles del
-  fondo de stats; corregida la fixture debug (stats máximos dejaban cero opciones).
-  Ranura 3 de referencia reproducida hasta matar al enemigo y abrir el menú.
-  Pendiente: prolongar relleno/sombra/contorno de paneles derechos hasta el borde,
-  y verificar el popeo en una entrada natural con la build modificada.
-  Capturas: build/levelup-check/20261013_230113 y build/levelup-reference/20261013_230037.
-- [ ] Medir el stutter al permanecer en subida de nivel y corregirlo si se
-  reproduce. Usar tiempos de fotograma y lógica, con pacing normal.
-- [ ] Evaluar continuidad de arenas como una cinta circular de tiles: clasificar
-  fondos repetibles y fondos con elementos únicos, probar uniones y cámara;
-  no duplicar jefes, sprites ni cambiar límites de colisión. Después del bloque crítico.
-- [ ] Ampliar la prueba de crashes al alternar submenús/edición, y comprobar
+  Mapamundi, Naipes mundo y Diario desde los elementos originales, sin tomar
+  columnas de la imagen final. Muestreo de una pieza limpia del asset original;
+  Estado y barajas capturados; completar recorrido visual y cursor arriba/abajo.
+- [~] Tabs del ojo a izquierda y derecha: relleno y contorno propios desde el
+  tilemap/fotograma del tab. Completar captura de cada pestaña y transición.
+- [~] Naipes mundo: fundido de pixel art tramado desde la paleta original.
+  Revisado en EU (build/priority-regressions/20261013_231639_172982/world);
+  capturas con partidas US/JP pendientes.
+- [ ] Entradas/salidas de submenús sin ecos ni distorsión; Mapamundi con footer
+  completo desde el inicio y al volver. Barras animadas de Mapamundi desde sus
+  assets OBJ, revisadas en EU (build/priority-regressions/20261013_232146_939954/allmap).
+  Otros submenús y ejecución regional pendientes.
+- [ ] Subida de nivel: prolongar relleno/sombra/contorno de los paneles derechos
+  hasta el borde y verificar el popeo en una entrada natural. Franjas unidas en
+  EU (build/levelup-check/20261013_230113, build/levelup-reference/20261013_230037).
+- [ ] Sustituir el estirado de píxeles por patrones o piezas de fondo donde sea
+  viable; conservar los patrones aprobados de barajas y Mapamundi; revisar el
+  píxel residual del margen derecho.
+- [ ] Arenas como cinta circular de tiles: clasificar fondos repetibles y con
+  elementos únicos; no duplicar jefes ni sprites ni cambiar colisiones.
+- [ ] Widescreen field: recorrer por mundo las salas con huecos o abismo usando
+  la batería de salas de Claude (abajo) y corregir lo que aparezca.
+- [ ] Al cerrar cada barra: actualizar evidencia y porcentaje en status.json.
+
+## Claude: verificación, regiones, texto HD, opciones y cierre del PPU
+
+- [ ] Gameplay verification: batería de todas las salas de cada mundo y planta
+  con el modo MAP del menú de depuración (mode_mapchk), sin crashes y con
+  capturas para la revisión panorámica de Codex.
+- [ ] Gameplay verification: ampliar la prueba de crashes al alternar
+  submenús/edición (Estado, Diario, Naipes mapa, Añadir/Quitar) y comprobar
   que los avisos de tutorial quedan delante del texto de las cartas.
-- [ ] Revisar después qué entradas de PENDIENTES.md quedan resueltas por
-  estas correcciones; actualizar evidencia y porcentajes y hacer push.
-
-## Para Claude: resto del proyecto, fuera de este bloque
-
-- [ ] HD text restante: inventario de números y textos aún en pixel art,
-  reemplazo opcional de los que son texto y cobertura de idiomas EU/US/JP.
-  Coordinar antes de modificar prioridades/oclusión del compositor.
-- [ ] Validación de juego completo de Sora y Reverse/Rebirth en las tres
-  regiones; las baterías de eventos/combates son pruebas limitadas,
-  no sustituyen una partida completa. Anotar problemas y rutas reproducibles.
-- [ ] Preservación: reproducir y completar los casos de BUGS_GBA.md en EU/US/JP;
-  distinguir técnicas originales, anomalías del código y defectos del port.
-  Coordinar cualquier cambio de gameplay antes de implementarlo.
-- [ ] Audio: comparación con referencias de hardware/emulador de PSG,
-  mezcla, FIFO, música y efectos; documentar diferencias medibles.
-- [x] Launcher e instalación: cerrar pruebas de importación de las tres ROM,
-  opciones, controles, idiomas, instalación limpia y recuperación de errores.
-  Cerrado por Claude: batería de instalación 11/11; ver status.json.
-- [ ] QoL pendientes previamente propuestos: devolver cartas acumuladas,
-  aviso de puntos moguri, bancos de partidas, revancha y repetir tutoriales.
-  Revisar alcance y dependencias antes de implementar extras.
-- [ ] Publicación: preparar paquete/instalador, documentación y v0.5 cuando
-  ambas líneas de trabajo estén verificadas. Coordinar la release final.
+  (Pasada de Codex a Claude el 14/10 para acelerar.)
+- [ ] Gameplay verification: medir el stutter al permanecer en la subida de
+  nivel con tiempos de fotograma y lógica, a ritmo normal; corregir si existe.
+  (Pasada de Codex a Claude el 14/10.)
+- [ ] Gameplay verification: partida completa de Sora y de Reverse/Rebirth en
+  las tres regiones (rutas reproducibles y problemas anotados).
+- [ ] USA/JP: batería de combates JP como Sora y como Riku (la de eventos JP ya
+  pasó 192/194; los dos restantes se cortaron al parar, no fallaron).
+- [ ] USA/JP: capturas regionales de los acabados panorámicos que Codex marque
+  como revisados solo en EU.
+- [ ] HD text: inventario de números y textos aún en pixel art, reemplazo
+  opcional de los que son texto; regresión general de oclusión. Coordinar con
+  Codex antes de tocar prioridades/oclusión del compositor.
+- [ ] Graphics options menu: prueba automática de cada opción en vivo y del
+  menú en EU (cinco idiomas), US y JP.
+- [ ] PPU: regresión de conformidad (capturas de referencia por modo y efecto)
+  para cerrar la barra; cambios de composición coordinados con Codex.
+- [ ] Preservación: reproducir los casos de BUGS_GBA.md en EU/US/JP y separar
+  técnicas originales, anomalías del código y defectos del port.
+- [x] Launcher e instalación: batería 11/11.
+- [x] Audio: comparación con emulador (música, vídeos), batería de las 637
+  canciones (port/progress/songs_report.txt), detalles del PSG, audio suave.
+- [x] Estados guardados deterministas (3/3).
+- [x] Releases v0.5, v0.6 y v0.7 (pre-releases públicas).
+- [~] QoL: devolver cartas acumuladas y bancos de partidas hechos; aviso de
+  puntos moguri, revancha de jefes y repetir tutoriales pendientes (no suman
+  barras; después de las barras).
+- [~] HD-2D experimental (versión alternativa): profundidad de campo, bloom y
+  gradación publicados; el pop-up de diorama está en un stash (bded017)
+  y vuelve después de las barras.
 
 ## Reglas compartidas
 
-- No modificar simultáneamente los mismos archivos; Codex trabaja principalmente
-  en map/map_tasks/map_cell, card_level_up, perfiles de menú, PPU y presentación.
-- No sobreescribir ejecutables o estados que el usuario esté usando. Se preservó
-  la build compatible con sus estados recientes en build/priority-reference.
-- Las ranuras 3/4/7/8/9 recientes están en build/pcwork/states, no build/pc/states.
-  Todas cargaron correctamente con la copia de referencia.
-- Probar en directorios aislados. No modificar partidas/configuración del usuario.
+- No modificar a la vez los mismos archivos; Codex trabaja principalmente en
+  map/map_tasks/map_cell, card_level_up, perfiles de menú, PPU y presentación.
+  Claude trabaja en harness y pruebas, opciones, launcher, audio y texto HD.
+- Cada uno hace commit solo de sus propios cambios (por bloques si un archivo es
+  compartido) y no toca el trabajo sin commitear del otro.
+- No sobreescribir ejecutables o estados que el usuario esté usando. La build
+  compatible con sus estados está en build/priority-reference; las ranuras
+  3/4/7/8/9 recientes en build/pcwork/states.
+- Probar en directorios aislados y con pocos procesos mientras el usuario juega.
+  No modificar partidas/configuración del usuario.
 - No subir ROM ni recursos extraídos al repositorio.
-- Subir porcentajes sólo con evidencia y distinguir implementado de verificado.
+- Subir porcentajes solo con evidencia y distinguir implementado de verificado.
 - Usar emuladores únicamente para contrastar bugs o comportamientos dudosos del
   original. Validar acabados visuales y transiciones directamente en el port.
