@@ -3951,6 +3951,9 @@ void NewGameSlotMenuExit(NewGameSlotMenuWork* work) {
     }
 
     if (work->confirmed) {
+#ifdef PLATFORM_PC
+        PortUiOpenNewGame(); /* how to start: version, difficulty, HD text, QoL */
+#endif
         if (work->isRiku != 0) {
             SetupRikuNewGame();
             RequestEventMode(EVENT_149_RIKU_B12F_OPNING);

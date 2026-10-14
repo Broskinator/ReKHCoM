@@ -13,6 +13,17 @@
 #include "gba/macro.h"
 #include "malloc.h"
 #include "save_types.h"
+#ifdef PLATFORM_PC
+/* port_ps2qol.c: how each file's game was started, kept beside the saves.
+   Files: Sora's 0-1, Riku's 2-3, the quick save -1. */
+void PortRecomSaved(int file);
+void PortRecomLoaded(int file);
+#define PORT_RECOM_SAVED(f) PortRecomSaved(f)
+#define PORT_RECOM_LOADED(f) PortRecomLoaded(f)
+#else
+#define PORT_RECOM_SAVED(f) ((void)0)
+#define PORT_RECOM_LOADED(f) ((void)0)
+#endif
 #include "system_state.h"
 #include "types.h"
 #include "save_data.h"
@@ -304,6 +315,7 @@ int SaveLoadSystem() {
 
         if (ret == SAVE_OK) {
             ApplySaveSystem(&((SaveBlockLarge*)buf)->data);
+            PORT_RECOM_LOADED(-1);
             break;
         }
     }
@@ -328,6 +340,7 @@ void SaveWriteSystem() {
     }
 
     EwramFree(blk);
+    PORT_RECOM_SAVED(-1);
 }
 
 void SaveSetSystemState(s16 slot, s16 state) {
@@ -453,6 +466,7 @@ int SaveLoadFileLarge(u16 file) {
 
         if (ret == SAVE_OK) {
             ApplySaveFileLarge(&((SaveBlockLarge*)buf)->data);
+            PORT_RECOM_LOADED(file);
             break;
         }
     }
@@ -482,6 +496,7 @@ void SaveWriteFileLarge(u16 file) {
 
     EwramFree(blk);
     SaveWriteHeader(file);
+    PORT_RECOM_SAVED(file);
 }
 
 void SaveSetFileLargeState(s16 file, s16 slot, s16 state) {
@@ -607,6 +622,7 @@ int SaveLoadFileSmall(u16 file) {
 
         if (ret == SAVE_OK) {
             ApplySaveFileSmall(&((SaveBlockSmall*)buf)->data);
+            PORT_RECOM_LOADED(file + 2);
             break;
         }
     }
@@ -638,6 +654,7 @@ void SaveWriteFileSmall(u16 file) {
 
     EwramFree(blk);
     SaveWriteHeader(fileIndex + 2);
+    PORT_RECOM_SAVED(fileIndex + 2);
 }
 
 void SaveSetFileSmallState(s16 file, s16 slot, s16 state) {

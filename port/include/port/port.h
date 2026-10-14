@@ -167,6 +167,11 @@ void PortGameSections(char** data, size_t* dataSize, char** bss, size_t* bssSize
 
 void PortFrame(void);
 void PortVideoApplyConfig(void);
+/* port_ps2qol.c: the optional Re:Chain of Memories version of a game. */
+int PortRecomActive(void);
+void PortRecomSetActive(int active);
+int PortQolButtons(void);
+void PortSetQolButtons(int on);
 int PortVideoListModes(int* w, int* h, int max);
 void PortRaiseIrq(uint16_t flag);
 void PortFatal(const char* fmt, ...);

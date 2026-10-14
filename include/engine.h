@@ -73,6 +73,9 @@ void PortHudEnd(void);
    taken by the player (player != 0) or by everyone else; whether event
    dialogue types without its per-character delay. */
 int PortScaleDamage(int damage, int player);
+/* A new game: the options overlay asks how to start it (version, difficulty,
+   HD text, QoL buttons) before the game goes on. */
+void PortUiOpenNewGame(void);
 int PortFastText(void);
 /* One-button dodge roll: the d-pad direction to roll toward, or 0. */
 int PortTakeDodge(int held, int facingLeft);
