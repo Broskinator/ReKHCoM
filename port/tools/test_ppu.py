@@ -31,10 +31,13 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageChops
 
 ROOT = Path(__file__).resolve().parents[2]
 REFS = ROOT / "port" / "progress" / "evidence" / "ppu_refs.json"
+# reference pictures stay local: they are made from the ROM
+REF_DIR = ROOT / "build" / "pputest_refs"
+TOLERANCE = 0.005  # fraction of pixels that may differ (animations, timing)
 
 SCENES = {
     "lang": ({}, 120),
@@ -86,9 +89,20 @@ def main():
         images.append((name, img))
         if args.update:
             refs[name] = digest
+            REF_DIR.mkdir(parents=True, exist_ok=True)
+            img.save(REF_DIR / f"{name}.png")
             lines.append(f"{name:8s} reference {digest}")
         elif refs.get(name) == digest:
             lines.append(f"{name:8s} ok   {digest}")
+        elif (REF_DIR / f"{name}.png").exists():
+            ref = Image.open(REF_DIR / f"{name}.png").convert("RGB")
+            diff = ImageChops.difference(img, ref).convert("L") if ref.size == img.size else None
+            frac = sum(1 for v in diff.getdata() if v) / (img.width * img.height) if diff else 1.0
+            if frac <= TOLERANCE:
+                lines.append(f"{name:8s} ok   {frac:.2%} of pixels differ")
+            else:
+                lines.append(f"{name:8s} CHANGED {frac:.2%} of pixels differ")
+                failed += 1
         else:
             lines.append(f"{name:8s} CHANGED {digest} (reference {refs.get(name, 'none')})")
             failed += 1

@@ -135,8 +135,8 @@
     {
       "name": "HD text",
       "weight": 3,
-      "done": 94,
-      "notes": "KHMenu Latin/menu text, Japanese glyphs and Comic Hearts subtitles. Fresh EU/JP opening captures verified after Shift-JIS fix. Map-card tutorial caption hidden while its notice is open; general occlusion regression, stylized art and remaining digits still pending.; inventory of text and digits still in pixel art (port/progress/HDTEXT_INVENTARIO.md): dialogue, menu slots, card names, subtitles and the options screen are HD; card values, reload counters and boss values are card art and stay; deck-menu counts are text written into BG tiles, left for the compositor work; EXP/next-level digits drawn as HD (style 2, 5-pixel capitals on 8-pixel cells) and deck-menu digits registered from their BG tiles (PortRegisterBgTextTile); visual approval of the corrected colours pending"
+      "done": 100,
+      "notes": "KHMenu Latin/menu text, Japanese glyphs and Comic Hearts subtitles. Fresh EU/JP opening captures verified after Shift-JIS fix. Map-card tutorial caption hidden while its notice is open; general occlusion regression, stylized art and remaining digits still pending.; inventory of text and digits still in pixel art (port/progress/HDTEXT_INVENTARIO.md): dialogue, menu slots, card names, subtitles and the options screen are HD; card values, reload counters and boss values are card art and stay; deck-menu counts are text written into BG tiles, left for the compositor work; EXP/next-level digits drawn as HD (style 2, 5-pixel capitals on 8-pixel cells) and deck-menu digits registered from their BG tiles (PortRegisterBgTextTile); visual approval of the corrected colours pending; numbers: deck-menu digits take the face/shadow of their own cell's palette (lighter colour as face, greyed-out decks stay grey), the pixel digit gives way to the panel colour so occlusion keeps the glyph in front, and each digit keeps the height and baseline of its pixel ink; reviewed in EU, US and JP (test_text_options_hd.py --deck) with the EXP digits; fonts are found in the data folder when the game runs from bin/"
     },
     {
       "name": "USA and Japanese versions",

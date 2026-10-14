@@ -55,7 +55,7 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 - [x] Subtítulos HD de la intro: capturas recientes EU (Comic Hearts) y JP verificadas; ambos procesos terminaron normalmente.
 - [x] Recuadro de mensaje sin retrato descentrado (ranura 2 del usuario).
 - [x] Texto HD en la versión JP (Yu Gothic UI sobre la rejilla del juego).
-- [~] Texto dinámico de menús HD implementado; faltan números y revisión completa de prioridades.
+- [x] Texto dinámico de menús HD, también los números (barajas, EXP) con su color, tamaño y oclusión.
 
 ## Sonido
 
@@ -79,7 +79,7 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   −3,5 dB planos en todas las bandas: la única diferencia es la ganancia general del port.
   Pendiente: canales PSG (los menús no los usan; hace falta llegar a un combate en el emulador).
 
-- [~] Baterías: eventos US 194/194; combates US 209/209; combates como Riku 209/209;
+- [x] Baterías: eventos US 194/194; combates US 209/209; combates como Riku 209/209;
   JP: informes terminados con 194/194 eventos y 209/209 combates sin crash.
   Son recorridos automáticos limitados, no partidas completas ni validación visual exhaustiva.
 - [x] Menú de opciones del port en japonés (versión JP), con la fuente del cartucho.
@@ -93,7 +93,7 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v0.3
 - [x] Build nueva instalada en build/pc (ini, save y estados intactos; `khcom_prev.exe` carga
   los estados viejos).
-- [~] Actualizar porcentajes de PROGRESS hasta el 100 % (91 % ahora).
+- [~] Actualizar porcentajes de PROGRESS hasta el 100 % (97 % ahora).
 
 ## Revisión de Codex — 13 de octubre de 2026
 
@@ -114,19 +114,18 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   `test_menu_cycles.py` comprueba entradas a Mode_Deck y retornos a Mode_MapFld;
   doce ciclos completos pasan. La ruta anterior de veinte ciclos terminó sin
   crash, pero no validaba cada transición. Ampliar a los demás submenús y edición.
-- [ ] Otros crashes al alternar submenús: ampliar la ruta a Estado, Diario,
-  naipes mapa y transiciones con distintas partidas.
+- [x] Otros crashes al alternar submenús: test_submenus.py, las seis entradas del menú
+  de pausa, cuatro idas y vueltas cada una, 6/6 sin crash.
 - [ ] Animación superior de salida de submenús: revisar fotogramas de transición.
 - [ ] Sprite a la izquierda antes/después de subir de nivel: reproducir y corregir.
-- [ ] Números HD opcionales: determinar qué números son texto y cuáles forman parte
-  de las ilustraciones de cartas; no sustituir dibujos completos por glifos.
+- [x] Números HD: los que son texto (barajas, EXP) en HD; los de las cartas y contadores
+  animados son ilustración y se conservan (HDTEXT_INVENTARIO.md).
 - [x] Batería de eventos: `--wide` realmente selecciona view_mode=4. Antes
   generaba resultados etiquetados como panorámicos con view_mode=0.
 - [~] Nombres de combos Sora/Riku: límite de seis entradas y gráficos del nombre
   actual corregidos bajo PLATFORM_PC. Compilan EU/US/JP; la prueba breve de un
   combate por personaje termina sin crash, falta comprobar una lista completa.
-- [ ] Publicación siguiente: completar regresiones y las correcciones visuales
-  pendientes antes de presentar v0.5 como versión verificada.
+- [x] Publicaciones v0.5, v0.6 y v0.7 (pre-releases).
 
 Validación reciente: subtítulos EU/JP en build/subtitles-current. La misma lectura
 inválida de UpdateSpriteOam apareció tanto con modo forzado como entrando desde

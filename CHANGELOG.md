@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- HD text covers the numbers that are text: deck-menu counts and CP, EXP and
+  next level, with the colours, height and baseline of the pixel digits.
+- Fix: the packaged game (in bin/) now finds the HD text fonts in assets/.
 - Battle card breaks pixelate the arena too: affine backgrounds take the
   mosaic, as on the GBA (only the sprites did before).
 

@@ -80,7 +80,8 @@ static int sBattleView;
 static int sArenaBands[6]; /* bounds, left source/width, right source/width */
 typedef struct BgTextTile {
     uint16_t code;
-    uint8_t style, faceIndex, shadowIndex;
+    uint8_t style, faceIndex, shadowIndex, panelIndex;
+    uint8_t cap, base; /* rows of the digit's ink: height and baseline */
     uint8_t source[32];
 } BgTextTile;
 static BgTextTile sBgTextTiles[2048];
@@ -102,6 +103,42 @@ void PortRegisterBgTextTile(void* address, int code, int style, const void* sour
     tile->style = (uint8_t)style;
     tile->faceIndex = (uint8_t)((style & 0xFF00) ? (style >> 8) & 15 : 15);
     tile->shadowIndex = (uint8_t)((style & 0xFF00) ? (style >> 12) & 15 : 14);
+    tile->panelIndex = 13;
+    if (!(style & 0xFF00)) {
+        /* The tile's own colours: the commonest index is the panel behind the
+           digit, the next ones its face and shadow. Greyed-out panels use
+           other indices than the active ones, so a fixed choice would not
+           match what the cartridge shows. */
+        int count[16] = { 0 }, order[3] = { -1, -1, -1 }, i, k;
+        for (i = 0; i < 32; i++) {
+            count[((const uint8_t*)source32)[i] & 15]++;
+            count[((const uint8_t*)source32)[i] >> 4]++;
+        }
+        for (k = 0; k < 3; k++)
+            for (i = 1; i < 16; i++)
+                if (count[i] && i != order[0] && i != order[1] && (order[k] < 0 || count[i] > count[order[k]]))
+                    order[k] = i;
+        {
+            /* the ink's rows: the digit plus its one-row drop shadow */
+            int top = 8, bottom = -1, y, xx;
+            for (y = 0; y < 8; y++)
+                for (xx = 0; xx < 8; xx++) {
+                    uint8_t v = ((const uint8_t*)source32)[y * 4 + xx / 2];
+                    int c = (xx & 1) ? v >> 4 : v & 15;
+                    if (order[1] >= 0 && (c == order[1] || c == order[2])) {
+                        if (y < top) top = y;
+                        if (y > bottom) bottom = y;
+                    }
+                }
+            tile->cap = bottom > top ? (uint8_t)(bottom - top) : 0;
+            tile->base = bottom > top ? (uint8_t)bottom : 0;
+        }
+        if (order[1] >= 0) {
+            tile->panelIndex = (uint8_t)order[0];
+            tile->faceIndex = (uint8_t)order[1];
+            tile->shadowIndex = (uint8_t)(order[2] >= 0 ? order[2] : order[0]);
+        }
+    }
     memcpy(tile->source, source32, 32);
 }
 
@@ -715,12 +752,27 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
                             glyph->glyph.x = xx; glyph->glyph.y = yy;
                             glyph->glyph.code = text->code;
                             glyph->glyph.style = text->style;
+                            glyph->glyph.cap = text->cap;
+                            glyph->glyph.base = text->base;
                             /* Numeric BG cells use the same 13/14/15 panel,
                                shadow and face convention as EXP cells. */
-                            glyph->glyph.face = PLTT16[pal * 16 + text->faceIndex] & 0x7FFF;
-                            glyph->glyph.shadow = PLTT16[pal * 16 + text->shadowIndex] & 0x7FFF;
+                            {
+                                /* the face is the lighter of the digit's two
+                                   colours in this cell's palette (greyed-out
+                                   panels use another palette) */
+                                uint16_t a = PLTT16[pal * 16 + text->faceIndex] & 0x7FFF;
+                                uint16_t b = PLTT16[pal * 16 + text->shadowIndex] & 0x7FFF;
+                                int la = (a & 31) * 2 + ((a >> 5) & 31) * 5 + ((a >> 10) & 31);
+                                int lb = (b & 31) * 2 + ((b >> 5) & 31) * 5 + ((b >> 10) & 31);
+                                glyph->glyph.face = la >= lb ? a : b;
+                                glyph->glyph.shadow = la >= lb ? b : a;
+                            }
                         }
-                        if (ci == text->shadowIndex || ci == text->faceIndex) out[x] = TRANSPARENT;
+                        /* the pixel-art digit gives way to the panel colour, so
+                           the layer keeps covering its cell and the occlusion
+                           test still finds this panel in front */
+                        if (ci == text->shadowIndex || ci == text->faceIndex)
+                            out[x] = text->panelIndex ? (PLTT16[pal * 16 + text->panelIndex] & 0x7FFF) : TRANSPARENT;
                     }
                 }
             }

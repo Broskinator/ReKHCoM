@@ -252,39 +252,6 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
     /* the level-up screen, as the end of a battle opens it */
-    /* a room as the debug menu's MAP check enters it (mode_mapchk.c):
-       arg = mode * 10000 + world * 100 + floor, mode 1 the floor's world,
-       2 the castle's entrance hall, 3 its exit hall */
-    if (strcmp(name, "room") == 0) {
-        extern u8 gMapChkUseParams;
-        int mode = arg / 10000, world = (arg / 100) % 100, floor = arg % 100;
-
-        ResetGameState();
-        func_08085FB0();
-        InitSoraDecks();
-        InitMapCardInventory();
-        gMapChkUseParams = 0;
-        gGameState.progression.friendFlags |= FRIEND_FLAG_DONALD_DUCK | FRIEND_FLAG_GOOFY;
-        gGameState.progression.tutorialFlags |= TUTORIAL_FLAG_MAP_SELECT | TUTORIAL_FLAG_SAVE_POINT |
-            TUTORIAL_FLAG_MAP | TUTORIAL_FLAG_MAP_SELECT_EVENT_DOOR | TUTORIAL_FLAG_WARP_POINT |
-            TUTORIAL_FLAG_ROOM_CREATE | TUTORIAL_FLAG_MAP_STAIR;
-        if (mode == 1) {
-            gGameState.floors[floor].world = gMapChkWorldNames[world][0];
-            MapChkSetFloorProgress(floor, FALSE);
-            GoToFloor(floor);
-            SetFloorWorld(gMapChkWorldNames[world][0]);
-            gMapFloorState.flags |= FLOOR_FLAG_LOGO_SHOWN;
-            EnterFloorWorld();
-        } else {
-            gGameState.floors[floor].world = mode == 3 ? gMapChkWorldNames[world][0] : 0;
-            MapChkSetFloorProgress(floor, mode == 3);
-            GoToFloor(floor);
-            gMapFloorState.room = mode == 3 ? MAP_ROOM_EXIT_HALL : MAP_ROOM_ENTRANCE_HALL;
-            gMapFloorState.entrySide = MAP_DOOR_SIDE_NONE;
-        }
-        RequestMapMode();
-        return 1;
-    }
     /* the card-break mosaic over every layer (battle_runtime.c) */
     if (strcmp(name, "mosaic") == 0) {
         MosaicStartIn(16, 15);

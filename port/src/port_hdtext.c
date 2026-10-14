@@ -60,8 +60,8 @@ typedef struct Bitmap {
 } Bitmap;
 
 static HDC sDc;
-static HdFont sFonts[2][2]; /* [style][cache slot] */
-static int sNextFont[2];
+static HdFont sFonts[3][2]; /* [style][cache slot]; style 2: numbers, menu face */
+static int sNextFont[3];
 static int sCustomTried;
 static const WCHAR* sFace[2] = { L"Segoe UI", L"Segoe UI" }; /* menu / dialogue, movie subtitles */
 
@@ -78,7 +78,11 @@ static void LoadCustomFont(void) {
         char path[1024];
         WCHAR wpath[1024];
 
+        /* next to the executable, or in the data folder: the packaged game
+           runs from bin/ with its assets at the root (--data-dir) */
         SDL_snprintf(path, sizeof(path), "%s%s", base ? base : "", files[i]);
+        if (GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES)
+            SDL_strlcpy(path, PortConfigPath(files[i]), sizeof(path));
         if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, 1024) > 0 && AddFontResourceExW(wpath, FR_PRIVATE, NULL) > 0) {
             sFace[i] = faces[i];
             PortLog("HD text: font %s", path);
@@ -165,8 +169,11 @@ static HdFont* FontForScale(float scale, int style) {
     FontRelease(f);
     f->key = key;
     f->cap = HD_TEXT_CAP * scale;
-    f->font = FontWithCap(sFace[style], f->cap, scale, sFace[style][0] == L'S' ? FW_SEMIBOLD : FW_NORMAL);
-    f->fallback = sFace[style][0] == L'S' ? f->font
+    {
+        const WCHAR* face = sFace[style == 2 ? 0 : style];
+        f->font = FontWithCap(face, f->cap, scale, face[0] == L'S' ? FW_SEMIBOLD : FW_NORMAL);
+    }
+    f->fallback = sFace[style == 2 ? 0 : style][0] == L'S' ? f->font
                                           : FontWithCap(style ? L"Comic Sans MS" : L"Segoe UI", f->cap, scale,
                                                         style ? FW_NORMAL : FW_SEMIBOLD);
     return f;
@@ -552,15 +559,19 @@ static void DrawSubtitles(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n, 
    place instead of applying dialogue word spacing to tabular numbers. */
 static void DrawSmallNumbers(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n,
                              float originX, float originY, float scale) {
-    HdFont* font = FontForScale(scale * (5.0f / HD_TEXT_CAP), 0);
     float shadow = SDL_max(1.0f, SDL_floorf(scale * 0.5f));
     int i;
-    if (font->font == NULL)
-        return;
     for (i = 0; i < n; i++) {
-        HdGlyph* glyph = Glyph(renderer, font, glyphs[i].code);
-        float x = originX + glyphs[i].x * scale + (8.0f * scale - glyph->advance) * 0.5f;
-        float baseline = originY + (glyphs[i].y + 7) * scale;
+        /* each number at the height and baseline of its own pixel digit */
+        int cap = glyphs[i].cap ? glyphs[i].cap : 5, base = glyphs[i].base ? glyphs[i].base : 7;
+        HdFont* font = FontForScale(scale * (cap / HD_TEXT_CAP), 2);
+        HdGlyph* glyph;
+        float x, baseline;
+        if (font->font == NULL)
+            return;
+        glyph = Glyph(renderer, font, glyphs[i].code);
+        x = originX + glyphs[i].x * scale + (8.0f * scale - glyph->advance) * 0.5f;
+        baseline = originY + (glyphs[i].y + base) * scale;
         int alpha = glyphs[i].semi ? glyphs[i].semi : 0xFF;
         DrawGlyph(renderer, glyph, x + shadow, baseline + shadow, glyphs[i].shadow, alpha);
         DrawGlyph(renderer, glyph, x, baseline, glyphs[i].face, alpha);

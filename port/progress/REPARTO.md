@@ -28,7 +28,6 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 |---|---|---|---|---|
 | Gameplay verification | 85 | 10 | Claude + Codex | Partida completa de Sora y de Reverse/Rebirth |
 | Widescreen: field maps | 87 | 8 | Codex | Salas con huecos o bordes de abismo; revisión por mundo |
-| HD text | 94 | 3 | Claude | Números de menús de baraja (tiles de BG) con el compositor; oclusión general |
 | Widescreen: battles | 95 | 6 | Codex | Cinta continua de arenas y bordes de abismo |
 | Widescreen: menus & events | 93 | 4 | Codex | Salida de submenús, footer, subida de nivel (paneles y popeo) |
 
