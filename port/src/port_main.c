@@ -439,6 +439,37 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
         if (!sMenuSideTexture)
             return;
         for (yy = 0; yy < GBA_SCREEN_H; yy++) {
+            /* World map (style 5): its bands repeat every 16 columns, so the
+               edge's last 16 columns carry on in every row. The band's colours
+               are those found at both edges of the row; when the two edges
+               share some, any other colour is something on the band (the
+               world's logo) and takes the commonest shared colour. Edges that
+               share none (the floor badge on the left) continue their edge
+               column, so the badge's letters are not repeated. */
+            uint32_t common = 0;
+            int best = 0, k2, plain = 0;
+            const uint32_t* bgRow = &gPortMenuBackground[(sy + yy) * gPortScreen.width];
+            const uint32_t* own = &bgRow[sx];
+            const uint32_t* other = &bgRow[side < 0 ? sx + GBA_SCREEN_W - 16 : sx - (GBA_SCREEN_W - 16)];
+            if (sSideStyle == 5)
+                for (xx = 0; xx < 16; xx++) {
+                    int n2 = 0, shared = 0;
+                    for (k2 = 0; k2 < 16; k2++) {
+                        n2 += own[k2] == own[xx];
+                        shared |= other[k2] == own[xx];
+                    }
+                    if (shared && n2 > best) { best = n2; common = own[xx]; }
+                }
+            /* edges with nothing in common: a band that repeats every 1, 2 or
+               4 columns (plain or a checkerboard) still repeats; a badge with
+               letters does not */
+            if (sSideStyle == 5 && !best) {
+                int per;
+                for (per = 1; per <= 4 && !plain; per *= 2) {
+                    for (xx = 0; xx + per < 16 && own[xx] == own[xx + per]; xx++) {}
+                    plain = xx + per >= 16;
+                }
+            }
             for (xx = 0; xx < fw; xx++) {
                 int d = side < 0 ? fw - 1 - xx : xx, sample = edgeX;
                 uint32_t* px = &strip[yy * fw + xx];
@@ -450,9 +481,15 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                     sample = side < 0 ? sx + ((-1 - d) & 3) : edgeX - 3 + (d & 3);
                 /* Only the world's ornamental bands repeat horizontally;
                    its floor badge and text retain the plain edge fill. */
-                if (sSideStyle == 5 && ((yy >= 16 && yy < 24) || (yy >= 136 && yy < (side > 0 ? 154 : 145))))
+                if (sSideStyle == 5 && (best || plain))
                     sample = side < 0 ? sx + ((-1 - d) & 15) : sx + (d & 15);
                 *px = gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
+                if (sSideStyle == 5 && best) {
+                    int shared = 0;
+                    for (k2 = 0; k2 < 16; k2++) shared |= other[k2] == *px;
+                    if (!shared)
+                        *px = common;
+                }
                 if (sSideStyle == 5) {
                     uint32_t bandColor = PortMenuBandPixel(yy, side < 0 ? (-1 - d) & 15 : d & 15);
                     if (bandColor) *px = bandColor;

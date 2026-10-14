@@ -63,8 +63,8 @@ pendientes: retratos, panel del jugador y restantes familias del inventario.
 4. Naipes mapa — revisada (14/10)
 5. Tienda moguri — revisada (14/10)
 6. Naipes mundo (quitar el tramado) — revisada (14/10)
-7. Mapamundi — en revisión con el usuario
-8. Elige un mundo
+7. Mapamundi — revisada (14/10)
+8. Elige un mundo — en revisión con el usuario
 9. Vórtice
 10. Bonus élite (selección de cartas)
 11. Menú START
