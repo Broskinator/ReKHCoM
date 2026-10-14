@@ -57,16 +57,16 @@ recorte nativo. PV tiene la esquina superior derecha de la P cerrada en
 diagonal. Pruebas aisladas superadas en EU (es/de/it y Riku), US y JP;
 pendientes: retratos, panel del jugador y restantes familias del inventario.
 
-1. Diario — en revisión con el usuario
-2. Ver barajas / Añadir-Quitar
-3. Estado
-4. Naipes mapa
-5. Naipes mundo (quitar el tramado)
-6. Mapamundi
-7. Elige un mundo
-8. Vórtice
-9. Bonus élite (selección de cartas)
-10. Tienda moguri
+1. Diario — revisada (14/10)
+2. Ver barajas / Añadir-Quitar — revisada (14/10)
+3. Estado — revisada (14/10)
+4. Naipes mapa — en revisión con el usuario
+5. Tienda moguri
+6. Naipes mundo (quitar el tramado)
+7. Mapamundi
+8. Elige un mundo
+9. Vórtice
+10. Bonus élite (selección de cartas)
 11. Menú START
 12. Síntesis de estancias (puerta y carta)
 13. Guardar
