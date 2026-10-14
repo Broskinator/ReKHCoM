@@ -1,0 +1,636 @@
+   0 SONG_SND_0                       silent     rms 0.0000 peak 0.000 clipped      0
+   1 SONG_BGM_ALICE_BTL               ok         rms 0.0178 peak 0.212 clipped      0
+   2 SONG_BGM_ALICE_FIELD             ok         rms 0.0146 peak 0.166 clipped      0
+   3 SONG_BGM_BOSS1_WORLD             ok         rms 0.0275 peak 0.186 clipped      0
+   4 SONG_BGM_EVENT2                  ok         rms 0.0191 peak 0.192 clipped      0
+   5 SONG_BGM_EVENT1                  ok         rms 0.0220 peak 0.245 clipped      0
+   6 SONG_BGM_TITLE                   ok         rms 0.0226 peak 0.227 clipped      0
+   7 SONG_BGM_EVENT3                  ok         rms 0.0195 peak 0.245 clipped      0
+   8 SONG_BGM_PINOCCHIO_FIELD         ok         rms 0.0257 peak 0.226 clipped      0
+   9 SONG_BGM_PINOCCHIO_BTL           ok         rms 0.0179 peak 0.219 clipped      0
+  10 SONG_BGM_PETERPAN_FIELD          ok         rms 0.0187 peak 0.189 clipped      0
+  11 SONG_BGM_PETERPAN_BTL            ok         rms 0.0260 peak 0.319 clipped      0
+  12 SONG_BGM_TOWN_BTL                ok         rms 0.0300 peak 0.279 clipped      0
+  13 SONG_BGM_TOWN_FIELD              ok         rms 0.0296 peak 0.284 clipped      0
+  14 SONG_BGM_BOSS3_XIII              ok         rms 0.0269 peak 0.280 clipped      0
+  15 SONG_BGM_HALLOWEEN_FIELD         ok         rms 0.0086 peak 0.101 clipped      0
+  16 SONG_BGM_HALLOWEEN_BTL           ok         rms 0.0333 peak 0.258 clipped      0
+  17 SONG_BGM_MARMAID_BATTLE          ok         rms 0.0162 peak 0.154 clipped      0
+  18 SONG_BGM_EVENT_XIII              ok         rms 0.0323 peak 0.241 clipped      0
+  19 SONG_BGM_EVENT_NAMINE            ok         rms 0.0197 peak 0.196 clipped      0
+  20 SONG_BGM_HERCULES_BATTLE         ok         rms 0.0183 peak 0.258 clipped      0
+  21 SONG_BGM_HERCULES_FIELD          ok         rms 0.0235 peak 0.187 clipped      0
+  22 SONG_BGM_UNDERTHESEA             ok         rms 0.0218 peak 0.278 clipped      0
+  23 SONG_BGM_ALADDIN_BATTLE          ok         rms 0.0178 peak 0.199 clipped      0
+  24 SONG_BGM_EVENT4                  ok         rms 0.0286 peak 0.288 clipped      0
+  25 SONG_BGM_HOLLOW_FIELD            ok         rms 0.0178 peak 0.183 clipped      0
+  26 SONG_BGM_HOLLOW_BATTLE           ok         rms 0.0231 peak 0.273 clipped      0
+  27 SONG_BGM_EVENT_SILENCE           ok         rms 0.0175 peak 0.175 clipped      0
+  28 SONG_BGM_EVENT_UNREST            ok         rms 0.0270 peak 0.201 clipped      0
+  29 SONG_BGM_RIKU_ANSEM              ok         rms 0.0371 peak 0.272 clipped      0
+  30 SONG_BGM_T13THFLOOR              ok         rms 0.0121 peak 0.091 clipped      0
+  31 SONG_BGM_ALADDIN_FIELD           ok         rms 0.0170 peak 0.244 clipped      0
+  32 SONG_BGM_WINNIETHEPOOH           ok         rms 0.0180 peak 0.179 clipped      0
+  33 SONG_BGM_DESTINY_FIELD           ok         rms 0.0183 peak 0.181 clipped      0
+  34 SONG_BGM_POOHGAME                ok         rms 0.0135 peak 0.140 clipped      0
+  35 SONG_BGM_NISERIKU                ok         rms 0.0323 peak 0.277 clipped      0
+  36 SONG_BGM_TWILIGHTTOWN            ok         rms 0.0174 peak 0.181 clipped      0
+  37 SONG_BGM_LASTBOSS1               ok         rms 0.0404 peak 0.296 clipped      0
+  38 SONG_BGM_F13F_FORGET             ok         rms 0.0236 peak 0.174 clipped      0  psg
+  39 SONG_BGM_F13F_FORGET_BATTLE      ok         rms 0.0360 peak 0.238 clipped      0
+  40 SONG_BGM_DESTINY_BATTLE          ok         rms 0.0155 peak 0.217 clipped      0
+  41 SONG_BGM_BOSSWORLD               ok         rms 0.0182 peak 0.202 clipped      0
+  42 SONG_BGM_LASTBOSS2               ok         rms 0.0415 peak 0.318 clipped      0
+  43 SONG_BGM_TWILIGHT_BATTLE         ok         rms 0.0263 peak 0.288 clipped      0
+ 101 SONG_SYS_CLICK                   ok         rms 0.0029 peak 0.125 clipped      0
+ 102 SONG_SYS_KETTEI                  ok         rms 0.0079 peak 0.152 clipped      0
+ 103 SONG_SYS_CANSEL                  ok         rms 0.0041 peak 0.162 clipped      0
+ 104 SONG_SYS_CLOSE                   ok         rms 0.0059 peak 0.142 clipped      0
+ 105 SONG_SYS_BEEP                    ok         rms 0.0068 peak 0.180 clipped      0
+ 106 SONG_SYS_ITEMGET                 ok         rms 0.0084 peak 0.142 clipped      0
+ 107 SONG_SYS_POWER_GET               ok         rms 0.0028 peak 0.061 clipped      0
+ 108 SONG_SYS_MONEY_GET               ok         rms 0.0014 peak 0.035 clipped      0
+ 109 SONG_SYS_SR_FOOTL                ok         rms 0.0017 peak 0.151 clipped      0
+ 110 SONG_SYS_SR_FOOTR                ok         rms 0.0023 peak 0.153 clipped      0
+ 111 SONG_SYS_SR_JUMP                 ok         rms 0.0020 peak 0.102 clipped      0
+ 112 SONG_SYS_SR_LAND                 ok         rms 0.0014 peak 0.136 clipped      0
+ 113 SONG_SYS_SR_I_VO00               ok         rms 0.0105 peak 0.162 clipped      0
+ 114 SONG_SYS_SR_I_VO01               ok         rms 0.0090 peak 0.160 clipped      0
+ 115 SONG_SYS_SR_AT_VO00              ok         rms 0.0133 peak 0.162 clipped      0
+ 116 SONG_SYS_MESSAGE                 ok         rms 0.0012 peak 0.063 clipped      0
+ 117 SONG_SYS_FIELD_ATT00             ok         rms 0.0100 peak 0.265 clipped      0
+ 118 SONG_SYS_CLICKI02                ok         rms 0.0067 peak 0.121 clipped      0
+ 119 SONG_SYS_DOOR0                   ok         rms 0.0194 peak 0.375 clipped      0
+ 120 SONG_SYS_CLICKI04                ok         rms 0.0059 peak 0.242 clipped      0
+ 121 SONG_SYS_CLICKI04B               ok         rms 0.0028 peak 0.160 clipped      0
+ 122 SONG_SYS_SR_STONEL               ok         rms 0.0012 peak 0.075 clipped      0
+ 123 SONG_SYS_SR_STONER               ok         rms 0.0018 peak 0.154 clipped      0
+ 124 SONG_SYS_SR_STONEJP              ok         rms 0.0016 peak 0.094 clipped      0
+ 125 SONG_SYS_SR_STONELD              ok         rms 0.0010 peak 0.082 clipped      0
+ 126 SONG_SYS_SR_MUDL                 ok         rms 0.0007 peak 0.070 clipped      0
+ 127 SONG_SYS_SR_MUDR                 ok         rms 0.0008 peak 0.053 clipped      0
+ 128 SONG_SYS_SR_MUDJP                ok         rms 0.0011 peak 0.082 clipped      0
+ 129 SONG_SYS_SR_MUDLD                ok         rms 0.0007 peak 0.038 clipped      0
+ 130 SONG_SYS_SR_IRONLWL              ok         rms 0.0011 peak 0.053 clipped      0
+ 131 SONG_SYS_SR_IRONLWR              ok         rms 0.0009 peak 0.053 clipped      0
+ 132 SONG_SYS_SR_IRONLWJP             ok         rms 0.0043 peak 0.103 clipped      0
+ 133 SONG_SYS_SR_GRASSUP              ok         rms 0.0017 peak 0.065 clipped      0
+ 134 SONG_SYS_SR_GRASSJP              ok         rms 0.0040 peak 0.089 clipped      0
+ 135 SONG_SYS_SR_STONELJP             ok         rms 0.0039 peak 0.089 clipped      0
+ 136 SONG_SYS_SR_MUDLJP               ok         rms 0.0039 peak 0.089 clipped      0
+ 137 SONG_SYS_DECKSET                 ok         rms 0.0067 peak 0.287 clipped      0
+ 138 SONG_SYS_CARD_DELETE             ok         rms 0.0065 peak 0.125 clipped      0
+ 139 SONG_SYS_GIMICJP                 ok         rms 0.0083 peak 0.127 clipped      0
+ 140 SONG_SYS_KETEI2                  ok         rms 0.0036 peak 0.139 clipped      0
+ 141 SONG_SYS_SR_CATCH                ok         rms 0.0014 peak 0.170 clipped      0
+ 142 SONG_SYS_SR_CATJP                ok         rms 0.0069 peak 0.204 clipped      0
+ 143 SONG_SYS_ENCOUNT                 ok         rms 0.0195 peak 0.294 clipped      0
+ 144 SONG_SYS_OBJ_BREAK               ok         rms 0.0078 peak 0.233 clipped      0
+ 145 SONG_SYS_RELOAD                  ok         rms 0.0121 peak 0.111 clipped      0
+ 146 SONG_SYS_ALART                   ok         rms 0.0260 peak 0.096 clipped      0
+ 147 SONG_SYS_START                   ok         rms 0.0146 peak 0.235 clipped      0
+ 148 SONG_SYS_LVUP                    ok         rms 0.0120 peak 0.158 clipped      0
+ 149 SONG_BG_POO                      ok         rms 0.0036 peak 0.122 clipped      0
+ 150 SONG_VO_SR_ATTACK00              ok         rms 0.0125 peak 0.152 clipped      0
+ 151 SONG_VO_SR_ATTACK01              ok         rms 0.0105 peak 0.162 clipped      0
+ 152 SONG_VO_SR_ATTACK02              ok         rms 0.0090 peak 0.160 clipped      0
+ 153 SONG_VO_SR_ATTACK03              ok         rms 0.0101 peak 0.152 clipped      0
+ 154 SONG_VO_SR_ATTACK04              silent     rms 0.0000 peak 0.000 clipped      0
+ 155 SONG_VO_SR_ATTACK05              ok         rms 0.0132 peak 0.180 clipped      0
+ 156 SONG_VO_SR_ATTACK06              silent     rms 0.0000 peak 0.000 clipped      0
+ 157 SONG_VO_SR_ATTACK07              ok         rms 0.0114 peak 0.197 clipped      0
+ 158 SONG_VO_SR_ATTACK08              ok         rms 0.0077 peak 0.176 clipped      0
+ 159 SONG_VO_SR_DAMAGE00              ok         rms 0.0091 peak 0.125 clipped      0
+ 160 SONG_VO_SR_DAMAGE01              silent     rms 0.0000 peak 0.000 clipped      0
+ 161 SONG_VO_SR_DAMAGE02              ok         rms 0.0046 peak 0.125 clipped      0
+ 162 SONG_VO_SR_DAMAGE03              ok         rms 0.0078 peak 0.124 clipped      0
+ 163 SONG_VO_SR_DEATH00               ok         rms 0.0155 peak 0.197 clipped      0
+ 164 SONG_VO_SR_FIRE00                ok         rms 0.0158 peak 0.159 clipped      0
+ 165 SONG_VO_SR_BURIZAD00             ok         rms 0.0101 peak 0.162 clipped      0
+ 166 SONG_VO_SR_THNDER00              ok         rms 0.0136 peak 0.160 clipped      0
+ 167 SONG_VO_SR_CAREL00               ok         rms 0.0131 peak 0.197 clipped      0
+ 168 SONG_VO_SR_GURABI00              ok         rms 0.0128 peak 0.175 clipped      0
+ 169 SONG_VO_SR_STOP00                ok         rms 0.0113 peak 0.197 clipped      0
+ 170 SONG_VO_SR_AIRO00                ok         rms 0.0118 peak 0.170 clipped      0
+ 171 SONG_VO_SR_SUMMON00              ok         rms 0.0125 peak 0.193 clipped      0
+ 172 SONG_VO_SR_SUMMON01              ok         rms 0.0147 peak 0.197 clipped      0
+ 173 SONG_VO_SR_SUMMON02              silent     rms 0.0000 peak 0.000 clipped      0
+ 174 SONG_VO_SR_SUMMON03              ok         rms 0.0116 peak 0.205 clipped      0
+ 175 SONG_VO_KU_ATTACK00              ok         rms 0.0109 peak 0.223 clipped      0
+ 176 SONG_VO_KU_ATTACK01              ok         rms 0.0095 peak 0.204 clipped      0
+ 177 SONG_VO_KU_ATTACK02              ok         rms 0.0095 peak 0.204 clipped      0
+ 178 SONG_VO_GF_ATTACK00              ok         rms 0.0158 peak 0.180 clipped      0
+ 179 SONG_VO_DL_ATTACK00              ok         rms 0.0137 peak 0.244 clipped      0
+ 180 SONG_VO_SR_SUMMON04              ok         rms 0.0111 peak 0.162 clipped      0
+ 181 SONG_VO_SR_SUMMON05              ok         rms 0.0132 peak 0.180 clipped      0
+ 182 SONG_VO_SR_SUMMON06              ok         rms 0.0110 peak 0.180 clipped      0
+ 183 SONG_VO_SR_ATTACK09              ok         rms 0.0117 peak 0.162 clipped      0
+ 184 SONG_VO_SR_SUMMON07              ok         rms 0.0102 peak 0.197 clipped      0
+ 185 SONG_VO_SR_SUMMON08              ok         rms 0.0159 peak 0.196 clipped      0
+ 186 SONG_VO_SR_SUMMON09              ok         rms 0.0125 peak 0.197 clipped      0
+ 187 SONG_VO_SR_SUMMON10              ok         rms 0.0122 peak 0.178 clipped      0
+ 188 SONG_VO_SR_SUMMON11              ok         rms 0.0139 peak 0.179 clipped      0
+ 189 SONG_VO_BE_ATTACK00              ok         rms 0.0176 peak 0.240 clipped      0
+ 190 SONG_VO_AR_ATTACK00              ok         rms 0.0075 peak 0.178 clipped      0
+ 191 SONG_VO_PP_ATTACK00              ok         rms 0.0104 peak 0.205 clipped      0
+ 192 SONG_VO_AD_ATTACK00              ok         rms 0.0117 peak 0.224 clipped      0
+ 193 SONG_VO_JC_ATTACK00              ok         rms 0.0121 peak 0.224 clipped      0
+ 194 SONG_VO_JC_ATTACK01              ok         rms 0.0084 peak 0.227 clipped      0
+ 195 SONG_VO_GE_ATTACK00              ok         rms 0.0119 peak 0.233 clipped      0
+ 196 SONG_VO_GE_ATTACK01              ok         rms 0.0114 peak 0.212 clipped      0
+ 197 SONG_VO_GE_ATTACK02              ok         rms 0.0093 peak 0.215 clipped      0
+ 198 SONG_VO_HO_VOICE00               ok         rms 0.0104 peak 0.229 clipped      0
+ 199 SONG_VO_HO_VOICE01               ok         rms 0.0065 peak 0.217 clipped      0
+ 200 SONG_SYS_CHAGE                   ok         rms 0.0064 peak 0.095 clipped      0
+ 201 SONG_SYS_CHAGEF1                 ok         rms 0.0043 peak 0.142 clipped      0
+ 202 SONG_SYS_CHAGEF2                 ok         rms 0.0060 peak 0.243 clipped      0
+ 203 SONG_SYS_CARDLOSE                ok         rms 0.0085 peak 0.124 clipped      0
+ 204 SONG_SYS_DROW                    ok         rms 0.0056 peak 0.218 clipped      0
+ 205 SONG_SYS_WORLDSELECT             ok         rms 0.0059 peak 0.158 clipped      0
+ 206 SONG_SYS_WORLDSTART              ok         rms 0.0146 peak 0.228 clipped      0
+ 207 SONG_SYS_MOUGURI                 ok         rms 0.0127 peak 0.161 clipped      0
+ 208 SONG_SYS_TRESURE                 ok         rms 0.0068 peak 0.258 clipped      0
+ 209 SONG_SYS_DOOR2                   ok         rms 0.0104 peak 0.200 clipped      0
+ 210 SONG_SYS_KAIHUKU                 ok         rms 0.0124 peak 0.225 clipped      0
+ 211 SONG_SYS_SAVELOAD                ok         rms 0.0118 peak 0.223 clipped      0
+ 212 SONG_SND_212                     ok         rms 0.0116 peak 0.104 clipped      0
+ 213 SONG_SND_213                     ok         rms 0.0161 peak 0.212 clipped      0
+ 214 SONG_SND_214                     ok         rms 0.0062 peak 0.230 clipped      0
+ 215 SONG_SND_215                     ok         rms 0.0068 peak 0.170 clipped      0
+ 216 SONG_SND_216                     ok         rms 0.0049 peak 0.193 clipped      0
+ 217 SONG_SND_217                     ok         rms 0.0107 peak 0.245 clipped      0
+ 218 SONG_SND_218                     ok         rms 0.0064 peak 0.195 clipped      0
+ 219 SONG_SND_219                     ok         rms 0.0110 peak 0.222 clipped      0
+ 220 SONG_SND_220                     ok         rms 0.0100 peak 0.265 clipped      0
+ 221 SONG_SND_221                     ok         rms 0.0122 peak 0.243 clipped      0
+ 222 SONG_SND_222                     ok         rms 0.0073 peak 0.191 clipped      0
+ 223 SONG_SND_223                     ok         rms 0.0103 peak 0.243 clipped      0
+ 224 SONG_SND_224                     ok         rms 0.0026 peak 0.065 clipped      0
+ 225 SONG_SND_225                     ok         rms 0.0090 peak 0.180 clipped      0
+ 226 SONG_SND_226                     ok         rms 0.0090 peak 0.174 clipped      0
+ 227 SONG_SND_227                     ok         rms 0.0079 peak 0.196 clipped      0
+ 228 SONG_SND_228                     ok         rms 0.0108 peak 0.215 clipped      0
+ 229 SONG_SND_229                     ok         rms 0.0092 peak 0.271 clipped      0
+ 230 SONG_SND_230                     ok         rms 0.0100 peak 0.232 clipped      0
+ 231 SONG_SND_231                     ok         rms 0.0110 peak 0.226 clipped      0
+ 232 SONG_SND_232                     ok         rms 0.0069 peak 0.213 clipped      0
+ 233 SONG_SND_233                     ok         rms 0.0066 peak 0.213 clipped      0
+ 234 SONG_SND_234                     ok         rms 0.0057 peak 0.213 clipped      0
+ 235 SONG_SND_235                     ok         rms 0.0095 peak 0.271 clipped      0
+ 236 SONG_SND_236                     silent     rms 0.0000 peak 0.000 clipped      0
+ 237 SONG_SND_237                     silent     rms 0.0000 peak 0.000 clipped      0
+ 238 SONG_SND_238                     silent     rms 0.0000 peak 0.000 clipped      0
+ 239 SONG_SND_239                     silent     rms 0.0000 peak 0.000 clipped      0
+ 240 SONG_SND_240                     silent     rms 0.0000 peak 0.000 clipped      0
+ 241 SONG_SND_241                     silent     rms 0.0000 peak 0.000 clipped      0
+ 242 SONG_SND_242                     silent     rms 0.0000 peak 0.000 clipped      0
+ 243 SONG_SND_243                     silent     rms 0.0000 peak 0.000 clipped      0
+ 244 SONG_SND_244                     silent     rms 0.0000 peak 0.000 clipped      0
+ 245 SONG_SND_245                     silent     rms 0.0000 peak 0.000 clipped      0
+ 246 SONG_SND_246                     silent     rms 0.0000 peak 0.000 clipped      0
+ 247 SONG_SND_247                     silent     rms 0.0000 peak 0.000 clipped      0
+ 248 SONG_SND_248                     silent     rms 0.0000 peak 0.000 clipped      0
+ 249 SONG_SND_249                     silent     rms 0.0000 peak 0.000 clipped      0
+ 250 SONG_VO_LE_ATTACK00              ok         rms 0.0076 peak 0.178 clipped      0
+ 251 SONG_VO_LE_ATTACK01              ok         rms 0.0065 peak 0.178 clipped      0
+ 252 SONG_VO_HA_ATTACK00              ok         rms 0.0105 peak 0.214 clipped      0
+ 253 SONG_VO_HA_ATTACK01              ok         rms 0.0052 peak 0.217 clipped      0
+ 254 SONG_VO_RK_ATTACK00              ok         rms 0.0109 peak 0.217 clipped      0
+ 255 SONG_VO_RK_ATTACK01              ok         rms 0.0099 peak 0.191 clipped      0
+ 256 SONG_VO_RK_ATTACK03              ok         rms 0.0086 peak 0.215 clipped      0
+ 257 SONG_VO_RK_ATTACK05              ok         rms 0.0131 peak 0.189 clipped      0
+ 258 SONG_VO_RK_ATTACK06              ok         rms 0.0114 peak 0.197 clipped      0
+ 259 SONG_VO_RK_ATTACK04              ok         rms 0.0108 peak 0.195 clipped      0
+ 260 SONG_VO_RK_ATTACK07              ok         rms 0.0096 peak 0.197 clipped      0
+ 261 SONG_VO_RK_ATTACK02              ok         rms 0.0202 peak 0.203 clipped      0
+ 262 SONG_VO_RK_ATTACK08              ok         rms 0.0140 peak 0.195 clipped      0
+ 263 SONG_VO_RK_DAMAGE00              ok         rms 0.0083 peak 0.197 clipped      0
+ 264 SONG_VO_RK_DAMAGE01              ok         rms 0.0078 peak 0.180 clipped      0
+ 265 SONG_VO_RK_DAMAGE02              ok         rms 0.0122 peak 0.196 clipped      0
+ 266 SONG_VO_RK_DEATH00               ok         rms 0.0163 peak 0.223 clipped      0
+ 267 SONG_VO_MKU_ATTACK00             ok         rms 0.0092 peak 0.178 clipped      0
+ 268 SONG_VO_MKU_ATTACK01             ok         rms 0.0080 peak 0.178 clipped      0
+ 269 SONG_VO_MKU_ATTACK02             ok         rms 0.0080 peak 0.178 clipped      0
+ 270 SONG_VO_AN_ATTACK00              ok         rms 0.0111 peak 0.185 clipped      0
+ 271 SONG_VO_AN_ATTACK01              ok         rms 0.0110 peak 0.201 clipped      0
+ 272 SONG_VO_BO_ATTACK00              ok         rms 0.0142 peak 0.207 clipped      0
+ 273 SONG_VO_UR_ATTACK00              ok         rms 0.0170 peak 0.204 clipped      0
+ 274 SONG_VO_EG_DAMAGE00              ok         rms 0.0104 peak 0.229 clipped      0
+ 275 SONG_VO_VIC_ATTACK00             ok         rms 0.0109 peak 0.180 clipped      0
+ 276 SONG_VO_VIC_ATTACK01             ok         rms 0.0092 peak 0.154 clipped      0
+ 277 SONG_VO_VIC_ATTACK02             ok         rms 0.0072 peak 0.196 clipped      0
+ 278 SONG_VO_MARL_ATTACK00            ok         rms 0.0108 peak 0.217 clipped      0
+ 279 SONG_VO_MARL_ATTACK01            ok         rms 0.0070 peak 0.197 clipped      0
+ 280 SONG_VO_MARL_ATTACK02            ok         rms 0.0129 peak 0.219 clipped      0
+ 281 SONG_VO_MARL_ATTACK03            ok         rms 0.0131 peak 0.229 clipped      0
+ 282 SONG_VO_GE_EVENT00               ok         rms 0.0157 peak 0.208 clipped      0
+ 283 SONG_SND_283                     ok         rms 0.0070 peak 0.142 clipped      0
+ 284 SONG_SND_284                     ok         rms 0.0099 peak 0.161 clipped      0
+ 285 SONG_SND_285                     ok         rms 0.0056 peak 0.162 clipped      0
+ 286 SONG_SND_286                     ok         rms 0.0093 peak 0.217 clipped      0
+ 287 SONG_SND_287                     ok         rms 0.0114 peak 0.251 clipped      0
+ 288 SONG_SND_288                     ok         rms 0.0235 peak 0.257 clipped      0
+ 289 SONG_SND_289                     ok         rms 0.0108 peak 0.207 clipped      0
+ 290 SONG_SND_290                     ok         rms 0.0097 peak 0.198 clipped      0
+ 291 SONG_SND_291                     ok         rms 0.0072 peak 0.197 clipped      0
+ 292 SONG_SND_292                     ok         rms 0.0201 peak 0.249 clipped      0
+ 293 SONG_SND_293                     silent     rms 0.0000 peak 0.000 clipped      0
+ 294 SONG_SND_294                     silent     rms 0.0000 peak 0.000 clipped      0
+ 295 SONG_SND_295                     silent     rms 0.0000 peak 0.000 clipped      0
+ 296 SONG_SND_296                     silent     rms 0.0000 peak 0.000 clipped      0
+ 297 SONG_SND_297                     silent     rms 0.0000 peak 0.000 clipped      0
+ 298 SONG_SND_298                     silent     rms 0.0000 peak 0.000 clipped      0
+ 299 SONG_SND_299                     silent     rms 0.0000 peak 0.000 clipped      0
+ 300 SONG_EV_GAME_START               silent     rms 0.0000 peak 0.000 clipped      0
+ 301 SONG_EV_EV01_00                  ok         rms 0.0053 peak 0.217 clipped      0
+ 302 SONG_EV_EV01_01                  ok         rms 0.0050 peak 0.228 clipped      0
+ 303 SONG_EV_EV01_02                  ok         rms 0.0018 peak 0.134 clipped      0
+ 304 SONG_EV_EV01_03                  ok         rms 0.0026 peak 0.114 clipped      0
+ 305 SONG_EV_EV01_04                  ok         rms 0.0248 peak 0.296 clipped      0
+ 306 SONG_EV_EV02_00                  ok         rms 0.0044 peak 0.161 clipped      0
+ 307 SONG_EV_EV02_01                  ok         rms 0.0038 peak 0.180 clipped      0
+ 308 SONG_EV_EV02_02                  ok         rms 0.0034 peak 0.125 clipped      0
+ 309 SONG_EV_EV02_03                  ok         rms 0.0149 peak 0.323 clipped      0
+ 310 SONG_EV_EV02_04                  ok         rms 0.0068 peak 0.319 clipped      0
+ 311 SONG_EV_EV10_00                  ok         rms 0.0045 peak 0.178 clipped      0
+ 312 SONG_EV_EV10_01                  ok         rms 0.0078 peak 0.313 clipped      0
+ 313 SONG_EV_EV10_02                  ok         rms 0.0146 peak 0.247 clipped      0  psg
+ 314 SONG_EV_EV10_03                  ok         rms 0.0080 peak 0.212 clipped      0  psg
+ 315 SONG_EV_EV10_04                  ok         rms 0.0270 peak 0.350 clipped      0  psg
+ 316 SONG_EV_EV11_00                  ok         rms 0.0071 peak 0.197 clipped      0
+ 317 SONG_EV_EV10_05                  ok         rms 0.0036 peak 0.180 clipped      0
+ 318 SONG_EV_EV02_05                  ok         rms 0.0075 peak 0.183 clipped      0
+ 319 SONG_EV_EV12_00                  ok         rms 0.0064 peak 0.118 clipped      0
+ 320 SONG_EV_EV34_00                  ok         rms 0.0029 peak 0.112 clipped      0
+ 321 SONG_EV_EV34_01                  ok         rms 0.0153 peak 0.177 clipped      0
+ 322 SONG_EV_EV34_02                  ok         rms 0.0195 peak 0.280 clipped      0
+ 323 SONG_EV_EV34_03                  ok         rms 0.0087 peak 0.185 clipped      0
+ 324 SONG_SND_324                     ok         rms 0.0084 peak 0.113 clipped      0
+ 325 SONG_EV_NB_WALK                  ok         rms 0.0051 peak 0.217 clipped      0
+ 326 SONG_SYS_PO_WOOD                 ok         rms 0.0069 peak 0.226 clipped      0
+ 327 SONG_SYS_PO_BLOON                ok         rms 0.0077 peak 0.097 clipped      0
+ 328 SONG_SYS_PO_FALL                 ok         rms 0.0100 peak 0.094 clipped      0
+ 329 SONG_SND_329                     ok         rms 0.0083 peak 0.060 clipped      0
+ 330 SONG_EV_WARPIN                   ok         rms 0.0136 peak 0.319 clipped      0
+ 331 SONG_EV_WARPOUT                  ok         rms 0.0136 peak 0.319 clipped      0
+ 332 SONG_EV_FLASH00                  ok         rms 0.0159 peak 0.241 clipped      0  psg
+ 333 SONG_EV_WHOOSH                   ok         rms 0.0124 peak 0.162 clipped      0
+ 334 SONG_EV_CARDTHR                  ok         rms 0.0042 peak 0.111 clipped      0
+ 335 SONG_EV_FLASH01                  ok         rms 0.0084 peak 0.189 clipped      0  psg
+ 336 SONG_EV_FLASH02                  ok         rms 0.0126 peak 0.182 clipped      0  psg
+ 337 SONG_EV_CARDFALL                 ok         rms 0.0048 peak 0.036 clipped      0
+ 338 SONG_EV_TW_BELL                  ok         rms 0.0183 peak 0.111 clipped      0
+ 339 SONG_EV_RUMBLE                   ok         rms 0.0264 peak 0.074 clipped      0  psg
+ 340 SONG_EV_DL_JUMP                  ok         rms 0.0125 peak 0.324 clipped      0
+ 341 SONG_EV_GE_ENTRY                 ok         rms 0.0123 peak 0.098 clipped      0  psg
+ 342 SONG_EV_AL_LAND                  ok         rms 0.0061 peak 0.192 clipped      0
+ 343 SONG_EV_GE_FOOTUP                ok         rms 0.0123 peak 0.098 clipped      0  psg
+ 344 SONG_EV_HUKUROUJUMP              ok         rms 0.0020 peak 0.068 clipped      0
+ 345 SONG_EV_WHITEOUT                 ok         rms 0.0161 peak 0.212 clipped      0
+ 346 SONG_SND_346                     ok         rms 0.0077 peak 0.059 clipped      0
+ 347 SONG_SND_347                     ok         rms 0.0154 peak 0.296 clipped      0
+ 348 SONG_SND_348                     ok         rms 0.0065 peak 0.117 clipped      0
+ 349 SONG_SND_349                     ok         rms 0.0101 peak 0.117 clipped      0
+ 350 SONG_SND_350                     ok         rms 0.0063 peak 0.139 clipped      0
+ 351 SONG_SND_351                     ok         rms 0.0026 peak 0.066 clipped      0
+ 352 SONG_SND_352                     ok         rms 0.0260 peak 0.274 clipped      0
+ 353 SONG_SND_353                     ok         rms 0.0244 peak 0.127 clipped      0
+ 354 SONG_SND_354                     ok         rms 0.0075 peak 0.118 clipped      0  psg
+ 355 SONG_SND_355                     ok         rms 0.0103 peak 0.185 clipped      0
+ 356 SONG_SND_356                     ok         rms 0.0067 peak 0.050 clipped      0
+ 357 SONG_SND_357                     ok         rms 0.0102 peak 0.212 clipped      0
+ 358 SONG_SND_358                     ok         rms 0.0020 peak 0.161 clipped      0
+ 359 SONG_SND_359                     ok         rms 0.0075 peak 0.195 clipped      0
+ 360 SONG_SND_360                     ok         rms 0.0035 peak 0.060 clipped      0
+ 361 SONG_SND_361                     ok         rms 0.0141 peak 0.230 clipped      0
+ 362 SONG_SND_362                     ok         rms 0.0226 peak 0.396 clipped      0
+ 363 SONG_SND_363                     ok         rms 0.0156 peak 0.189 clipped      0
+ 364 SONG_SND_364                     ok         rms 0.0143 peak 0.175 clipped      0
+ 365 SONG_SND_365                     ok         rms 0.0160 peak 0.272 clipped      0  psg
+ 366 SONG_SND_366                     ok         rms 0.0147 peak 0.229 clipped      0
+ 367 SONG_SND_367                     ok         rms 0.0166 peak 0.303 clipped      0  psg
+ 368 SONG_SND_368                     ok         rms 0.0356 peak 0.352 clipped      0
+ 369 SONG_SND_369                     ok         rms 0.0156 peak 0.164 clipped      0
+ 370 SONG_SND_370                     ok         rms 0.0083 peak 0.233 clipped      0
+ 371 SONG_SND_371                     ok         rms 0.0385 peak 0.273 clipped      0
+ 372 SONG_SND_372                     ok         rms 0.0208 peak 0.344 clipped      0
+ 373 SONG_SND_373                     ok         rms 0.0042 peak 0.074 clipped      0
+ 374 SONG_SND_374                     ok         rms 0.0059 peak 0.089 clipped      0
+ 375 SONG_SND_375                     ok         rms 0.0218 peak 0.286 clipped      0
+ 376 SONG_SND_376                     ok         rms 0.0085 peak 0.142 clipped      0
+ 377 SONG_SND_377                     ok         rms 0.0161 peak 0.178 clipped      0
+ 378 SONG_SND_378                     ok         rms 0.0161 peak 0.287 clipped      0
+ 379 SONG_SND_379                     ok         rms 0.0162 peak 0.336 clipped      0
+ 380 SONG_SND_380                     ok         rms 0.0393 peak 0.362 clipped      0
+ 381 SONG_SND_381                     ok         rms 0.0160 peak 0.276 clipped      0  psg
+ 382 SONG_SND_382                     ok         rms 0.0086 peak 0.256 clipped      0
+ 383 SONG_SND_383                     ok         rms 0.0065 peak 0.055 clipped      0
+ 384 SONG_SND_384                     ok         rms 0.0091 peak 0.167 clipped      0
+ 385 SONG_SND_385                     ok         rms 0.0191 peak 0.120 clipped      0
+ 386 SONG_SND_386                     ok         rms 0.0148 peak 0.055 clipped      0
+ 387 SONG_SND_387                     ok         rms 0.0022 peak 0.011 clipped      0
+ 388 SONG_SND_388                     ok         rms 0.0073 peak 0.149 clipped      0
+ 389 SONG_SND_389                     ok         rms 0.0137 peak 0.290 clipped      0
+ 390 SONG_SND_390                     silent     rms 0.0000 peak 0.000 clipped      0
+ 500 SONG_BTL_SR_ATT00                ok         rms 0.0042 peak 0.162 clipped      0
+ 501 SONG_BTL_SR_ATT01                ok         rms 0.0039 peak 0.156 clipped      0
+ 502 SONG_BTL_SR_ATT02                ok         rms 0.0066 peak 0.209 clipped      0
+ 503 SONG_BTL_LT_HIT00                ok         rms 0.0122 peak 0.295 clipped      0
+ 504 SONG_EF_FIRE00                   ok         rms 0.0131 peak 0.207 clipped      0
+ 505 SONG_EF_FIRE01                   ok         rms 0.0135 peak 0.207 clipped      0
+ 506 SONG_EF_FIRE02                   ok         rms 0.0239 peak 0.346 clipped      0
+ 507 SONG_EF_FIRE03                   ok         rms 0.0271 peak 0.338 clipped      0
+ 508 SONG_EF_BURIZA00                 ok         rms 0.0156 peak 0.306 clipped      0
+ 509 SONG_EF_BURIZA01                 ok         rms 0.0111 peak 0.142 clipped      0
+ 510 SONG_EF_BURIZA02                 ok         rms 0.0268 peak 0.354 clipped      0
+ 511 SONG_EF_BURIZA03                 ok         rms 0.0350 peak 0.373 clipped      0
+ 512 SONG_EF_THUND00                  ok         rms 0.0091 peak 0.178 clipped      0
+ 513 SONG_EF_THUND01                  ok         rms 0.0225 peak 0.383 clipped      0
+ 514 SONG_EF_THUND02                  ok         rms 0.0265 peak 0.436 clipped      0
+ 515 SONG_EF_THUND03                  ok         rms 0.0356 peak 0.453 clipped      0
+ 516 SONG_EF_CAREL00                  ok         rms 0.0093 peak 0.178 clipped      0
+ 517 SONG_EF_CAREL01                  ok         rms 0.0194 peak 0.256 clipped      0
+ 518 SONG_EF_CAREL02                  ok         rms 0.0154 peak 0.280 clipped      0
+ 519 SONG_EF_POSION                   ok         rms 0.0140 peak 0.254 clipped      0
+ 520 SONG_EF_LIMIMOV                  ok         rms 0.0114 peak 0.227 clipped      0
+ 521 SONG_EF_MON_DEATH                ok         rms 0.0107 peak 0.162 clipped      0
+ 522 SONG_EF_GFHIT                    ok         rms 0.0125 peak 0.264 clipped      0
+ 523 SONG_EF_KU_ATT00                 ok         rms 0.0158 peak 0.289 clipped      0
+ 524 SONG_EF_KU_ATT01                 ok         rms 0.0168 peak 0.313 clipped      0
+ 525 SONG_EF_KU_ATT02                 ok         rms 0.0209 peak 0.368 clipped      0
+ 526 SONG_BTL_GF_LOOP                 ok         rms 0.0250 peak 0.250 clipped      0  psg
+ 527 SONG_BTL_KU_JUMP                 ok         rms 0.0177 peak 0.227 clipped      0  psg
+ 528 SONG_BTL_LB_RUMB                 ok         rms 0.0226 peak 0.261 clipped      0
+ 529 SONG_BTL_MON_HIT00               ok         rms 0.0077 peak 0.182 clipped      0
+ 530 SONG_BTL_MON_HIT01               ok         rms 0.0146 peak 0.319 clipped      0
+ 531 SONG_BTL_GARD                    ok         rms 0.0049 peak 0.178 clipped      0
+ 532 SONG_BTL_SR_FOOTL                ok         rms 0.0009 peak 0.076 clipped      0
+ 533 SONG_BTL_SR_FOOTR                ok         rms 0.0012 peak 0.077 clipped      0
+ 534 SONG_BTL_SR_JUMP                 ok         rms 0.0013 peak 0.069 clipped      0
+ 535 SONG_BTL_SR_LAND                 ok         rms 0.0013 peak 0.123 clipped      0
+ 536 SONG_BTL_SR_STONEL               ok         rms 0.0009 peak 0.060 clipped      0
+ 537 SONG_BTL_SR_STONER               ok         rms 0.0014 peak 0.125 clipped      0
+ 538 SONG_BTL_SR_STONEJP              ok         rms 0.0013 peak 0.074 clipped      0
+ 539 SONG_BTL_SR_STONELD              ok         rms 0.0010 peak 0.074 clipped      0
+ 540 SONG_BTL_SR_MUDL                 ok         rms 0.0005 peak 0.049 clipped      0
+ 541 SONG_BTL_SR_MUDR                 ok         rms 0.0005 peak 0.035 clipped      0
+ 542 SONG_BTL_SR_MUDJP                ok         rms 0.0010 peak 0.074 clipped      0
+ 543 SONG_BTL_SR_MUDLD                ok         rms 0.0005 peak 0.034 clipped      0
+ 544 SONG_BTL_RB_GARD                 ok         rms 0.0120 peak 0.185 clipped      0
+ 545 SONG_BTL_MON_HIT02               ok         rms 0.0142 peak 0.226 clipped      0
+ 546 SONG_EF_BOSS_DEADS               ok         rms 0.0159 peak 0.305 clipped      0
+ 547 SONG_EF_BOSS_DEADL               ok         rms 0.0200 peak 0.257 clipped      0
+ 548 SONG_EF_KU_ATT03                 ok         rms 0.0077 peak 0.111 clipped      0
+ 549 SONG_BTL_TABLE_U                 ok         rms 0.0080 peak 0.095 clipped      0
+ 550 SONG_EF_KU_ATT04                 ok         rms 0.0094 peak 0.196 clipped      0
+ 551 SONG_BTL_DARKDEAD                ok         rms 0.0115 peak 0.202 clipped      0
+ 552 SONG_EF_BOSS_DEAD1               ok         rms 0.0466 peak 0.318 clipped      0
+ 553 SONG_EF_BOSS_DEAD2               ok         rms 0.0185 peak 0.251 clipped      0
+ 554 SONG_EF_BOSS_DEAD3               ok         rms 0.0219 peak 0.309 clipped      0  psg
+ 555 SONG_EF_BOSS_DEAD4               ok         rms 0.0102 peak 0.069 clipped      0
+ 556 SONG_EF_TARU_BOMB                ok         rms 0.0134 peak 0.259 clipped      0
+ 557 SONG_EF_MON_UP                   ok         rms 0.0085 peak 0.137 clipped      0
+ 558 SONG_BTL_MON_SWORD00             ok         rms 0.0068 peak 0.228 clipped      0
+ 559 SONG_BTL_MON_SWORD01             ok         rms 0.0072 peak 0.187 clipped      0
+ 560 SONG_BTL_MON_SWORD02             ok         rms 0.0090 peak 0.224 clipped      0
+ 561 SONG_BTL_WM_OK                   ok         rms 0.0133 peak 0.097 clipped      0
+ 562 SONG_EF_GRABI00                  ok         rms 0.0110 peak 0.247 clipped      0
+ 563 SONG_EF_GRABI01                  ok         rms 0.0265 peak 0.297 clipped      0
+ 564 SONG_EF_GRABI02                  ok         rms 0.0214 peak 0.277 clipped      0
+ 565 SONG_EF_SUMMON_UP                ok         rms 0.0136 peak 0.210 clipped      0
+ 566 SONG_BTL_BBI_JUMP                ok         rms 0.0044 peak 0.170 clipped      0
+ 567 SONG_BTL_LT2_SW                  ok         rms 0.0060 peak 0.086 clipped      0
+ 568 SONG_EF_LT2_HIT                  ok         rms 0.0096 peak 0.222 clipped      0
+ 569 SONG_EF_SUMMON_DOWN              ok         rms 0.0094 peak 0.231 clipped      0
+ 570 SONG_BTL_LVUP                    ok         rms 0.0111 peak 0.224 clipped      0
+ 571 SONG_BTL_CARDDEATH               ok         rms 0.0049 peak 0.175 clipped      0
+ 572 SONG_EF_LIMITST                  ok         rms 0.0046 peak 0.159 clipped      0
+ 573 SONG_EF_MON_FIRE                 ok         rms 0.0126 peak 0.201 clipped      0
+ 574 SONG_EF_MON_BURIZA               ok         rms 0.0137 peak 0.261 clipped      0
+ 575 SONG_BTL_WARPIN                  ok         rms 0.0082 peak 0.050 clipped      0
+ 576 SONG_BTL_BOYOYON                 ok         rms 0.0087 peak 0.098 clipped      0
+ 577 SONG_BTL_KAMITUKI                ok         rms 0.0101 peak 0.267 clipped      0
+ 578 SONG_BTL_HANE_HIT                ok         rms 0.0090 peak 0.223 clipped      0  psg
+ 579 SONG_BTL_DF_HIT                  ok         rms 0.0141 peak 0.296 clipped      0
+ 580 SONG_BTL_MON_SWORD03             ok         rms 0.0065 peak 0.163 clipped      0  psg
+ 581 SONG_BTL_KAITENKIRI              ok         rms 0.0046 peak 0.037 clipped      0
+ 582 SONG_BTL_YELLOW_MOV              ok         rms 0.0078 peak 0.098 clipped      0  psg
+ 583 SONG_BTL_YELLOW_HIT              ok         rms 0.0097 peak 0.210 clipped      0
+ 584 SONG_BTL_MON_HIT03               ok         rms 0.0131 peak 0.205 clipped      0  psg
+ 585 SONG_BTL_MON_HIT04               ok         rms 0.0090 peak 0.290 clipped      0
+ 586 SONG_BTL_SIMBA_ROA0              ok         rms 0.0223 peak 0.213 clipped      0
+ 587 SONG_BTL_SIMBA_ROA1              ok         rms 0.0223 peak 0.213 clipped      0
+ 588 SONG_BTL_SIMBA_ROA2              ok         rms 0.0223 peak 0.213 clipped      0
+ 589 SONG_EF_MU_FIRE                  ok         rms 0.0139 peak 0.312 clipped      0
+ 590 SONG_EF_DAMBO_SPLOOP             ok         rms 0.0487 peak 0.193 clipped      0
+ 591 SONG_EF_TINK_LOOP                ok         rms 0.0229 peak 0.149 clipped      0
+ 592 SONG_BTL_AR_PUNCHHIT             ok         rms 0.0120 peak 0.283 clipped      0  psg
+ 593 SONG_BTL_AD_SWORDHIT             ok         rms 0.0087 peak 0.223 clipped      0
+ 594 SONG_BTL_PP_SWORDHIT             ok         rms 0.0086 peak 0.277 clipped      0
+ 595 SONG_BTL_BU_KAITEN               ok         rms 0.0081 peak 0.031 clipped      0  psg
+ 596 SONG_BTL_BU_TRAP                 ok         rms 0.0068 peak 0.090 clipped      0
+ 597 SONG_BTL_BU_SAKU                 ok         rms 0.0104 peak 0.207 clipped      0
+ 598 SONG_BTL_BU_KAIFUKU              ok         rms 0.0091 peak 0.090 clipped      0
+ 599 SONG_BTL_BU_XAI                  ok         rms 0.0113 peak 0.148 clipped      0
+ 600 SONG_BTL_IRON_FOOTL              ok         rms 0.0082 peak 0.171 clipped      0
+ 601 SONG_BTL_IRON_FOOTR              ok         rms 0.0077 peak 0.167 clipped      0
+ 602 SONG_BTL_IRON_HIT00              ok         rms 0.0101 peak 0.226 clipped      0
+ 603 SONG_BTL_IRON_RUMB               ok         rms 0.0153 peak 0.332 clipped      0
+ 604 SONG_EF_STOP00                   ok         rms 0.0137 peak 0.262 clipped      0
+ 605 SONG_EF_STOP01                   ok         rms 0.0133 peak 0.196 clipped      0
+ 606 SONG_EF_STOP02                   ok         rms 0.0151 peak 0.252 clipped      0
+ 607 SONG_EF_RAPPA_CALL               ok         rms 0.0166 peak 0.132 clipped      0
+ 608 SONG_BTL_MON_HIT05               ok         rms 0.0113 peak 0.191 clipped      0  psg
+ 609 SONG_BTL_MON_HIT06               ok         rms 0.0112 peak 0.168 clipped      0  psg
+ 610 SONG_EF_BFG_GASS                 ok         rms 0.0126 peak 0.105 clipped      0  psg
+ 611 SONG_BTL_SR_SLIP                 ok         rms 0.0031 peak 0.031 clipped      0
+ 612 SONG_BTL_BW_PACHIN               ok         rms 0.0082 peak 0.165 clipped      0
+ 613 SONG_BTL_PK_TAIATA               ok         rms 0.0290 peak 0.404 clipped      0
+ 614 SONG_BTL_PK_BEEM                 ok         rms 0.0127 peak 0.228 clipped      0
+ 615 SONG_BTL_SWORDFLASH              ok         rms 0.0033 peak 0.132 clipped      0
+ 616 SONG_BTL_MON_SWORD04             ok         rms 0.0093 peak 0.140 clipped      0  psg
+ 617 SONG_BTL_IRONBREAK               ok         rms 0.0112 peak 0.182 clipped      0  psg
+ 618 SONG_BTL_IRON_GIMICBREAK         ok         rms 0.0147 peak 0.213 clipped      0
+ 619 SONG_BTL_GMIC_OK                 ok         rms 0.0143 peak 0.194 clipped      0  psg
+ 620 SONG_BTL_HA_IKARI                ok         rms 0.0108 peak 0.149 clipped      0  psg
+ 621 SONG_BTL_HA_BALLSHOT             ok         rms 0.0053 peak 0.114 clipped      0  psg
+ 622 SONG_EF_HA_FINGFIRE              ok         rms 0.0164 peak 0.255 clipped      0
+ 623 SONG_BTL_BE_ATT01                ok         rms 0.0110 peak 0.266 clipped      0
+ 624 SONG_BTL_BE_ATT02                ok         rms 0.0163 peak 0.214 clipped      0
+ 625 SONG_BTL_AN_STANDENTRY           ok         rms 0.0221 peak 0.218 clipped      0
+ 626 SONG_EF_AN_STANDUP               ok         rms 0.0132 peak 0.179 clipped      0
+ 627 SONG_EF_TLIMIT01                 ok         rms 0.0104 peak 0.266 clipped      0  psg
+ 628 SONG_EF_TLIMIT02                 ok         rms 0.0172 peak 0.309 clipped      0
+ 629 SONG_EF_TLIMIT03                 ok         rms 0.0132 peak 0.311 clipped      0
+ 630 SONG_EF_TLIMIT04                 ok         rms 0.0362 peak 0.315 clipped      0
+ 631 SONG_BTL_JF_UP                   ok         rms 0.0124 peak 0.097 clipped      0  psg
+ 632 SONG_BTL_JF_BALLTHR              ok         rms 0.0179 peak 0.224 clipped      0
+ 633 SONG_EF_JF_BALLHIT               ok         rms 0.0228 peak 0.361 clipped      0  psg
+ 634 SONG_EF_JF_BEEM                  ok         rms 0.0213 peak 0.301 clipped      0  psg
+ 635 SONG_EF_DBOSS_DEAD               ok         rms 0.0267 peak 0.335 clipped      0
+ 636 SONG_EF_RAGNA01                  ok         rms 0.0165 peak 0.256 clipped      0
+ 637 SONG_EF_RAGNA02                  ok         rms 0.0206 peak 0.379 clipped      0  psg
+ 638 SONG_EF_AN_WAVE                  ok         rms 0.0231 peak 0.340 clipped      0  psg
+ 639 SONG_BTL_AN_WAVEHIT              ok         rms 0.0077 peak 0.221 clipped      0
+ 640 SONG_BTL_UR_BUBBLE               ok         rms 0.0139 peak 0.296 clipped      0
+ 641 SONG_EF_UR_BUBBHIT               ok         rms 0.0071 peak 0.127 clipped      0  psg
+ 642 SONG_EF_UR_BEEM                  ok         rms 0.0329 peak 0.353 clipped      0  psg
+ 643 SONG_EF_STANIMP                  ok         rms 0.0224 peak 0.318 clipped      0
+ 644 SONG_EF_ZANTETSU                 ok         rms 0.0229 peak 0.330 clipped      0
+ 645 SONG_BTL_VIC_SWORDHIT            ok         rms 0.0122 peak 0.300 clipped      0  psg
+ 646 SONG_BTL_VIC_ICEP                ok         rms 0.0077 peak 0.117 clipped      0  psg
+ 647 SONG_BTL_VIC_GROUNDICE           ok         rms 0.0123 peak 0.213 clipped      0
+ 648 SONG_BTL_VIC_ICEFALL             ok         rms 0.0350 peak 0.160 clipped      0
+ 649 SONG_BTL_AKL_WTHR                ok         rms 0.0058 peak 0.122 clipped      0
+ 650 SONG_BTL_AKL_FIREENTRY           ok         rms 0.0167 peak 0.237 clipped      0  psg
+ 651 SONG_BTL_AKL_FIRETHR             ok         rms 0.0194 peak 0.211 clipped      0
+ 652 SONG_EF_MLC_SNICHIT              ok         rms 0.0107 peak 0.141 clipped      0  psg
+ 653 SONG_BTL_BANBIHIT                ok         rms 0.0145 peak 0.319 clipped      0
+ 654 SONG_EF_AKL_FIREWALL             ok         rms 0.0413 peak 0.218 clipped      0  psg
+ 655 SONG_BTL_RK_HIT00                ok         rms 0.0093 peak 0.197 clipped      0  psg
+ 656 SONG_BTL_RK_HIT01                ok         rms 0.0090 peak 0.201 clipped      0  psg
+ 657 SONG_BTL_RK_HIT02                ok         rms 0.0109 peak 0.206 clipped      0  psg
+ 658 SONG_BTL_RK_HIT03                ok         rms 0.0121 peak 0.242 clipped      0  psg
+ 659 SONG_EF_SHOCFLOR                 ok         rms 0.0240 peak 0.352 clipped      0  psg
+ 660 SONG_EF_XMAS                     ok         rms 0.0141 peak 0.169 clipped      0
+ 661 SONG_EF_TELER                    ok         rms 0.0152 peak 0.324 clipped      0  psg
+ 662 SONG_EF_HOLLY                    ok         rms 0.0248 peak 0.230 clipped      0
+ 663 SONG_EF_SYNC1                    ok         rms 0.0201 peak 0.180 clipped      0
+ 664 SONG_EF_SYNC2                    ok         rms 0.0140 peak 0.267 clipped      0  psg
+ 665 SONG_EF_BIND                     ok         rms 0.0145 peak 0.222 clipped      0  psg
+ 666 SONG_EF_TRUNEDO                  ok         rms 0.0502 peak 0.185 clipped      0  psg
+ 667 SONG_EF_KUEIK                    ok         rms 0.0179 peak 0.224 clipped      0  psg
+ 668 SONG_EF_TELEP                    ok         rms 0.0086 peak 0.162 clipped      0
+ 669 SONG_EF_DRHEET                   ok         rms 0.0251 peak 0.303 clipped      0  psg
+ 670 SONG_BTL_RK_LIMITENTRY           ok         rms 0.0115 peak 0.216 clipped      0
+ 671 SONG_EF_RK_LIMITMOV              ok         rms 0.0090 peak 0.200 clipped      0  psg
+ 672 SONG_EF_VIC_ICEBREAK             ok         rms 0.0181 peak 0.297 clipped      0
+ 673 SONG_EF_RAC_BEEMENTRY            ok         rms 0.0080 peak 0.115 clipped      0  psg
+ 674 SONG_EF_RAC_BEEM                 ok         rms 0.0359 peak 0.215 clipped      0  psg
+ 675 SONG_BTL_RAC_HIT                 ok         rms 0.0080 peak 0.177 clipped      0
+ 676 SONG_EF_RAC_3TR                  ok         rms 0.0062 peak 0.154 clipped      0
+ 677 SONG_BTL_DRGN_BITE               ok         rms 0.0095 peak 0.217 clipped      0  psg
+ 678 SONG_EF_DRGN_FIRE                ok         rms 0.0189 peak 0.223 clipped      0  psg
+ 679 SONG_BTL_DRGN_RUMB               ok         rms 0.0130 peak 0.196 clipped      0
+ 680 SONG_BTL_DRGN_GIMIC              ok         rms 0.0130 peak 0.280 clipped      0
+ 681 SONG_BTL_MARL_STAMP              ok         rms 0.0069 peak 0.162 clipped      0
+ 682 SONG_EF_MARL_GROUND              ok         rms 0.0178 peak 0.219 clipped      0  psg
+ 683 SONG_BTL_MARL_GROUNDHIT          ok         rms 0.0082 peak 0.241 clipped      0
+ 684 SONG_EF_MARL_KAMAEF              ok         rms 0.0162 peak 0.257 clipped      0
+ 685 SONG_BTL_MARL_EFEHIT             ok         rms 0.0079 peak 0.116 clipped      0  psg
+ 686 SONG_EF_MARL_HANABIRA            ok         rms 0.0207 peak 0.260 clipped      0
+ 687 SONG_BTL_ETC_HIT05               ok         rms 0.0101 peak 0.237 clipped      0
+ 688 SONG_BTL_LEC_HIT                 ok         rms 0.0065 peak 0.143 clipped      0
+ 689 SONG_BTL_LEC_THRSW               ok         rms 0.0146 peak 0.259 clipped      0
+ 690 SONG_BTL_LEC_THR                 ok         rms 0.0088 peak 0.187 clipped      0
+ 691 SONG_BTL_LEC_THRHIT              ok         rms 0.0075 peak 0.193 clipped      0
+ 692 SONG_BTL_LEC_WEPUP               ok         rms 0.0074 peak 0.167 clipped      0
+ 693 SONG_BTL_HA_FIREENTRY            ok         rms 0.0108 peak 0.147 clipped      0  psg
+ 694 SONG_BTL_LEC_ROCKB1              ok         rms 0.0178 peak 0.241 clipped      0  psg
+ 695 SONG_BTL_LEC_ROCKB2              ok         rms 0.0151 peak 0.204 clipped      0
+ 696 SONG_BTL_LEC_JMPKUEIKU           ok         rms 0.0187 peak 0.274 clipped      0  psg
+ 697 SONG_EF_AIRO                     ok         rms 0.0215 peak 0.250 clipped      0  psg
+ 698 SONG_EF_AIRO_HIT                 ok         rms 0.0204 peak 0.275 clipped      0  psg
+ 699 SONG_EF_DS_ANKOKUPUNCH           ok         rms 0.0072 peak 0.208 clipped      0
+ 700 SONG_EF_DS_BEEM                  ok         rms 0.0255 peak 0.297 clipped      0  psg
+ 701 SONG_SND_701                     ok         rms 0.0185 peak 0.285 clipped      0
+ 702 SONG_SND_702                     ok         rms 0.0212 peak 0.297 clipped      0
+ 703 SONG_SND_703                     ok         rms 0.0034 peak 0.130 clipped      0
+ 704 SONG_SND_704                     ok         rms 0.0159 peak 0.283 clipped      0
+ 705 SONG_SND_705                     ok         rms 0.0217 peak 0.352 clipped      0  psg
+ 706 SONG_SND_706                     ok         rms 0.0184 peak 0.317 clipped      0  psg
+ 707 SONG_SND_707                     ok         rms 0.0141 peak 0.282 clipped      0  psg
+ 708 SONG_SND_708                     ok         rms 0.0050 peak 0.161 clipped      0
+ 709 SONG_SND_709                     ok         rms 0.0107 peak 0.214 clipped      0
+ 710 SONG_SND_710                     ok         rms 0.0105 peak 0.187 clipped      0  psg
+ 711 SONG_SND_711                     ok         rms 0.0124 peak 0.145 clipped      0
+ 712 SONG_SND_712                     ok         rms 0.0085 peak 0.159 clipped      0
+ 713 SONG_SND_713                     ok         rms 0.0319 peak 0.238 clipped      0
+ 714 SONG_SND_714                     ok         rms 0.0040 peak 0.113 clipped      0
+ 715 SONG_SND_715                     ok         rms 0.0085 peak 0.130 clipped      0
+ 716 SONG_SND_716                     ok         rms 0.0064 peak 0.135 clipped      0
+ 717 SONG_SND_717                     ok         rms 0.0163 peak 0.210 clipped      0  psg
+ 718 SONG_SND_718                     ok         rms 0.0301 peak 0.268 clipped      0  psg
+ 719 SONG_SND_719                     ok         rms 0.0200 peak 0.226 clipped      0  psg
+ 720 SONG_SND_720                     ok         rms 0.0086 peak 0.142 clipped      0  psg
+ 721 SONG_SND_721                     ok         rms 0.0065 peak 0.060 clipped      0  psg
+ 722 SONG_SND_722                     silent     rms 0.0000 peak 0.000 clipped      0
+ 723 SONG_SND_723                     silent     rms 0.0000 peak 0.000 clipped      0
+ 724 SONG_SND_724                     silent     rms 0.0000 peak 0.000 clipped      0
+ 725 SONG_SND_725                     silent     rms 0.0000 peak 0.000 clipped      0
+ 726 SONG_SND_726                     silent     rms 0.0000 peak 0.000 clipped      0
+ 727 SONG_SND_727                     silent     rms 0.0000 peak 0.000 clipped      0
+ 728 SONG_SND_728                     silent     rms 0.0000 peak 0.000 clipped      0
+ 729 SONG_SND_729                     silent     rms 0.0000 peak 0.000 clipped      0
+ 730 SONG_SND_730                     silent     rms 0.0000 peak 0.000 clipped      0
+ 900 SONG_EV_SR_DIRTL                 ok         rms 0.0020 peak 0.175 clipped      0
+ 901 SONG_EV_SR_DIRTR                 ok         rms 0.0027 peak 0.177 clipped      0
+ 902 SONG_EV_SR_DIRTJP                ok         rms 0.0026 peak 0.133 clipped      0
+ 903 SONG_EV_SR_DIRTLD                ok         rms 0.0018 peak 0.173 clipped      0
+ 904 SONG_EV_SR_STONEL                ok         rms 0.0013 peak 0.087 clipped      0
+ 905 SONG_EV_SR_STONER                ok         rms 0.0021 peak 0.180 clipped      0
+ 906 SONG_EV_SR_STONEJP               ok         rms 0.0027 peak 0.152 clipped      0
+ 907 SONG_EV_SR_STONELD               ok         rms 0.0012 peak 0.107 clipped      0
+ 908 SONG_EV_SR_MUDL                  ok         rms 0.0007 peak 0.070 clipped      0
+ 909 SONG_EV_SR_MUDR                  ok         rms 0.0008 peak 0.053 clipped      0
+ 910 SONG_EV_SR_MUDJP                 ok         rms 0.0015 peak 0.107 clipped      0
+ 911 SONG_EV_SR_MUDLD                 ok         rms 0.0008 peak 0.051 clipped      0
+ 912 SONG_EV_DL_STONE_L               ok         rms 0.0019 peak 0.125 clipped      0
+ 913 SONG_EV_DL_STONE_R               ok         rms 0.0015 peak 0.141 clipped      0
+ 914 SONG_EV_GF_STONE_L               ok         rms 0.0033 peak 0.180 clipped      0
+ 915 SONG_EV_GF_STONE_R               ok         rms 0.0032 peak 0.180 clipped      0
+ 916 SONG_EV_DL_DIRTL                 ok         rms 0.0023 peak 0.178 clipped      0
+ 917 SONG_EV_DL_DIRTR                 ok         rms 0.0032 peak 0.162 clipped      0
+ 918 SONG_EV_GF_DIRTL                 ok         rms 0.0027 peak 0.178 clipped      0
+ 919 SONG_EV_GF_DIRTR                 ok         rms 0.0029 peak 0.178 clipped      0
+ 920 SONG_EV_DL_MUDL                  ok         rms 0.0019 peak 0.180 clipped      0
+ 921 SONG_EV_DL_MUDR                  ok         rms 0.0017 peak 0.180 clipped      0
+ 922 SONG_EV_GF_MUDL                  ok         rms 0.0024 peak 0.178 clipped      0
+ 923 SONG_EV_GF_MUDR                  ok         rms 0.0029 peak 0.161 clipped      0
+ 924 SONG_EV_PI_FOOTL                 ok         rms 0.0041 peak 0.162 clipped      0
+ 925 SONG_EV_PI_FOOTR                 ok         rms 0.0024 peak 0.102 clipped      0
+ 926 SONG_SYS_POO_FOOTL               ok         rms 0.0015 peak 0.125 clipped      0
+ 927 SONG_SYS_POO_FOOTR               ok         rms 0.0017 peak 0.125 clipped      0
+ 928 SONG_EV_MAN_DIRTL                ok         rms 0.0025 peak 0.141 clipped      0
+ 929 SONG_EV_MAN_DIRTR                ok         rms 0.0017 peak 0.081 clipped      0
+ 930 SONG_EV_MAN_STONEL               ok         rms 0.0020 peak 0.215 clipped      0
+ 931 SONG_EV_MAN_STONER               ok         rms 0.0019 peak 0.215 clipped      0
+ 932 SONG_EV_MAN_MUDL                 ok         rms 0.0012 peak 0.109 clipped      0
+ 933 SONG_EV_MAN_MUDR                 ok         rms 0.0014 peak 0.105 clipped      0
+ 934 SONG_EV_MAN_WOODL                ok         rms 0.0034 peak 0.178 clipped      0
+ 935 SONG_EV_MAN_WOODR                ok         rms 0.0032 peak 0.178 clipped      0
+ 936 SONG_EV_MAN_MARBLEL              ok         rms 0.0011 peak 0.127 clipped      0
+ 937 SONG_EV_MAN_MARBLER              ok         rms 0.0017 peak 0.127 clipped      0
+ 938 SONG_EV_MAN2_DIRTL               ok         rms 0.0032 peak 0.127 clipped      0
+ 939 SONG_EV_MAN2_DIRTR               ok         rms 0.0024 peak 0.127 clipped      0
+ 940 SONG_EV_MAN2_STONEL              ok         rms 0.0024 peak 0.180 clipped      0
+ 941 SONG_EV_MAN2_STONER              ok         rms 0.0028 peak 0.178 clipped      0
+ 942 SONG_EV_WOMAN_DIRT_L             ok         rms 0.0012 peak 0.091 clipped      0
+ 943 SONG_EV_WOMAN_DIRT_R             ok         rms 0.0010 peak 0.092 clipped      0
+ 944 SONG_EV_WOMAN_STONEL             ok         rms 0.0017 peak 0.180 clipped      0
+ 945 SONG_EV_WOMAN_STONER             ok         rms 0.0017 peak 0.180 clipped      0
+ 946 SONG_EV_MAN_RMARBLEL             ok         rms 0.0011 peak 0.127 clipped      0
+ 947 SONG_EV_MAN_RMARBLER             ok         rms 0.0017 peak 0.127 clipped      0
+ 948 SONG_EV_WOMAN_RSTONEL            ok         rms 0.0017 peak 0.180 clipped      0
+ 949 SONG_EV_WOMAN_RSTONER            ok         rms 0.0017 peak 0.180 clipped      0
+ 950 SONG_EV_WOMAN2_DIRTL             ok         rms 0.0016 peak 0.131 clipped      0
+ 951 SONG_EV_WOMAN2_DIRTR             ok         rms 0.0014 peak 0.121 clipped      0
+ 952 SONG_SYS_TIGGER_JP               ok         rms 0.0064 peak 0.180 clipped      0
+ 953 SONG_SYS_LU_JP                   ok         rms 0.0016 peak 0.111 clipped      0
+ 954 SONG_SND_954                     ok         rms 0.0020 peak 0.141 clipped      0
+ 955 SONG_SND_955                     ok         rms 0.0018 peak 0.141 clipped      0
+ 956 SONG_SND_956                     ok         rms 0.0030 peak 0.137 clipped      0
+ 957 SONG_SND_957                     ok         rms 0.0029 peak 0.140 clipped      0
+ 958 SONG_SND_958                     ok         rms 0.0018 peak 0.167 clipped      0
+ 959 SONG_SND_959                     ok         rms 0.0022 peak 0.167 clipped      0
+ 960 SONG_SND_960                     ok         rms 0.0052 peak 0.148 clipped      0
+ 961 SONG_SND_961                     ok         rms 0.0038 peak 0.246 clipped      0
+ 962 SONG_SND_962                     silent     rms 0.0000 peak 0.000 clipped      0
+ 963 SONG_SND_963                     silent     rms 0.0000 peak 0.000 clipped      0
+ 964 SONG_SND_964                     silent     rms 0.0000 peak 0.000 clipped      0
+ 965 SONG_SND_965                     silent     rms 0.0000 peak 0.000 clipped      0
+ 966 SONG_SND_966                     silent     rms 0.0000 peak 0.000 clipped      0
+ 967 SONG_SND_967                     silent     rms 0.0000 peak 0.000 clipped      0
+ 968 SONG_SND_968                     silent     rms 0.0000 peak 0.000 clipped      0
+ 969 SONG_SND_969                     silent     rms 0.0000 peak 0.000 clipped      0
+ 970 SONG_SND_970                     silent     rms 0.0000 peak 0.000 clipped      0
