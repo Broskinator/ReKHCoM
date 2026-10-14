@@ -752,18 +752,26 @@ static void DrawSkipPrompt(int l) {
 /* The state / slot notice, on a layer of its own above everything else (the
    presenter draws it last, at the window's scale): like the app's own HUD.
    Returns the width in GBA pixels, 0 when there is no notice. */
-int PortUiDrawNotice(uint32_t* frame, int width, int height) {
-    int w;
+static char sFpsText[48];
 
-    if (sNoticeFrames <= 0)
+void PortUiSetFps(float fps, float logic) {
+    SDL_snprintf(sFpsText, sizeof(sFpsText), "%.1f FPS   %.1f Hz", fps, logic);
+}
+
+int PortUiDrawNotice(uint32_t* frame, int width, int height) {
+    const char* text = sNotice;
+
+    if (sNoticeFrames > 0)
+        sNoticeFrames--;
+    else if (gPortConfig.showFps)
+        text = sFpsText;
+    else
         return 0;
-    sNoticeFrames--;
     sFb = frame;
     sFbW = width;
     sFbH = height;
-    w = SDL_min(TextWidth(sNotice) + 26, width);
-    MenuButton(3, 2, sNotice, 0);
-    return w;
+    MenuButton(3, 2, text, 0);
+    return SDL_min(TextWidth(text) + 26, width);
 }
 
 /* ---- the options screen, in the style of the cartridge's debug menu --------

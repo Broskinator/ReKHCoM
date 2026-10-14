@@ -7,6 +7,8 @@ void PortUiInit(void);
 /* Draw overlays (options menu, notices) on top of the finished frame. */
 void PortUiDraw(uint32_t* frame, int width, int height);
 int PortUiDrawNotice(uint32_t* frame, int width, int height);
+/* The FPS readout (show_fps), drawn on the notice layer while no notice is up. */
+void PortUiSetFps(float fps, float logic);
 /* Returns non-zero when the event was consumed by the UI. */
 int PortUiHandleEvent(const void* sdlEvent);
 /* Non-zero while an overlay owns the input. */

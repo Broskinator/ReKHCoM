@@ -650,6 +650,7 @@ static void Present(void) {
         int nw;
 
         memset(sNoticeBuf, 0, sizeof(sNoticeBuf));
+        PortUiSetFps(sFps, sLogicFps);
         nw = PortUiDrawNotice(sNoticeBuf, 256, 14);
         if (nw > 0) {
             float f = SDL_max(1.0f, SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W));
@@ -668,14 +669,6 @@ static void Present(void) {
                 SDL_RenderTexture(sRenderer, sNoticeTex, &src, &nd);
             }
         }
-    }
-    if (gPortConfig.showFps) {
-        char text[48];
-        SDL_snprintf(text, sizeof(text), "%.1f FPS  logic %.1f", sFps, sLogicFps);
-        SDL_SetRenderDrawColor(sRenderer, 255, 255, 0, 255);
-        SDL_SetRenderScale(sRenderer, 2.0f, 2.0f);
-        SDL_RenderDebugText(sRenderer, 4, 4, text);
-        SDL_SetRenderScale(sRenderer, 1.0f, 1.0f);
     }
     {
         /* KHCOM_OUTPUT_SHOT=frames: save the presented window image. */
