@@ -7,7 +7,7 @@ A native PC port of the Game Boy Advance game: the decompiled code runs as
 a real Windows program, with its own renderer, audio and launcher, in 16:9
 and at the cartridge's exact speed (59.7275 Hz).
 
-**Current prerelease: [v0.8](https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v0.8)**
+**[Downloads and releases](https://github.com/MatyMeatBoy/ReKHCom/releases)**
 (Windows x86). Works with the **European, US and Japanese** cartridges, in all
 five European languages, English (US) and Japanese.
 
