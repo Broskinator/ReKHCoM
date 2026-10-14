@@ -278,12 +278,13 @@ void PortHdHudDrawLabel(SDL_Renderer* renderer, int width, int height) {
 
 /* Palette-matched HD fill: interpolate native highlight/body/shadow rows at
    output resolution, keeping the cartridge's exact visible shape and ratio. */
-void PortHdHudDrawBar(SDL_Renderer* renderer, int width, int height) {
+static void DrawVitalityBar(SDL_Renderer* renderer, int width, int height, int player) {
     int rect[4], line, lines;
     uint32_t rows[32];
     float scale = (float)gPortHudScale;
     float ox = (width - gPortHudW * scale) * 0.5f, oy = (height - gPortHudH * scale) * 0.5f;
-    if (!gPortConfig.hdHud || !scale || PortUiActive() || !PortPpuEnemyHudBar(rect, rows)) return;
+    if (!gPortConfig.hdHud || !scale || PortUiActive() ||
+        !(player ? PortPpuPlayerHudBar(rect, rows) : PortPpuEnemyHudBar(rect, rows))) return;
     lines = (int)((rect[3] - rect[1] + 1) * scale);
     for (line = 0; line < lines; line++) {
         float y = rect[1] + line / scale;
@@ -296,15 +297,20 @@ void PortHdHudDrawBar(SDL_Renderer* renderer, int width, int height) {
         SDL_SetRenderDrawColor(renderer, r, g, blue, 255);
         while (x <= rect[2]) {
             int start;
-            while (x <= rect[2] && !PortPpuEnemyHudBarVisible(x, ya)) x++;
+            while (x <= rect[2] && !(player ? PortPpuPlayerHudBarVisible(x, ya) : PortPpuEnemyHudBarVisible(x, ya))) x++;
             start = x;
-            while (x <= rect[2] && PortPpuEnemyHudBarVisible(x, ya)) x++;
+            while (x <= rect[2] && (player ? PortPpuPlayerHudBarVisible(x, ya) : PortPpuEnemyHudBarVisible(x, ya))) x++;
             if (x > start) {
                 SDL_FRect row = {ox + start * scale, oy + rect[1] * scale + line, (x - start) * scale, 1};
                 SDL_RenderFillRect(renderer, &row);
             }
         }
     }
+}
+
+void PortHdHudDrawBar(SDL_Renderer* renderer, int width, int height) {
+    DrawVitalityBar(renderer, width, height, 0);
+    DrawVitalityBar(renderer, width, height, 1);
 }
 
 void PortHdHudDraw(SDL_Renderer* renderer, int width, int height) {

@@ -10,6 +10,8 @@ Each graphics family contributes one eighth of the preliminary graphics bar:
 
 - [x] Enemy HP pilot: PNG frame/letters, native bounds, palette gradient fill.
 - [ ] Player HP frame(s), including extra bars.
+  Native-driven smooth live fill is implemented; complete generated frame,
+  secondary layers and damage/healing state coverage remain pending.
 - [ ] Player portraits and portrait surround (Sora/Riku, expression states).
 - [ ] Card frames and card face/icon artwork.
 - [ ] Reload gauge/counter and related prompts.

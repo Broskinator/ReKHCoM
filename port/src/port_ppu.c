@@ -288,6 +288,22 @@ static uint8_t* sEnemyBarMask;
 static size_t sEnemyBarMaskSize;
 static int sEnemyBarRect[4], sEnemyBarSlot;
 static uint32_t sEnemyBarRows[32];
+static uint8_t* sPlayerBarMask;
+static size_t sPlayerBarMaskSize;
+static int sPlayerBarRect[4], sPlayerBarSlot;
+static uint32_t sPlayerBarRows[32];
+int PortPpuPlayerHudBar(int* rect, uint32_t* rows) {
+    if (sPlayerBarRect[2] < sPlayerBarRect[0]) return 0;
+    memcpy(rect, sPlayerBarRect, sizeof(sPlayerBarRect));
+    memcpy(rows, sPlayerBarRows, sizeof(sPlayerBarRows));
+    return 1;
+}
+int PortPpuPlayerHudBarVisible(int x, int y) {
+    int front;
+    if (!sPlayerBarMask || !sHudDigitOwners || x < 0 || y < 0 || x >= gPortHudW || y >= 32) return 0;
+    front = sHudDigitOwners[y * gPortHudW + x];
+    return sPlayerBarMask[y * gPortHudW + x] && (front == 0 || front >= sPlayerBarSlot + 1);
+}
 int PortPpuEnemyHudBar(int* rect, uint32_t* rows) {
     if (sEnemyBarRect[2] < sEnemyBarRect[0]) return 0;
     memcpy(rect, sEnemyBarRect, sizeof(sEnemyBarRect));
@@ -2068,6 +2084,15 @@ void PortPpuRenderHud(uint32_t* buf) {
     sEnemyLabelRect[2] = sEnemyLabelRect[3] = -1;
     sEnemyLabelColor = 0;
     sEnemyBarRect[0] = w; sEnemyBarRect[1] = h;
+    sPlayerBarRect[0] = w; sPlayerBarRect[1] = h;
+    sPlayerBarRect[2] = sPlayerBarRect[3] = -1;
+    memset(sPlayerBarRows, 0, sizeof(sPlayerBarRows));
+    if (gPortConfig.hdHud && (size_t)w * 32 > sPlayerBarMaskSize) {
+        uint8_t* mask = realloc(sPlayerBarMask, (size_t)w * 32);
+        if (mask) { sPlayerBarMask = mask; sPlayerBarMaskSize = (size_t)w * 32; }
+    }
+    if (sPlayerBarMask && (size_t)w * 32 <= sPlayerBarMaskSize)
+        memset(sPlayerBarMask, 0, (size_t)w * 32);
     sEnemyBarRect[2] = sEnemyBarRect[3] = -1;
     memset(sEnemyBarRows, 0, sizeof(sEnemyBarRows));
     sHudDigitCount = 0;
@@ -2176,6 +2201,14 @@ void PortPpuRenderHud(uint32_t* buf) {
                 if (col < 0)
                     continue;
                 digitInk = digit && ((col & 31) >= 22 || ((col >> 5) & 31) >= 22 || ((col >> 10) & 31) >= 22);
+                if (gPortConfig.hdHud && tag->hdHudPart == 4 && py < 32 && sPlayerBarMask &&
+                    (size_t)w * 32 <= sPlayerBarMaskSize && sHudDigitOwners && (size_t)w * h <= sHudDigitOwnerSize) {
+                    int r = col & 31, g = (col >> 5) & 31, b = (col >> 10) & 31;
+                    int high = r > g ? r : g, low = r < g ? r : g;
+                    if (b > high) high = b;
+                    if (b < low) low = b;
+                    barInk = high - low > 3;
+                }
                 if (gPortConfig.hdHud && tag->hdHudPart == 3 && sEnemyBarMask && sHudDigitOwners && py < 32 &&
                     (size_t)w * h <= sEnemyBarMaskSize && (size_t)w * h <= sHudDigitOwnerSize) {
                     int r = col & 31, g = (col >> 5) & 31, b = (col >> 10) & 31;
@@ -2233,6 +2266,16 @@ void PortPpuRenderHud(uint32_t* buf) {
                 }
                 argb = sColorLut[col];
                 if (barInk) {
+                    if (tag->hdHudPart == 4) {
+                        sPlayerBarMask[py * w + px] = 1;
+                        sPlayerBarSlot = i;
+                        if (px < sPlayerBarRect[0]) sPlayerBarRect[0] = px;
+                        if (py < sPlayerBarRect[1]) sPlayerBarRect[1] = py;
+                        if (px > sPlayerBarRect[2]) sPlayerBarRect[2] = px;
+                        if (py > sPlayerBarRect[3]) sPlayerBarRect[3] = py;
+                        sPlayerBarRows[py] = argb;
+                        continue;
+                    }
                     sEnemyBarMask[py * w + px] = 1;
                     sEnemyBarSlot = i;
                     if (px < sEnemyBarRect[0]) sEnemyBarRect[0] = px;

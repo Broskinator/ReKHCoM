@@ -16,6 +16,9 @@
 #include "taskpool.h"
 #include "types.h"
 #include "engine.h"
+#ifdef PLATFORM_PC
+#include "port/port.h"
+#endif
 #include <stddef.h>
 #include "sprite_palettes.h"
 #include "engine_math.h"
@@ -408,6 +411,9 @@ void task_btl_hpply_2(BtlHpplyWork* work) {
     scale *= 2;
 
     if (work->displayHp > 0) {
+#ifdef PLATFORM_PC
+        gPortHdHudPart = PortHdHudEnemy(1, 0, 0) ? 4 : 0;
+#endif
         if (scale <= 9) {
             scale = 10;
         }
@@ -423,6 +429,9 @@ void task_btl_hpply_2(BtlHpplyWork* work) {
         } else {
             DrawSprite(31, 6, gBHpgagFrame0, work->tiles4, work->palette2, affine, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 2);
         }
+#ifdef PLATFORM_PC
+        gPortHdHudPart = 0;
+#endif
     }
 }
 

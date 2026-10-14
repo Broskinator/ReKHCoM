@@ -187,6 +187,8 @@ int PortHdHudLettersReady(void);
 int PortPpuEnemyHudLabel(int* rect, uint32_t* color);
 int PortPpuEnemyHudBar(int* rect, uint32_t* rows);
 int PortPpuEnemyHudBarVisible(int x, int y);
+int PortPpuPlayerHudBar(int* rect, uint32_t* rows);
+int PortPpuPlayerHudBarVisible(int x, int y);
 int PortQolButtons(void);
 void PortSetQolButtons(int on);
 int PortVideoListModes(int* w, int* h, int max);

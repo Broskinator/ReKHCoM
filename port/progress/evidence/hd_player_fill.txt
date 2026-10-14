@@ -1,0 +1,23 @@
+14 October 2026 — native-driven player HP smooth fill preliminary
+
+Native DrawSprite live HP path in btl_hpply tags the affine fill object.
+PPU captures visible coloured pixels, actual palette rows, OAM ownership and
+native bounds after the game's HP interpolation/affine scale. Presenter
+interpolates the palette rows at output resolution over exactly that mask.
+No HP value or ratio is recomputed in the HD renderer. Player portrait and
+frame remain native pending full-assembly alignment. Additional blue/static
+life layers remain native; this does not complete the full player HUD.
+
+PASS test_hd_hud.py at frames180/380: EU Sora, EU Riku, US Sora, JP Sora.
+Player and enemy green-fill position sets identical to original rendering.
+Missing-pack vs disabled captures identical. Original-view enabled/disabled
+captures identical. All three regions compile. No user save/config changed.
+
+Damage/healing states, empty HP, extra layers and long-run performance remain
+unverified. Do not count this smoke as full HUD validation.
+
+Reproduce (sequential):
+python port/tools/test_hd_hud.py --version eu --build build/cx-eu --reuse-build
+python port/tools/test_hd_hud.py --version eu --build build/cx-eu --riku --reuse-build
+python port/tools/test_hd_hud.py --version us --build build/cx-us --reuse-build
+python port/tools/test_hd_hud.py --version jp --build build/cx-jp --reuse-build
