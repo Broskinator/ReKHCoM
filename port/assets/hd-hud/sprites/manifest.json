@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "pieces": [
+    {
+      "id": "kingdom-key-card-face",
+      "source_hash": "8e08863da15d6f89",
+      "native_size": [
+        32,
+        32
+      ],
+      "family": "card-art",
+      "file": "../drafts/card-keyblade-gradient-v2.png",
+      "notes": "Pending: keep approved weapon shape, correct handle shading without changing geometry, retain blue gradient; exterior alpha cleanup needed.",
+      "status": "pending-style-review"
+    }
+  ]
+}

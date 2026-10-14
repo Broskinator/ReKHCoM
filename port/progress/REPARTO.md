@@ -24,6 +24,10 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 
 ## Reparto actual (14/10, tarde) — todas las barras al 100 %
 
+Coordinación vigente por petición del usuario: Codex trabaja en el HUD HD y
+deja commits locales con evidencia; solo Claude integra, pushea y actualiza
+las releases. Prioridad del HUD: preliminar completo antes del ajuste fino.
+
 | Quién | Trabajo |
 |---|---|
 | Claude, junto con el usuario | Las 17 ventanas con márgenes laterales, una por una con su revisión (lista abajo). Base: las versiones de la mañana del 14/10; solo mejoras puntuales. |

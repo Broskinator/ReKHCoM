@@ -193,6 +193,18 @@ def decompui(n, toolchain, sdl_arch, debug):
                 variables={"in_win": str(source), "out_win": str(BUILD / "assets/hd-hud/pilot" / name),
                            "dir_win": str(BUILD / "assets/hd-hud/pilot")})
         labels.append(target)
+    # Only reviewed generated pieces enter build/runtime asset folders.
+    sys.path.insert(0, str(ROOT / "port/tools"))
+    from review_hd_hud import approved_pieces
+    manifest = ROOT / "port/assets/hd-hud/sprites/manifest.json"
+    if manifest.is_file():
+        for piece in approved_pieces(manifest):
+            source = manifest.parent / piece["file"]
+            target = "$builddir/assets/hd-hud/sprites/" + piece["file"]
+            n.build(target, "copy_asset", rel(source),
+                    variables={"in_win": str(source), "out_win": str(BUILD / "assets/hd-hud/sprites" / piece["file"]),
+                               "dir_win": str(BUILD / "assets/hd-hud/sprites")})
+            labels.append(target)
     return ["$builddir/ReKHCoM.exe", "$builddir/assets/boxart.jpg", "$builddir/assets/logo.png",
             "$builddir/assets/hd-hud/pilot/enemy-hp-frame-v2.png",
             "$builddir/assets/fonts/KHMenu.otf",

@@ -336,6 +336,12 @@ int PortPpuHudDigitVisible(int digit, int x, int y) {
     front = sHudDigitOwners[y * gPortHudW + x];
     return front == 0 || front >= sHudDigits[digit].slot + 1;
 }
+int PortPpuHudSpriteVisible(int slot, int x, int y) {
+    int front;
+    if (!sHudDigitOwners || x<0 || y<0 || x>=gPortHudW || y>=gPortHudH) return 0;
+    front=sHudDigitOwners[y*gPortHudW+x];
+    return front != 0 && front >= slot+1;
+}
 static int sEnemyHudRect[4]; /* left, top, right, bottom in HUD pixels */
 static int sEnemyLabelRect[4];
 static uint32_t sEnemyLabelColor;
@@ -2136,6 +2142,7 @@ void PortPpuRenderHud(uint32_t* buf) {
     int i;
 
     sEnemyHudRect[0] = w; sEnemyHudRect[1] = h;
+    PortHdHudSpriteBegin();
     sEnemyHudRect[2] = sEnemyHudRect[3] = -1;
     sEnemyLabelRect[0] = w; sEnemyLabelRect[1] = h;
     sEnemyLabelRect[2] = sEnemyLabelRect[3] = -1;
@@ -2182,6 +2189,8 @@ void PortPpuRenderHud(uint32_t* buf) {
         int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
         const SpriteTag* tag = &sOamTag[i];
         PortHudDigit* digit = NULL;
+        uint32_t* rawHud = NULL;
+        int hdSprite = 0;
 
         if (!tag->hud || (!affine && dbl) || shape == 3 || mode >= 2 ||
             (HdTextGlyph(i) && tag->style != 2))
@@ -2201,6 +2210,7 @@ void PortPpuRenderHud(uint32_t* buf) {
         }
         {
             uint32_t* reference = PortHdHudExportBuffer();
+            rawHud = reference;
             if (reference) {
                 int xx, yy;
                 for (yy = 0; yy < oh; yy++) for (xx = 0; xx < ow; xx++) {
@@ -2225,6 +2235,10 @@ void PortPpuRenderHud(uint32_t* buf) {
         hy = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) : yg + (h - GBA_SCREEN_H) / 2);
         if (tag->ay > 0)
             hy -= HudRaise();
+        if (!affine && !tag->hdHudPart && !tag->digit && sHudDigitOwners &&
+            (size_t)w*h <= sHudDigitOwnerSize)
+            hdSprite = PortHdHudSpriteRegister(rawHud, ow, oh, i, hx, hy,
+                ((a1 & 0x1000) ? 1 : 0) | ((a1 & 0x2000) ? 2 : 0), mode == 1 ? 0xA0 : 255);
         {
             const char* frame = getenv("KHCOM_HUD_LAYOUT");
             if (frame && (uint32_t)atoi(frame) == PortFrameCount())
@@ -2293,6 +2307,7 @@ void PortPpuRenderHud(uint32_t* buf) {
                 }
                 if (gPortConfig.hdHud && sHudDigitOwners && (size_t)w * h <= sHudDigitOwnerSize)
                     sHudDigitOwners[py * w + px] = i + 1;
+                if (hdSprite) continue;
                 if (tag->hdHudPart == 5 && px >= 31 && PortHdHudPlayerFrameReady()) {
                     int r = col & 31, g = (col >> 5) & 31, b = (col >> 10) & 31;
                     int high = r > g ? r : g, low = r < g ? r : g;

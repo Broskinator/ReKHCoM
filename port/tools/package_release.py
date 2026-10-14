@@ -54,6 +54,11 @@ def main():
     for source in files.values():
         if not source.is_file():
             parser.error(f"missing package input: {source}")
+    from review_hd_hud import approved_pieces
+    manifest = ROOT / "port/assets/hd-hud/sprites/manifest.json"
+    if manifest.is_file():
+        for piece in approved_pieces(manifest):
+            files["assets/hd-hud/sprites/" + piece["file"]] = manifest.parent / piece["file"]
     args.out.mkdir(parents=True, exist_ok=True)
     archive = args.out / f"ReKHCoM-{args.version}-windows-x86.zip"
     prefix = archive.stem

@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--build", type=Path, required=True)
     parser.add_argument("--riku", action="store_true")
     parser.add_argument("--reuse-build", action="store_true", help="read the isolated build executable without duplicating it")
+    parser.add_argument("--sprite-probe", action="store_true", help="exercise content-keyed loading using a known transparent generated test texture")
     parser.add_argument("--language", default="es", choices=("en", "fr", "de", "it", "es"))
     args = parser.parse_args()
     build = args.build.resolve()
@@ -36,6 +37,11 @@ def main():
         d.mkdir()
         if pack:
             shutil.copytree(ROOT / "port/assets", d / "assets")
+            if args.sprite_probe:
+                target = d / 'assets/hd-hud/sprites/8e08863da15d6f89.png'
+                target.parent.mkdir(parents=True, exist_ok=True)
+                # Deliberate test placeholder, never committed as card artwork.
+                shutil.copy2(ROOT / 'port/assets/hd-hud/pilot/label-vt-v2.png', target)
         (d / "kh_com.ini").write_text(f"config_version=2\nwindow_scale=4\nvsync=0\nview_mode={0 if original else 4}\nhd_hud={enabled}\n")
         env = dict(os.environ, SDL_VIDEO_DRIVER="dummy", SDL_AUDIO_DRIVER="dummy", KHCOM_FAST="1",
                    KHCOM_BATTLE=f"0:0:{int(args.riku)}", KHCOM_KEYS="60-63:A", KHCOM_OUTPUT_SHOT="180,380", KHCOM_QUIT="385")
@@ -47,6 +53,8 @@ def main():
         if case == "on":
             assert "cached transparent enemy HP pilot" in log
             assert "HD HUD: cached label" in log
+            if args.sprite_probe:
+                assert 'HD HUD: cached sprite 8e08863da15d6f89' in log
         if case == "missing":
             assert "original HUD retained" in log
     for frame in (180, 380):

@@ -17,6 +17,157 @@ static SDL_Texture* sLabel;
 static SDL_Texture* sWhiteLabel;
 static SDL_Texture *sPlayerFrame, *sWhitePlayerFrame;
 static SDL_FRect sPlayerSource;
+static SDL_Renderer* sAssetRenderer;
+typedef struct HudAsset {
+    uint64_t hash;
+    SDL_Texture *image, *white;
+    SDL_FRect source;
+    uint32_t lastUsed;
+    size_t bytes;
+    int available;
+} HudAsset;
+typedef struct HudAssetDraw { int asset, slot, x, y, w, h, flip, alpha; } HudAssetDraw;
+static HudAsset* sAssets;
+static HudAssetDraw* sAssetDraws;
+static int sAssetCount, sAssetDrawCount;
+static size_t sAssetBytes;
+
+void PortHdHudSpriteBegin(void) { sAssetDrawCount = 0; }
+
+/* Content-keyed pieces let the preliminary pack expand beyond hand-tagged
+   tasks. Missing pieces remain native, and misses never hit disk every frame. */
+static void LoadHudAsset(HudAsset* asset) {
+    char file[160];
+    int w, h, channels, x, y, l, t, r = -1, b = -1;
+    unsigned char* pixels;
+    SDL_Surface *src, *dst;
+    SDL_ScaleMode mode;
+    asset->available = 0;
+    SDL_snprintf(file, sizeof(file), "assets/hd-hud/sprites/%016llx.png", (unsigned long long)asset->hash);
+    if (!stbi_info(PortConfigPath(file), &w, &h, &channels) || channels != 4 ||
+        w < 1 || h < 1 || w > 4096 || h > 4096 || (size_t)w * h > 4194304) return;
+    pixels = stbi_load(PortConfigPath(file), &w, &h, &channels, 4);
+    if (!pixels) return;
+    l = w; t = h;
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+        unsigned char* p = pixels + ((size_t)y * w + x) * 4;
+        /* Generated PNG transport can leave 1/255 alpha noise in padding.
+           Normalize that quantization noise before validation and upload;
+           preserve all meaningful antialiasing and authored colours. */
+        if (p[3] <= 1) p[3] = 0;
+        if (p[3] && (!x || !y || x == w-1 || y == h-1)) { stbi_image_free(pixels); return; }
+        if (p[3] >= 32) { l = SDL_min(l, x); t = SDL_min(t, y); r = SDL_max(r, x); b = SDL_max(b, y); }
+        if (!p[3]) p[0] = p[1] = p[2] = 0;
+    }
+    if (r < l) { stbi_image_free(pixels); return; }
+    src = SDL_CreateSurfaceFrom(r-l+1, b-t+1, SDL_PIXELFORMAT_RGBA32, pixels+((size_t)t*w+l)*4, w*4);
+    if (src) {
+        int longest = SDL_max(src->w, src->h);
+        int cw = SDL_max(1, src->w * SDL_min(longest, 256) / longest);
+        int ch = SDL_max(1, src->h * SDL_min(longest, 256) / longest);
+        size_t need = (size_t)cw * ch * 8;
+        /* Keep the active HUD pieces, evict old textures instead of falling
+           back forever after the player has seen sixteen different cards. */
+        while (sAssetBytes + need > 8*1024*1024) {
+            int k, victim = -1;
+            for (k=0; k<sAssetCount; k++) {
+                if (!sAssets[k].image || sAssets[k].lastUsed==PortFrameCount()) continue;
+                if (victim<0 || sAssets[k].lastUsed<sAssets[victim].lastUsed) victim=k;
+            }
+            if (victim<0) break;
+            SDL_DestroyTexture(sAssets[victim].image); SDL_DestroyTexture(sAssets[victim].white);
+            sAssets[victim].image=sAssets[victim].white=NULL;
+            sAssetBytes-=sAssets[victim].bytes; sAssets[victim].bytes=0;
+        }
+        dst = sAssetBytes + (size_t)cw * ch * 8 <= 8*1024*1024 ? SDL_CreateSurface(cw, ch, SDL_PIXELFORMAT_RGBA32) : NULL;
+        SDL_SetSurfaceBlendMode(src, SDL_BLENDMODE_NONE);
+        if (dst && SDL_BlitSurfaceScaled(src, NULL, dst, NULL, SDL_SCALEMODE_LINEAR)) {
+            asset->image = SDL_CreateTextureFromSurface(sAssetRenderer, dst);
+            for (y = 0; y < ch; y++) for (x = 0; x < cw; x++) {
+                unsigned char* p = (unsigned char*)dst->pixels + y*dst->pitch+x*4;
+                p[0] = p[1] = p[2] = 255;
+            }
+            asset->white = SDL_CreateTextureFromSurface(sAssetRenderer, dst);
+            asset->source = (SDL_FRect){0, 0, cw, ch};
+            if (asset->image && asset->white) { asset->bytes=need; sAssetBytes+=need; asset->available=1; }
+        }
+        if (dst) SDL_DestroySurface(dst);
+        SDL_DestroySurface(src);
+    }
+    stbi_image_free(pixels);
+    if (!asset->image || !asset->white) {
+        if (asset->image) SDL_DestroyTexture(asset->image);
+        if (asset->white) SDL_DestroyTexture(asset->white);
+        asset->image = asset->white = NULL; return;
+    }
+    mode = SDL_strcmp(SDL_GetRendererName(sAssetRenderer), "software") == 0 ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR;
+    SDL_SetTextureBlendMode(asset->image, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureBlendMode(asset->white, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureScaleMode(asset->image, mode);
+    SDL_SetTextureScaleMode(asset->white, mode);
+    PortLog("HD HUD: cached sprite %016llx", (unsigned long long)asset->hash);
+}
+
+int PortHdHudSpriteRegister(const uint32_t* pixels, int w, int h, int slot, int x, int y, int flip, int alpha) {
+    uint64_t hash = 14695981039346656037ULL;
+    int i, k, l=w, t=h, r=-1, b=-1;
+    if (!gPortConfig.hdHud || !sAssetRenderer || !gPortHudScale || PortUiActive() || !pixels) return 0;
+    hash ^= (unsigned)w; hash *= 1099511628211ULL;
+    hash ^= (unsigned)h; hash *= 1099511628211ULL;
+    for (i=0; i<w*h; i++) {
+        hash ^= pixels[i]; hash *= 1099511628211ULL;
+        if (pixels[i] >> 24) { l=SDL_min(l,i%w); r=SDL_max(r,i%w); t=SDL_min(t,i/w); b=SDL_max(b,i/w); }
+    }
+    if (r<l) return 0;
+    if (SDL_getenv("KHCOM_HUD_LAYOUT") && (uint32_t)SDL_atoi(SDL_getenv("KHCOM_HUD_LAYOUT"))==PortFrameCount())
+        PortLog("hud-asset: frame=%u slot=%d hash=%016llx",PortFrameCount(),slot,(unsigned long long)hash);
+    if (!sAssets) sAssets = SDL_calloc(512, sizeof(*sAssets));
+    if (!sAssetDraws) sAssetDraws = SDL_calloc(128, sizeof(*sAssetDraws));
+    if (!sAssets || !sAssetDraws || sAssetDrawCount == 128) return 0;
+    for (k=0; k<sAssetCount && sAssets[k].hash != hash; k++) {}
+    if (k==sAssetCount) {
+        if (sAssetCount==512) return 0;
+        sAssets[k].hash=hash; sAssetCount++; LoadHudAsset(&sAssets[k]);
+    }
+    if (!sAssets[k].image && sAssets[k].available) LoadHudAsset(&sAssets[k]);
+    if (!sAssets[k].image) return 0;
+    sAssets[k].lastUsed=PortFrameCount();
+    sAssetDraws[sAssetDrawCount++] = (HudAssetDraw){k,slot,x+((flip&1)?w-1-r:l),y+((flip&2)?h-1-b:t),r-l+1,b-t+1,flip,alpha};
+    return 1;
+}
+
+void PortHdHudDrawSprites(SDL_Renderer* renderer, int width, int height) {
+    int i, y, x;
+    float scale=(float)gPortHudScale, ox=(width-gPortHudW*scale)*0.5f, oy=(height-gPortHudH*scale)*0.5f;
+    uint16_t bld=*(volatile uint16_t*)(uintptr_t)(GBA_IO+0x50);
+    int effect=(bld>>6)&3, amount=SDL_min(*(volatile uint16_t*)(uintptr_t)(GBA_IO+0x54),16);
+    Uint8 tint=(bld&0x10)&&effect==3 ? 255*(16-amount)/16 : 255;
+    if (!gPortConfig.hdHud || !scale || PortUiActive()) return;
+    for (i=0; i<sAssetDrawCount; i++) {
+        HudAssetDraw* d=&sAssetDraws[i]; HudAsset* a=&sAssets[d->asset];
+        SDL_FlipMode flip=(SDL_FlipMode)(((d->flip&1)?SDL_FLIP_HORIZONTAL:0)|((d->flip&2)?SDL_FLIP_VERTICAL:0));
+        SDL_SetTextureColorMod(a->image,tint,tint,tint);
+        SDL_SetTextureAlphaMod(a->image,d->alpha);
+        SDL_SetTextureAlphaMod(a->white,amount*d->alpha/16);
+        for (y=0; y<d->h; y++) {
+            x=0;
+            while (x<d->w) {
+                int start;
+                SDL_FRect src,dst;
+                while (x<d->w && !PortPpuHudSpriteVisible(d->slot,d->x+x,d->y+y)) x++;
+                start=x;
+                while (x<d->w && PortPpuHudSpriteVisible(d->slot,d->x+x,d->y+y)) x++;
+                if (x==start) continue;
+                src=(SDL_FRect){((d->flip&1)?d->w-x:start)*a->source.w/d->w,
+                    ((d->flip&2)?d->h-1-y:y)*a->source.h/d->h,(x-start)*a->source.w/d->w,a->source.h/d->h};
+                dst=(SDL_FRect){ox+(d->x+start)*scale,oy+(d->y+y)*scale,(x-start)*scale,scale};
+                SDL_RenderTextureRotated(renderer,a->image,&src,&dst,0,NULL,flip);
+                if ((bld&0x10)&&effect==2&&amount)
+                    SDL_RenderTextureRotated(renderer,a->white,&src,&dst,0,NULL,flip);
+            }
+        }
+    }
+}
 int PortHdHudPlayerFrameReady(void) {
     /* Fitting probe only: keep native frame until interior-row alignment and
        full-health end caps are verified against the original. */
@@ -156,7 +307,7 @@ static void LoadLabel(SDL_Renderer* renderer) {
 
 /* Developer-only ROM-local references; never ship these extracted sprites. */
 uint32_t* PortHdHudExportBuffer(void) {
-    if (!SDL_getenv("KHCOM_HUD_EXPORT")) return NULL;
+    if (!SDL_getenv("KHCOM_HUD_EXPORT") && !(gPortConfig.hdHud && gPortHudScale)) return NULL;
     if (!sExportPixels) sExportPixels = SDL_calloc(64 * 64, sizeof(uint32_t));
     return sExportPixels;
 }
@@ -167,7 +318,7 @@ void PortHdHudExportSprite(int w, int h, int part, int ax, int ay) {
     char name[160];
     int i;
     FILE* f;
-    if (!sExportPixels) return;
+    if (!sExportPixels || !SDL_getenv("KHCOM_HUD_EXPORT")) return;
     hash ^= (unsigned)w; hash *= 1099511628211ULL;
     hash ^= (unsigned)h; hash *= 1099511628211ULL;
     for (i = 0; i < w * h; i++) { hash ^= sExportPixels[i]; hash *= 1099511628211ULL; }
@@ -190,6 +341,13 @@ void PortHdHudExportSprite(int w, int h, int part, int ax, int ay) {
 }
 
 void PortHdHudShutdown(void) {
+    int i;
+    for (i=0; i<sAssetCount; i++) {
+        if (sAssets[i].image) SDL_DestroyTexture(sAssets[i].image);
+        if (sAssets[i].white) SDL_DestroyTexture(sAssets[i].white);
+    }
+    SDL_free(sAssets); sAssets=NULL; SDL_free(sAssetDraws); sAssetDraws=NULL;
+    sAssetCount=sAssetDrawCount=0; sAssetBytes=0; sAssetRenderer=NULL;
     if (sPlayerFrame) SDL_DestroyTexture(sPlayerFrame);
     if (sWhitePlayerFrame) SDL_DestroyTexture(sWhitePlayerFrame);
     sPlayerFrame = sWhitePlayerFrame = NULL;
@@ -206,6 +364,7 @@ void PortHdHudShutdown(void) {
 }
 
 void PortHdHudPrepare(SDL_Renderer* renderer) {
+    sAssetRenderer = renderer;
     int w, h, channels, x, y, left, top, right = -1, bottom = -1;
     unsigned char* pixels;
     SDL_Surface* surface;
