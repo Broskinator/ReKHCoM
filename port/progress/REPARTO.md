@@ -11,7 +11,6 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 | Gameplay verification | 66 | 10 | Claude | Recorrido de todas las salas, estrés de submenús, partida completa Sora y Reverse/Rebirth |
 | Widescreen: field maps | 85 | 8 | Codex | Salas con huecos o bordes de abismo; revisión por mundo |
 | HD text | 88 | 3 | Claude | Inventario de números/textos en pixel art, oclusión general |
-| USA and Japanese versions | 88 | 6 | Claude | Combates JP (Sora/Riku) y capturas regionales de lo panorámico |
 | Widescreen: battles | 93 | 6 | Codex | Cinta continua de arenas y bordes de abismo |
 | Widescreen: menus & events | 93 | 4 | Codex | Salida de submenús, footer, subida de nivel (paneles y popeo) |
 | Graphics options menu | 95 | 5 | Claude | Prueba de cada opción en vivo y en los tres idiomas de cartucho |
@@ -19,7 +18,7 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 
 Ya al 100 %: build, assets, memoria, BIOS, DMA, interrupciones, entrada, m4a,
 PSG, PCM, códec de bloques, películas, SRAM, reset, widescreen renderer,
-estados guardados, launcher, saltar intro.
+estados guardados, launcher, saltar intro, versiones USA y japonesa.
 
 ## Codex: acabado panorámico (field, battles, menus & events)
 
@@ -71,8 +70,8 @@ estados guardados, launcher, saltar intro.
   (Pasada de Codex a Claude el 14/10.)
 - [ ] Gameplay verification: partida completa de Sora y de Reverse/Rebirth en
   las tres regiones (rutas reproducibles y problemas anotados).
-- [ ] USA/JP: batería de combates JP como Sora y como Riku (la de eventos JP ya
-  pasó 192/194; los dos restantes se cortaron al parar, no fallaron).
+- [x] USA/JP: combates JP 209/209 como Sora y como Riku; eventos 192/194 (los dos
+  restantes se cortaron al parar, no fallaron). Barra al 100 %.
 - [ ] USA/JP: capturas regionales de los acabados panorámicos que Codex marque
   como revisados solo en EU.
 - [ ] HD text: inventario de números y textos aún en pixel art, reemplazo
