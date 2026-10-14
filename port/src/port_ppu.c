@@ -336,6 +336,8 @@ static uint8_t sObjIndex[PORT_MAX_W];
    priority * 128 + OAM index (0xFFFF: none). A window that hides OBJs there
    reads as 0 / 0. */
 static uint8_t sOccBg[PORT_MAX_W * PORT_MAX_H];
+/* HD-2D: 1 where a message window (docked layer) shows; allocated on use. */
+static uint8_t* sMsgMask;
 static uint16_t sOccObj[PORT_MAX_W * PORT_MAX_H];
 static uint8_t sObjSemi[PORT_MAX_W];
 static uint8_t sObjWin[PORT_MAX_W];
@@ -1021,6 +1023,8 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
             for (k = 0; k < 4; k++)
                 if (bgOn[k] && sBgDockedLatched[k] && (mask & WIN_BG(k)) && sBgLine[k][x] != TRANSPARENT)
                     message = 1;
+            if (sMsgMask != NULL)
+                sMsgMask[y * w + x] = (uint8_t)message;
             if (!(mask & WIN_OBJ) || (message && sHudLayer)) {
                 sOccBg[y * w + x] = 0;
                 sOccObj[y * w + x] = 0;
@@ -1791,14 +1795,20 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
     return n;
 }
 
-/* HD-2D: 1 where a sprite is what shows (from the HUD occupancy buffers,
-   filled while PortHd2dActive()); a window hiding OBJs reads as 0 / 0. */
+/* HD-2D: 1 where a sprite is what shows, 2 on message windows (from the HUD
+   occupancy buffers, filled while PortHd2dActive()); a window hiding OBJs
+   reads as 0 / 0. */
 void PortPpuSpriteMask(uint8_t* out) {
     int i, n = gPortScreen.width * gPortScreen.height;
 
+    if (sMsgMask == NULL) {
+        sMsgMask = calloc(PORT_MAX_W * PORT_MAX_H, 1);
+        if (sMsgMask == NULL)
+            return;
+    }
     for (i = 0; i < n; i++) {
         uint16_t obj = sOccObj[i];
         uint8_t bg = sOccBg[i];
-        out[i] = obj != 0xFFFFu && !(obj == 0 && bg == 0) && (obj >> 7) <= bg;
+        out[i] = sMsgMask[i] ? 2 : (obj != 0xFFFFu && !(obj == 0 && bg == 0) && (obj >> 7) <= bg);
     }
 }

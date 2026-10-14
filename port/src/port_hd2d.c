@@ -10,8 +10,10 @@
  *      crisp) so the effects are smoother than the GBA pixels;
  *   2. tilt-shift depth of field: rows away from the focus band (where the
  *      characters usually stand) blur more, the far top most; sprites keep
- *      their own pixels so the characters stay sharp;
- *   3. bloom: what is brighter than a threshold glows, warm;
+ *      their own pixels so the characters stay sharp, and message windows
+ *      are left as they are;
+ *   3. bloom: what is brighter than a threshold glows, warm, less so in
+ *      scenes that are bright all over (the white castle);
  *   4. grading: a filmic contrast curve, a little more colour, warm
  *      highlights and cool shadows, haze towards the top (the distance) and
  *      a vignette.
@@ -184,7 +186,7 @@ static void BloomBlur(int w, int h, int r) {
 const uint32_t* PortHd2dProcess(const uint32_t* src, const uint8_t* spriteMask, int w, int h, int* outW,
                                 int* outH) {
     int W = w * HD2D_SCALE, H = h * HD2D_SCALE;
-    int x, y, i;
+    int x, y, i, mean, bloomGain, hazeGain;
 
     if (!Init(W, H)) {
         *outW = w;
@@ -209,12 +211,23 @@ const uint32_t* PortHd2dProcess(const uint32_t* src, const uint8_t* spriteMask, 
         if (sMaskBig[i])
             sOut[i] = sBig[i];
 
-    /* 3. bloom from the bright parts of the game picture */
+    /* 3. bloom from the bright parts of the game picture, weaker (and no
+       haze) when the whole scene is bright */
+    {
+        uint32_t sum = 0;
+        for (i = 0; i < w * h; i += 7) {
+            uint32_t p = src[i];
+            sum += (((p >> 16) & 255) * 77 + ((p >> 8) & 255) * 150 + (p & 255) * 29) >> 8;
+        }
+        mean = (int)(sum / ((w * h + 6) / 7));
+    }
+    bloomGain = SDL_clamp((215 - mean) * 256 / 90, 40, 256);
+    hazeGain = SDL_clamp((200 - mean) * 256 / 80, 0, 256);
     for (i = 0; i < w * h; i++) {
         uint32_t p = src[i];
         int r = (p >> 16) & 255, g = (p >> 8) & 255, b = p & 255;
         int lum = (r * 77 + g * 150 + b * 29) >> 8;
-        int k = lum > 200 ? (lum - 200) * 3 : 0;
+        int k = lum > 200 ? (lum - 200) * 3 * bloomGain >> 8 : 0;
         sBright[i][0] = r * k >> 8;
         sBright[i][1] = g * k >> 8;
         sBright[i][2] = b * k >> 8;
@@ -226,9 +239,13 @@ const uint32_t* PortHd2dProcess(const uint32_t* src, const uint8_t* spriteMask, 
     for (y = 0; y < H; y++) {
         int by = SDL_min(y / HD2D_SCALE, h - 1);
         /* haze: the top quarter (the distance) fades towards a warm mist */
-        int haze = y < H / 3 ? (H / 3 - y) * 26 / (H / 3) : 0;
+        int haze = y < H / 3 ? (H / 3 - y) * 26 / (H / 3) * hazeGain >> 8 : 0;
         for (x = 0; x < W; x++) {
             uint32_t p = sOut[y * W + x];
+            if (sMaskBig[y * W + x] == 2) { /* message windows: untouched */
+                sOut[y * W + x] = sBig[y * W + x];
+                continue;
+            }
             const int32_t* bl = sBright[by * w + SDL_min(x / HD2D_SCALE, w - 1)];
             int r = ((p >> 16) & 255) + (bl[0] * 6 >> 3);
             int g = ((p >> 8) & 255) + (bl[1] * 5 >> 3);
