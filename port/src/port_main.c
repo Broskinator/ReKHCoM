@@ -404,9 +404,12 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
             }
         }
         SDL_UpdateTexture(sFadeSideTexture, NULL, pixels, fw * 4);
-        SDL_SetTextureScaleMode(sFadeSideTexture, SDL_SCALEMODE_NEAREST);
+        /* on the picture's own pixel grid, anchored at its edge (see the
+           menu style below), so the margin's columns and rows line up */
+        SDL_SetTextureScaleMode(sFadeSideTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
+                                                                                           : SDL_SCALEMODE_PIXELART);
         {
-            SDL_FRect dst = {x0, y, x1 - x0, GBA_SCREEN_H * scale};
+            SDL_FRect dst = {side < 0 ? x1 - fw * scale : x0, y, fw * scale, GBA_SCREEN_H * scale};
             SDL_RenderTexture(sRenderer, sFadeSideTexture, NULL, &dst);
         }
         return;
@@ -414,47 +417,77 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
     SDL_SetTextureScaleMode(sTexture, SDL_SCALEMODE_NEAREST);
     if (sSideStyle == 4 || sSideStyle == 5 || (sSideStyle == 0 && PortMenuHeaderPixel(4, 0))) {
         /* Extend background tiles, never the foreground labels or cursor.
-           The title band keeps its existing edge treatment. */
-        uint32_t strip[SIDE_STRIP * GBA_SCREEN_H];
+           The margin is drawn as GBA columns beyond the picture's edge, on
+           the picture's own pixel grid: column d (0 next to the picture)
+           carries on the screen's patterns at their own phase, and the
+           texture is sampled exactly like the picture, so every row and
+           column lines up with it pixel for pixel. */
+        static uint32_t strip[PORT_MAX_W * GBA_SCREEN_H];
+        static int sMenuSideWidth;
+        int fw = SDL_clamp((int)SDL_ceilf((x1 - x0) / scale) + 1, 1, PORT_MAX_W);
         int yy, xx;
-        if (!sMenuSideTexture)
+        if (sMenuSideWidth != fw) {
+            if (sMenuSideTexture) SDL_DestroyTexture(sMenuSideTexture);
             sMenuSideTexture = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_XRGB8888,
-                SDL_TEXTUREACCESS_STREAMING, SIDE_STRIP, GBA_SCREEN_H);
+                SDL_TEXTUREACCESS_STREAMING, fw, GBA_SCREEN_H);
+            sMenuSideWidth = sMenuSideTexture ? fw : 0;
+        }
         if (!sMenuSideTexture)
             return;
         for (yy = 0; yy < GBA_SCREEN_H; yy++) {
-            for (xx = 0; xx < SIDE_STRIP; xx++) {
-                int sample = edgeX;
+            for (xx = 0; xx < fw; xx++) {
+                int d = side < 0 ? fw - 1 - xx : xx, sample = edgeX;
+                uint32_t* px = &strip[yy * fw + xx];
                 /* The outside gutter is clear of the grid silhouettes.
-                   Repeat its stipple on either side when the panels swap. */
+                   Repeat its stipple on either side when the panels swap:
+                   period 4, so GBA column -1-d (or 240+d) is column
+                   (-1-d) & 3 (or d & 3) of the pattern. */
                 if (sSideStyle == 4 && side == sMenuPanelSide && yy >= 32 && yy < 132)
-                    sample = (side < 0 ? sx : edgeX - 3) + (xx & 3);
+                    sample = side < 0 ? sx + ((-1 - d) & 3) : edgeX - 3 + (d & 3);
                 /* Only the world's ornamental bands repeat horizontally;
                    its floor badge and text retain the plain edge fill. */
                 if (sSideStyle == 5 && ((yy >= 16 && yy < 24) || (yy >= 136 && yy < (side > 0 ? 154 : 145))))
-                    sample = sx + xx;
-                strip[yy * SIDE_STRIP + xx] = gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
+                    sample = side < 0 ? sx + ((-1 - d) & 15) : sx + (d & 15);
+                *px = gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
                 if (sSideStyle == 5) {
-                    uint32_t bandColor = PortMenuBandPixel(yy, xx);
-                    if (bandColor) strip[yy * SIDE_STRIP + xx] = bandColor;
+                    uint32_t bandColor = PortMenuBandPixel(yy, side < 0 ? (-1 - d) & 15 : d & 15);
+                    if (bandColor) *px = bandColor;
                 }
                 if (yy < 16 && side < 0) {
-                    uint32_t header = PortMenuHeaderPixel(yy, xx);
-                    if (header) strip[yy * SIDE_STRIP + xx] = header;
+                    uint32_t header = PortMenuHeaderPixel(yy, d);
+                    if (header) *px = header;
                 }
                 if (sSideStyle == 4 && side == sMenuPanelSide && yy >= 16 && yy < 32) {
-                    uint32_t tab = PortMenuTabPixel(yy, xx, side);
-                    if (tab) strip[yy * SIDE_STRIP + xx] = tab;
+                    uint32_t tab = PortMenuTabPixel(yy, d, side);
+                    if (tab) *px = tab;
                 }
             }
         }
-        SDL_UpdateTexture(sMenuSideTexture, NULL, strip, SIDE_STRIP * 4);
-        SDL_SetTextureScaleMode(sMenuSideTexture, SDL_SCALEMODE_NEAREST);
-        for (float pos = x0; pos < x1; pos += w) {
-            float width = SDL_min(w, x1 - pos);
-            SDL_FRect src = {0, 0, width / scale, GBA_SCREEN_H};
-            SDL_FRect dst = {pos, y, width, GBA_SCREEN_H * scale};
-            SDL_RenderTexture(sRenderer, sMenuSideTexture, &src, &dst);
+        /* The tab strip: a line between rows of the panel's own colour is
+           the end of a tab's art at the screen edge (the eye tab's stroke
+           on the right), not the panel, so the margin keeps the panel plain. */
+        if (sSideStyle == 4 && side == sMenuPanelSide)
+            for (xx = 0; xx < fw; xx++) {
+                uint32_t panel = strip[32 * fw + xx];
+                int above = 0;
+                for (yy = 16; yy < 32; yy++) {
+                    uint32_t* px = &strip[yy * fw + xx];
+                    int k;
+                    if (*px == panel) {
+                        above = 1;
+                        continue;
+                    }
+                    for (k = yy + 1; k <= 32 && strip[k * fw + xx] != panel; k++) {}
+                    if (above && k <= 32)
+                        *px = panel;
+                }
+            }
+        SDL_UpdateTexture(sMenuSideTexture, NULL, strip, fw * 4);
+        SDL_SetTextureScaleMode(sMenuSideTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
+                                                                                           : SDL_SCALEMODE_PIXELART);
+        {
+            SDL_FRect d = { side < 0 ? x1 - fw * scale : x0, y, fw * scale, GBA_SCREEN_H * scale };
+            SDL_RenderTexture(sRenderer, sMenuSideTexture, NULL, &d);
         }
         return;
     }
@@ -609,6 +642,16 @@ static void DrawBlurredReflection(const SDL_FRect* src, int outW, int outH) {
    as one colour for 24 pixels or more, or whose layers do for 80, is a bar
    (a title, the world warp's player bars) and is drawn on to the window's
    edge in that colour. */
+static uint32_t sBandGround; /* style 9: the ground colour, 0 otherwise */
+
+/* Where GBA row (or column) r starts on the window, exactly as the picture's
+   own sampling puts it: a window pixel shows the GBA row under its centre,
+   so at a 4.5 scale rows alternate 5 and 4 pixels from the top. Margin rows
+   drawn with these edges line up pixel for pixel with the picture's. */
+static float PixelEdge(float origin, int r, float scale) {
+    return SDL_floorf(origin + r * scale - 0.5f) + 1.0f;
+}
+
 static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, int minBlock) {
     static uint8_t mask[PORT_MAX_W * PORT_MAX_H];
     extern void PortPpuSpriteMask(uint8_t* out);
@@ -631,6 +674,17 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
             /* a sprite bar, or a BG bar far longer than any run of scenery */
             bar[y] = (sprites >= 24 && sprites == run) || run >= 80;
         }
+        /* a box's own border and shadow rows (up to three either side of a
+           bar, not the ground's colour) belong to it, so it is drawn whole */
+        if (sBandGround)
+            for (y = 0; y < GBA_SCREEN_H; y++)
+                if (bar[y] == 1) {
+                    int k2;
+                    for (k2 = 1; k2 <= 3 && y + k2 < GBA_SCREEN_H && !bar[y + k2] && color[y + k2] != sBandGround; k2++)
+                        bar[y + k2] = 3;
+                    for (k2 = 1; k2 <= 3 && y - k2 >= 0 && !bar[y - k2] && color[y - k2] != sBandGround; k2++)
+                        bar[y - k2] = 3;
+                }
         /* a bar's textured rows (gaps of up to four) belong to it; lone rows are scenery */
         for (y = 0; y < GBA_SCREEN_H; y++)
             if (!bar[y]) {
@@ -652,11 +706,43 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
                 r.x = side ? dst->x + dst->w : 0.0f;
                 r.w = side ? (float)outW - r.x : dst->x;
                 /* whole pixels: fractional rows would leave seams between them */
-                r.y = SDL_floorf(dst->y + y * scale);
-                r.h = SDL_floorf(dst->y + (y + 1) * scale) - r.y;
+                r.y = PixelEdge(dst->y, y, scale);
+                r.h = PixelEdge(dst->y, y + 1, scale) - r.y;
                 SDL_SetRenderDrawColor(sRenderer, (Uint8)(c >> 16), (Uint8)(c >> 8), (Uint8)c, 255);
                 SDL_RenderFillRect(sRenderer, &r);
             }
+        }
+    }
+}
+
+/* The title bar on the left margin: its own piece of the header asset.
+   Where the header is transparent the picture shows the frame's bar behind
+   it (the journal's dark green top row), so the margin shows that bar too. */
+static void DrawHeaderLeft(const SDL_FRect* src, const SDL_FRect* dst) {
+    int yy, xx, any = 0;
+    float sc = dst->w / src->w;
+    for (yy = 0; yy < 16 && !any; yy++)
+        any = PortMenuHeaderPixel(yy, 0) || PortMenuHeaderPixel(yy, 1);
+    if (!any)
+        return;
+    for (yy = 0; yy < 16; yy++) {
+        const uint32_t* row = &sComposite[((int)src->y + yy) * gPortScreen.width + (int)src->x];
+        uint32_t behind = 0;
+        int k;
+        for (k = 0; k < 120 && row[k] == row[0]; k++) {}
+        if (k >= 80)
+            behind = row[0];
+        for (xx = 0; xx < (int)SDL_ceilf(dst->x / sc); xx++) {
+            uint32_t h = PortMenuHeaderPixel(yy, xx);
+            SDL_FRect r;
+            if (!h) h = behind;
+            if (!h) continue;
+            r.x = PixelEdge(dst->x, -(xx + 1), sc);
+            r.w = PixelEdge(dst->x, -xx, sc) - r.x;
+            r.y = PixelEdge(dst->y, yy, sc);
+            r.h = PixelEdge(dst->y, yy + 1, sc) - r.y;
+            SDL_SetRenderDrawColor(sRenderer, (Uint8)(h >> 16), (Uint8)(h >> 8), (Uint8)h, 255);
+            SDL_RenderFillRect(sRenderer, &r);
         }
     }
 }
@@ -692,8 +778,10 @@ static void Present(void) {
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
         SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
-        if (!PortUiActive() && sSideStyle == 8 && sFitScale <= 0)
+        if (!PortUiActive() && sSideStyle == 8 && sFitScale <= 0) {
             DrawEdgeBands(&src, &dst, outW, 3);
+            DrawHeaderLeft(&src, &dst);
+        }
         if (!PortUiActive() && sSideStyle == 9 && sFitScale <= 0) {
             /* style 9: the scene's ground (its commonest colour) and its thick
                bars (blocks of six rows or more, so a frame's thin border is
@@ -721,7 +809,9 @@ static void Present(void) {
                 SDL_RenderFillRect(sRenderer, &left);
                 SDL_RenderFillRect(sRenderer, &right);
             }
+            sBandGround = n ? colors[best] : 0;
             DrawEdgeBands(&src, &dst, outW, 6);
+            sBandGround = 0;
             /* the frame's top and bottom bars run the whole width: where a
                panel covers one end on the GBA (the journal's notebook over
                the footer), the bar seen at the other end carries on there */
@@ -737,35 +827,19 @@ static void Present(void) {
                     for (k = 0; k < 120 && row[k] == lc; k++) lrun++;
                     for (k = 0; k < 120 && row[GBA_SCREEN_W - 1 - k] == rc; k++) rrun++;
                     if (lrun >= 80 && rrun < 80) {
-                        SDL_FRect r = { dst.x + dst.w, SDL_floorf(dst.y + yy * sc), (float)outW - dst.x - dst.w, 0 };
-                        r.h = SDL_floorf(dst.y + (yy + 1) * sc) - r.y;
+                        SDL_FRect r = { dst.x + dst.w, PixelEdge(dst.y, yy, sc), (float)outW - dst.x - dst.w, 0 };
+                        r.h = PixelEdge(dst.y, yy + 1, sc) - r.y;
                         SDL_SetRenderDrawColor(sRenderer, (Uint8)(lc >> 16), (Uint8)(lc >> 8), (Uint8)lc, 255);
                         SDL_RenderFillRect(sRenderer, &r);
                     } else if (rrun >= 80 && lrun < 80) {
-                        SDL_FRect r = { 0, SDL_floorf(dst.y + yy * sc), dst.x, 0 };
-                        r.h = SDL_floorf(dst.y + (yy + 1) * sc) - r.y;
+                        SDL_FRect r = { 0, PixelEdge(dst.y, yy, sc), dst.x, 0 };
+                        r.h = PixelEdge(dst.y, yy + 1, sc) - r.y;
                         SDL_SetRenderDrawColor(sRenderer, (Uint8)(rc >> 16), (Uint8)(rc >> 8), (Uint8)rc, 255);
                         SDL_RenderFillRect(sRenderer, &r);
                     }
                 }
             }
-            /* the title bar on the left: its own piece of the header asset */
-            {
-                int yy, xx;
-                float sc = dst.w / src.w;
-                for (yy = 0; yy < 16; yy++)
-                    for (xx = 0; xx < (int)SDL_ceilf(dst.x / sc); xx++) {
-                        uint32_t h = PortMenuHeaderPixel(yy, xx);
-                        SDL_FRect r;
-                        if (!h) continue;
-                        r.x = SDL_floorf(dst.x - (xx + 1) * sc);
-                        r.w = SDL_floorf(dst.x - xx * sc) - r.x;
-                        r.y = SDL_floorf(dst.y + yy * sc);
-                        r.h = SDL_floorf(dst.y + (yy + 1) * sc) - r.y;
-                        SDL_SetRenderDrawColor(sRenderer, (Uint8)(h >> 16), (Uint8)(h >> 8), (Uint8)h, 255);
-                        SDL_RenderFillRect(sRenderer, &r);
-                    }
-            }
+            DrawHeaderLeft(&src, &dst);
         }
         if (!PortUiActive() && sSideStyle != 3 && sSideStyle != 8 && sSideStyle != 9 && sFitScale <= 0) {
             SideBar((int)src.x, (int)src.y, -1, dst.y, scale, 0.0f, dst.x, (int)src.x);

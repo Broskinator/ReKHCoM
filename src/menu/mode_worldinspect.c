@@ -659,7 +659,7 @@ void WorldInspectDraw() {
 
 void mode_worldinspect_0() {
 #ifdef PLATFORM_PC
-    PortSideStyle(PORT_SIDE_PIXEL_FADE);
+    PortSideStyle(PORT_SIDE_BLUR_BANDS); /* blurred reflection, its bars drawn on */
 #endif
     s16 i;
     s32 floor;
