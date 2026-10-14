@@ -22,12 +22,11 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 - Último: partida completa / TAS. Después del 100 %, la función experimental
   con las QoL de la versión de PS2 (Re:Chain of Memories) en la de GBA.
 
-## Barras pendientes y dueño (actualizado 14/10, 08:40 — total 98,4 %)
+## Barras pendientes y dueño (actualizado 14/10, 08:40 — total 98,7 %)
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
 |---|---|---|---|---|
 | Gameplay verification | 85 | 10 | Claude (Codex al volver) | Partida completa de Sora y de Reverse/Rebirth (lo último) |
-| Widescreen: menus & events | 93 | 4 | Claude | Tabs del ojo, estirado/píxel del margen derecho |
 
 Cerradas hoy por Claude (con evidencia en port/progress/evidence/):
 - Widescreen: battles 100 % — arenas US/JP 19/19, salida de combate con el
@@ -63,8 +62,8 @@ intro, versiones USA y japonesa, menú de opciones, PPU, texto HD.
   pasar el título a BG, columnas copiadas del cuadro). Ahora la banda usa el
   par de columnas más opaco y sin letras, guardado mientras la cabecera sigue en
   pantalla. Naipes mundo, Mapamundi, Estado, Diario y Barajas revisados en EU/US/JP.
-- [~] Tabs del ojo: completar captura de cada pestaña y transición.
-- [ ] Revisar el píxel residual del margen derecho y dónde queda estirado.
+- [x] Tabs del ojo en Estado y Barajas (EU/US/JP) y escenas con estirado
+  (Bonus élite, Tienda moguri, Elige un mundo, Vórtice) revisadas: barra al 100 %.
 - [x] Widescreen field: recorrido por mundo completo (arriba).
 
 ## Claude: verificación, regiones, texto HD, opciones y cierre del PPU

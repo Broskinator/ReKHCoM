@@ -1,0 +1,20 @@
+Widescreen menus & events: closing reviews (2026-10-14, view_mode=4)
+
+Pause submenus, real START navigation on a save (scratchpad submenu_frames.py,
+one cycle per entry, a capture every 3 frames from START to the field):
+Ver barajas, Mapamundi, Naipes mapa, Naipes mundo, Estado, Diario. Entry and
+exit without echoes or pops; the Ver barajas exit matches the GBA frames
+(its active-cards panel also vanishes at once on the original). Mapamundi
+footer complete on entry and return.
+Headers in EU/US/JP (World Cards, World Map, Status, Journal/Jiminy Memo,
+Review Decks/Deck Check): the margin repeats the asset's opaque letter-free
+column pair; US/JP lettering kept off screen by the cartridge no longer shows.
+Naipes mundo pixel fade and Mapamundi in US and JP (room fixture + mode).
+Level up from a field battle: bars edge to edge, no pop; the stat panel no
+longer wraps into the left margin on exit (PortBgClip).
+Door synthesis menu raised 6 lines above the bottom bar (doorselect scene).
+Remaining stretch-style scenes reviewed: Bonus Elite, Tienda Moguri, Elige un
+mundo, Vortice fill the view without stretched bands.
+Not a widescreen issue: mode_worldselect forced on top of a room loses glyphs
+and the portrait in every view mode; forced from the language screen it is
+complete. To confirm on the natural path (PENDIENTES).

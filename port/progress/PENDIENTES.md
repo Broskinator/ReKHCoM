@@ -123,6 +123,8 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 - [x] Sprite a la izquierda después de subir de nivel: era el panel de estadísticas (BG1) que sale
   por la derecha y, al dar la vuelta el mapa de 256 px, aparecía en el margen izquierdo. PortBgClip
   deja esa capa en las columnas de la GBA hasta el final del combate.
+- [ ] "Elige un mundo" forzado sobre una sala (fixture) pierde letras y el retrato en cualquier vista;
+  forzado desde el inicio sale completo. Confirmar en la ruta natural (puerta del castillo).
 - [x] Números HD: los que son texto (barajas, EXP) en HD; los de las cartas y contadores
   animados son ilustración y se conservan (HDTEXT_INVENTARIO.md).
 - [x] Batería de eventos: `--wide` realmente selecciona view_mode=4. Antes
