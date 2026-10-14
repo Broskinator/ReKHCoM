@@ -3,16 +3,43 @@
 Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
-**v0.5 is an early Windows prerelease.** It comes with a launcher, runs the European,
-US and Japanese cartridges, plays the game's movies at the cartridge's speed, shows
-the game in 16:9, has graphics and quality-of-life options, and saves to disk. Full
-playthroughs have not been verified.
+A native PC port of the Game Boy Advance game: the decompiled code runs as
+a real Windows program, with its own renderer, audio and launcher, in 16:9
+and at the cartridge's exact speed (59.7275 Hz).
 
-Download the Windows ZIP from [Releases](https://github.com/MatyMeatBoy/ReKHCom/releases).
-See [CHANGELOG.md](CHANGELOG.md) for release notes.
+**Latest release: [v0.8](https://github.com/MatyMeatBoy/ReKHCom/releases/latest)**
+(Windows x86). Works with the **European, US and Japanese** cartridges, in all
+five European languages, English (US) and Japanese.
 
-Movies play with native C codecs; see [the movie implementation and verification
-notes](port/MOVIES.md).
+<p align="center"><img src="docs/screenshots/battle.png" width="49%"> <img src="docs/screenshots/field.png" width="49%"></p>
+
+## Highlights
+
+- **16:9 without stretching.** Fields and battles show more of the world;
+  full-screen menus get margins drawn from the scene's own tiles, bars and
+  panels, on the picture's exact pixel grid.
+- **Original speed and sound.** One game update per VBlank, as on the GBA;
+  m4a music, PSG and PCM reimplemented in C; native movie playback.
+- **Launcher.** Installs and checks your dump (SHA-1), picks the version,
+  language, graphics, sound, controls and saves; imports GBA saves.
+- **Re:CoM mode (optional).** PS2-inspired options chosen at New Game:
+  difficulty and quality-of-life buttons. Off = the cartridge, untouched.
+- **HD text, HD-2D look, smooth audio** as optional enhancements.
+
+<p align="center"><img src="docs/screenshots/deck.png" width="32%"> <img src="docs/screenshots/status.png" width="32%"> <img src="docs/screenshots/worldcards.png" width="32%"></p>
+<p align="center"><img src="docs/screenshots/journal.png" width="32%"> <img src="docs/screenshots/options.png" width="32%"> <img src="docs/screenshots/moogle_hd.png" width="32%"></p>
+
+### Pixel text or HD text
+
+<p align="center"><img src="docs/screenshots/moogle_px.png" width="49%"> <img src="docs/screenshots/moogle_hd.png" width="49%"></p>
+
+### Every language of every cartridge
+
+| English (US) | Français | Deutsch |
+|---|---|---|
+| ![](docs/screenshots/lang_us.png) | ![](docs/screenshots/lang_fr.png) | ![](docs/screenshots/lang_de.png) |
+| **Español** | **Italiano** | **日本語** |
+| ![](docs/screenshots/lang_es.png) | ![](docs/screenshots/lang_it.png) | ![](docs/screenshots/lang_jp.png) |
 
 ![progress](port/progress/progress.svg)
 
@@ -42,9 +69,9 @@ See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
   mosaic, HBlank effects), m4a sequencer/mixer in C, PSG emulation, BIOS, DMA, input,
   settings and the wide-view renderer.
 
-## Running v0.5 (Windows)
+## Running (Windows)
 
-1. Extract `ReKHCoM-v0.5-windows-x86.zip` into a writable folder.
+1. Extract `ReKHCoM-v0.8-windows-x86.zip` into a writable folder.
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
 3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`
@@ -67,8 +94,6 @@ to the build that created them.
 - Movie transitions during events and the ending still need verification.
 - Neither Sora's story nor Reverse/Rebirth has a verified full playthrough.
 - Some rendering, audio streaming, and widescreen scenes still need verification.
-- The level-up screen bands, the save crystal exit and the door menu are not yet
-  adapted to 16:9.
 - Linux and macOS builds are not available.
 
 ## Building (Windows)
@@ -101,7 +126,7 @@ your dump during the first configure step.
 To make a distributable ZIP without ROMs, saves or local settings:
 
 ```sh
-python port/tools/package_release.py --version v0.3 --sdl ../toolchain/SDL3-3.4.18
+python port/tools/package_release.py --version v0.8 --sdl ../toolchain/SDL3-3.4.18
 ```
 
 ## Controls
