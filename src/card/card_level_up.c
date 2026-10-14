@@ -92,6 +92,9 @@ void Level_Up_0(LevelUpWork* work) {
     PortBgSplit(1, 146);
     PortBgSplitBands(0, 1);
     PortBgSplitBands(1, 1);
+    /* the stat panels leave past the right edge; on the GBA that is off
+       screen, in the wide view the wrapped map would reach the left margin */
+    PortBgClip(gBtlWork->battleId == BATTLE_URSULA ? 0 : 1, 1);
 #endif
     s16 x;
     s16 y;

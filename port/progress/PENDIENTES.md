@@ -19,8 +19,9 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 - [x] Cristal / icono que desaparece y popea al salir del menú de guardado (y de START): el
   objeto blanco de arriba a la derecha es el icono de la sala del minimapa; el juego lo
   destruía al abrir el menú y lo recreaba al cerrarlo. Ahora se mantiene. La conservación de los demás objetos de sala sigue pendiente de revisión en las transiciones.
-- [ ] Subida de nivel: hueco neón arriba y abajo; algo popea justo antes. Necesita un estado antes de subir
-  (el modo de depuración `Mode_Premire` no carga las franjas y los combates de depuración no la muestran).
+- [x] Subida de nivel: revisada fotograma a fotograma desde un combate de campo real (sala 10000 +
+  fixture `levelup`): las barras cinemáticas (sprites del juego) cruzan todo el ancho, Sora se desliza
+  sin saltos y no hay hueco ni pop; la salida vuelve a la sala limpia.
 - [ ] Menú de desbloquear puertas (síntesis de salas): subir un poco el menú
   principal para que no quede pegado abajo. Necesita un estado frente a una puerta cerrada.
 - [x] Menú del Vórtice y "Elige un mundo": altura completa con bordes estirados (las
@@ -117,7 +118,9 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 - [x] Otros crashes al alternar submenús: test_submenus.py, las seis entradas del menú
   de pausa, cuatro idas y vueltas cada una, 6/6 sin crash.
 - [ ] Animación superior de salida de submenús: revisar fotogramas de transición.
-- [ ] Sprite a la izquierda antes/después de subir de nivel: reproducir y corregir.
+- [x] Sprite a la izquierda después de subir de nivel: era el panel de estadísticas (BG1) que sale
+  por la derecha y, al dar la vuelta el mapa de 256 px, aparecía en el margen izquierdo. PortBgClip
+  deja esa capa en las columnas de la GBA hasta el final del combate.
 - [x] Números HD: los que son texto (barajas, EXP) en HD; los de las cartas y contadores
   animados son ilustración y se conservan (HDTEXT_INVENTARIO.md).
 - [x] Batería de eventos: `--wide` realmente selecciona view_mode=4. Antes

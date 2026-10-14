@@ -82,6 +82,9 @@ void PortScreenEnd(void);
 int PortScreenMarginX(void);
 void PortBgSplit(int bg, int column);
 void PortBgSplitBands(int bg, int enabled);
+/* A UI layer drawn on the world: kept to the GBA columns, so what it hides
+   past the right edge does not wrap into the margins. Cleared with the battle view. */
+void PortBgClip(int bg, int on);
 /* Battles: world-map layers repeat sideways past their edge. */
 void PortSetBattleView(int on);
 /* Authored arena bounds and repeatable side bands; screen margins only. */

@@ -146,6 +146,7 @@ void PortRegisterBgTextTile(void* address, int code, int style, const void* sour
    hardware would (no world-map continuation), so parked windows stay hidden. */
 static int sBgSplit[4]; /* PortBgSplit, below */
 static int sBgSplitBands[4]; /* repeat authored ornamental tiles in the split gap */
+static int sBgClip[4]; /* PortBgClip: UI layer kept to the GBA columns */
 static const uint16_t* sMenuHeaderFrame;
 static const ObjTiles* sMenuHeaderTiles;
 static const ObjPalette* sMenuHeaderPalette;
@@ -179,6 +180,7 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgWorldLatched, sizeof(sBgWorldLatched));
     visit(sBgSplit, sizeof(sBgSplit));
     visit(sBgSplitBands, sizeof(sBgSplitBands));
+    visit(sBgClip, sizeof(sBgClip));
     visit(&sSceneNarrow, sizeof(sSceneNarrow));
     visit(&sNarrowWanted, sizeof(sNarrowWanted));
     visit(&sNarrowWait, sizeof(sNarrowWait));
@@ -555,6 +557,7 @@ static int HudRaise(void) {
 
 void PortSetBattleView(int on) {
     sBattleView = on;
+    memset(sBgClip, 0, sizeof(sBgClip));
     memset(sArenaBands, 0, sizeof(sArenaBands));
 }
 
@@ -1316,6 +1319,10 @@ static void StepAffine(int lines) {
     }
 }
 
+void PortBgClip(int bg, int on) {
+    if ((unsigned)bg < 4) sBgClip[bg] = on;
+}
+
 void PortBgSplitBands(int bg, int enabled) {
     if ((unsigned)bg < 4) sBgSplitBands[bg] = enabled;
 }
@@ -1490,6 +1497,13 @@ static void RenderLine(int y, int gy) {
             DrawTextBg(b, gy, dispcnt);
         if (sOverlay && sScreenBg[b] && sBgSplit[b])
             SplitBgLine(b, gy);
+        else if (sBgClip[b] && !(sOverlay && sScreenBg[b])) {
+            /* its wrapped columns would show in the margins */
+            int x;
+            for (x = 0; x < w; x++)
+                if (x - gPortScreen.originX < 0 || x - gPortScreen.originX >= GBA_SCREEN_W)
+                    sBgLine[b][x] = TRANSPARENT;
+        }
     }
     DrawObjs(gy, dispcnt);
     BuildWindows(gy, dispcnt);
