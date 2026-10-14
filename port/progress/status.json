@@ -99,14 +99,14 @@
     {
       "name": "Widescreen: field maps",
       "weight": 8,
-      "done": 85,
-      "notes": "map-block rooms and cell-built rooms extend with the game's own composition; void beyond the world is black"
+      "done": 87,
+      "notes": "map-block rooms and cell-built rooms extend with the game's own composition; void beyond the world is black; MapWorldTile matches MapBuildBgRow/Column (test_wide_world_cells.py: 417216 comparisons pass); first visual pass of 13 rooms with continuous abyss colours; fixed rooms, interior gaps, camera moves, 100 Acre Wood and US/JP pending"
     },
     {
       "name": "Widescreen: battles",
       "weight": 6,
-      "done": 93,
-      "notes": "affine arenas extend and repeat sideways; HUD on its own scaled layer anchored to the corners, card hand lifted to show whole cards; tutorial pointers follow the HUD; battle messages docked. Battle-entry animation retains its native aspect with dim blurred surroundings; EU/US/JP capture regression completed and inspected. Seamless arena strips and some abyss edges remain under review."
+      "done": 95,
+      "notes": "affine arenas extend and repeat sideways; HUD on its own scaled layer anchored to the corners, card hand lifted to show whole cards; tutorial pointers follow the HUD; battle messages docked. Battle-entry animation retains its native aspect with dim blurred surroundings; EU/US/JP capture regression completed and inspected. Seamless arena strips and some abyss edges remain under review.; arenas extend with bands of their own original tiles chosen per arena (btl_map.c), leaving unique motifs out: 19/19 arena fixtures with no crash, each reviewed at 1280x720 in EU (WIDE_WORLD_VERIFICATION.md); regional, rotation/zoom and exit reviews pending"
     },
     {
       "name": "Widescreen: menus & events",
@@ -123,8 +123,8 @@
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 88,
-      "notes": "Earlier EU/US/JP reports: 194 event and 209 debug battle smoke cases per region; bounded runs, not full playthroughs. Twelve traced START/deck/field cycles passed. Add-card crash reproduced through normal navigation and fixed by initializing caption counts; Add/Remove/field regression passed. Other repeated submenu crashes remain under investigation.; room battery (port/tools/test_rooms.py, KHCOM_MODE=room as the debug MAP check enters rooms): 52/52 in EU, every world on an early and a late floor and the entrance and exit halls of all 13 floors, walking, opening doors and fighting (evidence/rooms_eu.txt); level-up holds 16.7 ms frames with no hitch or lost logic frame (KHCOM_FRAMELOG); save states deterministic; every song played. Full playthroughs still pending.; submenu stress (port/tools/test_submenus.py) on a real save: every pause-menu entry (deck, world map, map cards, world cards, status, journal) entered and left four times, 6/6 with no crash (evidence/submenus_eu.txt)"
+      "done": 85,
+      "notes": "Earlier EU/US/JP reports: 194 event and 209 debug battle smoke cases per region; bounded runs, not full playthroughs. Twelve traced START/deck/field cycles passed. Add-card crash reproduced through normal navigation and fixed by initializing caption counts; Add/Remove/field regression passed. Other repeated submenu crashes remain under investigation.; room battery (port/tools/test_rooms.py, KHCOM_MODE=room as the debug MAP check enters rooms): 52/52 in EU, every world on an early and a late floor and the entrance and exit halls of all 13 floors, walking, opening doors and fighting (evidence/rooms_eu.txt); level-up holds 16.7 ms frames with no hitch or lost logic frame (KHCOM_FRAMELOG); save states deterministic; every song played. Full playthroughs still pending.; submenu stress (port/tools/test_submenus.py) on a real save: every pause-menu entry (deck, world map, map cards, world cards, status, journal) entered and left four times, 6/6 with no crash (evidence/submenus_eu.txt); correction: of the room battery's worlds, index 12 is the FORMAT debug stage and Twilight Town on floor 1 is a placeholder, and the MAP table has no 100 Acre Wood, so those cases are entries without crash rather than story scenarios"
     },
     {
       "name": "Save states",
@@ -136,7 +136,7 @@
       "name": "HD text",
       "weight": 3,
       "done": 94,
-      "notes": "KHMenu Latin/menu text, Japanese glyphs and Comic Hearts subtitles. Fresh EU/JP opening captures verified after Shift-JIS fix. Map-card tutorial caption hidden while its notice is open; general occlusion regression, stylized art and remaining digits still pending.; inventory of text and digits still in pixel art (port/progress/HDTEXT_INVENTARIO.md): dialogue, menu slots, card names, subtitles and the options screen are HD; card values, reload counters and boss values are card art and stay; deck-menu counts are text written into BG tiles, left for the compositor work"
+      "notes": "KHMenu Latin/menu text, Japanese glyphs and Comic Hearts subtitles. Fresh EU/JP opening captures verified after Shift-JIS fix. Map-card tutorial caption hidden while its notice is open; general occlusion regression, stylized art and remaining digits still pending.; inventory of text and digits still in pixel art (port/progress/HDTEXT_INVENTARIO.md): dialogue, menu slots, card names, subtitles and the options screen are HD; card values, reload counters and boss values are card art and stay; deck-menu counts are text written into BG tiles, left for the compositor work; EXP/next-level digits drawn as HD (style 2, 5-pixel capitals on 8-pixel cells) and deck-menu digits registered from their BG tiles (PortRegisterBgTextTile); visual approval of the corrected colours pending"
     },
     {
       "name": "USA and Japanese versions",

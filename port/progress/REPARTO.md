@@ -13,10 +13,8 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 - Claude es el integrador principal: integra los commits de ambos en
   feat/native-movies, compila EU/US/JP antes de subir y prepara las releases.
   Solo se sube lo que compila en las tres regiones.
-- Números HD: Codex está registrando los dígitos que el juego escribe en tiles
-  de fondo (PortRegisterBgTextTile en los menús de baraja y combate). Claude no
-  duplica eso; cuando esté, Claude cubre los dígitos que son sprites (valores de
-  carta, daño, contadores) con el mismo estilo, salvo que Codex lo marque aquí.
+- Números HD: Codex los cubre todos con el estilo 2 (tiles de BG en barajas y
+  sprites de EXP); Claude no duplica. Pendiente: revisión visual de colores.
 - Herramientas de verificación: Codex tiene test_gameplay_*, test_ppu_conformance
   y test_wide_world_* sin subir; Claude ya subió test_rooms, test_submenus,
   test_ppu, test_options y test_songs. Al integrar se unifican (sin borrar
@@ -28,10 +26,10 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
 |---|---|---|---|---|
-| Gameplay verification | 88 | 10 | Claude | Partida completa de Sora y de Reverse/Rebirth |
-| Widescreen: field maps | 85 | 8 | Codex | Salas con huecos o bordes de abismo; revisión por mundo |
+| Gameplay verification | 85 | 10 | Claude + Codex | Partida completa de Sora y de Reverse/Rebirth |
+| Widescreen: field maps | 87 | 8 | Codex | Salas con huecos o bordes de abismo; revisión por mundo |
 | HD text | 94 | 3 | Claude | Números de menús de baraja (tiles de BG) con el compositor; oclusión general |
-| Widescreen: battles | 93 | 6 | Codex | Cinta continua de arenas y bordes de abismo |
+| Widescreen: battles | 95 | 6 | Codex | Cinta continua de arenas y bordes de abismo |
 | Widescreen: menus & events | 93 | 4 | Codex | Salida de submenús, footer, subida de nivel (paneles y popeo) |
 
 Ya al 100 %: build, assets, memoria, BIOS, DMA, interrupciones, entrada, m4a,
