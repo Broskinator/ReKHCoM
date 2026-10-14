@@ -33,6 +33,9 @@ Todos los puntos siguientes están pendientes salvo indicación explícita.
   que el usuario aprobó. Revisar el píxel residual del margen derecho.
 - [ ] Entradas/salidas de submenús: headers sin ecos ni distorsión durante
   el movimiento. Mapamundi: footer completo desde el inicio y al volver.
+  Extensión animada de barras de Mapamundi implementada desde sus assets OBJ
+  originales y su posición Y, sin copiar el framebuffer. Compila EU;
+  revisión visual y regional pendiente. Estado visitado en savestates.
 - [~] Naipes mundo: extensión del fondo mediante un fundido de pixel art
   escalonado/tramado basado en la paleta original, sin estirar la ilustración.
   Implementado y revisado en EU: build/priority-regressions/20261013_231639_172982/world.

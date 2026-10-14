@@ -4,6 +4,9 @@
  */
 
 #include "macros.h"
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "registration_data.h"
 #include "system_state.h"
 #include "map_api.h"
@@ -591,6 +594,14 @@ s32 task_allmap_bar_1(AllmapBarWork* work) {
 }
 
 void task_allmap_bar_2(AllmapBarWork* work) {
+#ifdef PLATFORM_PC
+    /* The same authored ornamental pieces continue into the wide margins,
+       at their actual animated Y, before the final BG replaces them. */
+    PortMenuBandSource(0, work->y >> 8,
+        work->state == ALLMAP_BAR_STATE_IDLE ? NULL : gAllmapBarBandFrame0, work->tiles2, work->palette);
+    PortMenuBandSource(1, work->y2 >> 8,
+        work->state == ALLMAP_BAR_STATE_IDLE ? NULL : gAllmapBarBandFrame1, work->tiles2, work->palette);
+#endif
     if (work->state == ALLMAP_BAR_STATE_IDLE) {
         return;
     }
@@ -606,6 +617,10 @@ void task_allmap_bar_2(AllmapBarWork* work) {
 }
 
 void task_allmap_bar_3(AllmapBarWork* work) {
+#ifdef PLATFORM_PC
+    PortMenuBandSource(0, 0, NULL, NULL, NULL);
+    PortMenuBandSource(1, 0, NULL, NULL, NULL);
+#endif
     ReleaseObjTiles(work->tiles);
     ReleaseObjTiles(work->tiles2);
     ReleaseObjPalette(work->palette);

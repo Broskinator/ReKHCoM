@@ -422,6 +422,10 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                 if (sSideStyle == 5 && ((yy >= 16 && yy < 24) || (yy >= 136 && yy < (side > 0 ? 154 : 145))))
                     sample = sx + xx;
                 strip[yy * SIDE_STRIP + xx] = gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
+                if (sSideStyle == 5) {
+                    uint32_t bandColor = PortMenuBandPixel(yy, xx);
+                    if (bandColor) strip[yy * SIDE_STRIP + xx] = bandColor;
+                }
                 if (yy < 16 && side < 0) {
                     uint32_t header = PortMenuHeaderPixel(yy, xx);
                     if (header) strip[yy * SIDE_STRIP + xx] = header;

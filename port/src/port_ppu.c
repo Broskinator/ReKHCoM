@@ -83,6 +83,13 @@ static int sBgSplitBands[4]; /* repeat authored ornamental tiles in the split ga
 static const uint16_t* sMenuHeaderFrame;
 static const ObjTiles* sMenuHeaderTiles;
 static const ObjPalette* sMenuHeaderPalette;
+typedef struct MenuBandSource {
+    const uint16_t* frame;
+    const ObjTiles* tiles;
+    const ObjPalette* palette;
+    int y;
+} MenuBandSource;
+static MenuBandSource sMenuBands[2];
 static const uint16_t* sMenuTabFrame;
 static const ObjTiles* sMenuTabTiles;
 static const ObjPalette* sMenuTabPalette;
@@ -110,6 +117,7 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(&sMenuHeaderFrame, sizeof(sMenuHeaderFrame));
     visit(&sMenuHeaderTiles, sizeof(sMenuHeaderTiles));
     visit(&sMenuHeaderPalette, sizeof(sMenuHeaderPalette));
+    visit(sMenuBands, sizeof(sMenuBands));
     visit(&sMenuTabFrame, sizeof(sMenuTabFrame));
     visit(&sMenuTabTiles, sizeof(sMenuTabTiles));
     visit(&sMenuTabPalette, sizeof(sMenuTabPalette));
@@ -1459,6 +1467,7 @@ void PortMenuHeaderSource(void* frame, void* tiles, void* palette) {
     sMenuHeaderTiles = tiles;
     sMenuHeaderPalette = palette;
     if (!frame) {
+        memset(sMenuBands, 0, sizeof(sMenuBands));
         sMenuTabFrame = NULL;
         sMenuTabBg[0] = sMenuTabBg[1] = -1;
     }
@@ -1530,6 +1539,24 @@ static uint32_t MenuSpritePixel(const uint16_t* frame, const ObjTiles* tiles,
 
 uint32_t PortMenuHeaderPixel(int y, int phase) {
     return MenuSpritePixel(sMenuHeaderFrame, sMenuHeaderTiles, sMenuHeaderPalette, y, phase);
+}
+
+void PortMenuBandSource(int band, int y, void* frame, void* tiles, void* palette) {
+    if ((unsigned)band >= 2) return;
+    sMenuBands[band].frame = frame;
+    sMenuBands[band].tiles = tiles;
+    sMenuBands[band].palette = palette;
+    sMenuBands[band].y = y;
+}
+
+uint32_t PortMenuBandPixel(int y, int phase) {
+    int i;
+    for (i = 0; i < 2; i++) {
+        const MenuBandSource* band = &sMenuBands[i];
+        uint32_t color = MenuSpritePixel(band->frame, band->tiles, band->palette, y - band->y, phase);
+        if (color) return color;
+    }
+    return 0;
 }
 
 uint32_t PortMenuTabPixel(int y, int phase, int side) {

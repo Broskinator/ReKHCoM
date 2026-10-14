@@ -83,6 +83,7 @@ enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE, PORT_SIDE_BLUR, PO
 void PortSideStyle(int style);
 void PortMenuPanelSide(int side);
 void PortMenuHeaderSource(void* frame, void* tiles, void* palette);
+void PortMenuBandSource(int band, int y, void* frame, void* tiles, void* palette);
 void PortSetSpotlight(int active);
 void PortMenuTabBg(int side, int bg, int x, int y);
 void PortMenuTabSprite(void* frame, void* tiles, void* palette);

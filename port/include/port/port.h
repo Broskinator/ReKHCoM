@@ -187,6 +187,7 @@ extern PortScreen gPortScreen;
 extern uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
 extern uint32_t gPortMenuBackground[PORT_MAX_W * PORT_MAX_H];
 uint32_t PortMenuHeaderPixel(int y, int phase);
+uint32_t PortMenuBandPixel(int y, int phase);
 int PortSpotlightActive(void);
 uint32_t PortMenuTabPixel(int y, int phase, int side);
 
