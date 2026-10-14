@@ -292,6 +292,14 @@ static uint8_t* sPlayerBarMask;
 static size_t sPlayerBarMaskSize;
 static int sPlayerBarRect[4], sPlayerBarSlot;
 static uint32_t sPlayerBarRows[32];
+static int sPlayerFullHp;
+int PortPpuPlayerHudFullHp(void) { return sPlayerFullHp; }
+static int sPlayerFrameRect[4];
+int PortPpuPlayerHudFrame(int* rect) {
+    if (sPlayerFrameRect[2] < sPlayerFrameRect[0]) return 0;
+    memcpy(rect, sPlayerFrameRect, sizeof(sPlayerFrameRect));
+    return 1;
+}
 int PortPpuPlayerHudBar(int* rect, uint32_t* rows) {
     if (sPlayerBarRect[2] < sPlayerBarRect[0]) return 0;
     memcpy(rect, sPlayerBarRect, sizeof(sPlayerBarRect));
@@ -2085,6 +2093,9 @@ void PortPpuRenderHud(uint32_t* buf) {
     sEnemyLabelColor = 0;
     sEnemyBarRect[0] = w; sEnemyBarRect[1] = h;
     sPlayerBarRect[0] = w; sPlayerBarRect[1] = h;
+    sPlayerFullHp = 0;
+    sPlayerFrameRect[0] = w; sPlayerFrameRect[1] = h;
+    sPlayerFrameRect[2] = sPlayerFrameRect[3] = -1;
     sPlayerBarRect[2] = sPlayerBarRect[3] = -1;
     memset(sPlayerBarRows, 0, sizeof(sPlayerBarRows));
     if (gPortConfig.hdHud && (size_t)w * 32 > sPlayerBarMaskSize) {
@@ -2201,7 +2212,7 @@ void PortPpuRenderHud(uint32_t* buf) {
                 if (col < 0)
                     continue;
                 digitInk = digit && ((col & 31) >= 22 || ((col >> 5) & 31) >= 22 || ((col >> 10) & 31) >= 22);
-                if (gPortConfig.hdHud && tag->hdHudPart == 4 && py < 32 && sPlayerBarMask &&
+                if (gPortConfig.hdHud && (tag->hdHudPart == 4 || tag->hdHudPart == 6) && py < 32 && sPlayerBarMask &&
                     (size_t)w * 32 <= sPlayerBarMaskSize && sHudDigitOwners && (size_t)w * h <= sHudDigitOwnerSize) {
                     int r = col & 31, g = (col >> 5) & 31, b = (col >> 10) & 31;
                     int high = r > g ? r : g, low = r < g ? r : g;
@@ -2233,6 +2244,19 @@ void PortPpuRenderHud(uint32_t* buf) {
                 }
                 if (gPortConfig.hdHud && sHudDigitOwners && (size_t)w * h <= sHudDigitOwnerSize)
                     sHudDigitOwners[py * w + px] = i + 1;
+                if (tag->hdHudPart == 5 && px >= 31 && PortHdHudPlayerFrameReady()) {
+                    int r = col & 31, g = (col >> 5) & 31, b = (col >> 10) & 31;
+                    int high = r > g ? r : g, low = r < g ? r : g;
+                    if (b > high) high = b;
+                    if (b < low) low = b;
+                    if (high - low <= 3 && high > 0) {
+                        if (px < sPlayerFrameRect[0]) sPlayerFrameRect[0] = px;
+                        if (py < sPlayerFrameRect[1]) sPlayerFrameRect[1] = py;
+                        if (px > sPlayerFrameRect[2]) sPlayerFrameRect[2] = px;
+                        if (py > sPlayerFrameRect[3]) sPlayerFrameRect[3] = py;
+                        continue;
+                    }
+                }
                 if (gPortConfig.hdHud && (tag->hdHudPart == 1 || tag->hdHudPart == 2)) {
                     int r = col & 31, g = (col >> 5) & 31, b = (col >> 10) & 31;
                     int high = r > g ? r : g, low = r < g ? r : g;
@@ -2266,7 +2290,8 @@ void PortPpuRenderHud(uint32_t* buf) {
                 }
                 argb = sColorLut[col];
                 if (barInk) {
-                    if (tag->hdHudPart == 4) {
+                    if (tag->hdHudPart == 4 || tag->hdHudPart == 6) {
+                        sPlayerFullHp = tag->hdHudPart == 6;
                         sPlayerBarMask[py * w + px] = 1;
                         sPlayerBarSlot = i;
                         if (px < sPlayerBarRect[0]) sPlayerBarRect[0] = px;

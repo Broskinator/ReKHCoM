@@ -331,6 +331,10 @@ void task_btl_hpply_2(BtlHpplyWork* work) {
 
     DrawSprite(4, 2, work->gfx, work->tiles, work->palette, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 1);
 
+#ifdef PLATFORM_PC
+    gPortHdHudPart = PortHdHudPlayerFrameReady() ? 5 : 0;
+#endif
+
     switch (work->gaugeMode) {
     case BTL_HPPLY_GAUGE_MODE_SINGLE:
         DrawSprite(4, 2, work->gfx2, work->tiles2, work->palette2, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 4);
@@ -345,6 +349,9 @@ void task_btl_hpply_2(BtlHpplyWork* work) {
         break;
     }
 
+#ifdef PLATFORM_PC
+    gPortHdHudPart = 0;
+#endif
     switch (work->gaugeMode) {
     case BTL_HPPLY_GAUGE_MODE_MAIN_BAR:
         scale = work->hpRatio;
@@ -412,7 +419,8 @@ void task_btl_hpply_2(BtlHpplyWork* work) {
 
     if (work->displayHp > 0) {
 #ifdef PLATFORM_PC
-        gPortHdHudPart = PortHdHudEnemy(1, 0, 0) ? 4 : 0;
+        gPortHdHudPart = PortHdHudEnemy(1, 0, 0) ?
+            (work->displayHp >= gBtlWork->actor->maxHp ? 6 : 4) : 0;
 #endif
         if (scale <= 9) {
             scale = 10;

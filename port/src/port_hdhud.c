@@ -15,6 +15,55 @@ static SDL_Texture* sFrame;
 static SDL_Texture* sWhiteFrame;
 static SDL_Texture* sLabel;
 static SDL_Texture* sWhiteLabel;
+static SDL_Texture *sPlayerFrame, *sWhitePlayerFrame;
+static SDL_FRect sPlayerSource;
+int PortHdHudPlayerFrameReady(void) {
+    /* Fitting probe only: keep native frame until interior-row alignment and
+       full-health end caps are verified against the original. */
+    return SDL_getenv("KHCOM_HDHUD_FRAME_PROBE") && gPortConfig.hdHud &&
+           sPlayerFrame && sWhitePlayerFrame && gPortHudScale && !PortUiActive();
+}
+static void LoadPlayerFrame(SDL_Renderer* renderer) {
+    const char* path = PortConfigPath("assets/hd-hud/pilot/player-double-frame-v1.png");
+    int w, h, channels, x, y, l, t, r = -1, b = -1;
+    unsigned char* pixels;
+    SDL_Surface *src, *dst;
+    SDL_ScaleMode sampling;
+    if (!stbi_info(path, &w, &h, &channels) || channels != 4 || w < 1 || h < 1 ||
+        w > 4096 || h > 4096 || (size_t)w * h > 4194304) return;
+    pixels = stbi_load(path, &w, &h, &channels, 4);
+    if (!pixels) return;
+    l = w; t = h;
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+        unsigned char* p = pixels + ((size_t)y * w + x) * 4;
+        if (p[3] && (!x || !y || x == w - 1 || y == h - 1)) { stbi_image_free(pixels); return; }
+        if (p[3] >= 32) { l = SDL_min(l, x); r = SDL_max(r, x); t = SDL_min(t, y); b = SDL_max(b, y); }
+        if (!p[3]) p[0] = p[1] = p[2] = 0;
+    }
+    if (r < l) { stbi_image_free(pixels); return; }
+    src = SDL_CreateSurfaceFrom(r - l + 1, b - t + 1, SDL_PIXELFORMAT_RGBA32,
+                                pixels + ((size_t)t * w + l) * 4, w * 4);
+    if (src) {
+        int cw = SDL_min(src->w, 512), ch = SDL_max(1, src->h * cw / src->w);
+        dst = SDL_CreateSurface(cw, ch, SDL_PIXELFORMAT_RGBA32);
+        SDL_SetSurfaceBlendMode(src, SDL_BLENDMODE_NONE);
+        if (dst && SDL_BlitSurfaceScaled(src, NULL, dst, NULL, SDL_SCALEMODE_LINEAR)) {
+            sPlayerFrame = SDL_CreateTextureFromSurface(renderer, dst);
+            for (y = 0; y < ch; y++) for (x = 0; x < cw; x++) {
+                unsigned char* p = (unsigned char*)dst->pixels + y * dst->pitch + x * 4;
+                p[0] = p[1] = p[2] = 255;
+            }
+            sWhitePlayerFrame = SDL_CreateTextureFromSurface(renderer, dst);
+            sPlayerSource = (SDL_FRect){0, 0, cw, ch};
+        }
+        if (dst) SDL_DestroySurface(dst);
+        SDL_DestroySurface(src);
+    }
+    stbi_image_free(pixels);
+    sampling = SDL_strcmp(SDL_GetRendererName(renderer), "software") == 0 ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR;
+    if (sPlayerFrame) { SDL_SetTextureBlendMode(sPlayerFrame, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(sPlayerFrame, sampling); }
+    if (sWhitePlayerFrame) { SDL_SetTextureBlendMode(sWhitePlayerFrame, SDL_BLENDMODE_BLEND); SDL_SetTextureScaleMode(sWhitePlayerFrame, sampling); }
+}
 static SDL_FRect sLabelSource;
 static SDL_FRect sLabelInk;
 #ifdef VERSION_EU
@@ -141,6 +190,9 @@ void PortHdHudExportSprite(int w, int h, int part, int ax, int ay) {
 }
 
 void PortHdHudShutdown(void) {
+    if (sPlayerFrame) SDL_DestroyTexture(sPlayerFrame);
+    if (sWhitePlayerFrame) SDL_DestroyTexture(sWhitePlayerFrame);
+    sPlayerFrame = sWhitePlayerFrame = NULL;
     if (sFrame) SDL_DestroyTexture(sFrame);
     if (sWhiteFrame) SDL_DestroyTexture(sWhiteFrame);
     if (sLabel) SDL_DestroyTexture(sLabel);
@@ -234,6 +286,7 @@ void PortHdHudPrepare(SDL_Renderer* renderer) {
     SDL_SetTextureScaleMode(sFrame, sampling);
     PortLog("HD HUD: cached transparent enemy HP pilot (%dx%d crop)", right - left + 1, bottom - top + 1);
     LoadLabel(renderer);
+    if (SDL_getenv("KHCOM_HDHUD_FRAME_PROBE")) LoadPlayerFrame(renderer);
 }
 
 int PortHdHudEnemy(int visible, int ratio, int layer) {
@@ -285,6 +338,15 @@ static void DrawVitalityBar(SDL_Renderer* renderer, int width, int height, int p
     float ox = (width - gPortHudW * scale) * 0.5f, oy = (height - gPortHudH * scale) * 0.5f;
     if (!gPortConfig.hdHud || !scale || PortUiActive() ||
         !(player ? PortPpuPlayerHudBar(rect, rows) : PortPpuEnemyHudBar(rect, rows))) return;
+    if (player) {
+        const char* trace = SDL_getenv("KHCOM_HUD_FULLHP_TRACE");
+        while (trace && *trace) {
+            if ((uint32_t)SDL_atoi(trace) == PortFrameCount())
+                PortLog("HD HUD: fullhp frame=%u value=%d", PortFrameCount(), PortPpuPlayerHudFullHp());
+            trace = SDL_strchr(trace, ',');
+            if (trace) trace++;
+        }
+    }
     lines = (int)((rect[3] - rect[1] + 1) * scale);
     for (line = 0; line < lines; line++) {
         float y = rect[1] + line / scale;
@@ -321,6 +383,17 @@ void PortHdHudDraw(SDL_Renderer* renderer, int width, int height) {
     int effect = (bld >> 6) & 3;
     int amount = SDL_min(*(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x54), 16);
     Uint8 tint = (bld & 0x10) && effect == 3 ? 255 * (16 - amount) / 16 : 255;
+    if (PortHdHudPlayerFrameReady() && PortPpuPlayerHudFrame(rect)) {
+        frame = (SDL_FRect){(width - gPortHudW * scale) * 0.5f + rect[0] * scale,
+            (height - gPortHudH * scale) * 0.5f + rect[1] * scale,
+            (rect[2] - rect[0] + 1) * scale, (rect[3] - rect[1] + 1) * scale};
+        SDL_SetTextureColorMod(sPlayerFrame, tint, tint, tint);
+        SDL_RenderTexture(renderer, sPlayerFrame, &sPlayerSource, &frame);
+        if ((bld & 0x10) && effect == 2 && amount) {
+            SDL_SetTextureAlphaMod(sWhitePlayerFrame, amount * 255 / 16);
+            SDL_RenderTexture(renderer, sWhitePlayerFrame, &sPlayerSource, &frame);
+        }
+    }
     if (!gPortConfig.hdHud || !sFrame || !scale || PortUiActive() || !PortPpuEnemyHudRect(rect)) return;
     frame.w = (rect[2] - rect[0] + 1) * scale;
     frame.h = (rect[3] - rect[1] + 1) * scale;

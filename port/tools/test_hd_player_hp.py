@@ -20,6 +20,7 @@ for actor in (0, 1):
         env = {k: v for k, v in os.environ.items() if not k.startswith('KHCOM_')}
         env.update(SDL_VIDEO_DRIVER='dummy', SDL_AUDIO_DRIVER='dummy', KHCOM_FAST='1',
                    KHCOM_BATTLE=f'0:0:{actor}', KHCOM_KEYS='60-63:A',
+                   KHCOM_HUD_FULLHP_TRACE='300,430',
                    KHCOM_MODE='250:hudhp:100,350:hudhp:50,400:hudhp:25,550:hudhp:100',
                    KHCOM_OUTPUT_SHOT=','.join(map(str, frames)), KHCOM_QUIT='655')
         subprocess.run([str(ROOT / 'build/cx-eu/khcom.exe'), '--data-dir', str(folder),
@@ -27,6 +28,9 @@ for actor in (0, 1):
                        cwd=folder, env=env, check=True, timeout=90)
         log = (folder / 'kh_com.log').read_text(errors='replace')
         assert log.count('harness: hudhp') == 4 and 'CRASH' not in log
+        if hd:
+            assert 'fullhp frame=300 value=1' in log
+            assert 'fullhp frame=430 value=0' in log
         masks = []
         for frame in frames:
             with Image.open(folder / f'out_{frame:05d}.bmp') as im:
