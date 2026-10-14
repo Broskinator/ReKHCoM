@@ -353,7 +353,7 @@ void WorldWarpDraw() {
         break;
     }
 
-    DrawSprite(sWorldWarpBarX >> 8, 0, titleSprite, sWorldWarpBarTiles, sWorldWarpBarPalette, NULL, SPRITE_PRIORITY(3), 0xBB8);
+    DrawMenuHeader(sWorldWarpBarX >> 8, 0, titleSprite, sWorldWarpBarTiles, sWorldWarpBarPalette, NULL, SPRITE_PRIORITY(3), 0xBB8);
 
     if (sWorldWarpState != WORLD_WARP_STATE_SELECT) {
         DrawSprite(0x80, sWorldWarpBarY[0] >> 8, topBarSprite, sWorldWarpBarTiles, sWorldWarpBarPalette, NULL, SPRITE_PRIORITY(3), 0xBB9);
@@ -361,7 +361,7 @@ void WorldWarpDraw() {
     }
 #else
     if (sWorldWarpState != WORLD_WARP_STATE_SELECT) {
-        DrawSprite(sWorldWarpBarX >> 8, 0, gWorldWarpBarFrame0, sWorldWarpBarTiles, sWorldWarpBarPalette, NULL, SPRITE_PRIORITY(3), 0xBB8);
+        DrawMenuHeader(sWorldWarpBarX >> 8, 0, gWorldWarpBarFrame0, sWorldWarpBarTiles, sWorldWarpBarPalette, NULL, SPRITE_PRIORITY(3), 0xBB8);
         DrawSprite(0x80, sWorldWarpBarY[0] >> 8, gWorldWarpBarFrame1, sWorldWarpBarTiles, sWorldWarpBarPalette, NULL, SPRITE_PRIORITY(3), 0xBB9);
         DrawSprite(0x80, sWorldWarpBarY[1] >> 8, gWorldWarpBarFrame2, sWorldWarpBarTiles, sWorldWarpBarPalette, NULL, SPRITE_PRIORITY(3), 0xBB9);
     }

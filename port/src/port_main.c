@@ -685,6 +685,26 @@ static void DrawBlurredReflection(const SDL_FRect* src, int outW, int outH) {
    edge in that colour. */
 static uint32_t sBandGround; /* style 9: the ground colour, 0 otherwise */
 
+/* d is c darkened (the GBA's brightness fade): every channel lower by the
+   same proportion, within rounding */
+static int DimmedOf(uint32_t d, uint32_t c) {
+    int sh, f = -1;
+    if ((d & 0xFFFFFF) == (c & 0xFFFFFF))
+        return 0;
+    for (sh = 0; sh <= 16; sh += 8) {
+        int cc = (int)((c >> sh) & 255), dd = (int)((d >> sh) & 255);
+        if (dd > cc) return 0;
+        if (cc >= 48) {
+            int r = dd * 64 / cc;
+            if (f < 0) f = r;
+            else if (r < f - 3 || r > f + 3) return 0;
+        } else if (dd > cc / 2 + 8 && cc - dd > 24) {
+            return 0;
+        }
+    }
+    return f >= 8 && f < 62;
+}
+
 /* Where GBA row (or column) r starts on the window, exactly as the picture's
    own sampling puts it: a window pixel shows the GBA row under its centre,
    so at a 4.5 scale rows alternate 5 and 4 pixels from the top. Margin rows
@@ -698,11 +718,13 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
     extern void PortPpuSpriteMask(uint8_t* out);
     int side, y;
     float scale = dst->w / src->w;
+    static uint8_t bars[2][GBA_SCREEN_H];
+    static uint32_t colors[2][GBA_SCREEN_H];
     PortPpuSpriteMask(mask); /* bars are sprites; the scenery's own runs are not bars */
     for (side = 0; side < 2; side++) {
         int edge = side ? (int)(src->x + src->w) - 1 : (int)src->x, step = side ? -1 : 1;
-        uint8_t bar[GBA_SCREEN_H];
-        uint32_t color[GBA_SCREEN_H];
+        uint8_t* bar = bars[side];
+        uint32_t* color = colors[side];
         for (y = 0; y < GBA_SCREEN_H; y++) {
             const uint32_t* row = &sComposite[((int)src->y + y) * gPortScreen.width];
             uint32_t c = row[edge];
@@ -711,10 +733,34 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
                 run++;
                 sprites += mask[((int)src->y + y) * gPortScreen.width + edge + k * step] != 0;
             }
+            /* the same bar dimmed by the scene (the world warp darkens its
+               middle box over the footer) carries on the run */
+            if (k < 120 && run > 0 && DimmedOf(row[edge + k * step], c)) {
+                uint32_t dim = row[edge + k * step];
+                for (; k < 120 && row[edge + k * step] == dim; k++)
+                    run++;
+            }
             color[y] = c;
             /* a sprite bar, or a BG bar far longer than any run of scenery */
             bar[y] = (sprites >= 24 && sprites == run) || run >= 80;
         }
+    }
+    /* the frame's top and bottom bars run across the whole screen: in the
+       top and bottom 24 rows, a row that is a bar at one edge is one at the
+       other where that edge shows the same colour (the world warp's footer,
+       cut short on the right by the player badge) */
+    for (y = 0; y < GBA_SCREEN_H; y++) {
+        if (y >= 24 && y < GBA_SCREEN_H - 24)
+            continue;
+        for (side = 0; side < 2; side++)
+            if (bars[side][y] == 1 && !bars[!side][y] && colors[!side][y] == colors[side][y])
+                bars[!side][y] = 4;
+    }
+    for (side = 0; side < 2; side++) {
+        uint8_t* bar = bars[side];
+        uint32_t* color = colors[side];
+        for (y = 0; y < GBA_SCREEN_H; y++)
+            if (bar[y] == 4) bar[y] = 1;
         /* rows of a bar's own colour next to it are the bar, even where its
            lettering (the world card banner's name) cuts their run short */
         for (y = 1; y < GBA_SCREEN_H; y++)
