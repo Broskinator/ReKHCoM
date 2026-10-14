@@ -19,6 +19,15 @@ Windows x86 prerelease.
 - Verified without a crash: all 194 story events (European, US and Japanese
   builds) and all 209 battles of the debug battle menu as Sora (European and
   US) and as Riku.
+- Return stocked cards (optional, on by default): holding V, or clicking or
+  pushing down the right stick, for half a second puts Sora's stocked cards
+  back in the hand, in their places in the deck (idea from ggdrn/KH_COM_VITA).
+  Toggle in the in-game options and the launcher; bindable in the launcher.
+- Launcher install tests (`port/tools/test_launcher.py`): the three dumps,
+  reinstalling, wrong size, wrong SHA-1, a non-KH file, a missing file and an
+  unwritable roms folder; 10/10 pass.
+- Audio compared with BizHawk (`port/tools/audio_compare.py`): boot and title
+  music match note for note (sample correlation 0.90, 4 ppm drift).
 
 ## v0.4 — 2026-10-13
 

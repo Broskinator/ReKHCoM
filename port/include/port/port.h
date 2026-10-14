@@ -82,6 +82,7 @@ enum {
     PORT_ACT_RIGHT,
     PORT_ACT_STOCK,
     PORT_ACT_DODGE,
+    PORT_ACT_UNSTOCK,
     PORT_ACT_COUNT
 };
 
@@ -108,6 +109,7 @@ typedef struct PortConfig {
     int stockButton;      /* one button for L + R (stock a card / sleight) */
     int hdText;           /* dialogue text drawn with an outline font at output resolution */
     int cardHudRaise;     /* battle: card hand lifted by this many GBA pixels (0..16) */
+    int unstockButton;    /* held button / right stick down returns the stocked cards (Sora) */
     int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
     int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
 } PortConfig;
@@ -212,6 +214,7 @@ uint16_t PortInputKeys(void);
 /* The port's extra buttons, beyond the GBA's ten key bits. */
 #define PORT_KEY_STOCK 0x400
 #define PORT_KEY_DODGE 0x800
+#define PORT_KEY_UNSTOCK 0x1000
 /* Turns the extra buttons into GBA keys and requests; returns the GBA key
    bits. Called once per frame. */
 uint16_t PortInputResolve(uint16_t keys);

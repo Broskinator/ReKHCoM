@@ -33,6 +33,9 @@
 #include "listpool.h"
 #include "m4a.h"
 #include "map_runtime.h"
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "mode.h"
 #include "obj.h"
 #include "player_progression_types.h"
@@ -235,6 +238,11 @@ void HandleSoraCardInput() {
         return;
     }
 
+#ifdef PLATFORM_PC
+    if (PortTakeUnstock()) {
+        RequestSoraUnstock();
+    }
+#endif
     chord = ReadKeyChord(L_BUTTON, R_BUTTON);
 
     switch (chord) {
@@ -448,6 +456,12 @@ void HandleTutorialCardInput() {
         return;
     }
 
+#ifdef PLATFORM_PC
+    /* No returning stocked cards in the tutorials: Leon's waits for the
+       three stocked cards to be used as a sleight. Taken so it does not
+       fire later. */
+    PortTakeUnstock();
+#endif
     chord = ReadKeyChord(L_BUTTON, R_BUTTON);
     pressed = GetKeysPressed();
     held = GetKeysHeld();

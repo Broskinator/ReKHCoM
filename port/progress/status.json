@@ -46,13 +46,13 @@
       "name": "Input (keyboard / gamepad)",
       "weight": 3,
       "done": 100,
-      "notes": "remappable keyboard (two keys per action) and gamepad buttons in kh_com.ini and the launcher; one-button dodge roll and stock (L+R); right stick changes and stocks cards"
+      "notes": "remappable keyboard (two keys per action) and gamepad buttons in kh_com.ini and the launcher; one-button dodge roll and stock (L+R); right stick changes and stocks cards; optional return-stocked-cards button (hold V / right stick)"
     },
     {
       "name": "m4a sequencer & mixer",
       "weight": 8,
-      "done": 90,
-      "notes": "full C port of m4a_1.s, 4x oversampled mixing; song loops checked against the ROM's sequence data"
+      "done": 94,
+      "notes": "full C port of m4a_1.s, 4x oversampled mixing; song loops checked against the ROM's sequence data; compared with BizHawk over boot and title: sample correlation 0.90, 4 ppm drift, port 3.4 dB quieter and without the stepped-PCM images above 3 kHz"
     },
     {
       "name": "PSG (CGB) channels",
@@ -147,8 +147,8 @@
     {
       "name": "Launcher & ROM install",
       "weight": 4,
-      "done": 92,
-      "notes": "decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements, editable controls, game language (EU), save card (date, open folder, back up), launcher language, version; starts the matching game"
+      "done": 96,
+      "notes": "decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements, editable controls, game language (EU), save card (date, open folder, back up), launcher language, version; starts the matching game; install tests (port/tools/test_launcher.py) 10/10: three dumps, reinstall, wrong size/SHA-1/file, missing file, unwritable roms folder"
     },
     {
       "name": "Skip intro",

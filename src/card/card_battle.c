@@ -130,6 +130,15 @@ void RequestSoraStockUse() {
     sSoraCardRequest = CARD_REQUEST_USE_STOCK;
 }
 
+#ifdef PLATFORM_PC
+#define CARD_REQUEST_PORT_UNSTOCK 100
+static void UnstockSoraCards(CardBattleWork* work);
+
+void RequestSoraUnstock(void) {
+    sSoraCardRequest = CARD_REQUEST_PORT_UNSTOCK;
+}
+#endif
+
 void func_08076354() {
     sSoraCardRequest = CARD_REQUEST_NOP;
 }
@@ -826,6 +835,12 @@ s32 cardbattleSora_1(CardBattleWork* work, Task* task) {
             sSoraCardRequest = CARD_REQUEST_NONE;
             SetTaskUpdate(task, (TaskUpdateFunc)UpdateSoraAutoCycle);
             break;
+#ifdef PLATFORM_PC
+        case CARD_REQUEST_PORT_UNSTOCK:
+            sSoraCardRequest = CARD_REQUEST_NONE;
+            UnstockSoraCards(work);
+            break;
+#endif
         default:
             sSoraCardRequest = CARD_REQUEST_NONE;
             break;
@@ -5634,3 +5649,87 @@ TaskDesc gTaskDescCardReload = {
     (TaskDestroyFunc)card_reload_3,
     sizeof(CardDisplayWork),
 };
+
+#ifdef PLATFORM_PC
+/*
+ * Port option: return Sora's stocked cards to the hand, which the GBA game
+ * cannot do (idea and approach from ggdrn/KH_COM_VITA, MIT). Undoes
+ * StockSoraCard: the slot flags that took each card out of the hand, the
+ * stock and its total and the hand count. The stocked card sprites go, and
+ * the hand is rebuilt around the card under the cursor as
+ * AddPickedCardToSoraDeck does, so every card is back in its place in the
+ * deck order. Refused with the beep when a room rule changed the stocked
+ * values, outside the main list, or while a stocked card is doing anything
+ * but waiting in the stock (a sleight under way).
+ */
+static void UnstockSoraCards(CardBattleWork* work) {
+    Task* tasks[3];
+    Task* task;
+    CardDisplayWork* node;
+    u8 hcEffect = gBtlWork->hcEffect;
+    u8 count = work->stockCount;
+    u8 i;
+
+    if (count == 0) {
+        return;
+    }
+    if (count > 3 || work->listIndex != CARD_LIST_MAIN || (gGameState.flags & GAME_FLAG_RIKU) ||
+        gCardBattleState->soraStockActive || hcEffect == HC_EFFECT_INCREMENTOR ||
+        hcEffect == HC_EFFECT_DECREMENTOR || hcEffect == HC_EFFECT_RANDOM_FLUSH) {
+        m4aSongNumStart(SONG_SYS_BEEP);
+        return;
+    }
+    for (i = 0; i < count; i++) {
+        for (task = ListPoolFirst(&work->tasks.head); task != NULL; task = ListPoolNext(&task->node)) {
+            if (task->work == work->stock[i]) {
+                break;
+            }
+        }
+        if (task == NULL || (task->update != (TaskUpdateFunc)SoraStockMoveToSlot &&
+                             task->update != (TaskUpdateFunc)SoraStockHold)) {
+            m4aSongNumStart(SONG_SYS_BEEP);
+            return;
+        }
+        tasks[i] = task;
+    }
+
+    /* The card under the cursor; with the whole hand stocked only the
+       empty-hand display is left, and the first stocked card takes it. */
+    if (sSoraSelectedCard != NULL && sSoraSelectedCard->args.index != CARD_SLOT_NONE) {
+        work->cursors[CARD_LIST_MAIN] = sSoraSelectedCard->args.index;
+    } else {
+        work->cursors[CARD_LIST_MAIN] = work->stock[0]->args.index;
+    }
+
+    for (i = 0; i < count; i++) {
+        CardDisplayWork* card = work->stock[i];
+
+        card->args.slot->stocked = FALSE;
+        card->args.slot->used = FALSE;
+        if (card->cardDef->flags & CARD_DEF_FLAG_FRIEND) {
+            card->args.slot->removed = FALSE;
+        }
+        TaskDestroy(&work->tasks, tasks[i]);
+        work->stock[i] = NULL;
+        gCardBattleState->soraStockedCards[i] = NULL;
+    }
+    work->cardsLeft[CARD_LIST_MAIN] += count;
+    work->stockCount = 0;
+    work->stockValue = 0;
+    work->xSteps = 0;
+    work->stockNameChecked = FALSE;
+    gCardBattleState->soraStockedCount = 0;
+    gCardBattleState->soraStockNameShown = FALSE;
+
+    for (node = ListPoolFirst(&work->cardDisplays[CARD_LIST_MAIN]); node != NULL; node = ListPoolNext(&node->node)) {
+        node->command = CARD_DISP_COMMAND_REMOVE;
+    }
+    TaskPoolUpdate(&work->tasks);
+    CreateSoraCardRing(work, CARD_LIST_MAIN);
+    if (work->revCountShown[CARD_LIST_MAIN] == 0) {
+        CreateREVCOUNTTask(&work->tasks, &work->listIndex, &work->cardsLeft[CARD_LIST_MAIN],
+                           &work->revCountShown[CARD_LIST_MAIN], CARD_SIDE_SORA);
+    }
+    m4aSongNumStart(SONG_SYS_CHAGEF2);
+}
+#endif

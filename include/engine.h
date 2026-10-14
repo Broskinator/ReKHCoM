@@ -61,6 +61,8 @@ extern int gPortTextChar;
 void PortHudEnd(void);
 /* One-button dodge roll: the d-pad direction to roll toward, or 0. */
 int PortTakeDodge(int held, int facingLeft);
+/* Return-stocked-cards button: 1 once per completed hold. */
+int PortTakeUnstock(void);
 /* Opening movie: show or hide the "A again skips" prompt. */
 void PortUiSkipPrompt(int visible);
 /* This frame shows a GBA-size screen (menus, the battle start): scale the

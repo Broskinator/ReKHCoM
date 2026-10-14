@@ -39,6 +39,7 @@ enum {
     ITEM_FPS,
     ITEM_DODGE,
     ITEM_STOCK,
+    ITEM_UNSTOCK,
     ITEM_MUSIC,
     ITEM_SFX,
     ITEM_MASTER,
@@ -68,6 +69,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
+    { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
+      "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
     { "Music volume", "Volume musique", "Musiklautstärke", "Volume musica", "Volumen música", "音楽の音量" },
     { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos", "効果音の音量" },
     { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general", "全体の音量" },
@@ -432,6 +435,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_STOCK:
             SDL_strlcpy(out, sOnOff[gPortConfig.stockButton != 0][l], size);
             break;
+        case ITEM_UNSTOCK:
+            SDL_strlcpy(out, sOnOff[gPortConfig.unstockButton != 0][l], size);
+            break;
         case ITEM_MUSIC:
             SDL_snprintf(out, size, "%d%%", gPortConfig.musicVolume);
             break;
@@ -506,6 +512,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_STOCK:
             gPortConfig.stockButton = !gPortConfig.stockButton;
+            break;
+        case ITEM_UNSTOCK:
+            gPortConfig.unstockButton = !gPortConfig.unstockButton;
             break;
         case ITEM_MUSIC:
             gPortConfig.musicVolume = SDL_clamp(gPortConfig.musicVolume + dir * 10, 0, 100);

@@ -30,6 +30,7 @@ PortConfig gPortConfig = {
     1,                  /* stockButton */
     0,                  /* hdText */
     8,                  /* cardHudRaise */
+    1,                  /* unstockButton */
     {
         { SDLK_X, SDLK_K },             /* A */
         { SDLK_Z, SDLK_J },             /* B */
@@ -43,12 +44,14 @@ PortConfig gPortConfig = {
         { SDLK_RIGHT, 0 },              /* Right */
         { SDLK_D, 0 },                  /* stock (L + R) */
         { SDLK_C, 0 },                  /* dodge roll */
+        { SDLK_V, 0 },                  /* return stocked cards */
     },
     {
         SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER,
         SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER, SDL_GAMEPAD_BUTTON_START, SDL_GAMEPAD_BUTTON_BACK,
         SDL_GAMEPAD_BUTTON_DPAD_UP, SDL_GAMEPAD_BUTTON_DPAD_DOWN, SDL_GAMEPAD_BUTTON_DPAD_LEFT,
         SDL_GAMEPAD_BUTTON_DPAD_RIGHT, SDL_GAMEPAD_BUTTON_NORTH, SDL_GAMEPAD_BUTTON_WEST,
+        SDL_GAMEPAD_BUTTON_RIGHT_STICK,
     },
 };
 
@@ -91,11 +94,13 @@ static const Key sKeys[] = {
     { "stock_button", &gPortConfig.stockButton, 0, 1 },
     { "hd_text", &gPortConfig.hdText, 0, 1 },
     { "card_hud_raise", &gPortConfig.cardHudRaise, 0, 16 },
+    { "unstock_button", &gPortConfig.unstockButton, 0, 1 },
 #define BIND(name, act)                                                           { "kb_" name, &gPortConfig.keys[act][0], 0, 0x7FFFFFFF },                     { "kb_" name "_2", &gPortConfig.keys[act][1], 0, 0x7FFFFFFF },                { "pad_" name, &gPortConfig.pad[act], -1, SDL_GAMEPAD_BUTTON_COUNT - 1 }
     BIND("a", PORT_ACT_A), BIND("b", PORT_ACT_B), BIND("l", PORT_ACT_L), BIND("r", PORT_ACT_R),
     BIND("start", PORT_ACT_START), BIND("select", PORT_ACT_SELECT), BIND("up", PORT_ACT_UP),
     BIND("down", PORT_ACT_DOWN), BIND("left", PORT_ACT_LEFT), BIND("right", PORT_ACT_RIGHT),
     BIND("stock", PORT_ACT_STOCK), BIND("dodge", PORT_ACT_DODGE),
+    BIND("unstock", PORT_ACT_UNSTOCK),
 #undef BIND
 };
 

@@ -21,7 +21,9 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   todos a altura completa con bordes estirados, como la pantalla de carga.
 - [~] Revisar en cada pendiente si el port de Vita u otro recomp tiene una solución aplicable.
   Del port de Vita (ggdrn/KH_COM_VITA): [x] stick derecho para las cartas (L/R, arriba L+R);
-  [ ] devolver a la mano las cartas acumuladas (Sora); [ ] aviso de puntos moguri en el campo;
+  [x] devolver a la mano las cartas acumuladas (Sora): mantener V / stick derecho (pulsado
+  o abajo) medio segundo; opcional en el juego y el launcher. Probado: 6 ciclos acumular/devolver
+  y un truco sin crash; desactivada, la carta sigue acumulada; [ ] aviso de puntos moguri en el campo;
   [ ] bancos de guardado (varios .sav); [ ] revancha de jefes; [ ] repetir tutoriales.
 - [~] Fondos blancos fuera del mapa del castillo → negro. En el vestíbulo ya sale negro;
   si aparece blanco en otra sala, hace falta un estado allí.
@@ -51,6 +53,13 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   (40/127) se apaga en pocos fotogramas; el port reproduce los datos tal cual.
 
 ## Pruebas y publicación
+
+- [x] Launcher: `port/tools/test_launcher.py` instala las tres ROM y rechaza tamaño,
+  SHA-1, archivo ajeno, archivo ausente y carpeta roms no escribible (10/10, avisos visibles).
+- [x] Audio frente a BizHawk (`port/tools/audio_compare.py`, 70 s de arranque y título US):
+  correlación de muestras 0,90, de envolvente 0,92, deriva 4 ppm. Diferencias medibles:
+  el port está 3,4 dB por debajo (plano de 45 Hz a 2,9 kHz) y no reproduce las imágenes
+  del PCM escalonado por encima de 3 kHz (−5 a −10 dB), que el emulador sí deja pasar.
 
 - [~] Baterías: eventos US 194/194; combates US 209/209; combates como Riku 209/209;
   JP: informes terminados con 194/194 eventos y 209/209 combates sin crash.

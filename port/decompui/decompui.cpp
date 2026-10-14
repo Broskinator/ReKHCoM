@@ -225,7 +225,7 @@ static const Setting kSettings[] = {
     { "window_scale", 4 },   { "fullscreen_width", 1920 }, { "fullscreen_height", 1080 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
-    { "card_hud_raise", 8 },
+    { "card_hud_raise", 8 }, { "unstock_button", 1 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
     { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
@@ -238,6 +238,7 @@ static const Setting kSettings[] = {
     { "kb_right", SDLK_RIGHT }, { "kb_right_2", 0 },        { "pad_right", SDL_GAMEPAD_BUTTON_DPAD_RIGHT },
     { "kb_stock", SDLK_D },     { "kb_stock_2", 0 },        { "pad_stock", SDL_GAMEPAD_BUTTON_NORTH },
     { "kb_dodge", SDLK_C },     { "kb_dodge_2", 0 },        { "pad_dodge", SDL_GAMEPAD_BUTTON_WEST },
+    { "kb_unstock", SDLK_V },   { "kb_unstock_2", 0 },      { "pad_unstock", SDL_GAMEPAD_BUTTON_RIGHT_STICK },
 };
 
 static std::map<std::string, int> sIni;
@@ -905,6 +906,13 @@ static void PageExtras() {
                          T("Y en el mando, D en el teclado: acumula cartas o trucos sin pulsar L y R a la vez.",
                            "Gamepad Y, keyboard D: stock cards or sleights without pressing L and R together."),
                          Ini("stock_button"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Devolver cartas acumuladas", "Return stocked cards"),
+                         T("Mantén V en el teclado, el stick derecho pulsado o hacia abajo medio segundo: las cartas "
+                           "acumuladas de Sora vuelven a la mano, en su sitio de la baraja.",
+                           "Hold V on the keyboard, or click or push down the right stick, for half a second: "
+                           "Sora's stocked cards go back to the hand, in their places in the deck."),
+                         Ini("unstock_button"));
     ImGui::EndChild();
     if (changed)
         SaveIni();
@@ -997,16 +1005,17 @@ static void PageControls() {
         { "Derecha", "Right", "right" },
         { "L + R (acumular)", "L + R (stock)", "stock" },
         { "Voltereta", "Dodge roll", "dodge" },
+        { "Devolver acumuladas", "Return stocked", "unstock" },
     };
     BeginCard("controls");
     Eyebrow(T("CONTROLES", "CONTROLS"));
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("Haz clic en una casilla y pulsa la tecla o el botón. Supr la deja vacía, Esc cancela. "
                                "Los gatillos y el stick izquierdo funcionan siempre como L/R y cruceta; el stick derecho "
-                               "cambia de carta (izquierda/derecha = L/R) y arriba acumula (L+R).",
+                               "cambia de carta (izquierda/derecha = L/R), arriba acumula (L+R) y abajo devuelve las acumuladas.",
                                "Click a cell and press the key or button. Delete clears it, Esc cancels. The "
                                "triggers and the left stick always work as L/R and the d-pad; the right stick "
-                               "changes cards (left/right = L/R) and up stocks (L+R)."));
+                               "changes cards (left/right = L/R), up stocks (L+R) and down returns the stocked cards."));
     ImGui::PopStyleColor();
     if (ImGui::BeginTable("binds", 4, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_PadOuterX)) {
         ImGui::TableSetupColumn(T("Acción", "Action"), ImGuiTableColumnFlags_WidthStretch, 1.3f);
