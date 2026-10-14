@@ -57,7 +57,7 @@ extern TaskDesc gTaskDescMapGmk04, gTaskDescMapSave;
 void PortMapKeepGmkDesc(const TaskDesc* desc);
 extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, gModeWorldinspect,
     gModeWorldselect, gModeWORLDSELECT, gModeWorldwarp, gModeMsTop, gModePremire,
-    gModeSioBtlOption;
+    gModeSioBtlOption, gModeDebug;
 
 void PortHarnessSong(int song) {
     m4aSongNumStart((u16)song);
@@ -72,7 +72,7 @@ int PortHarnessMode(const char* name, int arg) {
     static Mode* const modes[] = {
         &gModeDeck, &gModeStatus, &gModeJiminy, &gModeAllmap, &gModeMapinspect, &gModeWorldinspect,
         &gModeWorldselect, &gModeWORLDSELECT, &gModeWorldwarp, &gModeMsTop, &gModePremire,
-        &gModeSioBtlOption,
+        &gModeSioBtlOption, &gModeDebug,
     };
     u32 i;
 

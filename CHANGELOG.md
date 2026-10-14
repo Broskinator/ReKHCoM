@@ -29,6 +29,10 @@ Windows x86 prerelease.
   launcher's save card, which follows the selected bank.
 - Save states verified deterministic (`port/tools/test_savestate.py`): loaded
   in a new process, a mid-battle state plays on pixel-identical (3/3).
+- The options screen takes the look of the cartridge's own debug menu: white,
+  grey bars with the red cursor square, and its picture of Sora (decoded from
+  the ROM). The skip-intro prompt, the state notices and the title's options
+  hint use the same button.
 - Launcher install tests (`port/tools/test_launcher.py`): the three dumps,
   reinstalling, wrong size, wrong SHA-1, a non-KH file, a missing file and an
   unwritable roms folder, English interface; 11/11 pass.

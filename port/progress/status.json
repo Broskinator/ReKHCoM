@@ -117,8 +117,8 @@
     {
       "name": "Graphics options menu",
       "weight": 5,
-      "done": 92,
-      "notes": "overlay with the game font, 5 languages, live changes; HUD size, HD text, control options; opened from title (SELECT), F1/Esc, Back+Start"
+      "done": 95,
+      "notes": "overlay with the game font, 5 languages, live changes; HUD size, HD text, control options; opened from title (SELECT), F1/Esc, Back+Start; drawn in the style of the cartridge's debug menu (its bars, red cursor square and Sora picture decoded from the ROM), checked in EU languages and Japanese; the skip-intro prompt, state notices and title hint use the same button"
     },
     {
       "name": "Gameplay verification",

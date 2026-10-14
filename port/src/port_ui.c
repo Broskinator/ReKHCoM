@@ -738,22 +738,15 @@ void PortUiSkipPrompt(int visible) {
     sSkipPrompt = visible;
 }
 
-/* Bottom right of the GBA picture: an A button and the text, in the game font. */
+static void MenuButton(int x, int y, const char* text, int key);
+
+/* Bottom right of the GBA picture: a debug-menu button with the text. */
 static void DrawSkipPrompt(int l) {
     const char* text = sSkipText[l];
-    int w = TextWidth(text) + 26, h = 15;
-    int x = gPortScreen.originX + GBA_SCREEN_W - w - 4;
-    int y = gPortScreen.originY + GBA_SCREEN_H - h - 4;
-    int cx = x + 9, cy = y + 7, dx, dy;
+    int x = gPortScreen.originX + GBA_SCREEN_W - TextWidth(text) - 38;
+    int y = gPortScreen.originY + GBA_SCREEN_H - 15;
 
-    Shade(x, y, w, h, COL_PANEL, 210);
-    Rect(x, y, w, h, COL_BORDER);
-    for (dy = -5; dy <= 5; dy++)
-        for (dx = -5; dx <= 5; dx++)
-            if (dx * dx + dy * dy <= 26)
-                Pixel(cx + dx, cy + dy, 0xFFE8ECF4u);
-    DrawGlyph('A', cx - 2, cy - 4, 0xFF283050u, 0xFFE8ECF4u);
-    DrawText(text, x + 19, y + 3, COL_TEXT, COL_SHADOW);
+    MenuButton(x, y, text, 'A');
 }
 
 /* The state / slot notice, on a layer of its own above everything else (the
@@ -768,17 +761,175 @@ int PortUiDrawNotice(uint32_t* frame, int width, int height) {
     sFb = frame;
     sFbW = width;
     sFbH = height;
-    w = SDL_min(TextWidth(sNotice) + 12, width);
-    Shade(0, 0, w, 14, COL_PANEL, 230);
-    Rect(0, 0, w, 14, COL_BORDER);
-    DrawText(sNotice, 6, 2, COL_TEXT, COL_SHADOW);
+    w = SDL_min(TextWidth(sNotice) + 26, width);
+    MenuButton(3, 2, sNotice, 0);
     return w;
+}
+
+/* ---- the options screen, in the style of the cartridge's debug menu --------
+   White, a list of bars on the left (a grey square and an underline; the
+   current one black with a red square), and the debug menu's own picture of
+   Sora (gDebugMenuBg*, decoded once from the ROM) at the bottom right. */
+
+extern uint8_t gDebugMenuBgTiles[];
+extern uint16_t gDebugMenuBgMap[];
+extern uint16_t gDebugMenuBgPalette[];
+void LZ77UnCompWram(const void* src, void* dst);
+
+#define MENU_ART_X 114 /* the picture starts right of the debug menu's bars */
+#define MENU_INK 0xFF080808u
+#define MENU_GREY 0xFFB5ADADu
+#define MENU_SHADE 0xFFB5B5B5u
+#define MENU_RED 0xFFFF1000u
+#define MENU_RED_DARK 0xFF9C1000u
+#define MENU_DIM 0xFF9C9494u
+/* Japanese glyphs fill the whole 16-pixel cell (Latin ones 10 rows): the
+   title and the list start a little lower. */
+#ifdef VERSION_JP
+#define MENU_TITLE_Y 5
+#define MENU_TOP 18
+#else
+#define MENU_TITLE_Y 2
+#define MENU_TOP 14
+#endif
+
+static uint32_t sMenuArt[GBA_SCREEN_W * GBA_SCREEN_H];
+static int sMenuArtReady;
+
+static void DecodeMenuArt(void) {
+    static uint8_t tiles[32768];
+    static uint16_t map[1024];
+    int x, y;
+
+#ifdef VERSION_EU
+    LZ77UnCompWram(gDebugMenuBgTiles, tiles);
+    LZ77UnCompWram(gDebugMenuBgMap, map);
+#else
+    memcpy(tiles, gDebugMenuBgTiles, 23360);
+    memcpy(map, gDebugMenuBgMap, sizeof(map));
+#endif
+    for (y = 0; y < GBA_SCREEN_H; y++) {
+        for (x = 0; x < GBA_SCREEN_W; x++) {
+            uint16_t e = map[(y >> 3) * 32 + (x >> 3)];
+            int tx = (e & 0x400) ? 7 - (x & 7) : (x & 7);
+            int ty = (e & 0x800) ? 7 - (y & 7) : (y & 7);
+            uint8_t v = tiles[(e & 0x3FF) * 64 + ty * 8 + tx];
+            uint16_t c = gDebugMenuBgPalette[v];
+            uint32_t r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
+            sMenuArt[y * GBA_SCREEN_W + x] = v == 0 ? 0xFFFFFFFFu
+                : 0xFF000000u | ((r << 3 | r >> 2) << 16) | ((g << 3 | g >> 2) << 8) | (b << 3 | b >> 2);
+        }
+    }
+    sMenuArtReady = 1;
+}
+
+static void Fill(int x0, int y0, int w, int h, uint32_t c) {
+    int x, y;
+
+    for (y = y0; y < y0 + h; y++)
+        for (x = x0; x < x0 + w; x++)
+            Pixel(x, y, c);
+}
+
+/* One row: t is the top of its square, the bar runs from x to x + w. */
+static void MenuBar(int x, int t, int w, int selected) {
+    if (!selected) {
+        Fill(x, t, 10, 10, MENU_GREY);
+        Fill(x, t + 8, w, 2, MENU_GREY);
+        return;
+    }
+    Fill(x, t, 11, 10, MENU_INK);
+    Fill(x + 11, t, 1, 10, MENU_SHADE);
+    Fill(x + 3, t + 3, 5, 5, MENU_RED);
+    Fill(x + 3, t + 3, 1, 5, MENU_RED_DARK);
+    Fill(x + 3, t + 3, 5, 1, MENU_RED_DARK);
+    Fill(x, t + 8, w, 2, MENU_INK);
+    Fill(x + 1, t + 10, w, 1, MENU_SHADE);
+}
+
+/* One selected row on its own (the skip prompt, notices, hints): the bar
+   under the text on a white plate, as the debug menu shows it. */
+static void MenuButton(int x, int y, const char* text, int key) {
+    int keyW = key ? GlyphWidth(key) + 4 : 0;
+    int w = TextWidth(text) + 20 + keyW;
+
+    Shade(x - 3, y - 2, w + 6, 14, 0xFFFFFFFFu, 224);
+    MenuBar(x, y, w, 1);
+    if (key)
+        DrawGlyph(key, x + 15, y - 2, MENU_RED_DARK, 0xFFD8D8D8u);
+    DrawText(text, x + 16 + keyW, y - 2, MENU_INK, 0xFFD8D8D8u);
+}
+
+/* A value without its explanation in brackets, for the narrow list. */
+static void ShortValue(int item, char* out, size_t size) {
+    char* paren;
+
+    ValueText(item, out, size);
+    paren = SDL_strstr(out, " (");
+    if (paren != NULL && paren != out)
+        *paren = 0;
+}
+
+static void DrawMenu(int l, int width, int height) {
+    int rows, i, x, y, labelW = 0, valueW = 0, barX = 10, barW, top = MENU_TOP, artX, artY;
+    char value[64];
+
+    if (!sMenuArtReady)
+        DecodeMenuArt();
+    for (i = 0; i < ITEM_COUNT; i++) {
+        labelW = SDL_max(labelW, TextWidth(sLabels[i][l]));
+        ShortValue(i, value, sizeof(value));
+        valueW = SDL_max(valueW, TextWidth(value));
+    }
+    barW = SDL_min(labelW + valueW + 40, width - barX - 6);
+    rows = SDL_min(ITEM_COUNT, (height - top - 14) / 16);
+    if (sCursor < sScroll)
+        sScroll = sCursor;
+    if (sCursor >= sScroll + rows)
+        sScroll = sCursor - rows + 1;
+
+    /* white, the picture at the bottom right */
+    Fill(0, 0, width, height, 0xFFFFFFFFu);
+    artX = width - GBA_SCREEN_W;
+    artY = height - GBA_SCREEN_H;
+    for (y = 0; y < GBA_SCREEN_H; y++)
+        for (x = MENU_ART_X; x < GBA_SCREEN_W; x++)
+            Pixel(artX + x, artY + y, sMenuArt[y * GBA_SCREEN_W + x]);
+    /* keep the list readable where it runs over the picture */
+    for (x = barX + barW - 24; x < barX + barW + 16; x++)
+        if (x >= artX + MENU_ART_X)
+            Shade(x, 0, 1, top + rows * 16, 0xFFFFFFFFu,
+                  SDL_clamp(256 - (x - (barX + barW)) * 16, 0, 230));
+    if (barX + barW - 24 > artX + MENU_ART_X)
+        Shade(artX + MENU_ART_X, 0, barX + barW - 24 - (artX + MENU_ART_X), top + rows * 16, 0xFFFFFFFFu, 230);
+
+    DrawText(sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
+    if (sScroll > 0)
+        DrawText("\xE2\x86\x91", barX + barW - 8, 2, MENU_INK, 0xFFD8D8D8u);
+    for (i = sScroll, y = top; i < sScroll + rows; i++, y += 16) {
+        int on = ItemEnabled(i), sel = i == sCursor;
+        uint32_t face = on ? MENU_INK : MENU_DIM;
+
+        MenuBar(barX, y, barW, sel);
+        DrawText(sLabels[i][l], barX + 16, y - 2, face, 0xFFD8D8D8u);
+        if (i == ITEM_CLOSE)
+            continue;
+        ShortValue(i, value, sizeof(value));
+        x = barX + barW - 4 - TextWidth(value);
+        if (sel && on) {
+            x -= 8;
+            DrawText("\xE2\x86\x90", x - 10, y - 2, MENU_RED_DARK, 0xFFD8D8D8u);
+            DrawText("\xE2\x86\x92", x + TextWidth(value) + 2, y - 2, MENU_RED_DARK, 0xFFD8D8D8u);
+        }
+        DrawText(value, x, y - 2, face, 0xFFD8D8D8u);
+    }
+    if (sScroll + rows < ITEM_COUNT)
+        DrawText("\xE2\x86\x93", barX + barW - 8, top + rows * 16 - 2, MENU_INK, 0xFFD8D8D8u);
+    DrawText(sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
 }
 
 void PortUiDraw(uint32_t* frame, int width, int height) {
     int l = Lang();
-    int rowH = 11, panelW, panelH, px, py, rows, i, y, labelW = 0, valueW = 0;
-    char value[64];
 
     sFb = frame;
     sFbW = width;
@@ -792,64 +943,10 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
             int gx = gPortScreen.originX + GBA_SCREEN_W - TextWidth(hint) - 6;
             int gy = gPortScreen.originY + 4;
             sTitleHintFrames--;
-            DrawText(hint, gx, gy, 0xFF404858u, 0xFFC8D0E0u);
+            MenuButton(gx - 18, gy + 2, hint, 0);
         }
         return;
     }
 
-    for (i = 0; i < ITEM_COUNT; i++) {
-        int w = TextWidth(sLabels[i][l]);
-        labelW = SDL_max(labelW, w);
-        ValueText(i, value, sizeof(value));
-        valueW = SDL_max(valueW, TextWidth(value));
-    }
-    valueW = SDL_max(valueW, 92);
-    panelW = SDL_min(width - 8, labelW + valueW + 52);
-    rows = SDL_min(ITEM_COUNT, (height - 44) / rowH);
-    panelH = rows * rowH + 38;
-    px = (width - panelW) / 2;
-    py = (height - panelH) / 2;
-
-    if (sCursor < sScroll)
-        sScroll = sCursor;
-    if (sCursor >= sScroll + rows)
-        sScroll = sCursor - rows + 1;
-
-    Shade(0, 0, width, height, 0xFF000010u, 120);
-    Shade(px, py, panelW, panelH, COL_PANEL, 220);
-    Rect(px, py, panelW, panelH, COL_BORDER);
-    Rect(px + 2, py + 2, panelW - 4, panelH - 4, 0xFF505878u);
-
-    DrawText(sTitle[l], px + (panelW - TextWidth(sTitle[l])) / 2, py + 5, COL_TITLE, 0xFF604010u);
-    for (i = 8; i < panelW - 8; i++)
-        Pixel(px + i, py + 17, Mix(COL_BORDER, COL_PANEL, i < 24 ? (24 - i) * 10 : (i > panelW - 24 ? (i - (panelW - 24)) * 10 : 0)));
-
-    y = py + 21;
-    for (i = sScroll; i < sScroll + rows; i++, y += rowH) {
-        int on = ItemEnabled(i);
-        uint32_t face = on ? COL_TEXT : COL_DIM;
-
-        if (i == sCursor)
-            Shade(px + 4, y - 1, panelW - 8, rowH, COL_SELECT, 200);
-        if (i == ITEM_CLOSE) {
-            DrawText(sLabels[i][l], px + (panelW - TextWidth(sLabels[i][l])) / 2, y, face, COL_SHADOW);
-            continue;
-        }
-        DrawText(sLabels[i][l], px + 10, y, face, COL_SHADOW);
-        ValueText(i, value, sizeof(value));
-        if (i == sCursor && on) {
-            int vw = TextWidth(value);
-            int vx = px + panelW - 20 - vw;
-            DrawText("\xE2\x86\x90", vx - 10, y, COL_TITLE, COL_SHADOW);
-            DrawText(value, vx, y, COL_VALUE, COL_SHADOW);
-            DrawText("\xE2\x86\x92", vx + vw + 2, y, COL_TITLE, COL_SHADOW);
-        } else {
-            DrawText(value, px + panelW - 20 - TextWidth(value), y, on ? COL_VALUE : COL_DIM, COL_SHADOW);
-        }
-    }
-    if (sScroll > 0)
-        DrawText("\xE2\x86\x91", px + panelW - 12, py + 6, COL_TITLE, COL_SHADOW);
-    if (sScroll + rows < ITEM_COUNT)
-        DrawText("\xE2\x86\x93", px + panelW - 12, py + panelH - 13, COL_TITLE, COL_SHADOW);
-    DrawText(sHelp[l], px + (panelW - TextWidth(sHelp[l])) / 2, py + panelH - 13, COL_DIM, COL_SHADOW);
+    DrawMenu(l, width, height);
 }

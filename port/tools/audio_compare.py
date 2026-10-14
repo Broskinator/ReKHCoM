@@ -7,7 +7,9 @@
        KHCOM_FAST=1 KHCOM_QUIT=4200 KHCOM_WAVDUMP=port.f32 khcom.exe
    (raw float32 stereo; the rate of each block is in port.f32.rates)
 3. Compare (needs numpy and scipy, e.g. `uv run --with numpy --with scipy`):
-       python port/tools/audio_compare.py ref.wav port.f32
+       python port/tools/audio_compare.py ref.wav port.f32 [skip_seconds]
+   (skip_seconds drops the start of both, e.g. menus that the emulator's lag
+   frames make last longer, before aligning)
 
 Aligns the two by their envelopes, then reports per 5 s window the level
 difference, envelope and sample correlation, the timing drift and the
@@ -32,6 +34,9 @@ while i < len(blocks):  # resample each run of blocks at one rate
     parts.append(resample_poly(raw[pos:pos + n], sr // g, rate // g, axis=0))
     pos += n
 port = np.concatenate(parts)
+if len(sys.argv) > 3:
+    skip = int(float(sys.argv[3]) * sr)
+    ref, port = ref[skip:], port[skip:]
 print(f"ref {len(ref)/sr:.1f}s @{sr} ch{ref.shape[1]}  port {len(port)/sr:.1f}s")
 def env(x, hop=441):
     m = x.mean(axis=1); n = len(m)//hop
