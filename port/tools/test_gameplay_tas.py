@@ -23,6 +23,8 @@ def main():
     ap.add_argument('--movie', type=Path, default=ROOT.parent / 'Kingdom Hearts - Chain of Memories (U).vbm')
     ap.add_argument('--frames', type=int, default=6000)
     ap.add_argument('--offset', type=int, default=0)
+    ap.add_argument('--snapshot', type=int, default=0,
+                    help='save an isolated main-loop checkpoint at this frame for normal-input continuation')
     args = ap.parse_args()
     movie = args.movie.resolve()
     data = movie.read_bytes()
@@ -31,6 +33,8 @@ def main():
     start = struct.unpack_from('<I', data, 0x3c)[0]
     available = (len(data) - start) // 2
     frames = min(args.frames, available)
+    if frames < 1 or args.snapshot < 0 or args.snapshot > frames:
+        ap.error('frames must be positive and snapshot must lie within the replay')
     work = ROOT / 'build/codex-gameplay-tas' / datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')
     work.mkdir(parents=True)
     shutil.copy2(ROOT / args.build / 'khcom.exe', work / 'khcom.exe')
@@ -42,17 +46,21 @@ def main():
                KHCOM_VBM=str(movie), KHCOM_VBM_OFFSET=str(args.offset), KHCOM_QUIT=str(frames+1),
                KHCOM_MODE=','.join(f'{f}:progress' for f in checks),
                KHCOM_OUTPUT_SHOT=','.join(map(str, checks)))
+    checkpoint = work / f'tas_{args.snapshot:06d}.khst' if args.snapshot else None
+    if checkpoint:
+        env['KHCOM_SAVESTATE'] = f'{args.snapshot}:{checkpoint.name}'
     result = subprocess.run([str(work / 'khcom.exe'), '--rom', str(ROOT / 'roms/B8CE.gba')],
                             cwd=work, env=env, timeout=3600, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     log = (work / 'kh_com.log').read_text(errors='replace')
     report = dict(movie_sha256=hashlib.sha256(data).hexdigest(), frames=frames, available_frames=available,
                   offset=args.offset, exit=result.returncode, crash='CRASH' in log,
                   checkpoints=[line for line in log.splitlines() if 'harness: progress' in line],
+                  snapshot=str(checkpoint) if checkpoint and checkpoint.exists() else None,
                   full_story_verified=False)
     (work / 'report.json').write_text(json.dumps(report, indent=2))
     print(work)
     print(json.dumps(report, indent=2))
-    return 0 if result.returncode == 0 and 'CRASH' not in log else 1
+    return 0 if result.returncode == 0 and 'CRASH' not in log and (not checkpoint or checkpoint.exists()) else 1
 
 
 if __name__ == '__main__':

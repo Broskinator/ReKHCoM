@@ -29,6 +29,8 @@
 #include "sprites_deck_menu.h"
 
 #ifdef PLATFORM_PC
+#include <stdlib.h>
+void PortLog(const char* format, ...);
 void PortRegisterBgTextTile(void* address, int code, int style, const void* source32);
 void PortClearBgTextTiles(void);
 #endif
@@ -44,6 +46,37 @@ static void PortCopyDeckDigit(const void* source, void* destination, u16 size) {
             PortRegisterBgTextTile(destination, '0' + digit, 2, source);
     }
 #endif
+}
+
+/* Statistics in category and value grids are text, not card artwork.
+   Zero variants have their own palette; keep their exact source tile too. */
+static void PortCopyDeckGridNumber(const void* source, void* destination, u16 size,
+                                   int digit, const char* family, int sourceOffset, int style) {
+    RequestDma3Copy(source, destination, size);
+#ifdef PLATFORM_PC
+    if (size == 32 && digit >= 0 && digit <= 9) {
+        PortRegisterBgTextTile(destination, '0' + digit, style, source);
+        if (getenv("KHCOM_NUMERIC_TRACE"))
+            PortLog("numeric-text: family=%s byte=%d code=%d destination=%p size=%u style=%x",
+                    family, sourceOffset, '0' + digit, destination, (unsigned)size, (unsigned)style);
+    }
+#endif
+}
+
+static void PortCopyDeckCategoryDigit(const void* source, void* destination, u16 size) {
+    int zero = source == gDeckCategoryZeroTiles;
+    int offset = zero ? 0 : (const u8*)source - gDeckCategoryDigitTiles;
+    PortCopyDeckGridNumber(source, destination, size, zero ? 0 : offset / 32 - 1,
+                          zero ? "deck-category-zero" : "deck-category", offset,
+                          2 | ((zero ? 15 : 12) << 8) | ((zero ? 3 : 13) << 12) | (1 << 16));
+}
+
+static void PortCopyDeckValueDigit(const void* source, void* destination, u16 size) {
+    int zero = source == gDeckValueZeroTiles;
+    int offset = zero ? 0 : (const u8*)source - gDeckValueDigitTiles;
+    PortCopyDeckGridNumber(source, destination, size, zero ? 0 : offset / 32 - 3,
+                          zero ? "deck-value-zero" : "deck-value", offset,
+                          2 | ((zero ? 4 : 2) << 8) | (3 << 12) | (1 << 16));
 }
 
 #include "sprites_card_pictures.h"
@@ -4809,14 +4842,14 @@ void DrawDeckCategoryCount(u8 count, u8 category) {
 
     if (count == 0) {
         base = GetBgCharBase(3);
-        RequestDma3Copy(gDeckCategoryZeroTiles, base + (category * 64 + 0x360), sizeof(gDeckCategoryZeroTiles));
-        RequestDma3Copy(gDeckCategoryZeroTiles, base + (category * 64 + 0x360) + 32, sizeof(gDeckCategoryZeroTiles));
+        PortCopyDeckCategoryDigit(gDeckCategoryZeroTiles, base + (category * 64 + 0x360), sizeof(gDeckCategoryZeroTiles));
+        PortCopyDeckCategoryDigit(gDeckCategoryZeroTiles, base + (category * 64 + 0x360) + 32, sizeof(gDeckCategoryZeroTiles));
     } else {
         digits[0] = count / 10;
         digits[1] = count - (u8)(count / 10) * 10;
         base = GetBgCharBase(3);
-        RequestDma3Copy(&gDeckCategoryDigitTiles[(digits[0] + 1) * 32], base + (category * 64 + 0x360), 32);
-        RequestDma3Copy(&gDeckCategoryDigitTiles[(digits[1] + 1) * 32], base + (category * 64 + 0x360) + 32, 32);
+        PortCopyDeckCategoryDigit(&gDeckCategoryDigitTiles[(digits[0] + 1) * 32], base + (category * 64 + 0x360), 32);
+        PortCopyDeckCategoryDigit(&gDeckCategoryDigitTiles[(digits[1] + 1) * 32], base + (category * 64 + 0x360) + 32, 32);
     }
 }
 
@@ -4826,17 +4859,17 @@ void DrawCollectionCategoryCount(u16 count, u8 category) {
 
     if (count == 0) {
         base = GetBgCharBase(3);
-        RequestDma3Copy(gDeckCategoryZeroTiles, base + (category * 96 + 0x120), sizeof(gDeckCategoryZeroTiles));
-        RequestDma3Copy(gDeckCategoryZeroTiles, base + (category * 96 + 0x120) + 32, sizeof(gDeckCategoryZeroTiles));
-        RequestDma3Copy(gDeckCategoryZeroTiles, base + (category * 96 + 0x120) + 64, sizeof(gDeckCategoryZeroTiles));
+        PortCopyDeckCategoryDigit(gDeckCategoryZeroTiles, base + (category * 96 + 0x120), sizeof(gDeckCategoryZeroTiles));
+        PortCopyDeckCategoryDigit(gDeckCategoryZeroTiles, base + (category * 96 + 0x120) + 32, sizeof(gDeckCategoryZeroTiles));
+        PortCopyDeckCategoryDigit(gDeckCategoryZeroTiles, base + (category * 96 + 0x120) + 64, sizeof(gDeckCategoryZeroTiles));
     } else {
         digits[0] = count / 100;
         digits[1] = count / 10 - digits[0] * 10;
         digits[2] = count - digits[0] * 100 - digits[1] * 10;
         base = GetBgCharBase(3);
-        RequestDma3Copy(&gDeckCategoryDigitTiles[(digits[0] + 1) * 32], base + (category * 96 + 0x120), 32);
-        RequestDma3Copy(&gDeckCategoryDigitTiles[(digits[1] + 1) * 32], base + (category * 96 + 0x120) + 32, 32);
-        RequestDma3Copy(&gDeckCategoryDigitTiles[(digits[2] + 1) * 32], base + (category * 96 + 0x120) + 64, 32);
+        PortCopyDeckCategoryDigit(&gDeckCategoryDigitTiles[(digits[0] + 1) * 32], base + (category * 96 + 0x120), 32);
+        PortCopyDeckCategoryDigit(&gDeckCategoryDigitTiles[(digits[1] + 1) * 32], base + (category * 96 + 0x120) + 32, 32);
+        PortCopyDeckCategoryDigit(&gDeckCategoryDigitTiles[(digits[2] + 1) * 32], base + (category * 96 + 0x120) + 64, 32);
     }
 }
 
@@ -5438,13 +5471,13 @@ void DrawValueCount(u8 count, u16 value) {
 
         digits[0] = count / 10;
         digits[1] = count - digits[0] * 10;
-        RequestDma3Copy(&gDeckValueDigitTiles[(digits[0] + 3) * 32], dst = base + (value * 64 + 0xD20), 32);
-        RequestDma3Copy(&gDeckValueDigitTiles[(digits[1] + 3) * 32], dst += 32, 32);
+        PortCopyDeckValueDigit(&gDeckValueDigitTiles[(digits[0] + 3) * 32], dst = base + (value * 64 + 0xD20), 32);
+        PortCopyDeckValueDigit(&gDeckValueDigitTiles[(digits[1] + 3) * 32], dst += 32, 32);
     } else {
         u8* dst;
 
-        RequestDma3Copy(gDeckValueZeroTiles, dst = base + (value * 64 + 0xD20), 32);
-        RequestDma3Copy(gDeckValueZeroTiles, dst += 32, 32);
+        PortCopyDeckValueDigit(gDeckValueZeroTiles, dst = base + (value * 64 + 0xD20), 32);
+        PortCopyDeckValueDigit(gDeckValueZeroTiles, dst += 32, 32);
         LoadPalette(gUnk_09614406, (void*)(value * 2 + BG_PLTT + 11 * PLTT_SIZE_4BPP + 0xC), sizeof(gUnk_09614406[0]));
     }
 }
@@ -5465,11 +5498,11 @@ void DrawCpCost(u8 cpCost) {
     if (cpCost != 0) {
         digits[0] = cpCost / 10;
         digits[1] = cpCost - digits[0] * 10;
-        RequestDma3Copy(&gDeckValueDigitTiles[(digits[0] + 3) * 32], base + 0xCE0, 32);
-        RequestDma3Copy(&gDeckValueDigitTiles[(digits[1] + 3) * 32], base + 0xD00, 32);
+        PortCopyDeckValueDigit(&gDeckValueDigitTiles[(digits[0] + 3) * 32], base + 0xCE0, 32);
+        PortCopyDeckValueDigit(&gDeckValueDigitTiles[(digits[1] + 3) * 32], base + 0xD00, 32);
     } else {
-        RequestDma3Copy(gDeckValueZeroTiles, base + 0xCE0, 32);
-        RequestDma3Copy(gDeckValueZeroTiles, base + 0xD00, 32);
+        PortCopyDeckValueDigit(gDeckValueZeroTiles, base + 0xCE0, 32);
+        PortCopyDeckValueDigit(gDeckValueZeroTiles, base + 0xD00, 32);
     }
 }
 

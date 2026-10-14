@@ -64,7 +64,8 @@ extern int gPortHeaderDraw;
 /* 0 menu/dialogue, 1 movie subtitles, 2 compact numeric labels. */
 extern int gPortTextStyle;
 /* A 4bpp numeric BG cell; source fingerprint prevents stale tile metadata.
-   Optional face/shadow indices in style bits 8..11/12..15 (default 15/14). */
+   Explicit face/shadow/panel indices in style bits 8..11/12..15/16..19;
+   without explicit face bits, infer the existing panel's indices. */
 void PortRegisterBgTextTile(void* address, int code, int style, const void* source32);
 void PortClearBgTextTiles(void);
 void PortHudEnd(void);

@@ -11,6 +11,7 @@ const void* gMsgwinMapBlocks[4];
 static int hblank;
 void PortLog(const char* fmt, ...) { (void)fmt; }
 int PortHd2dActive(void) { return 0; }
+uint32_t PortFrameCount(void) { return 0; }
 void PortRaiseIrq(uint16_t flags) { (void)flags; }
 void PortDmaHBlank(void) {
     if (hblank) IO16(0x10) = (IO16(0x06) + 1) * 3;
@@ -181,6 +182,15 @@ static void semantic(const char* name) {
         }
         p[13]=0x4000;p[14]=0;p[15]=0x7fff;
         PortRegisterBgTextTile((void*)GBA_VRAM,'5',2,v);
+        if(strstr(name,"explicit")) {
+            memset(v,0x11,32);
+            for(y=1;y<=5;y++) for(x=1;x<=4;x++) {
+                int off=y*4+x/2,ci=2;
+                v[off]=(v[off]&~(15<<((x&1)*4)))|(ci<<((x&1)*4));
+            }
+            memset(v+6*4,0x33,4); /* dense shadow is deliberately the most frequent ink */
+            PortRegisterBgTextTile((void*)GBA_VRAM,'2',2|(2<<8)|(3<<12)|(1<<16),v);
+        }
         if(strstr(name,"stale")) v[0]^=1;
         if(strstr(name,"clear")) PortClearBgTextTiles();
         if(strstr(name,"cover_obj")) o[0]=24;
@@ -230,7 +240,8 @@ int main(int argc, char** argv) {
     if(!strncmp(name,"semantic",8)) {
         PortTextGlyph glyphs[128];
         int n0=PortPpuTextGlyphs(glyphs,128,0),n1=PortPpuTextGlyphs(glyphs,128,1),n2=PortPpuTextGlyphs(glyphs,128,2);
-        printf("{\"counts\":[%d,%d,%d]}\n",n0,n1,n2);
+        printf("{\"counts\":[%d,%d,%d],\"cap\":%d,\"base\":%d}\n",n0,n1,n2,
+               n0+n1+n2 ? glyphs[0].cap : -1,n0+n1+n2 ? glyphs[0].base : -1);
     }
     f=fopen(argv[2],"wb"); if(!f) return 5;
     fwrite(gPortFrame,4,240*160,f); fclose(f);

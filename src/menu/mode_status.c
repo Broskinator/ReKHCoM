@@ -17,6 +17,13 @@
 #include "copyright_screens.h"
 #include "player_progression_types.h"
 
+#ifdef PLATFORM_PC
+#include <stdlib.h>
+void PortRegisterBgTextTile(void* address, int code, int style, const void* source32);
+void PortClearBgTextTiles(void);
+void PortLog(const char* format, ...);
+#endif
+
 static TaskPool sStatusTaskPool;
 static Task* sStatusBarTask;
 static u8 sStatusReturnToMenu;
@@ -49,6 +56,14 @@ u8* CopyNumberTiles(u8* dst, s32 value, u16 digits) {
 
     for (i = 0; i < digits; i++) {
         RequestDma3Copy(&gStatusDigitTiles[buf[i] * 32], dst, 32);
+#ifdef PLATFORM_PC
+        PortRegisterBgTextTile(dst, '0' + buf[i], 2 | (1 << 8) | (7 << 12) | (8 << 16),
+                               &gStatusDigitTiles[buf[i] * 32]);
+        if (getenv("KHCOM_NUMERIC_TRACE"))
+            PortLog("numeric-text: family=status byte=%u code=%u destination=%p size=32 style=%x",
+                    (unsigned)buf[i] * 32, (unsigned)'0' + buf[i], dst,
+                    2 | (1 << 8) | (7 << 12) | (8 << 16));
+#endif
         dst += 32;
     }
 
@@ -83,6 +98,9 @@ void LoadStatusNumberTiles() {
 }
 
 void mode_status_0() {
+#ifdef PLATFORM_PC
+    PortClearBgTextTiles();
+#endif
     BgReset();
     SetBgMode0();
     SetupBg(0, 0, 0x1F, 0);
@@ -144,6 +162,9 @@ void mode_status_1() {
 }
 
 void mode_status_2() {
+#ifdef PLATFORM_PC
+    PortClearBgTextTiles();
+#endif
     TaskPoolDestroy(&sStatusTaskPool);
 }
 

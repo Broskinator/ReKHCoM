@@ -22,6 +22,8 @@
 #include "sprites_deck_menu.h"
 
 #ifdef PLATFORM_PC
+#include <stdlib.h>
+void PortLog(const char* format, ...);
 void PortRegisterBgTextTile(void* address, int code, int style, const void* source32);
 void PortClearBgTextTiles(void);
 #endif
@@ -37,6 +39,37 @@ static void PortCopyDeckDigit(const void* source, void* destination, u16 size) {
             PortRegisterBgTextTile(destination, '0' + digit, 2, source);
     }
 #endif
+}
+
+/* Statistics in category and value grids are text, not card artwork.
+   Zero variants have their own palette; keep their exact source tile too. */
+static void PortCopyDeckGridNumber(const void* source, void* destination, u16 size,
+                                   int digit, const char* family, int sourceOffset, int style) {
+    RequestDma3Copy(source, destination, size);
+#ifdef PLATFORM_PC
+    if (size == 32 && digit >= 0 && digit <= 9) {
+        PortRegisterBgTextTile(destination, '0' + digit, style, source);
+        if (getenv("KHCOM_NUMERIC_TRACE"))
+            PortLog("numeric-text: family=%s byte=%d code=%d destination=%p size=%u style=%x",
+                    family, sourceOffset, '0' + digit, destination, (unsigned)size, (unsigned)style);
+    }
+#endif
+}
+
+static void PortCopyDeckCategoryDigit(const void* source, void* destination, u16 size) {
+    int zero = source == gDeckCategoryZeroTiles;
+    int offset = zero ? 0 : (const u8*)source - gDeckCategoryDigitTiles;
+    PortCopyDeckGridNumber(source, destination, size, zero ? 0 : offset / 32 - 1,
+                          zero ? "deck-category-zero" : "deck-category", offset,
+                          2 | ((zero ? 15 : 12) << 8) | ((zero ? 3 : 13) << 12) | (1 << 16));
+}
+
+static void PortCopyDeckValueDigit(const void* source, void* destination, u16 size) {
+    int zero = source == gDeckValueZeroTiles;
+    int offset = zero ? 0 : (const u8*)source - gDeckValueDigitTiles;
+    PortCopyDeckGridNumber(source, destination, size, zero ? 0 : offset / 32 - 3,
+                          zero ? "deck-value-zero" : "deck-value", offset,
+                          2 | ((zero ? 4 : 2) << 8) | (3 << 12) | (1 << 16));
 }
 
 #include "gba/keys.h"
@@ -1643,11 +1676,11 @@ void DrawDeckExchangeCpCost(u8 cpCost) {
     if (cpCost != 0) {
         digits[0] = cpCost / 10;
         digits[1] = cpCost - digits[0] * 10;
-        RequestDma3Copy(&gDeckValueDigitTiles[(digits[0] + 3) * 32], base + 0xCE0, 32);
-        RequestDma3Copy(&gDeckValueDigitTiles[(digits[1] + 3) * 32], base + 0xD00, 32);
+        PortCopyDeckValueDigit(&gDeckValueDigitTiles[(digits[0] + 3) * 32], base + 0xCE0, 32);
+        PortCopyDeckValueDigit(&gDeckValueDigitTiles[(digits[1] + 3) * 32], base + 0xD00, 32);
     } else {
-        RequestDma3Copy(gDeckValueZeroTiles, base + 0xCE0, 32);
-        RequestDma3Copy(gDeckValueZeroTiles, base + 0xD00, 32);
+        PortCopyDeckValueDigit(gDeckValueZeroTiles, base + 0xCE0, 32);
+        PortCopyDeckValueDigit(gDeckValueZeroTiles, base + 0xD00, 32);
     }
 }
 

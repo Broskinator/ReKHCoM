@@ -33,7 +33,8 @@ CASES += ['compose_bg_tie','compose_obj_tie','compose_obj_behind','compose_obj_o
 CASES += [f'semantic_hd_{layer}{cover}' for layer in ('world','hud','screen')
           for cover in ('','_cover_bg','_cover_obj','_window')]
 CASES += ['semantic_hd_compact','semantic_bgtext','semantic_bgtext_stale','semantic_bgtext_clear',
-          'semantic_bgtext_cover_obj','semantic_bgtext_cover_bg','semantic_bgtext_screen']
+          'semantic_bgtext_cover_obj','semantic_bgtext_cover_bg','semantic_bgtext_screen',
+          'semantic_bgtext_explicit']
 
 def color(i):
     return ((i*3)&31) | (((i*5)&31)<<5) | (((i*7)&31)<<10)
@@ -168,8 +169,11 @@ def main():
             if not any(s in name for s in ('cover_','window','stale','clear')):
                 want[2 if 'screen' in name else 1 if 'hud' in name else 0]=1
             count=int(actual['counts']!=want)
+            if 'explicit' in name:
+                count += int(actual['cap'] != 5 or actual['base'] != 6)
             results.append({'case':name,'pixels_compared':0,'mismatches':count,
-                            'glyph_counts':actual['counts'],'expected_counts':want})
+                            'glyph_counts':actual['counts'],'expected_counts':want,
+                            'cap':actual.get('cap'),'baseline':actual.get('base')})
             sx,sy=(i%6)*240,(i//6)*180
             draw.text((sx+2,sy+2),name,fill='red' if count else 'white')
             draw.text((sx+2,sy+40),str(actual['counts'])+' expected '+str(want),fill='white')

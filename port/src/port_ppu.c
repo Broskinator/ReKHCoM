@@ -103,7 +103,7 @@ void PortRegisterBgTextTile(void* address, int code, int style, const void* sour
     tile->style = (uint8_t)style;
     tile->faceIndex = (uint8_t)((style & 0xFF00) ? (style >> 8) & 15 : 15);
     tile->shadowIndex = (uint8_t)((style & 0xFF00) ? (style >> 12) & 15 : 14);
-    tile->panelIndex = 13;
+    tile->panelIndex = (uint8_t)((style & 0xFF00) ? (style >> 16) & 15 : 13);
     if (!(style & 0xFF00)) {
         /* The tile's own colours: the commonest index is the panel behind the
            digit, the next ones its face and shadow. Greyed-out panels use
@@ -118,26 +118,28 @@ void PortRegisterBgTextTile(void* address, int code, int style, const void* sour
             for (i = 1; i < 16; i++)
                 if (count[i] && i != order[0] && i != order[1] && (order[k] < 0 || count[i] > count[order[k]]))
                     order[k] = i;
-        {
-            /* the ink's rows: the digit plus its one-row drop shadow */
-            int top = 8, bottom = -1, y, xx;
-            for (y = 0; y < 8; y++)
-                for (xx = 0; xx < 8; xx++) {
-                    uint8_t v = ((const uint8_t*)source32)[y * 4 + xx / 2];
-                    int c = (xx & 1) ? v >> 4 : v & 15;
-                    if (order[1] >= 0 && (c == order[1] || c == order[2])) {
-                        if (y < top) top = y;
-                        if (y > bottom) bottom = y;
-                    }
-                }
-            tile->cap = bottom > top ? (uint8_t)(bottom - top) : 0;
-            tile->base = bottom > top ? (uint8_t)bottom : 0;
-        }
         if (order[1] >= 0) {
             tile->panelIndex = (uint8_t)order[0];
             tile->faceIndex = (uint8_t)order[1];
             tile->shadowIndex = (uint8_t)(order[2] >= 0 ? order[2] : order[0]);
         }
+    }
+    {
+        /* Measure the selected ink, including callers with explicit palette
+           indices. A dense digit can have more shadow than panel pixels;
+           frequency is not a safe way to identify those numeric families. */
+        int top = 8, bottom = -1, y, xx;
+        for (y = 0; y < 8; y++) for (xx = 0; xx < 8; xx++) {
+            uint8_t v = ((const uint8_t*)source32)[y * 4 + xx / 2];
+            int c = (xx & 1) ? v >> 4 : v & 15;
+            if (c && c != tile->panelIndex &&
+                (c == tile->faceIndex || c == tile->shadowIndex)) {
+                if (y < top) top = y;
+                if (y > bottom) bottom = y;
+            }
+        }
+        tile->cap = bottom > top ? (uint8_t)(bottom - top) : 0;
+        tile->base = bottom > top ? (uint8_t)bottom : 0;
     }
     memcpy(tile->source, source32, 32);
 }
