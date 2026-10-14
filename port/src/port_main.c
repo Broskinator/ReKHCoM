@@ -728,7 +728,35 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
     float scale = dst->w / src->w;
     static uint8_t bars[2][GBA_SCREEN_H];
     static uint32_t colors[2][GBA_SCREEN_H];
+    int lbTop = 0, lbBottom = GBA_SCREEN_H;
     PortPpuSpriteMask(mask); /* bars are sprites; the scenery's own runs are not bars */
+    {
+        /* a movie's letterbox: rows from the top (and from the bottom) whose
+           every pixel is within 24 of the edge row's own uniform colour */
+        extern int PortNarrowEdgeKind(int side, int y);
+        if (PortNarrowEdgeKind(0, 0) < 0) {
+            int pass;
+            for (pass = 0; pass < 2; pass++) {
+                int y0 = pass ? GBA_SCREEN_H - 1 : 0, dy = pass ? -1 : 1, yy2, x2;
+                const uint32_t* r0 = &sComposite[((int)src->y + y0) * gPortScreen.width + (int)src->x];
+                uint32_t lb = r0[0];
+                for (x2 = 0; x2 < GBA_SCREEN_W && r0[x2] == lb; x2++) {}
+                if (x2 < GBA_SCREEN_W)
+                    continue; /* no letterbox on this side */
+                for (yy2 = y0; yy2 >= 0 && yy2 < GBA_SCREEN_H; yy2 += dy) {
+                    const uint32_t* r = &sComposite[((int)src->y + yy2) * gPortScreen.width + (int)src->x];
+                    for (x2 = 0; x2 < GBA_SCREEN_W; x2++) {
+                        int sh, far = 0;
+                        for (sh = 0; sh <= 16; sh += 8)
+                            far |= SDL_abs((int)((r[x2] >> sh) & 255) - (int)((lb >> sh) & 255)) > 24;
+                        if (far) break;
+                    }
+                    if (x2 < GBA_SCREEN_W) break;
+                }
+                if (pass) lbBottom = yy2 + 1; else lbTop = yy2;
+            }
+        }
+    }
     for (side = 0; side < 2; side++) {
         int edge = side ? (int)(src->x + src->w) - 1 : (int)src->x, step = side ? -1 : 1;
         uint8_t* bar = bars[side];
@@ -758,13 +786,11 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
                 int frame = y < 24 || y >= GBA_SCREEN_H - 24, kind = PortNarrowEdgeKind(side, y);
                 bar[y] = (sprites >= 24 && sprites == run) ||
                          (run >= 80 && (frame || kind != 0));
-                /* outside the menus (a movie) only a row of one colour across
-                   the whole picture is a bar: the letterbox, never the video */
-                if (kind < 0 && bar[y] && !(sprites >= 24 && sprites == run)) {
-                    int x2;
-                    for (x2 = 0; x2 < GBA_SCREEN_W && row[(int)src->x + x2] == c; x2++) {}
-                    bar[y] = x2 == GBA_SCREEN_W;
-                }
+                /* outside the menus (a movie) only the letterbox is a bar,
+                   never the video: the rows from the picture's top and
+                   bottom edges in its colour, compression noise and all */
+                if (kind < 0 && !(sprites >= 24 && sprites == run))
+                    bar[y] = y < lbTop || y >= lbBottom;
             }
         }
     }
