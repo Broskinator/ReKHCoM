@@ -1,0 +1,13 @@
+lang     reference 0e817b1450517f64
+title    reference 8ed9fb639f32981e
+debug    reference 998f1b1c8a71c0e7
+battle   reference e8946a16cfa174b0
+mosaic   reference 6b99bd9097b7fa7d
+room     reference 502cf95ad949f537
+hall     reference fd0fd801482ad558
+movie    reference 78cb2862bc0d730f
+allmap   reference 795fdbc476c271c0
+status   reference fca1a02c24177145
+jiminy   reference bdc24af99d34b182
+deck     reference 2878e6560f1aa1d4
+12/12 scenes recorded

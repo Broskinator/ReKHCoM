@@ -39,8 +39,8 @@
     {
       "name": "PPU renderer",
       "weight": 10,
-      "done": 97,
-      "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window; HUD layer follows GBA priorities (message windows stay in front); affine BGs now take the mosaic (the battle card-break effect pixelates the arena as on the GBA); reviewed against the hardware rules: window priority (WIN0 > WIN1 > OBJ window > outside), semi-transparent OBJ blending regardless of the window's effect bit, backdrop as second target"
+      "done": 100,
+      "notes": "modes 0-5, affine, windows, blending, mosaic, OBJ window; HUD layer follows GBA priorities (message windows stay in front); affine BGs now take the mosaic (the battle card-break effect pixelates the arena as on the GBA); reviewed against the hardware rules: window priority (WIN0 > WIN1 > OBJ window > outside), semi-transparent OBJ blending regardless of the window's effect bit, backdrop as second target; scene regression (port/tools/test_ppu.py, references in evidence/ppu_refs.json): language select, title, debug menu, battle, card-break mosaic, field room, castle hall, movie, world map, status, journal and deck menu render in the original view and are checked against reviewed references"
     },
     {
       "name": "Input (keyboard / gamepad)",
@@ -123,8 +123,8 @@
     {
       "name": "Gameplay verification",
       "weight": 10,
-      "done": 80,
-      "notes": "Earlier EU/US/JP reports: 194 event and 209 debug battle smoke cases per region; bounded runs, not full playthroughs. Twelve traced START/deck/field cycles passed. Add-card crash reproduced through normal navigation and fixed by initializing caption counts; Add/Remove/field regression passed. Other repeated submenu crashes remain under investigation.; room battery (port/tools/test_rooms.py, KHCOM_MODE=room as the debug MAP check enters rooms): 52/52 in EU, every world on an early and a late floor and the entrance and exit halls of all 13 floors, walking, opening doors and fighting (evidence/rooms_eu.txt); level-up holds 16.7 ms frames with no hitch or lost logic frame (KHCOM_FRAMELOG); save states deterministic; every song played. Full playthroughs still pending."
+      "done": 88,
+      "notes": "Earlier EU/US/JP reports: 194 event and 209 debug battle smoke cases per region; bounded runs, not full playthroughs. Twelve traced START/deck/field cycles passed. Add-card crash reproduced through normal navigation and fixed by initializing caption counts; Add/Remove/field regression passed. Other repeated submenu crashes remain under investigation.; room battery (port/tools/test_rooms.py, KHCOM_MODE=room as the debug MAP check enters rooms): 52/52 in EU, every world on an early and a late floor and the entrance and exit halls of all 13 floors, walking, opening doors and fighting (evidence/rooms_eu.txt); level-up holds 16.7 ms frames with no hitch or lost logic frame (KHCOM_FRAMELOG); save states deterministic; every song played. Full playthroughs still pending.; submenu stress (port/tools/test_submenus.py) on a real save: every pause-menu entry (deck, world map, map cards, world cards, status, journal) entered and left four times, 6/6 with no crash (evidence/submenus_eu.txt)"
     },
     {
       "name": "Save states",

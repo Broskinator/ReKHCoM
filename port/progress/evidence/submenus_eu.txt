@@ -1,0 +1,7 @@
+entry 0: ok  exit 0, 4/4 visits, modes Mode_Deck
+entry 1: ok  exit 0, 4/4 visits, modes mode_allmap
+entry 2: ok  exit 0, 4/4 visits, modes mode_mapinspect
+entry 3: ok  exit 0, 4/4 visits, modes mode_worldinspect
+entry 4: ok  exit 0, 4/4 visits, modes mode_status
+entry 5: ok  exit 0, 4/4 visits, modes mode_jiminy
+6/6 entries ok

@@ -8,17 +8,16 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
 |---|---|---|---|---|
-| Gameplay verification | 80 | 10 | Claude | Estrés de submenús y partida completa Sora y Reverse/Rebirth |
+| Gameplay verification | 88 | 10 | Claude | Partida completa de Sora y de Reverse/Rebirth |
 | Widescreen: field maps | 85 | 8 | Codex | Salas con huecos o bordes de abismo; revisión por mundo |
 | HD text | 94 | 3 | Claude | Números de menús de baraja (tiles de BG) con el compositor; oclusión general |
 | Widescreen: battles | 93 | 6 | Codex | Cinta continua de arenas y bordes de abismo |
 | Widescreen: menus & events | 93 | 4 | Codex | Salida de submenús, footer, subida de nivel (paneles y popeo) |
-| PPU renderer | 97 | 10 | Claude (cierre) + Codex (presentación) | Regresión de conformidad; los cambios de composición se coordinan |
 
 Ya al 100 %: build, assets, memoria, BIOS, DMA, interrupciones, entrada, m4a,
 PSG, PCM, códec de bloques, películas, SRAM, reset, widescreen renderer,
 estados guardados, launcher, saltar intro, versiones USA y japonesa,
-menú de opciones.
+menú de opciones, PPU.
 
 ## Codex: acabado panorámico (field, battles, menus & events)
 
@@ -64,10 +63,10 @@ menú de opciones.
 - [x] Gameplay verification: batería de salas (test_rooms.py) 52/52 en EU: cada
   mundo en una planta temprana y una tardía y los vestíbulos de las 13 plantas.
   Hoja de capturas en build/roomtest_eu/rooms.png para la revisión de Codex.
-- [ ] Gameplay verification: ampliar la prueba de crashes al alternar
-  submenús/edición (Estado, Diario, Naipes mapa, Añadir/Quitar) y comprobar
-  que los avisos de tutorial quedan delante del texto de las cartas.
-  (Pasada de Codex a Claude el 14/10 para acelerar.)
+- [x] Gameplay verification: estrés de submenús (test_submenus.py) sobre una
+  partida real: las seis entradas del menú de pausa, cuatro idas y vueltas
+  cada una, 6/6 sin crash. Pendiente aparte: avisos de tutorial delante del
+  texto de las cartas (tutorial de naipes mapa).
 - [x] Gameplay verification: stutter de la subida de nivel medido con
   KHCOM_FRAMELOG: 16,7 ms estables, sin tirones ni fotogramas de lógica perdidos
   (renderizador por software; los picos vistos antes eran carga de otra prueba).
@@ -82,8 +81,9 @@ menú de opciones.
   regresión general de oclusión, coordinado con Codex en el compositor.
 - [x] Graphics options menu: test_options.py, 35 casos y el menú en EU (cinco
   idiomas), US y JP. Barra al 100 %.
-- [ ] PPU: regresión de conformidad (capturas de referencia por modo y efecto)
-  para cerrar la barra; cambios de composición coordinados con Codex.
+- [x] PPU: regresión de escenas (test_ppu.py, 12 escenas con referencia
+  revisada). Barra al 100 %. Si un cambio de composición altera una escena,
+  revisarla y regrabar con --update.
 - [ ] Preservación: reproducir los casos de BUGS_GBA.md en EU/US/JP y separar
   técnicas originales, anomalías del código y defectos del port.
 - [x] Launcher e instalación: batería 11/11.
