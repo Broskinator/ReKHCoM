@@ -130,9 +130,14 @@ int PortHarnessMode(const char* name, int arg) {
     /* the level-up screen, as the end of a battle opens it */
     if (strcmp(name, "levelup") == 0 && gBtlWork != NULL) {
         gBtlWork->pendingLevelUps = 1;
-        ReleaseBattleTiles();
-        gBtlWork->task = TaskCreate(&gBtlWork->taskPools[1], &gTaskDescLevelUp, NULL);
-        gBtlWork->flags |= BTL_FLAG_PAUSE_DISABLED | BTL_FLAG_FIELD_HIDDEN;
+        /* Use the battle's closing sequence, so cards/camera and effects
+           stop before their tile allocations are reused by the menu. */
+        gBtlWork->phase = BTL_PHASE_END;
+        gBtlWork->phaseStep = 0; /* BTL_END_STEP_CLOSE_CARDS, local to battle_runtime */
+        gBtlWork->prizeCount = 0;
+        /* Debug encounters still have live actors; prevent their animation
+           uploads from touching tile allocations released for the reward UI. */
+        gBtlWork->hitStop = 32767;
         return 1;
     }
     /* the save point's menu, opened as talking to it does */

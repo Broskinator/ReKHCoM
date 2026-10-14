@@ -90,6 +90,8 @@ void Level_Up_0(LevelUpWork* work) {
     /* screen layer: bonus boxes left, stat panels right */
     PortBgSplit(0, 146);
     PortBgSplit(1, 146);
+    PortBgSplitBands(0, 1);
+    PortBgSplitBands(1, 1);
 #endif
     s16 x;
     s16 y;
@@ -1304,6 +1306,8 @@ void Level_Up_3(LevelUpWork* work) {
 #ifdef PLATFORM_PC
     PortBgSplit(0, 0);
     PortBgSplit(1, 0);
+    PortBgSplitBands(0, 0);
+    PortBgSplitBands(1, 0);
 #endif
 #ifdef VERSION_EU
     if (work->tiles5[0] != NULL) {

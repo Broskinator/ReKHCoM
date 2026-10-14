@@ -79,6 +79,7 @@ static int sBgDockedLatched[4];
 /* A docked layer is screen UI moved toward an edge: it shows only what the
    hardware would (no world-map continuation), so parked windows stay hidden. */
 static int sBgSplit[4]; /* PortBgSplit, below */
+static int sBgSplitBands[4]; /* repeat authored ornamental tiles in the split gap */
 static const uint16_t* sMenuHeaderFrame;
 static const ObjTiles* sMenuHeaderTiles;
 static const ObjPalette* sMenuHeaderPalette;
@@ -101,6 +102,7 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgWorld, sizeof(sBgWorld));
     visit(sBgWorldLatched, sizeof(sBgWorldLatched));
     visit(sBgSplit, sizeof(sBgSplit));
+    visit(sBgSplitBands, sizeof(sBgSplitBands));
     visit(&sSceneNarrow, sizeof(sSceneNarrow));
     visit(&sNarrowWanted, sizeof(sNarrowWanted));
     visit(&sNarrowWait, sizeof(sNarrowWait));
@@ -1097,7 +1099,11 @@ static void StepAffine(int lines) {
     }
 }
 
-static void SplitBgLine(int b) {
+void PortBgSplitBands(int bg, int enabled) {
+    if ((unsigned)bg < 4) sBgSplitBands[bg] = enabled;
+}
+
+static void SplitBgLine(int b, int gy) {
     static uint16_t tmp[PORT_MAX_W];
     int w = gPortScreen.width, m = PortScreenMarginX(), split = sBgSplit[b], x;
 
@@ -1109,6 +1115,13 @@ static void SplitBgLine(int b) {
         else if (gx >= split + m)
             c = gx - m;
         else {
+            if (sBgSplitBands[b] && (gy < 8 || gy >= 152)) {
+                /* Repeat the last complete background tile of the left band.
+                   This excludes OBJ cursors, text and the battle backdrop. */
+                c = gPortScreen.originX + split - 8 + ((gx - split + m) & 7);
+                sBgLine[b][x] = (c >= 0 && c < w) ? tmp[c] : TRANSPARENT;
+                continue;
+            }
             sBgLine[b][x] = TRANSPARENT;
             continue;
         }
@@ -1256,7 +1269,7 @@ static void RenderLine(int y, int gy) {
         else
             DrawTextBg(b, gy, dispcnt);
         if (sOverlay && sScreenBg[b] && sBgSplit[b])
-            SplitBgLine(b);
+            SplitBgLine(b, gy);
     }
     DrawObjs(gy, dispcnt);
     BuildWindows(gy, dispcnt);
@@ -1345,7 +1358,10 @@ void PortPpuBeginFrame(void) {
     for (b = 0; b < 4; b++) {
         int m = dispcnt & 7;
         int arena = (m == 2 || (m == 1 && b == 2)) && b >= 2 && (IO16(0x08 + b * 2) >> 14) >= 2;
-        sScreenBg[b] = sOverlay && !sBgLatch[b].valid && !sBgWorldLatched[b].valid && !arena;
+        /* Split menus may use the engine's map-block API too; those blocks
+           describe UI pages, not a world that should remain under the overlay. */
+        sScreenBg[b] = sOverlay && (sBgSplit[b] ||
+            (!sBgLatch[b].valid && !sBgWorldLatched[b].valid && !arena));
     }
     if (sOverlay)
         memset(gPortOverlay, 0, (size_t)gPortOverlayW * GBA_SCREEN_H * 4);

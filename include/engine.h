@@ -75,6 +75,7 @@ void PortScreenBegin(void);
 void PortScreenEnd(void);
 int PortScreenMarginX(void);
 void PortBgSplit(int bg, int column);
+void PortBgSplitBands(int bg, int enabled);
 /* Battles: world-map layers repeat sideways past their edge. */
 void PortSetBattleView(int on);
 /* GBA-size screens: how the side bars beyond them are filled. */

@@ -41,6 +41,10 @@ Todos los puntos siguientes están pendientes salvo indicación explícita.
   aparece antes/después y al seleccionar un stat. Estado 3 antes de ganar EXP.
   La antigua ranura 8 de subida de nivel fue reemplazada por el cristal;
   reproducir desde 3 y guardar una copia aislada del punto de subida de nivel.
+  En investigación: clasificación explícita de los BG de interfaz y repetición
+  de tiles ornamentales para unir franjas, aún sin validar. La fixture debug
+  muestra corrupción también en vista original; no usarla como evidencia de
+  que los cambios visuales están terminados. Capturas en build/levelup-check.
 - [ ] Medir el stutter al permanecer en subida de nivel y corregirlo si se
   reproduce. Usar tiempos de fotograma y lógica, con pacing normal.
 - [ ] Evaluar continuidad de arenas como una cinta circular de tiles: clasificar

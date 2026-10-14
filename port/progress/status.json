@@ -112,7 +112,7 @@
       "name": "Widescreen: menus & events",
       "weight": 4,
       "done": 93,
-      "notes": "Pause/save/world selection/level up use a screen layer. Header and eye-tab extensions read original sprite/tile assets, excluding the cursor and text. Spotlight margins are clipped to black; isolated spotlight and door-selection regressions pass. World map repeats ornamental patterns. Level-up gaps/pop, world-card fade, battle-entry background, submenu exit/footer and broader stress checks remain open."
+      "notes": "Pause/save/world selection/level up use a screen layer. Header and eye-tab extensions read original sprite/tile assets, excluding the cursor and text. Spotlight margins are clipped to black; isolated spotlight and door-selection regressions pass. World map repeats ornamental patterns. Development branch has an unverified level-up band/UI-layer draft; its debug fixture shows corruption even at original aspect, so it is not counted as completed. Level-up gaps/pop, world-card fade, battle-entry background, submenu exit/footer and broader stress checks remain open."
     },
     {
       "name": "Graphics options menu",
