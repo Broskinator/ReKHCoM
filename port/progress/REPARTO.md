@@ -4,6 +4,22 @@ Responsabilidades acordadas con el usuario para trabajar sin solaparse,
 ordenadas por las barras de `status.json` que faltan para el 100 %.
 `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pendiente.
 
+## Coordinación (14/10, 04:05)
+
+- Claude es el integrador principal: integra los commits de ambos en
+  feat/native-movies, compila EU/US/JP antes de subir y prepara las releases.
+  Solo se sube lo que compila en las tres regiones.
+- Números HD: Codex está registrando los dígitos que el juego escribe en tiles
+  de fondo (PortRegisterBgTextTile en los menús de baraja y combate). Claude no
+  duplica eso; cuando esté, Claude cubre los dígitos que son sprites (valores de
+  carta, daño, contadores) con el mismo estilo, salvo que Codex lo marque aquí.
+- Herramientas de verificación: Codex tiene test_gameplay_*, test_ppu_conformance
+  y test_wide_world_* sin subir; Claude ya subió test_rooms, test_submenus,
+  test_ppu, test_options y test_songs. Al integrar se unifican (sin borrar
+  ninguna) y se anota aquí cuál queda como referencia de cada barra.
+- Último: partida completa / TAS. Después del 100 %, la función experimental
+  con las QoL de la versión de PS2 (Re:Chain of Memories) en la de GBA.
+
 ## Barras pendientes y dueño
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
