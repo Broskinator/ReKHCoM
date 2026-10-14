@@ -43,6 +43,8 @@ def main():
         "assets/fonts/KHMenu.otf": ROOT / "port/assets/fonts/KHMenu.otf",
         "assets/fonts/ComicHearts.otf": ROOT / "port/assets/fonts/ComicHearts.otf",
         "assets/fonts/NOTICE.md": ROOT / "port/assets/fonts/NOTICE.md",
+        "assets/hd-hud/pilot/enemy-hp-frame-v2.png": ROOT / "port/assets/hd-hud/pilot/enemy-hp-frame-v2.png",
+        "assets/hd-hud/pilot/README.md": ROOT / "port/assets/hd-hud/pilot/README.md",
     }
     for source in files.values():
         if not source.is_file():

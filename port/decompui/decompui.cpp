@@ -229,7 +229,7 @@ static const Setting kSettings[] = {
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
     { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 },
-    { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 },
+    { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
     { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
@@ -1082,6 +1082,11 @@ static void PageExtras() {
                            "Dialogue is drawn with a crisp font at the window's resolution, in the game's own "
                            "places and colours."),
                          Ini("hd_text"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("HUD HD (piloto)", "HD HUD (pilot)"),
+                         T("Marco de vida del enemigo redibujado en HD. Piloto para vista panoramica; los demas elementos conservan sus graficos originales.",
+                           "Redrawn HD enemy HP frame. Pilot for wide views; other elements keep their original graphics."),
+                         Ini("hd_hud"));
     ImGui::Separator();
     changed |= ToggleRow(T("Estilo HD-2D", "HD-2D look"),
                          T("Campo y combates con profundidad de campo, resplandor, gradación de color y viñeta, al "

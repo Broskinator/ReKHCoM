@@ -271,11 +271,19 @@ typedef struct SpriteTag {
     uint8_t style; /* HD text font: 0 dialogue / menu, 1 movie subtitles */
     uint8_t screen; /* drawn by a menu: goes on the screen layer */
     uint8_t header; /* a menu header (DrawMenuHeader) */
+    uint8_t hdHudPart; /* HD enemy panel: frame, cap, live bar */
 } SpriteTag;
 static SpriteTag sEntryTag[128];
 static SpriteTag sOamTag[128];
 static int sHudLayer;
 static int sHdText;
+int gPortHdHudPart;
+static int sEnemyHudRect[4]; /* left, top, right, bottom in HUD pixels */
+int PortPpuEnemyHudRect(int* rect) {
+    if (sEnemyHudRect[2] < sEnemyHudRect[0]) return 0;
+    memcpy(rect, sEnemyHudRect, sizeof(sEnemyHudRect));
+    return 1;
+}
 int gPortTextChar;
 int gPortTextStyle;
 
@@ -342,6 +350,7 @@ void PortSpriteTag(int entry) {
         sEntryTag[entry].style = (uint8_t)gPortTextStyle;
         sEntryTag[entry].screen = sScreenDepth > 0;
         sEntryTag[entry].header = gPortHeaderDraw != 0;
+        sEntryTag[entry].hdHudPart = (uint8_t)gPortHdHudPart;
     }
 }
 
@@ -2008,6 +2017,8 @@ void PortPpuRenderHud(uint32_t* buf) {
     int w = gPortHudW, h = gPortHudH;
     int i;
 
+    sEnemyHudRect[0] = w; sEnemyHudRect[1] = h;
+    sEnemyHudRect[2] = sEnemyHudRect[3] = -1;
     memset(buf, 0, (size_t)w * h * 4);
     if (!sHudLayer || (dispcnt & 0x80) || !(dispcnt & 0x1000))
         return;
@@ -2084,6 +2095,22 @@ void PortPpuRenderHud(uint32_t* buf) {
                         if (sOccBg[k] < prio || sOccObj[k] < prio * 128 + i)
                             continue;
                     }
+                }
+                if (gPortConfig.hdHud && (tag->hdHudPart == 1 || tag->hdHudPart == 2)) {
+                    int r = col & 31, g = (col >> 5) & 31, b = (col >> 10) & 31;
+                    int high = r > g ? r : g, low = r < g ? r : g;
+                    if (b > high) high = b;
+                    if (b < low) low = b;
+                    if (px < sEnemyHudRect[0]) sEnemyHudRect[0] = px;
+                    if (py < sEnemyHudRect[1]) sEnemyHudRect[1] = py;
+                    if (px > sEnemyHudRect[2]) sEnemyHudRect[2] = px;
+                    if (py > sEnemyHudRect[3]) sEnemyHudRect[3] = py;
+                    /* Replace only the neutral frame. Coloured lettering and
+                       lower HP layers retain the cartridge's exact pixels. */
+                    /* Native black pixels also clip the live bar beneath
+                       the lettering; keep that occlusion exactly intact. */
+                    if (high - low <= 3 && high != 0)
+                        continue;
                 }
                 if (bldcnt & 0x10) {
                     if (effect == 2)

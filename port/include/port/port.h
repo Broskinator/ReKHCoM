@@ -116,6 +116,7 @@ typedef struct PortConfig {
     int ps2Mode;          /* experimental Re:Chain of Memories mode; off: the game exactly as on the cartridge */
     int ps2Difficulty;    /* Re:CoM mode: 0 standard, 1 beginner, 2 proud */
     int ps2FastText;      /* experimental: event dialogue types one character a frame */
+    int hdHud;           /* experimental HD HUD placeholder: enemy HP panel */
     int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
     int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
 } PortConfig;
@@ -170,6 +171,9 @@ void PortVideoApplyConfig(void);
 /* port_ps2qol.c: the optional Re:Chain of Memories version of a game. */
 int PortRecomActive(void);
 void PortRecomSetActive(int active);
+int PortHdHudEnemy(int visible, int ratio, int layer);
+extern int gPortHdHudPart;
+int PortPpuEnemyHudRect(int* rect);
 int PortQolButtons(void);
 void PortSetQolButtons(int on);
 int PortVideoListModes(int* w, int* h, int max);

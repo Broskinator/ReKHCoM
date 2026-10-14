@@ -1,9 +1,13 @@
 # HUD HD experimental
 
 Solicitud: reconstruir los gráficos del HUD para acompañar al texto HD.
-Mantener siluetas, colores, anclajes y animaciones. Opción futura apagada
-por defecto en Experimentales del juego y launcher. No es aún una función
-disponible: esta primera entrega prepara el formato de recursos.
+Mantener siluetas, colores, anclajes y animaciones. Opción apagada
+por defecto en Experimentales del juego y launcher. Primer piloto integrado:
+`hd_hud=1` sustituye el panel enemigo en vistas con capa HUD independiente.
+Vista Original conserva el panel GBA. Los demás elementos no se sustituyen.
+Sus límites se toman de los sprites originales cada frame, sin ancho fijo.
+Barra, letras y capas de vida conservan sus píxeles y posiciones originales.
+Solo el marco neutro es HD en este piloto; el resto se ampliará por piezas.
 
 ## Formato y rendimiento
 
@@ -17,6 +21,8 @@ Liberar los píxeles CPU después de subirla. No decodificar ni generar por
 fotograma. WebP reduce potencialmente la descarga, pero no la memoria de
 la textura decodificada; no añadir otro decodificador en esta fase.
 Presupuesto inicial: un atlas de hasta 2048x2048 (16 MiB RGBA sin mipmaps).
+El piloto carga una pieza individual, recortada al subirla y limitada a
+512 píxeles de ancho: unos 320 KiB entre textura y máscara de fade blanco.
 
 ## Preparación
 
@@ -37,14 +43,20 @@ No incorporar piezas con tablero falso, fondo residual o contorno alterado.
 
 ## Pendiente de integración
 
-- Extraer piezas originales con alfa y referencias de paleta/estado.
-- Redibujar una pieza piloto con IA y revisar forma y bordes sobre ambos fondos.
-- Cargador PNG del juego: el launcher usa stb_image, el juego aún no tiene
-  un cargador de reemplazos HUD. Reutilizar PNG solamente y limitar tamaños.
-- Identificar piezas por contenido/estado, no por dirección VRAM cambiante.
-- Sustituirlas respetando oclusión, fade, flips y animaciones antes del texto HD.
-- Mantener gráficos originales si el pack falta, falla o la opción está apagada.
-- Validar EU/US/JP y medir tiempos de frame y memoria con la opción activa.
+- Extraer las próximas piezas originales con alfa y referencias de paleta/estado.
+- Piloto generado con imagegen y segunda pasada para diagonales suaves:
+  `port/assets/hd-hud/pilot/enemy-hp-frame-v2.png`. Prompts en su README.
+- Cargador PNG del juego implementado en `port_hdhud.c`, límites de tamaño,
+  alfa exterior obligatorio y CPU liberada después de crear la textura.
+- Identificación del panel por su tarea de juego, sin direcciones VRAM.
+- Vida/capas/letras originales; marco nuevo con fade negro
+  y blanco. Ampliar a otras piezas y revisar oclusión/animaciones complejas.
+- Retorno al HUD original si falta/falla el recurso o se apaga la opción.
+- `test_hd_hud.py`: capturas comparadas con opción apagada, imagen ausente
+  y vista Original, y coincidencia exacta de los píxeles verdes de la barra
+  y letras (posición, tamaño y color) en los frames 180 y 380 del combate
+  piloto. No representa una auditoría de todos los jefes ni de todas las
+  paletas/idiomas. Medición de rendimiento sostenido aún pendiente.
 
 Herramienta candidata de edición: GPT Image, PNG transparente
 ([guía oficial](https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide)).

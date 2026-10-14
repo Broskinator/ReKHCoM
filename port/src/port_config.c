@@ -41,6 +41,7 @@ PortConfig gPortConfig = {
     0,                  /* ps2Mode (experimental) */
     0,                  /* ps2Difficulty (experimental) */
     0,                  /* ps2FastText (experimental) */
+    0,                  /* hdHud (experimental) */
     {
         { SDLK_X, SDLK_K },             /* A */
         { SDLK_Z, SDLK_J },             /* B */
@@ -111,6 +112,7 @@ static const Key sKeys[] = {
     { "ps2_mode", &gPortConfig.ps2Mode, 0, 1 },
     { "ps2_difficulty", &gPortConfig.ps2Difficulty, 0, 2 },
     { "ps2_fast_text", &gPortConfig.ps2FastText, 0, 1 },
+    { "hd_hud", &gPortConfig.hdHud, 0, 1 },
 #define BIND(name, act)                                                           { "kb_" name, &gPortConfig.keys[act][0], 0, 0x7FFFFFFF },                     { "kb_" name "_2", &gPortConfig.keys[act][1], 0, 0x7FFFFFFF },                { "pad_" name, &gPortConfig.pad[act], -1, SDL_GAMEPAD_BUTTON_COUNT - 1 }
     BIND("a", PORT_ACT_A), BIND("b", PORT_ACT_B), BIND("l", PORT_ACT_L), BIND("r", PORT_ACT_R),
     BIND("start", PORT_ACT_START), BIND("select", PORT_ACT_SELECT), BIND("up", PORT_ACT_UP),

@@ -45,6 +45,7 @@ enum {
     ITEM_MASTER,
     ITEM_EXPERIMENTAL, /* section heading, not selectable */
     ITEM_HDTEXT,
+    ITEM_HDHUD,
     ITEM_HD2D,
     ITEM_SMOOTHAUDIO,
     ITEM_PS2_MODE,
@@ -116,6 +117,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general", "全体の音量" },
     { "Experimental", "Expérimental", "Experimentell", "Sperimentale", "Experimentales", "実験的機能" },
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
+    { "HD HUD (pilot)", "HUD HD (pilote)", "HD-HUD (Pilot)", "HUD HD (pilota)", "HUD HD (piloto)", "HD HUD (試験)" },
     { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
     { "Smooth audio", "Son adouci", "Weicher Klang", "Audio morbido", "Audio suave", "なめらかな音" },
     { "Re:CoM mode", "Mode Re:CoM", "Re:CoM-Modus", "Modalità Re:CoM", "Modo Re:CoM", "Re:CoMモード" },
@@ -588,6 +590,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_HD2D:
             SDL_strlcpy(out, sOnOff[gPortConfig.hd2d != 0][l], size);
             break;
+        case ITEM_HDHUD:
+            SDL_strlcpy(out, sOnOff[gPortConfig.hdHud != 0][l], size);
+            break;
         case ITEM_SMOOTHAUDIO:
             SDL_strlcpy(out, sOnOff[gPortConfig.smoothAudio != 0][l], size);
             break;
@@ -699,6 +704,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_HD2D:
             gPortConfig.hd2d = !gPortConfig.hd2d;
+            break;
+        case ITEM_HDHUD:
+            gPortConfig.hdHud = !gPortConfig.hdHud;
             break;
         case ITEM_SMOOTHAUDIO:
             gPortConfig.smoothAudio = !gPortConfig.smoothAudio;

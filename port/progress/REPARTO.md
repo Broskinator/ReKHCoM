@@ -39,8 +39,13 @@ registros antiguos y aislamiento de Original). Sin cambios en los márgenes.
 
 Nuevo experimental a cargo de Codex: HUD HD redibujado con IA y alfa real.
 Formato preparado: atlas PNG RGBA + JSON, validación y vistas claro/oscuro
-con `port/tools/pack_hd_hud.py`. Integración y pieza piloto pendientes;
-ver `HUD_HD_EXPERIMENTAL.md`. No activar piezas con fondo residual o halos.
+con `port/tools/pack_hd_hud.py`. Piloto integrado del panel HP enemigo con
+acabado suavizado, PNG cacheado y opción `hd_hud` en ambos menús. Usuario
+autoriza placeholders. Ver `HUD_HD_EXPERIMENTAL.md`; pruebas aisladas con
+`test_hd_hud.py` superadas en EU/US/JP: recurso ausente y vista Original
+idénticos a la referencia; barra/letras verdes conservan píxeles y posiciones.
+El marco toma límites nativos por frame, siguiendo la precisión solicitada
+por el usuario. No activar piezas con fondo residual o halos.
 
 1. Diario — en revisión con el usuario
 2. Ver barajas / Añadir-Quitar

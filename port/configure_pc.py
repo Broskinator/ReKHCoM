@@ -181,7 +181,12 @@ def decompui(n, toolchain, sdl_arch, debug):
     n.build("$builddir/assets/fonts/ComicHearts.otf", "copy_asset", rel(font2),
             variables={"in_win": str(font2), "out_win": str(BUILD / "assets" / "fonts" / "ComicHearts.otf"),
                        "dir_win": str(BUILD / "assets" / "fonts")})
+    hud = ROOT / "port/assets/hd-hud/pilot/enemy-hp-frame-v2.png"
+    n.build("$builddir/assets/hd-hud/pilot/enemy-hp-frame-v2.png", "copy_asset", rel(hud),
+            variables={"in_win": str(hud), "out_win": str(BUILD / "assets/hd-hud/pilot/enemy-hp-frame-v2.png"),
+                       "dir_win": str(BUILD / "assets/hd-hud/pilot")})
     return ["$builddir/ReKHCoM.exe", "$builddir/assets/boxart.jpg", "$builddir/assets/logo.png",
+            "$builddir/assets/hd-hud/pilot/enemy-hp-frame-v2.png",
             "$builddir/assets/fonts/KHMenu.otf",
             "$builddir/assets/fonts/ComicHearts.otf"]
 

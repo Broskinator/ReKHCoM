@@ -665,8 +665,11 @@ static void Present(void) {
     int outW, outH;
     SDL_FRect dst;
     float worldX, worldY, worldScale;
+    void PortHdHudPrepare(SDL_Renderer* renderer);
+    void PortHdHudDraw(SDL_Renderer* renderer, int width, int height);
 
     EnsureTexture();
+    PortHdHudPrepare(sRenderer);
     /* Overlays go on a copy so the game picture survives while paused. */
     memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
     PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
@@ -852,6 +855,7 @@ static void Present(void) {
         hd.h = (float)(sHudTexH * gPortHudScale);
         hd.x = (float)((outW - (int)hd.w) / 2);
         hd.y = (float)((outH - (int)hd.h) / 2);
+        PortHdHudDraw(sRenderer, outW, outH);
         SDL_RenderTexture(sRenderer, sHudTexture, NULL, &hd);
         PortHdTextDraw(sRenderer, 1, hd.x, hd.y, (float)gPortHudScale);
     }
@@ -1144,9 +1148,11 @@ static void HarnessFrame(void) {
 /* ---- events / pacing --------------------------------------------------------------- */
 
 static void Quit(void) {
+    void PortHdHudShutdown(void);
     PortSramSyncIfDirty();
     PortConfigSave();
     PortAudioShutdown();
+    PortHdHudShutdown();
     SDL_Quit();
     exit(0);
 }

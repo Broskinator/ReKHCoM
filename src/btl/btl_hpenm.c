@@ -17,6 +17,9 @@
 #include "sprite_palettes.h"
 #include "sprites_mode_test.h"
 #include "engine_math.h"
+#ifdef PLATFORM_PC
+#include "port/port.h"
+#endif
 
 enum BtlHpenmGaugeLayer {
     BTL_HPENM_GAUGE_LAYER_GREEN,
@@ -138,7 +141,9 @@ static void task_btl_hpenm_2_Body(BtlHpenmWork* work);
 /* Enemy HP gauge: top-right corner of the screen. */
 void task_btl_hpenm_2(BtlHpenmWork* work) {
     PortHudBegin(1, -1);
+    gPortHdHudPart = PortHdHudEnemy(work->visible, work->hpRatio, work->gaugeLayer) ? 1 : 0;
     task_btl_hpenm_2_Body(work);
+    gPortHdHudPart = 0;
     PortHudEnd();
 }
 
@@ -372,6 +377,9 @@ void task_btl_hpenm_2(BtlHpenmWork* work) {
     }
 
     DrawSprite(236, 2, gfx, work->tiles, work->palette, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 3);
+#ifdef PLATFORM_PC
+    if (gPortHdHudPart) gPortHdHudPart = 2;
+#endif
 #ifdef VERSION_EU
     DrawSprite(236, 2, gBHpgagEFrame13Eu, work->tiles3, work->palette, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 1);
 #else
@@ -416,6 +424,9 @@ void task_btl_hpenm_2(BtlHpenmWork* work) {
             affine = AllocObjAffine(0, scale, Q_8_8(1), FALSE);
         }
 
+#ifdef PLATFORM_PC
+        if (gPortHdHudPart) gPortHdHudPart = 3;
+#endif
         DrawSprite(217, 6, bar, work->tiles2, work->palette, affine, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 2);
     }
 }
