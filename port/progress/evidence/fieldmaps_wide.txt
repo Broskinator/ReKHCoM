@@ -1,0 +1,21 @@
+Widescreen field maps: closing reviews (2026-10-14, view_mode=4)
+
+Every reachable room of the story floors (test_gameplay_rooms.py --all-rooms,
+one process per world, Sora): 131 rooms per region
+  EU 129/131   US 129/131   JP 129/131
+The two cases that fail in every region (world 8 floor 11 room 1, world 10
+floor 10 room 6) are a Heartless touching Sora before the capture frame
+(observed mode_battle). Captured earlier in build/roomfail: both rooms render,
+then the battle entry and the arena play normally.
+Contact sheets of the EU run reviewed (build/rooms_review_0..3.png). Atlantica
+rooms that looked empty were a capture during the encounter flash; the same
+room at frame 260 renders identically in the original and wide views.
+Backdrop beyond rooms: the room's own colour (the yellow of Traverse Town
+11010 matches the GBA frame).
+Fixed rooms: entrance and exit halls of all 13 floors in the room battery
+(evidence/rooms_eu.txt, Mode_MapFix), castle hall in test_ppu.
+100 Acre Wood: KHCOM_MODE=frame:mode_pooh:2 (as the map requests it); 18
+captures while walking right, up and left: the wood fills the wide view and
+scrolls with the camera, no void, no crash.
+MapWorldTile vs MapBuildBgRow/Column: 417216 comparisons pass
+(test_wide_world_cells.py).

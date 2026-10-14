@@ -6,6 +6,15 @@
 #ifdef PLATFORM_PC
 #include "engine.h"
 #endif
+#ifdef PLATFORM_PC
+/* Door menu: the panel, cards and caption sit a few lines above the bottom
+   bar instead of resting on it; the title and the bars stay in place. */
+#define MAPSEL_RAISE 6
+#define MAPSEL_SHIFT(dy) (gPortSpriteShiftY = mapselBaseY + (dy))
+#else
+#define MAPSEL_RAISE 0
+#define MAPSEL_SHIFT(dy) ((void)0)
+#endif
 #include "macros.h"
 #include "registration_data.h"
 #include "system_state.h"
@@ -295,7 +304,7 @@ u8 UpdateMapSelectSetup(MapSelectWork* work, void* task) {
 
     SetBgMapBlocks(1, gMapSelectBgMapBlocks, 1, 2);
     work->bgScrollY = 0;
-    ScrollBgMapTo(1, 0, 0);
+    ScrollBgMapTo(1, 0, MAPSEL_RAISE);
     EnableBg(1);
 
     if (work->isEventDoor == TRUE) {
@@ -329,7 +338,7 @@ u8 UpdateMapSelectSlideIn(MapSelectWork* work, void* task) {
     } else {
         ApproachValue(&work->bgScrollY, 0x10000, work->slideSteps);
         ApproachValue(&work->titleX, 0, work->slideSteps);
-        ScrollBgMapTo(1, 0, (u32)work->bgScrollY >> 8);
+        ScrollBgMapTo(1, 0, ((u32)work->bgScrollY >> 8) + MAPSEL_RAISE);
 
         if (work->slideSteps != 0) {
             work->slideSteps--;
@@ -793,7 +802,7 @@ u8 UpdateMapSelectClose(MapSelectWork* work) {
     ApproachValue(&work->handY, 0x16400, work->slideSteps);
     ApproachValue(&work->y, 0x17A00, work->slideSteps);
     ApproachValue(&work->nameY, 0x19100, work->slideSteps);
-    ScrollBgMapTo(1, 0, (u32)work->bgScrollY >> 8);
+    ScrollBgMapTo(1, 0, ((u32)work->bgScrollY >> 8) + MAPSEL_RAISE);
     work->scrollBarVisible = FALSE;
 
     if (work->mosaicX <= 8) {
@@ -825,6 +834,7 @@ u8 UpdateMapSelectClose(MapSelectWork* work) {
 void MapSelect_2(MapSelectWork* work) {
 #ifdef PLATFORM_PC
     PortScreenBegin(); /* menu: drawn on the screen layer, at the window's height */
+    int mapselBaseY = gPortSpriteShiftY;
 #endif
     if (work->tiles3 != NULL && work->palette3 != NULL) {
         DrawSprite(PORT_MENU_LEFT(work->titleX >> 8), work->titleY >> 8,
@@ -835,6 +845,7 @@ void MapSelect_2(MapSelectWork* work) {
 #endif
                    work->tiles3, work->palette3, NULL, 0, 80);
     }
+    MAPSEL_SHIFT(-MAPSEL_RAISE); /* the panel and cards, not the title or the bars */
 
     if (work->isEventDoor == TRUE) {
         switch (gMapCardDefs[work->card->args.baseCardId].backIndex) {
@@ -870,6 +881,7 @@ void MapSelect_2(MapSelectWork* work) {
                    gDeckScrollThumbFrames[0], work->tiles6, work->palette, NULL, 0, 40);
     }
 
+    MAPSEL_SHIFT(0); /* the card under the spotlight stays with the light */
     if (!work->isEventDoor && work->mosaicX != 9 && work->mosaicY != 9) {
         DrawSprite(120, 56, NULL, work->tiles4, work->palette, NULL, SPRITE_FLAG_MOSAIC, 60);
         DrawSprite(120, 56, gCardBacks[CARD_BACK_WHITE].gfx2, work->tiles2, work->palette, NULL, SPRITE_FLAG_MOSAIC, 60);
@@ -877,6 +889,7 @@ void MapSelect_2(MapSelectWork* work) {
 
     PORT_BAND(DrawSprite(128, work->topBarY >> 8, gMapSelectBarFrames[0], work->tiles7, work->palette3, NULL, SPRITE_PRIORITY(2), 80));
     PORT_BAND(DrawSprite(128, work->bottomBarY >> 8, gMapSelectBarFrames[1], work->tiles7, work->palette3, NULL, SPRITE_PRIORITY(2), 80));
+    MAPSEL_SHIFT(-MAPSEL_RAISE);
 #ifdef PLATFORM_PC
     /* The tutorial owns the caption area, as it owns the hand/highlight.
        Suppress the underlying card name for both pixel and HD text. */
@@ -884,6 +897,7 @@ void MapSelect_2(MapSelectWork* work) {
 #endif
         DrawTextSlots(16, work->nameY >> 8, work->textSlots, work->palette4, 50, work->textSlotCounts[0]);
     TaskPoolDraw(&work->tasks);
+    MAPSEL_SHIFT(0);
 #ifdef PLATFORM_PC
     PortScreenEnd();
 #endif

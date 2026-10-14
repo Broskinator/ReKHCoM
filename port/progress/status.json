@@ -99,8 +99,8 @@
     {
       "name": "Widescreen: field maps",
       "weight": 8,
-      "done": 87,
-      "notes": "map-block rooms and cell-built rooms extend with the game's own composition; void beyond the world is black; MapWorldTile matches MapBuildBgRow/Column (test_wide_world_cells.py: 417216 comparisons pass); first visual pass of 13 rooms with continuous abyss colours; fixed rooms, interior gaps, camera moves, 100 Acre Wood and US/JP pending"
+      "done": 100,
+      "notes": "map-block and cell-built rooms extend with the game's own composition (MapWorldTile matches MapBuildBgRow/Column, 417216 comparisons); beyond the world the room's own backdrop. Every reachable story room in EU, US and JP (129/131 each; the two others are an encounter before the capture, reviewed separately), fixed halls of all 13 floors and 100 Acre Wood reviewed (evidence/fieldmaps_wide.txt)"
     },
     {
       "name": "Widescreen: battles",

@@ -22,8 +22,9 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 - [x] Subida de nivel: revisada fotograma a fotograma desde un combate de campo real (sala 10000 +
   fixture `levelup`): las barras cinemáticas (sprites del juego) cruzan todo el ancho, Sora se desliza
   sin saltos y no hay hueco ni pop; la salida vuelve a la sala limpia.
-- [ ] Menú de desbloquear puertas (síntesis de salas): subir un poco el menú
-  principal para que no quede pegado abajo. Necesita un estado frente a una puerta cerrada.
+- [x] Menú de desbloquear puertas (síntesis de salas): el panel, las cartas y el nombre suben 6
+  líneas sobre la barra inferior; el título, las barras y la carta del foco quedan en su sitio
+  (test_priority_scenes.py --scenes doorselect, entrada y estado estable revisados).
 - [x] Menú del Vórtice y "Elige un mundo": altura completa con bordes estirados (las
   capturas con barras negras eran de la build anterior; "Elige un mundo" no llenaba la altura).
 - [~] Submenús en 16:9 ("todo todo"): Diario, Ver barajas, Estado, Mapamundi, Naipes:

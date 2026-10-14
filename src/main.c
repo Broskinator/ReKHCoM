@@ -30,6 +30,7 @@
 #include "sroll_api.h"
 #include "sio_api.h"
 #include "save_api.h"
+#include "mode_pooh_api.h"
 #include <stddef.h>
 #include <string.h>
 #include "engine_math.h"
@@ -89,7 +90,7 @@ int PortHarnessMode(const char* name, int arg) {
     static Mode* const modes[] = {
         &gModeDeck, &gModeStatus, &gModeJiminy, &gModeAllmap, &gModeMapinspect, &gModeWorldinspect,
         &gModeWorldselect, &gModeWORLDSELECT, &gModeWorldwarp, &gModeMsTop, &gModePremire,
-        &gModeSioBtlOption, &gModeDebug,
+        &gModeSioBtlOption, &gModeDebug, &gModePooh,
     };
     u32 i;
 
