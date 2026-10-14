@@ -19,12 +19,19 @@ import numpy as np
 from scipy.io import wavfile
 from scipy.signal import correlate, resample_poly
 ref_path, port_path = sys.argv[1], sys.argv[2]
-rates = {int(l.split()[1]) for l in open(port_path + ".rates")}
-assert len(rates) == 1, "the port dump changes rate; compare a span with one rate"
-port_rate = rates.pop()
 sr, ref = wavfile.read(ref_path); ref = ref.astype(np.float64) / 32768.0
-port = np.fromfile(port_path, dtype=np.float32).reshape(-1, 2).astype(np.float64)
-g = np.gcd(sr, port_rate); port = resample_poly(port, sr // g, port_rate // g, axis=0)
+blocks = [tuple(map(int, l.split())) for l in open(port_path + ".rates")]
+raw = np.fromfile(port_path, dtype=np.float32).reshape(-1, 2).astype(np.float64)
+parts, pos, i = [], 0, 0
+while i < len(blocks):  # resample each run of blocks at one rate
+    rate, n = blocks[i][1], 0
+    while i < len(blocks) and blocks[i][1] == rate:
+        n += blocks[i][0]
+        i += 1
+    g = np.gcd(sr, rate)
+    parts.append(resample_poly(raw[pos:pos + n], sr // g, rate // g, axis=0))
+    pos += n
+port = np.concatenate(parts)
 print(f"ref {len(ref)/sr:.1f}s @{sr} ch{ref.shape[1]}  port {len(port)/sr:.1f}s")
 def env(x, hop=441):
     m = x.mean(axis=1); n = len(m)//hop

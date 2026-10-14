@@ -33,7 +33,8 @@ Windows x86 prerelease.
   reinstalling, wrong size, wrong SHA-1, a non-KH file, a missing file and an
   unwritable roms folder, English interface; 11/11 pass.
 - Audio compared with BizHawk (`port/tools/audio_compare.py`): boot and title
-  music match note for note (sample correlation 0.90, 4 ppm drift).
+  music match note for note (sample correlation 0.90, 4 ppm drift); the
+  castle movie's streamed audio matches at 0.99. The port plays 3.5 dB quieter.
 
 ## v0.4 — 2026-10-13
 

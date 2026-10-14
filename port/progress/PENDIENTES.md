@@ -65,6 +65,9 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
   correlación de muestras 0,90, de envolvente 0,92, deriva 4 ppm. Diferencias medibles:
   el port está 3,4 dB por debajo (plano de 45 Hz a 2,9 kHz) y no reproduce las imágenes
   del PCM escalonado por encima de 3 kHz (−5 a −10 dB), que el emulador sí deja pasar.
+  4 minutos de título: mismas cifras. Vídeo del castillo (PCM por FIFO): correlación 0,99 y
+  −3,5 dB planos en todas las bandas: la única diferencia es la ganancia general del port.
+  Pendiente: canales PSG (los menús no los usan; hace falta llegar a un combate en el emulador).
 
 - [~] Baterías: eventos US 194/194; combates US 209/209; combates como Riku 209/209;
   JP: informes terminados con 194/194 eventos y 209/209 combates sin crash.
