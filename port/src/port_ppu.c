@@ -1635,6 +1635,15 @@ static uint8_t sNarrowEdgeKind[2][GBA_SCREEN_H];
    cut some rows short of a band (the Moogle Shop's points box, the title's
    middle rows), but they belong to it, so a block with any band row carries
    every row on, each in its own edge colour. */
+/* 2 when the layer in front of the scenery reaches the edge of row y as a
+   long band, 1 when it only touches the edge, 0 when the edge shows the
+   scenery itself (GBA-size scenes only; -1 otherwise) */
+int PortNarrowEdgeKind(int side, int y) {
+    if (!sSceneNarrow || y < 0 || y >= GBA_SCREEN_H)
+        return -1;
+    return sNarrowEdgeKind[side > 0][y];
+}
+
 void PortNarrowSidesFinish(void) {
     int side, y;
     for (side = 0; side < 2; side++)

@@ -741,8 +741,16 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
                     run++;
             }
             color[y] = c;
-            /* a sprite bar, or a BG bar far longer than any run of scenery */
-            bar[y] = (sprites >= 24 && sprites == run) || run >= 80;
+            /* a sprite bar, or a BG bar far longer than any run of scenery;
+               away from the frame's top and bottom bars (often drawn on the
+               scenery layer), a run of the scenery layer itself in a
+               GBA-size scene is not a bar (Bonus élite's black gaps) */
+            {
+                extern int PortNarrowEdgeKind(int side, int y);
+                int frame = y < 24 || y >= GBA_SCREEN_H - 24;
+                bar[y] = (sprites >= 24 && sprites == run) ||
+                         (run >= 80 && (frame || PortNarrowEdgeKind(side, y) != 0));
+            }
         }
     }
     /* the frame's top and bottom bars run across the whole screen: in the
