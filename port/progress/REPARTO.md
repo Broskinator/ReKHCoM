@@ -46,6 +46,9 @@ Todos los puntos siguientes están pendientes salvo indicación explícita.
 - [ ] Validación de juego completo de Sora y Reverse/Rebirth en las tres
   regiones; las baterías de eventos/combates son pruebas limitadas,
   no sustituyen una partida completa. Anotar problemas y rutas reproducibles.
+- [ ] Preservación: reproducir y completar los casos de BUGS_GBA.md en EU/US/JP;
+  distinguir técnicas originales, anomalías del código y defectos del port.
+  Coordinar cualquier cambio de gameplay antes de implementarlo.
 - [ ] Audio: comparación con referencias de hardware/emulador de PSG,
   mezcla, FIFO, música y efectos; documentar diferencias medibles.
 - [ ] Launcher e instalación: cerrar pruebas de importación de las tres ROM,
