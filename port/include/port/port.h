@@ -112,6 +112,7 @@ typedef struct PortConfig {
     int unstockButton;    /* held button / right stick down returns the stocked cards (Sora) */
     int saveBank;         /* 1..PORT_SAVE_BANKS: which save file holds the game's two slots */
     int hd2d;             /* experimental HD-2D look (on by default in --hd2d builds) */
+    int smoothAudio;      /* experimental: cubic sample interpolation and a gentle low-pass */
     int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
     int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
 } PortConfig;

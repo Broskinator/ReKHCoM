@@ -701,8 +701,10 @@ static void MixChannel(SoundInfo* info, SoundChannel* chan, int n, int over) {
     }
 
     {
-        /* Linear interpolation; positions in 23-bit fixed point. */
+        /* Linear interpolation (Catmull-Rom with the experimental smooth
+           audio option); positions in 23-bit fixed point. */
         int fixed = (chan->type & TONEDATA_TYPE_FIX) != 0;
+        int smooth = gPortConfig.smoothAudio != 0;
         u32 step;
         u32 fw = chan->fw;
         s32 count = (s32)chan->count;
@@ -725,8 +727,23 @@ static void MixChannel(SoundInfo* info, SoundChannel* chan, int n, int over) {
         }
 
         for (i = 0; i < n; i++) {
-            s32 s = cur * 256 + (s32)(((int64_t)fw * d) >> 15);
+            s32 s;
             u32 adv;
+
+            if (smooth) {
+                /* Catmull-Rom over the samples around the position (q[-1] is
+                   the current one); neighbours outside the sample repeat the
+                   edge, as the loop start follows the loop end */
+                float t = fw * (1.0f / 8388608.0f);
+                float p1 = (float)cur, p2 = (float)(cur + d);
+                float p0 = q - 2 >= wav->data ? (float)q[-2] : p1;
+                float p3 = count > 2 ? (float)q[1] : (loopLen ? (float)loopStart[count > 1 ? 0 : 1] : p2);
+                float v = p1 + 0.5f * t * (p2 - p0 + t * (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3 +
+                                                       t * (3.0f * (p1 - p2) + p3 - p0)));
+                s = (s32)(v * 256.0f);
+            } else {
+                s = cur * 256 + (s32)(((int64_t)fw * d) >> 15);
+            }
 
             outR[i] += (s * volR) >> 16;
             outL[i] += (s * volL) >> 16;

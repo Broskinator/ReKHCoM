@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Experimental smooth audio: Catmull-Rom interpolation of the samples in the
+  m4a mixer and a 2-pole low-pass at 9 kHz on the output; the treble images
+  of the GBA's low sample rates drop by 5-15 dB, the rest is unchanged.
 - The launcher is the only executable at the root of the package; the game
   executables moved to bin/ (the launcher still finds them at the root in
   older installs).

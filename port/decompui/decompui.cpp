@@ -228,7 +228,7 @@ static const Setting kSettings[] = {
     { "window_scale", 4 },   { "fullscreen_width", 1920 }, { "fullscreen_height", 1080 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
-    { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 },
+    { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
     { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
@@ -964,6 +964,13 @@ static void PageExtras() {
                            "Field and battles with depth of field, bloom, colour grading and a vignette, in the "
                            "manner of Octopath Traveler. Sprites stay sharp."),
                          Ini("hd2d"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Audio suave", "Smooth audio"),
+                         T("Interpolación cúbica de las muestras y un filtro paso bajo suave: menos aspereza metálica "
+                           "en los agudos que dejan las bajas frecuencias de muestreo de la GBA.",
+                           "Cubic sample interpolation and a gentle low-pass: less of the metallic edge the GBA's "
+                           "low sample rates leave in the treble."),
+                         Ini("smooth_audio"));
     ImGui::EndChild();
     if (changed)
         SaveIni();

@@ -479,6 +479,39 @@ static void Queue(int n, int rate) {
     }
 }
 
+/* Experimental smooth audio: a 2-pole Butterworth low-pass at 9 kHz on the
+   final mix, so what the GBA's low sample rates leave above it (images of
+   the 13-31 kHz samples) is softened. One filter per channel, coefficients
+   per output rate. */
+static void SmoothFilter(int n, int rate) {
+    static float z[2][2];
+    static int sRate;
+    static float b0, b1, b2, a1, a2;
+    int i, c;
+
+    if (rate < 20000)
+        return;
+    if (rate != sRate) {
+        float w = 2.0f * SDL_PI_F * 9000.0f / rate, cs = SDL_cosf(w), al = SDL_sinf(w) / (2.0f * 0.7071f);
+        float a0 = 1.0f + al;
+        sRate = rate;
+        b0 = (1.0f - cs) * 0.5f / a0;
+        b1 = (1.0f - cs) / a0;
+        b2 = b0;
+        a1 = -2.0f * cs / a0;
+        a2 = (1.0f - al) / a0;
+    }
+    for (c = 0; c < 2; c++) {
+        for (i = 0; i < n; i++) {
+            float x = sOut[i * 2 + c];
+            float y = b0 * x + z[c][0];
+            z[c][0] = b1 * x - a1 * y + z[c][1];
+            z[c][1] = b2 * x - a2 * y;
+            sOut[i * 2 + c] = y;
+        }
+    }
+}
+
 void PortAudioFrame(void) {
     uint16_t cnth = IO16(0x82);
     float master = gPortConfig.masterVolume / 100.0f;
@@ -545,6 +578,8 @@ void PortAudioFrame(void) {
         sOut[i * 2 + 0] = SDL_clamp(l / 1024.0f * master, -1.0f, 1.0f);
         sOut[i * 2 + 1] = SDL_clamp(r / 1024.0f * master, -1.0f, 1.0f);
     }
+    if (gPortConfig.smoothAudio)
+        SmoothFilter(n, rate);
     Queue(n, rate);
 
     {

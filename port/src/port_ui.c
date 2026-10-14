@@ -46,6 +46,7 @@ enum {
     ITEM_EXPERIMENTAL, /* section heading, not selectable */
     ITEM_HDTEXT,
     ITEM_HD2D,
+    ITEM_SMOOTHAUDIO,
     ITEM_CLOSE,
     ITEM_COUNT
 };
@@ -81,6 +82,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Experimental", "Expérimental", "Experimentell", "Sperimentale", "Experimentales", "実験的機能" },
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
+    { "Smooth audio", "Son adouci", "Weicher Klang", "Audio morbido", "Audio suave", "なめらかな音" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
 };
 
@@ -451,6 +453,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_HD2D:
             SDL_strlcpy(out, sOnOff[gPortConfig.hd2d != 0][l], size);
             break;
+        case ITEM_SMOOTHAUDIO:
+            SDL_strlcpy(out, sOnOff[gPortConfig.smoothAudio != 0][l], size);
+            break;
         case ITEM_MUSIC:
             SDL_snprintf(out, size, "%d%%", gPortConfig.musicVolume);
             break;
@@ -535,6 +540,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_HD2D:
             gPortConfig.hd2d = !gPortConfig.hd2d;
+            break;
+        case ITEM_SMOOTHAUDIO:
+            gPortConfig.smoothAudio = !gPortConfig.smoothAudio;
             break;
         case ITEM_MUSIC:
             gPortConfig.musicVolume = SDL_clamp(gPortConfig.musicVolume + dir * 10, 0, 100);
