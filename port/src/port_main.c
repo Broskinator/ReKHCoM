@@ -564,7 +564,8 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
     }
     {
         /* texture: 8-line bands; a band with drawing in it (an emblem)
-           takes the nearest clean band above (or below) instead */
+           takes the nearest clean band above (or below) instead. Sampled
+           like the picture, so each 16-column tile sits on its pixel grid */
         int clean[GBA_SCREEN_H / 8], n = GBA_SCREEN_H / 8, b;
         for (b = 0; b < n; b++) {
             int x, yy, lo = 255, hi = 0, colorful = 0;
@@ -597,6 +598,8 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
             for (pos = side < 0 ? x1 : x0; side < 0 ? pos > x0 : pos < x1; pos += side * w, flip ^= 1) {
                 SDL_FRect src = { (float)sx, (float)(sy + srcBand * 8), SIDE_STRIP, 8 };
                 SDL_FRect d = { side < 0 ? pos - w : pos, by, w, 8 * scale };
+                SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
+                                                                                           : SDL_SCALEMODE_PIXELART);
                 SDL_RenderTextureRotated(sRenderer, sTexture, &src, &d, 0, NULL, flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
             }
         }
@@ -752,9 +755,16 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
                GBA-size scene is not a bar (Bonus élite's black gaps) */
             {
                 extern int PortNarrowEdgeKind(int side, int y);
-                int frame = y < 24 || y >= GBA_SCREEN_H - 24;
+                int frame = y < 24 || y >= GBA_SCREEN_H - 24, kind = PortNarrowEdgeKind(side, y);
                 bar[y] = (sprites >= 24 && sprites == run) ||
-                         (run >= 80 && (frame || PortNarrowEdgeKind(side, y) != 0));
+                         (run >= 80 && (frame || kind != 0));
+                /* outside the menus (a movie) only a row of one colour across
+                   the whole picture is a bar: the letterbox, never the video */
+                if (kind < 0 && bar[y] && !(sprites >= 24 && sprites == run)) {
+                    int x2;
+                    for (x2 = 0; x2 < GBA_SCREEN_W && row[(int)src->x + x2] == c; x2++) {}
+                    bar[y] = x2 == GBA_SCREEN_W;
+                }
             }
         }
     }

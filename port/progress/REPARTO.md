@@ -68,16 +68,16 @@ pendientes: retratos, panel del jugador y restantes familias del inventario.
 5. Tienda moguri — revisada (14/10)
 6. Naipes mundo (quitar el tramado) — revisada (14/10)
 7. Mapamundi — revisada (14/10)
-8. Elige un mundo — en revisión con el usuario
-9. Vórtice
-10. Bonus élite (selección de cartas)
-11. Menú START
-12. Síntesis de estancias (puerta y carta)
-13. Guardar
-14. Subida de nivel
-15. Selección de idioma
-16. Copyright y título
-17. Películas y entrada al combate
+8. Elige un mundo — revisada (14/10)
+9. Vórtice — revisada (14/10)
+10. Bonus élite (selección de cartas) — hecha por Claude, falta revisión
+11. Menú START — hecha por Claude, falta revisión
+12. Síntesis de estancias (puerta y carta) — hecha por Claude, falta revisión
+13. Guardar — hecha por Claude, falta revisión
+14. Subida de nivel — hecha por Claude, falta revisión
+15. Selección de idioma — hecha por Claude, falta revisión
+16. Copyright y título — hecha por Claude, falta revisión
+17. Películas y entrada al combate — hecha por Claude, falta revisión
 
 ## Barras pendientes y dueño (actualizado 14/10, 08:40 — total 98,9 %)
 

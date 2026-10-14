@@ -416,7 +416,7 @@ enum MovieModeState {
 
 void mode_movie_0(s32 movieId) {
 #ifdef PLATFORM_PC
-    PortSideStyle(PORT_SIDE_BLUR); /* the picture's own blurred reflection fills the sides */
+    PortSideStyle(PORT_SIDE_BLUR_BANDS); /* blurred reflection; the letterbox bars carried on */
 #endif
     sMovieModeState = MOVIE_MODE_STATE_CLEAR;
     sMovieId = movieId;
