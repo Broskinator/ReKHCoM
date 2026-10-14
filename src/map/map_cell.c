@@ -310,7 +310,13 @@ void SetMapAttackBox(s32 x, s32 y, s32 z) {
     gMapRoomState->attackZ = z;
 }
 
+#ifdef PLATFORM_PC
+void PortBotStrikeable(const FldPos* pos);
+#endif
 u8 IsHitByMapAttack(FldPos* pos, s16 radius, s16 height) {
+#ifdef PLATFORM_PC
+    PortBotStrikeable(pos); /* port_testbot.c: what the field offers to strike */
+#endif
     if (!gMapRoomState->attackActive) {
         return FALSE;
     }

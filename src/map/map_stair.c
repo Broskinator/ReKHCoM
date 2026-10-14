@@ -90,6 +90,9 @@ void MapStairWaitMessage(MapStairWork* work) {
     }
 }
 
+#ifdef PLATFORM_PC
+void PortBotStair(int angle, FldPos* pos);
+#endif
 void Task_MapStair_0(MapStairWork* work, FldObj* arg) {
     s32 y;
 
@@ -118,6 +121,9 @@ void Task_MapStair_0(MapStairWork* work, FldObj* arg) {
     }
 
     TaskPoolInit(&work->tasks, 1);
+#ifdef PLATFORM_PC
+    PortBotStair(work->obj.angle, &work->obj.fieldPosition); /* port_testbot.c */
+#endif
 }
 
 s32 Task_MapStair_1(MapStairWork* work) {
@@ -144,6 +150,9 @@ void Task_MapStair_2(MapStairWork* work) {
 }
 
 void Task_MapStair_3(MapStairWork* work) {
+#ifdef PLATFORM_PC
+    PortBotStair(work->obj.angle, NULL);
+#endif
     ReleaseObjTiles(work->tiles);
     ReleaseObjPalette(work->palette);
     TaskPoolDestroy(&work->tasks);

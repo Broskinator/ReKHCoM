@@ -3719,6 +3719,9 @@ void MapGmk04WaitFirstTalkEnd(MapGmk04Work* work) {
     }
 }
 
+#ifdef PLATFORM_PC
+void PortBotSavePoint(FldPos* pos);
+#endif
 void Task_MapGmk04_0(MapGmk04Work* work, MapGmkPlacement* arg) {
     FldObj* obj = &work->obj;
     const MapGmkDef* def = arg->def;
@@ -3743,6 +3746,9 @@ void Task_MapGmk04_0(MapGmk04Work* work, MapGmkPlacement* arg) {
     ColliderSetPosition(&work->collider, obj->fieldPosition.x, obj->fieldPosition.y, obj->fieldPosition.z);
     TaskPoolInit(&work->tasks, 1);
     FldObjRegister(obj);
+#ifdef PLATFORM_PC
+    PortBotSavePoint(&obj->fieldPosition); /* port_testbot.c */
+#endif
 }
 
 s32 Task_MapGmk04_1(MapGmk04Work* work) {
@@ -3781,6 +3787,9 @@ void Task_MapGmk04_2(MapGmk04Work* work) {
 }
 
 void Task_MapGmk04_3(MapGmk04Work* work) {
+#ifdef PLATFORM_PC
+    PortBotSavePoint(NULL);
+#endif
     ReleaseObjTiles(work->tiles);
     ReleaseObjPalette(work->palette);
     ColliderUnregister(&work->collider);
@@ -4405,7 +4414,14 @@ void Task_MapPrzCard_0(MapPrzCardWork* work, MapPrizeArgs* arg) {
     TaskPoolInit(&work->tasks, 1);
 }
 
+#ifdef PLATFORM_PC
+void PortBotPrize(int x, int y, int z);
+#endif
 s32 Task_MapPrzCard_1(MapPrzCardWork* work) {
+#ifdef PLATFORM_PC
+    if (!work->collected)
+        PortBotPrize(work->posX >> 8, work->posY >> 8, work->ground >> 8); /* port_testbot.c */
+#endif
     if ((u8)IsMapInterrupted()) {
         return 0;
     }
