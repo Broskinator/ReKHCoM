@@ -76,6 +76,9 @@ def main():
         (d / "roms").write_text("not a folder")
         return copy_rom("B8CP")(d)
 
+    def english(d):
+        (d / "decompui.ini").write_text("ui_language=2\n")
+
     def preinstalled(d):
         (d / "roms").mkdir()
         shutil.copy2(ROMS / "B8CP.gba", d / "roms" / "B8CP.gba")
@@ -91,6 +94,7 @@ def main():
         run(build, work, "not_khcom_32mib", blob(32 << 20), True, lambda d: []),
         run(build, work, "missing_file", lambda d: d / "nothing.gba", True, lambda d: []),
         run(build, work, "clean_start", lambda d: None, False, lambda d: []),
+        run(build, work, "ui_english", english, False, lambda d: []),
     ]
     # roms is a file: nothing can be installed and the launcher must not crash
     d = work / "roms_unwritable"

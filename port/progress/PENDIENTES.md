@@ -56,7 +56,8 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 ## Pruebas y publicación
 
 - [x] Launcher: `port/tools/test_launcher.py` instala las tres ROM y rechaza tamaño,
-  SHA-1, archivo ajeno, archivo ausente y carpeta roms no escribible (10/10, avisos visibles).
+  SHA-1, archivo ajeno, archivo ausente y carpeta roms no escribible (11/11, avisos visibles;
+  páginas en español e inglés revisadas en captura).
 - [x] Audio frente a BizHawk (`port/tools/audio_compare.py`, 70 s de arranque y título US):
   correlación de muestras 0,90, de envolvente 0,92, deriva 4 ppm. Diferencias medibles:
   el port está 3,4 dB por debajo (plano de 45 Hz a 2,9 kHz) y no reproduce las imágenes

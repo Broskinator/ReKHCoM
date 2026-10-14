@@ -29,7 +29,7 @@ Windows x86 prerelease.
   launcher's save card, which follows the selected bank.
 - Launcher install tests (`port/tools/test_launcher.py`): the three dumps,
   reinstalling, wrong size, wrong SHA-1, a non-KH file, a missing file and an
-  unwritable roms folder; 10/10 pass.
+  unwritable roms folder, English interface; 11/11 pass.
 - Audio compared with BizHawk (`port/tools/audio_compare.py`): boot and title
   music match note for note (sample correlation 0.90, 4 ppm drift).
 

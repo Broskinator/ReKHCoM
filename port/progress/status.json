@@ -82,7 +82,7 @@
       "name": "Save data (SRAM)",
       "weight": 3,
       "done": 100,
-      "notes": "kh_com.sav (per version) next to the exe, atomic writes; quick save, restart and load verified"
+      "notes": "kh_com.sav (per version) next to the exe, atomic writes; quick save, restart and load verified; five save banks (kh_com_bank<n>.sav) chosen in the options or the launcher"
     },
     {
       "name": "Soft reset",
@@ -147,8 +147,8 @@
     {
       "name": "Launcher & ROM install",
       "weight": 4,
-      "done": 96,
-      "notes": "decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements, editable controls, game language (EU), save card (date, open folder, back up), launcher language, version; starts the matching game; install tests (port/tools/test_launcher.py) 10/10: three dumps, reinstall, wrong size/SHA-1/file, missing file, unwritable roms folder"
+      "done": 100,
+      "notes": "decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements, editable controls, game language (EU), save card (date, open folder, back up), launcher language, version; starts the matching game; install tests (port/tools/test_launcher.py) 11/11: three dumps, reinstall, wrong size/SHA-1/file, missing file, unwritable roms folder, English UI; save bank selector"
     },
     {
       "name": "Skip intro",
@@ -204,7 +204,7 @@
     },
     {
       "name": "Launcher with ROM install",
-      "done": false
+      "done": true
     },
     {
       "name": "USA and Japanese versions",
