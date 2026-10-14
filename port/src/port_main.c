@@ -373,6 +373,10 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
             sFadeSideWidth = sFadeSideTexture ? fw : 0;
         }
         if (!sFadeSideTexture) return;
+        if (sSideStyle == 7) {
+            extern void PortNarrowSidesFinish(void);
+            PortNarrowSidesFinish();
+        }
         for (yy = 0; yy < GBA_SCREEN_H; yy++) {
             for (xx = 0; xx < fw; xx++) {
                 int distance = side < 0 ? fw - xx - 1 : xx;
@@ -674,6 +678,14 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
             /* a sprite bar, or a BG bar far longer than any run of scenery */
             bar[y] = (sprites >= 24 && sprites == run) || run >= 80;
         }
+        /* rows of a bar's own colour next to it are the bar, even where its
+           lettering (the world card banner's name) cuts their run short */
+        for (y = 1; y < GBA_SCREEN_H; y++)
+            if (!bar[y] && bar[y - 1] && color[y] == color[y - 1])
+                bar[y] = 1;
+        for (y = GBA_SCREEN_H - 2; y >= 0; y--)
+            if (!bar[y] && bar[y + 1] && color[y] == color[y + 1])
+                bar[y] = 1;
         /* a box's own border and shadow rows (up to three either side of a
            bar, not the ground's colour) belong to it, so it is drawn whole */
         if (sBandGround)
@@ -747,6 +759,35 @@ static void DrawHeaderLeft(const SDL_FRect* src, const SDL_FRect* dst) {
     }
 }
 
+/* Menu headers: on the cartridge the title's arrow stops one pixel short of
+   the line the screen draws on from its tip, leaving a one-pixel notch of
+   background between them. The user asked for them to meet, so that pixel
+   takes the line's colour: a non-white pixel right after a white outline
+   pixel, followed by a thin line (two rows at most, so never the title's
+   band around its letters) of one colour 24 pixels long. */
+static void JoinHeaderLine(void) {
+    int y, x, k;
+    if (gPortScreen.wide) /* only the GBA-size menu scenes */
+        return;
+    for (y = 0; y < 16 && gPortScreen.originY + y < gPortScreen.height; y++) {
+        uint32_t* row = &sComposite[(gPortScreen.originY + y) * gPortScreen.width + gPortScreen.originX];
+        for (x = 8; x + 26 < GBA_SCREEN_W; x++) {
+            uint32_t line = row[x + 2];
+            if ((row[x] & 0xFFFFFF) != 0xFFFFFF || (row[x + 1] & 0xFFFFFF) == 0xFFFFFF || row[x + 1] == line)
+                continue;
+            for (k = 2; k < 26 && row[x + k] == line; k++) {}
+            if (k < 26)
+                continue;
+            /* a thin line (two rows at most), not an area of that colour */
+            if ((y >= 2 && row[x + 5 - 2 * gPortScreen.width] == line) ||
+                (y + 2 < GBA_SCREEN_H && row[x + 5 + 2 * gPortScreen.width] == line))
+                continue;
+            row[x + 1] = line;
+            break;
+        }
+    }
+}
+
 static void Present(void) {
     int outW, outH;
     SDL_FRect dst;
@@ -761,6 +802,7 @@ static void Present(void) {
     PortHdHudPrepare(sRenderer);
     /* Overlays go on a copy so the game picture survives while paused. */
     memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
+    JoinHeaderLine();
     PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
     SDL_UpdateTexture(sTexture, NULL, sComposite, gPortScreen.width * 4);
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);

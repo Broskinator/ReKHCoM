@@ -1619,6 +1619,33 @@ static void RenderLine(int y, int gy) {
 #define NARROW_SIDE_W 96
 #define PLTT16_0() (((const uint16_t*)(uintptr_t)GBA_PLTT)[0])
 static uint32_t sNarrowSide[2][GBA_SCREEN_H][NARROW_SIDE_W];
+/* per row: the colour of the layer in front of the scenery at the picture's
+   edge, and whether that row was a band (2), only touched the edge (1) or
+   showed the scenery (0) */
+static uint32_t sNarrowEdge[2][GBA_SCREEN_H];
+static uint8_t sNarrowEdgeKind[2][GBA_SCREEN_H];
+
+/* A box or title is one block of rows touching the edge; its lettering can
+   cut some rows short of a band (the Moogle Shop's points box, the title's
+   middle rows), but they belong to it, so a block with any band row carries
+   every row on, each in its own edge colour. */
+void PortNarrowSidesFinish(void) {
+    int side, y;
+    for (side = 0; side < 2; side++)
+        for (y = 0; y < GBA_SCREEN_H; y++) {
+            int a = y, z = y, band = 0, k, d;
+            if (!sNarrowEdgeKind[side][y])
+                continue;
+            while (z + 1 < GBA_SCREEN_H && sNarrowEdgeKind[side][z + 1]) z++;
+            for (k = a; k <= z; k++) band |= sNarrowEdgeKind[side][k] == 2;
+            if (band)
+                for (k = a; k <= z; k++)
+                    if (sNarrowEdgeKind[side][k] == 1)
+                        for (d = 0; d < NARROW_SIDE_W; d++)
+                            sNarrowSide[side][k][d] = sNarrowEdge[side][k];
+            y = z;
+        }
+}
 
 uint32_t PortNarrowSidePixel(int side, int y, int distance) {
     if (y < 0 || y >= GBA_SCREEN_H)
@@ -1629,7 +1656,7 @@ uint32_t PortNarrowSidePixel(int side, int y, int distance) {
 }
 
 static void BuildNarrowSides(int gy, uint16_t dispcnt, const int* bgOn, const int* bgPrio) {
-    int side, d, b, scenery = -1, order[4], n = 0, p;
+    int side, d, b, scenery = -1, order[4], n = 0, p, flat;
     int x0 = gPortScreen.originX;
     uint16_t bldcnt = IO16(0x50);
     int effect = (bldcnt >> 6) & 3, evy = IO16(0x54) & 31;
@@ -1662,9 +1689,31 @@ static void BuildNarrowSides(int gy, uint16_t dispcnt, const int* bgOn, const in
                 run++;
             bandOk[b] = run >= 24;
         }
+        /* scenery that is plain next to the edge (two tiles of one colour)
+           carries on plain: mirrored, the shapes further in (the Moogle
+           Shop's pedestals) would show up again as reflections */
+        flat = 0;
+        if (scenery >= 0 && sBgLine[scenery][edge] != TRANSPARENT) {
+            int k;
+            for (k = 0; k < 16 && sBgLine[scenery][edge + k * step] == sBgLine[scenery][edge]; k++) {}
+            flat = k == 16;
+        }
+        sNarrowEdgeKind[side][gy] = 0;
+        for (p = 0; p < n && order[p] != scenery; p++) {
+            uint16_t c;
+            b = order[p];
+            if (band[b] == TRANSPARENT)
+                continue;
+            c = band[b];
+            if (effect == 2 && (bldcnt & 0x3F)) c = Brighten(c, evy);
+            if (effect == 3 && (bldcnt & 0x3F)) c = Darken(c, evy);
+            sNarrowEdge[side][gy] = sColorLut[c & 0x7FFF];
+            sNarrowEdgeKind[side][gy] = bandOk[b] ? 2 : 1;
+            break;
+        }
         for (d = 0; d < NARROW_SIDE_W; d++) {
             uint16_t col = (uint16_t)(PLTT16_0() & 0x7FFF);
-            int i, src = d < GBA_SCREEN_W ? d : GBA_SCREEN_W - 1;
+            int i, src = flat ? 0 : d < GBA_SCREEN_W ? d : GBA_SCREEN_W - 1;
             for (i = 0; i < n; i++) {
                 b = order[i];
                 if (b == scenery) {
