@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "port/port_hd2d.h"
 #include "port/port_ui.h"
 #include "port/port_state.h"
 
@@ -629,6 +630,31 @@ static void Present(void) {
         worldScale = scale;
         worldX = dst.x - src.x * scale;
         worldY = dst.y - src.y * scale;
+    } else if (PortHd2dActive() && !PortUiActive()) {
+        /* HD-2D build: the processed, larger picture, filtered to the window */
+        static uint8_t sMask[PORT_MAX_W * PORT_MAX_H];
+        static SDL_Texture* sHd2dTex;
+        static int sHd2dW, sHd2dH;
+        extern void PortPpuSpriteMask(uint8_t* out);
+        int hw, hh;
+        const uint32_t* pic;
+
+        PortPpuSpriteMask(sMask);
+        pic = PortHd2dProcess(gPortFrame, sMask, gPortScreen.width, gPortScreen.height, &hw, &hh);
+        if (sHd2dTex == NULL || sHd2dW != hw || sHd2dH != hh) {
+            if (sHd2dTex != NULL)
+                SDL_DestroyTexture(sHd2dTex);
+            sHd2dW = hw;
+            sHd2dH = hh;
+            sHd2dTex = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, hw, hh);
+            SDL_SetTextureScaleMode(sHd2dTex, SDL_SCALEMODE_LINEAR);
+        }
+        SDL_UpdateTexture(sHd2dTex, NULL, pic, hw * 4);
+        OutputRect(outW, outH, &dst);
+        SDL_RenderTexture(sRenderer, sHd2dTex, NULL, &dst);
+        worldScale = dst.w / gPortScreen.width;
+        worldX = dst.x;
+        worldY = dst.y;
     } else {
         OutputRect(outW, outH, &dst);
         if (sFitScale > 0 && !PortUiActive()) {

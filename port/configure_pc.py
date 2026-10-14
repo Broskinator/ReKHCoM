@@ -47,13 +47,16 @@ def main():
     parser.add_argument("--debug", action="store_true", help="no optimisation, console window")
     parser.add_argument("--version", default="eu", choices=VERSIONS, help="cartridge version (default: eu)")
     parser.add_argument("--out", help="output directory (default: build/pc, or build/pc-<version>)")
+    parser.add_argument("--hd2d", action="store_true",
+                        help="alternative build with the experimental HD-2D look on by default (build/pc-hd2d)")
     args = parser.parse_args()
 
     global BUILD, VERSION, GEN, PC_GEN
     VERSION = args.version
     GEN = ROOT / "build" / VERSION / "gen"
     PC_GEN = ROOT / "build" / VERSION / "pc"
-    BUILD = ROOT / (args.out or ("build/pc" if VERSION == "eu" else f"build/pc-{VERSION}"))
+    default_out = "build/pc" if VERSION == "eu" else f"build/pc-{VERSION}"
+    BUILD = ROOT / (args.out or (default_out + "-hd2d" if args.hd2d else default_out))
     toolchain = args.toolchain or find_default("toolchain", "llvm-mingw-*")
     sdl = args.sdl or find_default("sdl", "SDL3-*")
     sdl_arch = sdl / "i686-w64-mingw32"
@@ -78,7 +81,8 @@ def main():
     # such as malloc.h cannot shadow the system headers.
     quoted = " ".join(f"-iquote {d}" for d in include_dirs + [rel(GEN)])
     port_cflags = (f"{opt} -std=gnu11 -Wall -Wno-unused-function -Wno-missing-braces -mno-ms-bitfields "
-                   f"-DVERSION_{VERSION.upper()} -DPLATFORM_PC {quoted} -Iport/include -I{rel(sdl_arch / 'include')}")
+                   f"-DVERSION_{VERSION.upper()} -DPLATFORM_PC {quoted} -Iport/include -I{rel(sdl_arch / 'include')}"
+                   + (" -DPORT_HD2D" if args.hd2d else ""))
     ldflags = (f"-L{rel(sdl_arch / 'lib')} -lSDL3 -lgdi32 -Wl,--disable-dynamicbase -Wl,--large-address-aware "
                + ("" if args.debug else "-Wl,--subsystem,windows"))
 

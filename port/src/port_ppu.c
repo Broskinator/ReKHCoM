@@ -16,6 +16,7 @@
 #include <stdlib.h>
 
 #include "port/port.h"
+#include "port/port_hd2d.h"
 #include "engine.h"
 #include "port/port_state.h"
 
@@ -1008,7 +1009,7 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
             dst[x] = 0xFF000000u;
             continue;
         }
-        if ((sHudLayer || sHdText) && objects) {
+        if ((sHudLayer || sHdText || PortHd2dActive()) && objects) {
             int k, occ = 4, message = 0;
             for (k = 0; k < n; k++) {
                 if ((mask & WIN_BG(order[k])) && sBgLine[order[k]][x] != TRANSPARENT) {
@@ -1788,4 +1789,16 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
         n++;
     }
     return n;
+}
+
+/* HD-2D: 1 where a sprite is what shows (from the HUD occupancy buffers,
+   filled while PortHd2dActive()); a window hiding OBJs reads as 0 / 0. */
+void PortPpuSpriteMask(uint8_t* out) {
+    int i, n = gPortScreen.width * gPortScreen.height;
+
+    for (i = 0; i < n; i++) {
+        uint16_t obj = sOccObj[i];
+        uint8_t bg = sOccBg[i];
+        out[i] = obj != 0xFFFFu && !(obj == 0 && bg == 0) && (obj >> 7) <= bg;
+    }
 }

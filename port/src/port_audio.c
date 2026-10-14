@@ -83,6 +83,12 @@ static uint16_t RegFreq(int ch) {
     return (uint16_t)(IO8(lo[ch]) | ((IO8(sNrx4[ch]) & 7) << 8));
 }
 
+/* Channel 1's next sweep frequency; above 2047 the channel turns off. */
+static int SweepNext(PsgChannel* c, uint8_t nr10) {
+    int delta = c->sweepShadow >> (nr10 & 7);
+    return (nr10 & 8) ? c->sweepShadow - delta : c->sweepShadow + delta;
+}
+
 static void LoadEnvelope(PsgChannel* c, uint8_t nrx2) {
     c->volume = nrx2 >> 4;
     c->envDir = (nrx2 >> 3) & 1;
@@ -107,6 +113,9 @@ static void Trigger(int ch) {
                 c->sweepShadow = c->freq;
                 c->sweepTimer = time ? time : 8;
                 c->sweepEnabled = time != 0 || (nr10 & 7) != 0;
+                /* with a shift, the hardware checks the next step at once */
+                if ((nr10 & 7) && SweepNext(c, nr10) > 2047)
+                    c->on = 0;
             }
             if ((c->volume == 0 && !c->envDir))
                 c->on = 0;
@@ -174,14 +183,15 @@ static void SequencerStep(void) {
         if (--c->sweepTimer <= 0) {
             c->sweepTimer = time ? time : 8;
             if (c->sweepEnabled && time) {
-                int shift = nr10 & 7;
-                int delta = c->sweepShadow >> shift;
-                int nf = (nr10 & 8) ? c->sweepShadow - delta : c->sweepShadow + delta;
+                int nf = SweepNext(c, nr10);
                 if (nf > 2047) {
                     c->on = 0;
-                } else if (shift) {
+                } else if (nr10 & 7) {
                     c->sweepShadow = (uint16_t)nf;
                     c->freq = (uint16_t)nf;
+                    /* and the step after it, again */
+                    if (SweepNext(c, nr10) > 2047)
+                        c->on = 0;
                 }
             }
         }
@@ -281,7 +291,9 @@ static void PsgRender(int n, int rate) {
                     uint8_t nr43 = IO8(0x7C);
                     double div = (nr43 & 7) ? (double)(nr43 & 7) : 0.5;
                     double hz = 524288.0 / div / (double)(2 << (nr43 >> 4));
-                    c->phase += hz / rate;
+                    /* shifts 14 and 15 stop the generator: the output holds */
+                    if ((nr43 >> 4) < 14)
+                        c->phase += hz / rate;
                     while (c->phase >= 1.0) {
                         int bit = (c->lfsr ^ (c->lfsr >> 1)) & 1;
                         c->phase -= 1.0;

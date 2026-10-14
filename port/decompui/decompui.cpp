@@ -225,7 +225,7 @@ static const Setting kSettings[] = {
     { "window_scale", 4 },   { "fullscreen_width", 1920 }, { "fullscreen_height", 1080 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
-    { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 },
+    { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
     { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
@@ -902,13 +902,6 @@ static void PageExtras() {
     bool changed = false;
     BeginCard("extras");
     Eyebrow(T("MEJORAS", "ENHANCEMENTS"));
-    changed |= ToggleRow(T("Texto HD", "HD text"),
-                         T("Los diálogos se dibujan con una fuente nítida a la resolución de la ventana, en el "
-                           "mismo lugar y colores del juego.",
-                           "Dialogue is drawn with a crisp font at the window's resolution, in the game's own "
-                           "places and colours."),
-                         Ini("hd_text"));
-    ImGui::Separator();
     {
         static const char* raise[] = { "Off", "4 px", "8 px", "12 px", "16 px" };
         int r = std::clamp(Ini("card_hud_raise") / 4, 0, 4);
@@ -939,6 +932,26 @@ static void PageExtras() {
                            "Hold V on the keyboard, or click or push down the right stick, for half a second: "
                            "Sora's stocked cards go back to the hand, in their places in the deck."),
                          Ini("unstock_button"));
+    ImGui::EndChild();
+    ImGui::Spacing();
+    BeginCard("experimental");
+    Eyebrow(T("EXPERIMENTALES", "EXPERIMENTAL"));
+    ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+    ImGui::TextWrapped("%s", T("En pruebas: pueden tener fallos visuales.", "Being tested: expect visual glitches."));
+    ImGui::PopStyleColor();
+    changed |= ToggleRow(T("Texto HD", "HD text"),
+                         T("Los diálogos se dibujan con una fuente nítida a la resolución de la ventana, en el "
+                           "mismo lugar y colores del juego.",
+                           "Dialogue is drawn with a crisp font at the window's resolution, in the game's own "
+                           "places and colours."),
+                         Ini("hd_text"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Estilo HD-2D", "HD-2D look"),
+                         T("Campo y combates con profundidad de campo, resplandor, gradación de color y viñeta, al "
+                           "estilo de Octopath Traveler. Los sprites quedan nítidos.",
+                           "Field and battles with depth of field, bloom, colour grading and a vignette, in the "
+                           "manner of Octopath Traveler. Sprites stay sharp."),
+                         Ini("hd2d"));
     ImGui::EndChild();
     if (changed)
         SaveIni();

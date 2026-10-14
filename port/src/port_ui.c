@@ -34,7 +34,6 @@ enum {
     ITEM_VSYNC,
     ITEM_SCANLINES,
     ITEM_LCD,
-    ITEM_HDTEXT,
     ITEM_CARDS,
     ITEM_FPS,
     ITEM_DODGE,
@@ -44,6 +43,9 @@ enum {
     ITEM_MUSIC,
     ITEM_SFX,
     ITEM_MASTER,
+    ITEM_EXPERIMENTAL, /* section heading, not selectable */
+    ITEM_HDTEXT,
+    ITEM_HD2D,
     ITEM_CLOSE,
     ITEM_COUNT
 };
@@ -62,7 +64,6 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "VSync", "VSync", "VSync", "VSync", "VSync", "VSync" },
     { "Scanlines", "Lignes de balayage", "Scanlines", "Linee di scansione", "Scanlines", "スキャンライン" },
     { "GBA LCD colours", "Couleurs LCD GBA", "GBA-LCD-Farben", "Colori LCD GBA", "Colores LCD GBA", "GBAカラー" },
-    { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "Battle cards raised", "Cartes de combat relevées", "Kampfkarten angehoben", "Carte di battaglia rialzate",
       "Subir cartas en combate", "カードを上げる" },
     { "Show FPS", "Afficher FPS", "FPS anzeigen", "Mostra FPS", "Mostrar FPS", "FPS表示" },
@@ -77,6 +78,9 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Music volume", "Volume musique", "Musiklautstärke", "Volume musica", "Volumen música", "音楽の音量" },
     { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos", "効果音の音量" },
     { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general", "全体の音量" },
+    { "Experimental", "Expérimental", "Experimentell", "Sperimentale", "Experimentales", "実験的機能" },
+    { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
+    { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
 };
 
@@ -444,6 +448,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_SAVEBANK:
             SDL_snprintf(out, size, "%d / %d", gPortConfig.saveBank, PORT_SAVE_BANKS);
             break;
+        case ITEM_HD2D:
+            SDL_strlcpy(out, sOnOff[gPortConfig.hd2d != 0][l], size);
+            break;
         case ITEM_MUSIC:
             SDL_snprintf(out, size, "%d%%", gPortConfig.musicVolume);
             break;
@@ -525,6 +532,9 @@ static void Change(int item, int dir) {
         case ITEM_SAVEBANK:
             gPortConfig.saveBank = Wrap(gPortConfig.saveBank - 1 + dir, PORT_SAVE_BANKS) + 1;
             PortSramSwitchBank();
+            break;
+        case ITEM_HD2D:
+            gPortConfig.hd2d = !gPortConfig.hd2d;
             break;
         case ITEM_MUSIC:
             gPortConfig.musicVolume = SDL_clamp(gPortConfig.musicVolume + dir * 10, 0, 100);
@@ -623,6 +633,8 @@ void PortUiTitleHint(void) {
 static void Move(int dir) {
     do {
         sCursor = Wrap(sCursor + dir, ITEM_COUNT);
+        if (sCursor == ITEM_EXPERIMENTAL)
+            sCursor = Wrap(sCursor + dir, ITEM_COUNT);
     } while (!ItemEnabled(sCursor));
 }
 
@@ -945,6 +957,12 @@ static void DrawMenu(int l, int width, int height) {
         int on = ItemEnabled(i), sel = i == sCursor;
         uint32_t face = on ? MENU_INK : MENU_DIM;
 
+        if (i == ITEM_EXPERIMENTAL) {
+            /* a section heading: red text and a thin line, no square */
+            int end = DrawText(sLabels[i][l], barX, y - 1, MENU_RED_DARK, 0xFFD8D8D8u);
+            Fill(end + 6, y + 4, barX + barW - end - 6, 1, MENU_GREY);
+            continue;
+        }
         MenuBar(barX, y, barW, sel);
         DrawText(sLabels[i][l], barX + 16, y - 2, face, 0xFFD8D8D8u);
         if (i == ITEM_CLOSE)

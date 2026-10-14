@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Experimental section in the in-game options and the launcher, with HD text
+  and a new HD-2D look: depth of field (the distance and the foreground blur,
+  the characters stay sharp), bloom, filmic grading, haze and a vignette, in
+  the manner of Octopath Traveler. Off by default; the alternative build
+  (`configure_pc.py --hd2d`, build/pc-hd2d) has it on.
+- PSG: channel 1's sweep checks the next step for overflow as the hardware
+  does (at the start and after each update); noise with a shift of 14 or 15
+  stops, as on the hardware.
+- `port/tools/test_songs.py` plays every song and sound effect of the ROM and
+  checks for sequencer errors, silence and clipping.
+
 ## v0.5 — 2026-10-13
 
 Windows x86 prerelease.
