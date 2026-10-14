@@ -753,6 +753,8 @@ static void Present(void) {
     float worldX, worldY, worldScale;
     void PortHdHudPrepare(SDL_Renderer* renderer);
     void PortHdHudDraw(SDL_Renderer* renderer, int width, int height);
+    void PortHdHudDrawLabel(SDL_Renderer* renderer, int width, int height);
+    void PortHdHudDrawBar(SDL_Renderer* renderer, int width, int height);
     void PortHdTextHudDigits(SDL_Renderer* renderer, float originX, float originY, float scale);
 
     EnsureTexture();
@@ -932,6 +934,8 @@ static void Present(void) {
         hd.y = (float)((outH - (int)hd.h) / 2);
         PortHdHudDraw(sRenderer, outW, outH);
         SDL_RenderTexture(sRenderer, sHudTexture, NULL, &hd);
+        PortHdHudDrawBar(sRenderer, outW, outH);
+        PortHdHudDrawLabel(sRenderer, outW, outH);
         if (!PortUiActive()) PortHdTextHudDigits(sRenderer, hd.x, hd.y, (float)gPortHudScale);
         PortHdTextDraw(sRenderer, 1, hd.x, hd.y, (float)gPortHudScale);
     }

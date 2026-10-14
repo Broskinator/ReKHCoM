@@ -6,8 +6,11 @@ por defecto en Experimentales del juego y launcher. Primer piloto integrado:
 `hd_hud=1` sustituye el panel enemigo en vistas con capa HUD independiente.
 Vista Original conserva el panel GBA. Los demás elementos no se sustituyen.
 Sus límites se toman de los sprites originales cada frame, sin ancho fijo.
-Barra, letras y capas de vida conservan sus píxeles y posiciones originales.
-Solo el marco neutro es HD en este piloto; el resto se ampliará por piezas.
+Marco y letras HP/VT/LP/PV usan imágenes transparentes con relieve/sombra.
+Sus caras se ajustan a las cajas de tinta originales. El relleno interpola
+luces/cuerpo/sombra de la paleta nativa, con la misma forma, anchura y recorte.
+Los valores de naipes usan contornos vectoriales KHMenu en su caja de tinta,
+incluyendo transformaciones y oclusión. El resto se ampliará por piezas.
 
 ## Formato y rendimiento
 
@@ -49,12 +52,12 @@ No incorporar piezas con tablero falso, fondo residual o contorno alterado.
 - Cargador PNG del juego implementado en `port_hdhud.c`, límites de tamaño,
   alfa exterior obligatorio y CPU liberada después de crear la textura.
 - Identificación del panel por su tarea de juego, sin direcciones VRAM.
-- Vida/capas/letras originales; marco nuevo con fade negro
+- Vida y capas calculadas por el juego; letras y marco nuevos con fade negro
   y blanco. Ampliar a otras piezas y revisar oclusión/animaciones complejas.
 - Retorno al HUD original si falta/falla el recurso o se apaga la opción.
 - `test_hd_hud.py`: capturas comparadas con opción apagada, imagen ausente
   y vista Original, y coincidencia exacta de los píxeles verdes de la barra
-  y letras (posición, tamaño y color) en los frames 180 y 380 del combate
+  del relleno (posición y tamaño) en los frames 180 y 380 del combate
   piloto. No representa una auditoría de todos los jefes ni de todas las
   paletas/idiomas. Medición de rendimiento sostenido aún pendiente.
 

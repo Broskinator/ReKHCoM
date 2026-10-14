@@ -185,10 +185,18 @@ def decompui(n, toolchain, sdl_arch, debug):
     n.build("$builddir/assets/hd-hud/pilot/enemy-hp-frame-v2.png", "copy_asset", rel(hud),
             variables={"in_win": str(hud), "out_win": str(BUILD / "assets/hd-hud/pilot/enemy-hp-frame-v2.png"),
                        "dir_win": str(BUILD / "assets/hd-hud/pilot")})
+    labels = []
+    for name in ("label-hp-v2.png", "label-vt-v2.png", "label-lp-v1.png", "label-pv-v3.png"):
+        source = ROOT / "port/assets/hd-hud/pilot" / name
+        target = "$builddir/assets/hd-hud/pilot/" + name
+        n.build(target, "copy_asset", rel(source),
+                variables={"in_win": str(source), "out_win": str(BUILD / "assets/hd-hud/pilot" / name),
+                           "dir_win": str(BUILD / "assets/hd-hud/pilot")})
+        labels.append(target)
     return ["$builddir/ReKHCoM.exe", "$builddir/assets/boxart.jpg", "$builddir/assets/logo.png",
             "$builddir/assets/hd-hud/pilot/enemy-hp-frame-v2.png",
             "$builddir/assets/fonts/KHMenu.otf",
-            "$builddir/assets/fonts/ComicHearts.otf"]
+            "$builddir/assets/fonts/ComicHearts.otf"] + labels
 
 
 if __name__ == "__main__":

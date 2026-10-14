@@ -51,8 +51,11 @@ Base actual sincronizada: prerelease v0.8 y commits de márgenes/README del
 14/10. Codex continúa encima: extracción local de referencias HUD (25 piezas
 en combate básico), dígitos de naipes con contornos CFF de KHMenu y oclusión
 por sprite. Barras propias en `status.json` → `experiments`, sin modificar
-el 100 % del port base. VT y relleno sombreado HD están en elaboración;
-las letras del piloto publicado todavía son originales.
+el 100 % del port base. El panel enemigo preliminar ya incluye letras
+HP/VT/LP/PV transparentes con relieve y relleno suavizado que conserva el
+recorte nativo. PV tiene la esquina superior derecha de la P cerrada en
+diagonal. Pruebas aisladas superadas en EU (es/de/it y Riku), US y JP;
+pendientes: retratos, panel del jugador y restantes familias del inventario.
 
 1. Diario — en revisión con el usuario
 2. Ver barajas / Añadir-Quitar

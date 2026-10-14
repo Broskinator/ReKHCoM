@@ -45,6 +45,11 @@ def main():
         "assets/fonts/NOTICE.md": ROOT / "port/assets/fonts/NOTICE.md",
         "assets/hd-hud/pilot/enemy-hp-frame-v2.png": ROOT / "port/assets/hd-hud/pilot/enemy-hp-frame-v2.png",
         "assets/hd-hud/pilot/README.md": ROOT / "port/assets/hd-hud/pilot/README.md",
+        "assets/hd-hud/pilot/PROMPTS.md": ROOT / "port/assets/hd-hud/pilot/PROMPTS.md",
+        "assets/hd-hud/pilot/label-hp-v2.png": ROOT / "port/assets/hd-hud/pilot/label-hp-v2.png",
+        "assets/hd-hud/pilot/label-vt-v2.png": ROOT / "port/assets/hd-hud/pilot/label-vt-v2.png",
+        "assets/hd-hud/pilot/label-lp-v1.png": ROOT / "port/assets/hd-hud/pilot/label-lp-v1.png",
+        "assets/hd-hud/pilot/label-pv-v3.png": ROOT / "port/assets/hd-hud/pilot/label-pv-v3.png",
     }
     for source in files.values():
         if not source.is_file():

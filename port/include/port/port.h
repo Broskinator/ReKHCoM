@@ -183,6 +183,10 @@ typedef struct PortHudDigit {
 } PortHudDigit;
 int PortPpuHudDigits(PortHudDigit* out, int max);
 int PortPpuHudDigitVisible(int digit, int x, int y);
+int PortHdHudLettersReady(void);
+int PortPpuEnemyHudLabel(int* rect, uint32_t* color);
+int PortPpuEnemyHudBar(int* rect, uint32_t* rows);
+int PortPpuEnemyHudBarVisible(int x, int y);
 int PortQolButtons(void);
 void PortSetQolButtons(int on);
 int PortVideoListModes(int* w, int* h, int max);

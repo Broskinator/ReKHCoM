@@ -8,7 +8,7 @@ menu and side-margin work remains separate.
 
 Each graphics family contributes one eighth of the preliminary graphics bar:
 
-- [x] Enemy HP frame: PNG redraw, native bounds, native fill and lettering.
+- [x] Enemy HP pilot: PNG frame/letters, native bounds, palette gradient fill.
 - [ ] Player HP frame(s), including extra bars.
 - [ ] Player portraits and portrait surround (Sora/Riku, expression states).
 - [ ] Card frames and card face/icon artwork.
@@ -17,9 +17,13 @@ Each graphics family contributes one eighth of the preliminary graphics bar:
 - [ ] Friend card indicators and positioning variants.
 - [ ] Battle indicators/tutorial pointers and HUD notices.
 
-Lettering bar: six regional language sets (EN/FR/DE/IT/ES/JA), counted only
-when image-generated HUD lettering is integrated and readable in its original
-boxes. Existing outline HD text is not counted as the image-generated method.
+Lettering bar: eight families, each with six language coverage slots
+(EN/FR/DE/IT/ES/JA). Enemy vitality labels are the first family: HP for
+EN/FR/JA, VT for ES, LP for DE, PV for IT. Other families are reload labels,
+deck-counter labels, stock/sleight headings, friend labels, boss labels,
+tutorial prompts and battle notices. Count a slot only when its preliminary
+HD replacement is integrated and readable in native bounds. Existing dialogue
+HD text does not count toward these HUD slots. 6/48 are currently integrated.
 Variable values use the vector outlines in KHMenu.otf, per the user's later
 instruction: match HD text quality, preserve original shapes where feasible.
 The CFF outlines contain all ten distinct digits. Numeric bar has six families:

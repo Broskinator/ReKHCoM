@@ -13,11 +13,97 @@
 
 static SDL_Texture* sFrame;
 static SDL_Texture* sWhiteFrame;
+static SDL_Texture* sLabel;
+static SDL_Texture* sWhiteLabel;
+static SDL_FRect sLabelSource;
+static SDL_FRect sLabelInk;
+#ifdef VERSION_EU
+extern uint32_t gLanguage;
+#endif
 static SDL_FRect sSource;
 static int sAttempted;
 static uint32_t* sExportPixels;
 static uint64_t* sExportHashes;
 static int sExportCount;
+static int sLabelLanguage = -1;
+
+static int HudLanguage(void) {
+#ifdef VERSION_EU
+    return (int)gLanguage;
+#else
+    return 0;
+#endif
+}
+
+int PortHdHudLettersReady(void) { return sLabel != NULL; }
+
+static void LoadLabel(SDL_Renderer* renderer) {
+    const char* file = "assets/hd-hud/pilot/label-hp-v2.png";
+    int w, h, channels, x, y, left, top, right = -1, bottom = -1;
+    int inkLeft, inkTop, inkRight = -1, inkBottom = -1;
+    unsigned char* pixels;
+    SDL_Surface *source, *compact;
+    sLabelLanguage = HudLanguage();
+#ifdef VERSION_EU
+    if (gLanguage == 4) file = "assets/hd-hud/pilot/label-vt-v2.png";
+    else if (gLanguage == 2) file = "assets/hd-hud/pilot/label-lp-v1.png";
+    else if (gLanguage == 3) file = "assets/hd-hud/pilot/label-pv-v3.png";
+#endif
+    if (!stbi_info(PortConfigPath(file), &w, &h, &channels) || channels != 4 ||
+        w < 1 || h < 1 || w > 4096 || h > 4096 || (size_t)w * h > 4194304) return;
+    pixels = stbi_load(PortConfigPath(file), &w, &h, &channels, 4);
+    if (!pixels) return;
+    left = w; top = h;
+    inkLeft = w; inkTop = h;
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+        unsigned char* p = pixels + ((size_t)y * w + x) * 4;
+        int shade = SDL_max(p[0], SDL_max(p[1], p[2]));
+        if (p[3] && (!x || !y || x == w - 1 || y == h - 1)) { stbi_image_free(pixels); return; }
+        if (p[3] >= 32) {
+            left = SDL_min(left, x); right = SDL_max(right, x);
+            top = SDL_min(top, y); bottom = SDL_max(bottom, y);
+        }
+        if (p[3] >= 128 && shade >= 128) {
+            inkLeft = SDL_min(inkLeft, x); inkRight = SDL_max(inkRight, x);
+            inkTop = SDL_min(inkTop, y); inkBottom = SDL_max(inkBottom, y);
+        }
+        if (!p[3]) p[0] = p[1] = p[2] = 0;
+    }
+    if (right < left || inkRight < inkLeft) { stbi_image_free(pixels); return; }
+    source = SDL_CreateSurfaceFrom(right - left + 1, bottom - top + 1, SDL_PIXELFORMAT_RGBA32,
+                                  pixels + ((size_t)top * w + left) * 4, w * 4);
+    if (source) {
+        int cw = SDL_min(source->w, 256), ch = SDL_max(1, source->h * cw / source->w);
+        compact = SDL_CreateSurface(cw, ch, SDL_PIXELFORMAT_RGBA32);
+        SDL_SetSurfaceBlendMode(source, SDL_BLENDMODE_NONE);
+        if (compact && SDL_BlitSurfaceScaled(source, NULL, compact, NULL, SDL_SCALEMODE_LINEAR)) {
+            sLabel = SDL_CreateTextureFromSurface(renderer, compact);
+            for (y = 0; y < ch; y++) for (x = 0; x < cw; x++) {
+                unsigned char* p = (unsigned char*)compact->pixels + y * compact->pitch + x * 4;
+                p[0] = p[1] = p[2] = 255;
+            }
+            sWhiteLabel = SDL_CreateTextureFromSurface(renderer, compact);
+            sLabelSource = (SDL_FRect){0, 0, cw, ch};
+            sLabelInk = (SDL_FRect){(inkLeft - left) * cw / (float)source->w,
+                (inkTop - top) * ch / (float)source->h, (inkRight - inkLeft + 1) * cw / (float)source->w,
+                (inkBottom - inkTop + 1) * ch / (float)source->h};
+        }
+        if (compact) SDL_DestroySurface(compact);
+        SDL_DestroySurface(source);
+    }
+    stbi_image_free(pixels);
+    if (sLabel) {
+        SDL_SetTextureBlendMode(sLabel, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureScaleMode(sLabel, SDL_strcmp(SDL_GetRendererName(renderer), "software") == 0 ?
+                                SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
+        PortLog("HD HUD: cached label %s", file);
+    }
+    if (sWhiteLabel) {
+        SDL_SetTextureBlendMode(sWhiteLabel, SDL_BLENDMODE_BLEND);
+        SDL_SetTextureScaleMode(sWhiteLabel, SDL_strcmp(SDL_GetRendererName(renderer), "software") == 0 ?
+                                SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
+    }
+}
 
 /* Developer-only ROM-local references; never ship these extracted sprites. */
 uint32_t* PortHdHudExportBuffer(void) {
@@ -57,8 +143,12 @@ void PortHdHudExportSprite(int w, int h, int part, int ax, int ay) {
 void PortHdHudShutdown(void) {
     if (sFrame) SDL_DestroyTexture(sFrame);
     if (sWhiteFrame) SDL_DestroyTexture(sWhiteFrame);
+    if (sLabel) SDL_DestroyTexture(sLabel);
+    if (sWhiteLabel) SDL_DestroyTexture(sWhiteLabel);
     sFrame = NULL;
     sWhiteFrame = NULL;
+    sLabel = NULL;
+    sWhiteLabel = NULL;
     SDL_free(sExportPixels); sExportPixels = NULL;
     SDL_free(sExportHashes); sExportHashes = NULL;
 }
@@ -70,7 +160,17 @@ void PortHdHudPrepare(SDL_Renderer* renderer) {
     SDL_Surface* compact;
     SDL_ScaleMode sampling;
     const char* path;
-    if (!gPortConfig.hdHud || sAttempted) return;
+    if (!gPortConfig.hdHud) return;
+    if (sAttempted) {
+        if (sFrame && sLabelLanguage != HudLanguage()) {
+            if (sLabel) SDL_DestroyTexture(sLabel);
+            if (sWhiteLabel) SDL_DestroyTexture(sWhiteLabel);
+            sLabel = NULL;
+            sWhiteLabel = NULL;
+            LoadLabel(renderer);
+        }
+        return;
+    }
     sAttempted = 1;
     path = PortConfigPath("assets/hd-hud/pilot/enemy-hp-frame-v2.png");
     if (!stbi_info(path, &w, &h, &channels) || channels != 4 || w < 1 || h < 1 ||
@@ -133,11 +233,78 @@ void PortHdHudPrepare(SDL_Renderer* renderer) {
     SDL_SetTextureBlendMode(sFrame, SDL_BLENDMODE_BLEND);
     SDL_SetTextureScaleMode(sFrame, sampling);
     PortLog("HD HUD: cached transparent enemy HP pilot (%dx%d crop)", right - left + 1, bottom - top + 1);
+    LoadLabel(renderer);
 }
 
 int PortHdHudEnemy(int visible, int ratio, int layer) {
     (void)ratio; (void)layer;
     return visible && gPortConfig.hdHud && sFrame && gPortHudScale && !PortUiActive();
+}
+
+void PortHdHudDrawLabel(SDL_Renderer* renderer, int width, int height) {
+    int rect[4];
+    uint32_t color;
+    float scale = (float)gPortHudScale;
+    SDL_FRect box, shadow;
+    uint16_t bld = *(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x50);
+    int effect = (bld >> 6) & 3, amount = SDL_min(*(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x54), 16);
+    int tint = (bld & 0x10) && effect == 3 ? 16 - amount : 16;
+    Uint8 r, g, b;
+    if (!gPortConfig.hdHud || !sLabel || !scale || PortUiActive() || !PortPpuEnemyHudLabel(rect, &color)) return;
+    box = (SDL_FRect){(width - gPortHudW * scale) * 0.5f + rect[0] * scale,
+                      (height - gPortHudH * scale) * 0.5f + rect[1] * scale,
+                      (rect[2] - rect[0] + 1) * scale, (rect[3] - rect[1] + 1) * scale};
+    /* Fit the letter faces to native ink; the modern bevel/shadow may extend
+       into the same dark surround instead of shrinking the actual letters. */
+    if (sLabelInk.w > 0 && sLabelInk.h > 0) {
+        float sx = box.w / sLabelInk.w, sy = box.h / sLabelInk.h;
+        box.x -= sLabelInk.x * sx; box.y -= sLabelInk.y * sy;
+        box.w = sLabelSource.w * sx; box.h = sLabelSource.h * sy;
+    }
+    /* Keep the approved green faces/pale bevel/dark relief as authored;
+       monochrome tinting would wash all three into the highlight colour. */
+    r = g = b = 255 * tint / 16;
+    shadow = box; shadow.x += scale * 0.5f; shadow.y += scale * 0.5f;
+    SDL_SetTextureColorMod(sLabel, r / 5, g / 5, b / 5);
+    SDL_RenderTexture(renderer, sLabel, &sLabelSource, &shadow);
+    SDL_SetTextureColorMod(sLabel, r, g, b);
+    SDL_RenderTexture(renderer, sLabel, &sLabelSource, &box);
+    if (sWhiteLabel && (bld & 0x10) && effect == 2 && amount) {
+        SDL_SetTextureAlphaMod(sWhiteLabel, amount * 255 / 16);
+        SDL_RenderTexture(renderer, sWhiteLabel, &sLabelSource, &shadow);
+        SDL_RenderTexture(renderer, sWhiteLabel, &sLabelSource, &box);
+    }
+}
+
+/* Palette-matched HD fill: interpolate native highlight/body/shadow rows at
+   output resolution, keeping the cartridge's exact visible shape and ratio. */
+void PortHdHudDrawBar(SDL_Renderer* renderer, int width, int height) {
+    int rect[4], line, lines;
+    uint32_t rows[32];
+    float scale = (float)gPortHudScale;
+    float ox = (width - gPortHudW * scale) * 0.5f, oy = (height - gPortHudH * scale) * 0.5f;
+    if (!gPortConfig.hdHud || !scale || PortUiActive() || !PortPpuEnemyHudBar(rect, rows)) return;
+    lines = (int)((rect[3] - rect[1] + 1) * scale);
+    for (line = 0; line < lines; line++) {
+        float y = rect[1] + line / scale;
+        int ya = (int)y, yb = SDL_min(ya + 1, rect[3]), x = rect[0];
+        float t = y - ya;
+        uint32_t a = rows[ya], b = rows[yb];
+        Uint8 r = ((a >> 16) & 255) * (1 - t) + ((b >> 16) & 255) * t;
+        Uint8 g = ((a >> 8) & 255) * (1 - t) + ((b >> 8) & 255) * t;
+        Uint8 blue = (a & 255) * (1 - t) + (b & 255) * t;
+        SDL_SetRenderDrawColor(renderer, r, g, blue, 255);
+        while (x <= rect[2]) {
+            int start;
+            while (x <= rect[2] && !PortPpuEnemyHudBarVisible(x, ya)) x++;
+            start = x;
+            while (x <= rect[2] && PortPpuEnemyHudBarVisible(x, ya)) x++;
+            if (x > start) {
+                SDL_FRect row = {ox + start * scale, oy + rect[1] * scale + line, (x - start) * scale, 1};
+                SDL_RenderFillRect(renderer, &row);
+            }
+        }
+    }
 }
 
 void PortHdHudDraw(SDL_Renderer* renderer, int width, int height) {
