@@ -72,7 +72,9 @@ def main():
         env = dict(os.environ, SDL_VIDEO_DRIVER="dummy", SDL_AUDIO_DRIVER="dummy", KHCOM_FAST="1",
                    KHCOM_SHOTS=str(frame), KHCOM_QUIT=str(frame + 1))
         env.update(env_extra)
-        code = subprocess.run([str(d / "khcom.exe")], cwd=str(d), env=env, timeout=300,
+        # a fixed language: the language select changes timing and text
+        args_exe = [str(d / "khcom.exe")] + ([] if name == "lang" else ["--language", "en"])
+        code = subprocess.run(args_exe, cwd=str(d), env=env, timeout=300,
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode
         shot = d / f"shot_{frame:05d}.bmp"
         if code != 0 or not shot.exists():

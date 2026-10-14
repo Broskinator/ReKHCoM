@@ -6,6 +6,10 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 
 ## Coordinación (14/10, 04:05)
 
+- 14/10: Codex sin tokens. Mientras no vuelva a trabajar, Claude asume también
+  sus pendientes (widescreen field/battles/menus & events, números HD y su
+  revisión visual). Cuando Codex retome, se reparte de nuevo aquí.
+
 - Claude es el integrador principal: integra los commits de ambos en
   feat/native-movies, compila EU/US/JP antes de subir y prepara las releases.
   Solo se sube lo que compila en las tres regiones.
