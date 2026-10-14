@@ -1,7 +1,15 @@
 # Changelog
 
-## Unreleased
+## v0.6 — 2026-10-13
 
+Windows x86 prerelease.
+
+- Battle entry: the margins of the 16:9 window show a blurred copy of the
+  picture, as the movies do, and the animation keeps its proportions.
+- World cards: the margins fade out in pixel art without stretching the
+  cards or the foreground.
+- World map: the animated ornamental bands extend from the original art; a
+  transition regression test was added.
 - Experimental section in the in-game options and the launcher, with HD text
   and a new HD-2D look: depth of field (the distance and the foreground blur,
   the characters stay sharp), bloom, filmic grading, haze and a vignette, in
