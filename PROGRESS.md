@@ -49,6 +49,18 @@ Native coverage measures implemented replacements, not gameplay verification.
 | Launcher & ROM install | 4 | 100% | decompui (Dear ImGui): installs any of the three dumps by SHA-1, settings, enhancements, editable controls, game language (EU), save card (date, open folder, back up), launcher language, version; starts the matching game; install tests (port/tools/test_launcher.py) 11/11: three dumps, reinstall, wrong size/SHA-1/file, missing file, unwritable roms folder, English UI; save bank selector |
 | Skip intro | 1 | 100% | A shows a prompt in the game's font with an A button; A again skips the opening |
 
+## Experimental improvements
+
+These optional additions are tracked separately from the completed base port.
+
+| Area | Done | Evidence / remaining work |
+|---|---:|---|
+| HD HUD: graphics | 12.5% | 1/8 preliminary families: enemy HP frame. Checklist: port/progress/HUD_HD_INVENTARIO.md |
+| HD HUD: image lettering | 0% | 0/6 language sets. Native pilot lettering has not yet been replaced by generated PNG lettering. |
+| HD HUD: digits & symbols | 0% | Reusable generated digit/symbol atlas pending; runtime values must remain dynamic. |
+| HD HUD: integration | 50% | 3/6 gates: optional menus/config, PNG loader, native geometry for pilot. Complete pack, lettering/digits, inventory-wide fallback pending. |
+| HD HUD: full validation | 0% | Pilot smoke passed EU/US/JP; complete-inventory region, geometry and performance gates pending. |
+
 ## Milestones
 
 - [x] All 269 game units compile for x86

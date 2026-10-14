@@ -97,7 +97,8 @@ def esc(text):
 
 
 def render_svg(status, m, overall):
-    subs = status["subsystems"]
+    experiments = status.get("experiments", [])
+    subs = status["subsystems"] + experiments
     row = 26
     top = 150
     width = 860
@@ -169,6 +170,12 @@ def render_md(status, m, overall):
     lines += ["## Subsystems", "", "| Subsystem | Weight | Done | Notes |", "|---|---:|---:|---|"]
     for s in status["subsystems"]:
         lines.append(f"| {s['name']} | {s['weight']} | {s['done']}% | {s['notes']} |")
+    if status.get("experiments"):
+        lines += ["", "## Experimental improvements", "",
+                  "These optional additions are tracked separately from the completed base port.", "",
+                  "| Area | Done | Evidence / remaining work |", "|---|---:|---|"]
+        for s in status["experiments"]:
+            lines.append(f"| {s['name']} | {s['done']}% | {s['notes']} |")
     lines += ["", "## Milestones", ""]
     for ms in status["milestones"]:
         lines.append(f"- [{'x' if ms['done'] else ' '}] {ms['name']}")

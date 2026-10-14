@@ -220,5 +220,32 @@
       "done": false,
       "note": "left to player feedback (owner decision 14/10)"
     }
+  ],
+  "experiments": [
+    {
+      "name": "HD HUD: graphics",
+      "done": 12.5,
+      "notes": "1/8 preliminary families: enemy HP frame. Checklist: port/progress/HUD_HD_INVENTARIO.md"
+    },
+    {
+      "name": "HD HUD: image lettering",
+      "done": 0,
+      "notes": "0/6 language sets. Native pilot lettering has not yet been replaced by generated PNG lettering."
+    },
+    {
+      "name": "HD HUD: digits & symbols",
+      "done": 0,
+      "notes": "Reusable generated digit/symbol atlas pending; runtime values must remain dynamic."
+    },
+    {
+      "name": "HD HUD: integration",
+      "done": 50,
+      "notes": "3/6 gates: optional menus/config, PNG loader, native geometry for pilot. Complete pack, lettering/digits, inventory-wide fallback pending."
+    },
+    {
+      "name": "HD HUD: full validation",
+      "done": 0,
+      "notes": "Pilot smoke passed EU/US/JP; complete-inventory region, geometry and performance gates pending."
+    }
   ]
 }

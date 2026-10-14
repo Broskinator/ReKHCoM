@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="860" height="856" viewBox="0 0 860 856" font-family="Segoe UI, Helvetica, Arial, sans-serif">
-<rect width="860" height="856" rx="10" fill="#14161c"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="986" viewBox="0 0 860 986" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect width="860" height="986" rx="10" fill="#14161c"/>
 <text x="24" y="38" font-size="22" font-weight="700" fill="#f1f3f5">ReKHCoM - PC port progress</text>
 <text x="24" y="60" font-size="13" fill="#adb5bd">Kingdom Hearts: Chain of Memories (EU) - 2026-10-14</text>
 <text x="24" y="93" font-size="14" font-weight="600" fill="#f1f3f5">Overall port</text>
@@ -116,4 +116,21 @@
 <rect x="270" y="802" width="500" height="14" rx="3" fill="#2b2f38"/>
 <rect x="270" y="802" width="500.0" height="14" rx="3" fill="#2f9e44"/>
 <text x="780" y="813" font-size="12" fill="#ced4da">100%</text>
+<text x="24" y="839" font-size="12" fill="#ced4da">HD HUD: graphics</text>
+<rect x="270" y="828" width="500" height="14" rx="3" fill="#2b2f38"/>
+<rect x="270" y="828" width="62.5" height="14" rx="3" fill="#e8590c"/>
+<text x="780" y="839" font-size="12" fill="#ced4da">12.5%</text>
+<text x="24" y="865" font-size="12" fill="#ced4da">HD HUD: image lettering</text>
+<rect x="270" y="854" width="500" height="14" rx="3" fill="#2b2f38"/>
+<text x="780" y="865" font-size="12" fill="#ced4da">0%</text>
+<text x="24" y="891" font-size="12" fill="#ced4da">HD HUD: digits &amp; symbols</text>
+<rect x="270" y="880" width="500" height="14" rx="3" fill="#2b2f38"/>
+<text x="780" y="891" font-size="12" fill="#ced4da">0%</text>
+<text x="24" y="917" font-size="12" fill="#ced4da">HD HUD: integration</text>
+<rect x="270" y="906" width="500" height="14" rx="3" fill="#2b2f38"/>
+<rect x="270" y="906" width="250.0" height="14" rx="3" fill="#e8a317"/>
+<text x="780" y="917" font-size="12" fill="#ced4da">50%</text>
+<text x="24" y="943" font-size="12" fill="#ced4da">HD HUD: full validation</text>
+<rect x="270" y="932" width="500" height="14" rx="3" fill="#2b2f38"/>
+<text x="780" y="943" font-size="12" fill="#ced4da">0%</text>
 </svg>
