@@ -317,6 +317,12 @@ static uint16_t WalkTo(uint32_t frame, int tx, int ty, int tz) {
     FldPos* p = &gFieldState->actor.fieldPosition;
     int px = p->x >> 8, py = p->y >> 8, nx, ny, jump;
     int pcx = p->x >> 13, pcy = (p->y + p->z) >> 12, gcx = tx >> 5, gcy = (ty + tz) >> 4;
+    if ((frame % 300) == 77) {
+        int ok = NextCell(pcx, pcy, gcx, gcy, &nx, &ny, &jump), z0 = 0, f0 = 0, z1 = 0, f1 = 0;
+        int c0 = CellFloor(pcx, pcy, &z0, &f0), c1 = CellFloor(gcx, gcy, &z1, &f1);
+        PortLog("bot: walk from cell %d,%d (floor %d z %d) to %d,%d (floor %d z %d flags %x) path %d next %d,%d jump %d",
+                pcx, pcy, c0, z0, gcx, gcy, c1, z1, f1, ok, nx, ny, jump);
+    }
     if (NextCell(pcx, pcy, gcx, gcy, &nx, &ny, &jump) && !(nx == pcx && ny == pcy)) {
         int wz, wf;
         CellFloor(nx, ny, &wz, &wf);

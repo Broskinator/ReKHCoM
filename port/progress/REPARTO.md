@@ -26,7 +26,7 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
 |---|---|---|---|---|
-| Gameplay verification | 88 | 10 | Claude (Codex al volver) | Partida completa de Sora y de Reverse/Rebirth (lo último) |
+| Gameplay verification | 100 | 10 | Claude | Cerrada por decisión del usuario: las partidas completas quedan al feedback de los jugadores |
 
 Cerradas hoy por Claude (con evidencia en port/progress/evidence/):
 - Widescreen: battles 100 % — arenas US/JP 19/19, salida de combate con el
