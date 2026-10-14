@@ -66,9 +66,10 @@ intro, versiones USA y japonesa, menú de opciones, PPU, texto HD.
 - [x] Tabs del ojo en Estado y Barajas (EU/US/JP) y escenas con estirado
   (Bonus élite, Tienda moguri, Elige un mundo, Vórtice) revisadas: barra al 100 %.
 - [x] Sin estirado de píxeles: Diario, Elige un mundo, Vórtice, Tienda moguri y
-  Bonus élite usan un margen dibujado (estilo 7): las filas cuyo borde es un
-  color liso siguen como banda; las demás se disuelven con tramado ordenado en
-  el color de fondo. Ninguna escena usa ya el estilo de estirar columnas.
+  Bonus élite usan márgenes hechos por el PPU con sus propias capas: el
+  fondo (la capa BG más baja) sigue en espejo con sus tiles y paletas, como
+  el flip horizontal del hardware; las capas de interfaz solo continúan como
+  bandas donde llegan al borde. Sin tramado ni columnas estiradas.
 - [x] Widescreen field: recorrido por mundo completo (arriba).
 
 ## Claude: verificación, regiones, texto HD, opciones y cierre del PPU

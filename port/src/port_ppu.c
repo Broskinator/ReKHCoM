@@ -1188,6 +1188,8 @@ static uint16_t Darken(uint16_t c, int ey) {
     return (uint16_t)(r | (g << 5) | (b << 10));
 }
 
+static void BuildNarrowSides(int gy, uint16_t dispcnt, const int* bgOn, const int* bgPrio);
+
 static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgPrio, uint32_t* frame, int objects) {
     int w = gPortScreen.width;
     uint32_t* dst = frame + y * w;
@@ -1520,10 +1522,87 @@ static void RenderLine(int y, int gy) {
     DrawObjs(gy, dispcnt);
     BuildWindows(gy, dispcnt);
     ComposeLine(y, dispcnt, bgOn, bgPrio, gPortFrame, 1);
-    if (sSceneNarrow)
+    if (sSceneNarrow) {
         ComposeLine(y, dispcnt, bgOn, bgPrio, gPortMenuBackground, 0);
+        BuildNarrowSides(gy, dispcnt, bgOn, bgPrio);
+    }
     if (sOverlay && gy >= 0 && gy < GBA_SCREEN_H)
         ComposeOverlayLine(gy, dispcnt, bgOn, bgPrio);
+}
+
+/* Full-height GBA scenes (menus shown as the GBA picture with side bars):
+   what lies beyond the picture's edges, built from the BG layers themselves
+   so the bars are the game's own art in its own pixels and palettes. The
+   scenery (the lowest enabled BG) continues mirrored, as the hardware's
+   horizontal tile flip draws it; a layer above it continues only where it
+   reaches the edge as a long horizontal band (a title bar, a banner, a
+   panel), and is transparent elsewhere so the scenery shows; the backdrop is
+   underneath. The scene's fade applies to the bars too. */
+#define NARROW_SIDE_W 96
+#define PLTT16_0() (((const uint16_t*)(uintptr_t)GBA_PLTT)[0])
+static uint32_t sNarrowSide[2][GBA_SCREEN_H][NARROW_SIDE_W];
+
+uint32_t PortNarrowSidePixel(int side, int y, int distance) {
+    if (y < 0 || y >= GBA_SCREEN_H)
+        return 0;
+    if (distance >= NARROW_SIDE_W)
+        distance = NARROW_SIDE_W - 1 - (distance % NARROW_SIDE_W);
+    return sNarrowSide[side > 0][y][distance < 0 ? 0 : distance];
+}
+
+static void BuildNarrowSides(int gy, uint16_t dispcnt, const int* bgOn, const int* bgPrio) {
+    int side, d, b, scenery = -1, order[4], n = 0, p;
+    int x0 = gPortScreen.originX;
+    uint16_t bldcnt = IO16(0x50);
+    int effect = (bldcnt >> 6) & 3, evy = IO16(0x54) & 31;
+
+    if (gy < 0 || gy >= GBA_SCREEN_H)
+        return;
+    if (evy > 16)
+        evy = 16;
+    /* the scenery: the enabled BG drawn last (largest priority, then index) */
+    for (b = 0; b < 4; b++)
+        if (bgOn[b] && (scenery < 0 || bgPrio[b] > bgPrio[scenery] ||
+                        (bgPrio[b] == bgPrio[scenery] && b > scenery)))
+            scenery = b;
+    for (p = 0; p < 4; p++)
+        for (b = 0; b < 4; b++)
+            if (bgOn[b] && bgPrio[b] == p)
+                order[n++] = b;
+    for (side = 0; side < 2; side++) {
+        int edge = side ? x0 + GBA_SCREEN_W - 1 : x0, step = side ? -1 : 1;
+        uint16_t band[4];
+        int bandOk[4];
+        for (b = 0; b < 4; b++) {
+            int run = 0, k;
+            uint16_t c = sBgLine[b][edge];
+            bandOk[b] = 0;
+            band[b] = c;
+            if (!bgOn[b] || b == scenery || c == TRANSPARENT)
+                continue;
+            for (k = 0; k < 48 && sBgLine[b][edge + k * step] == c; k++)
+                run++;
+            bandOk[b] = run >= 24;
+        }
+        for (d = 0; d < NARROW_SIDE_W; d++) {
+            uint16_t col = (uint16_t)(PLTT16_0() & 0x7FFF);
+            int i, src = d < GBA_SCREEN_W ? d : GBA_SCREEN_W - 1;
+            for (i = 0; i < n; i++) {
+                b = order[i];
+                if (b == scenery) {
+                    uint16_t c = sBgLine[b][edge + src * step];
+                    if (c != TRANSPARENT) { col = c; break; }
+                } else if (bandOk[b]) {
+                    col = band[b];
+                    break;
+                }
+            }
+            if (effect == 2 && (bldcnt & 0x3F)) col = Brighten(col, evy);
+            if (effect == 3 && (bldcnt & 0x3F)) col = Darken(col, evy);
+            sNarrowSide[side][gy][d] = sColorLut[col & 0x7FFF];
+        }
+    }
+    (void)dispcnt;
 }
 
 /* Start of a line: VCOUNT and the V-counter match flag. */
