@@ -245,6 +245,11 @@ static void UpdateResolution(void) {
     if (gPortConfig.viewMode == PORT_VIEW_AUTO) {
         float f = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
         gPortOverlayW = SDL_max(GBA_SCREEN_W, SDL_min((int)SDL_ceilf(outW / f), PORT_MAX_W));
+        /* an even margin on both sides: with an odd width the menus' side
+           margin ((width - 240) / 2) left the last column on the right
+           empty, showing the field through it at 1280x720 */
+        if (((gPortOverlayW - GBA_SCREEN_W) & 1) && gPortOverlayW < PORT_MAX_W)
+            gPortOverlayW++;
         sOverlayScale = f;
     }
     sFitScale = 0;
