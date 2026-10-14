@@ -46,7 +46,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v0.7"
+#define REKHCOM_VERSION "v0.8"
 #endif
 
 static bool sSpanish;

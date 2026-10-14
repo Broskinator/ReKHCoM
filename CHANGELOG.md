@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+## v0.8 — 2026-10-14
+
+Windows x86 prerelease.
+
+- Experimental Re:CoM mode (PS2 options) chosen in a new-game window:
+  version (Original / Re:CoM), difficulty, HD text and QoL buttons; each
+  save keeps its own QoL settings. With the mode off nothing changes from
+  the cartridge.
+- Side margins with no stretched pixels: menus continue their own tiles and
+  stipple, full-height scenes get margins drawn by the PPU from their own
+  layers, live scenes a blurred reflection with their bars drawn on, and the
+  journal its green paper. Every margin row and column sits on the
+  picture's own pixel grid, so bars, boxes and panels line up exactly.
+- Menu headers keep a clean band in the margin in every region.
+- Launcher: import a GBA save from any emulator or backup device
+  (experimental).
+- Experimental HD HUD pipeline (AI-redrawn enemy HP frame, off by default).
+- Level-up: the stat panel no longer wraps into the left margin on exit;
+  the door menu sits above the bottom bar.
 - HD text covers the numbers that are text: deck-menu counts and CP, EXP and
   next level, with the colours, height and baseline of the pixel digits.
 - Fix: the packaged game (in bin/) now finds the HD text fonts in assets/.
