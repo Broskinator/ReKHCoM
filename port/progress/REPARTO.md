@@ -44,9 +44,12 @@ estados guardados, launcher, saltar intro, versiones USA y japonesa.
   completo desde el inicio y al volver. Barras animadas de Mapamundi desde sus
   assets OBJ, revisadas en EU (build/priority-regressions/20261013_232146_939954/allmap).
   Otros submenús y ejecución regional pendientes.
-- [ ] Subida de nivel: prolongar relleno/sombra/contorno de los paneles derechos
-  hasta el borde y verificar el popeo en una entrada natural. Franjas unidas en
-  EU (build/levelup-check/20261013_230113, build/levelup-reference/20261013_230037).
+- [~] Subida de nivel: paneles derechos revisados en reposo en EU a 640×360 y
+  1280×720; relleno y contorno llegan al borde, sin cambio visual necesario.
+  Evidencia: build/codex-resume-review/levelup/out_01600.bmp. Franjas unidas.
+  Queda verificar el popeo en una entrada natural y la salida: en el fixture
+  forzado, el fondo del panel reaparece a la izquierda (frames 2120–2136).
+  No clasificarlo aún como defecto del port sin contrastar la ruta natural.
 - [ ] Sustituir el estirado de píxeles por patrones o piezas de fondo donde sea
   viable; conservar los patrones aprobados de barajas y Mapamundi; revisar el
   píxel residual del margen derecho.
