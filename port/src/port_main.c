@@ -560,7 +560,7 @@ static void Present(void) {
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
     SDL_RenderClear(sRenderer);
-    if (!gPortScreen.wide && gPortConfig.narrowFit && !PortUiActive()
+    if ((sFitScale > 0 || (!gPortScreen.wide && gPortConfig.narrowFit)) && !PortUiActive()
         && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)) {
         /* Scene without a wide view: show the GBA picture at full height
            (bars only at the sides), sampled with the pixel-art filter. */
@@ -570,12 +570,12 @@ static void Present(void) {
         dst.h = GBA_SCREEN_H * scale;
         dst.x = (float)(int)((outW - dst.w) / 2);
         dst.y = (float)(int)((outH - dst.h) / 2);
-        if (sSideStyle == 3 && !PortUiActive())
+        if ((sSideStyle == 3 || sFitScale > 0) && !PortUiActive())
             DrawBlurredReflection(&src, outW, outH);
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
         SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
-        if (!PortUiActive() && sSideStyle != 3) {
+        if (!PortUiActive() && sSideStyle != 3 && sFitScale <= 0) {
             SideBar((int)src.x, (int)src.y, -1, dst.y, scale, 0.0f, dst.x, (int)src.x);
             SideBar((int)(src.x + src.w) - SIDE_STRIP, (int)src.y, 1, dst.y, scale, dst.x + dst.w, (float)outW,
                     (int)(src.x + src.w) - 1);
@@ -585,6 +585,14 @@ static void Present(void) {
         worldY = dst.y - src.y * scale;
     } else {
         OutputRect(outW, outH, &dst);
+        if (sFitScale > 0 && !PortUiActive()) {
+            /* Battle-entry animation stays at its authored aspect ratio.
+               Fill the surrounding window with the same dim blur as movies. */
+            SDL_FRect backdrop = { (float)gPortScreen.originX,
+                                   (float)gPortScreen.originY,
+                                   GBA_SCREEN_W, GBA_SCREEN_H };
+            DrawBlurredReflection(&backdrop, outW, outH);
+        }
         SDL_RenderTexture(sRenderer, sTexture, NULL, &dst);
         worldScale = dst.w / gPortScreen.width;
         worldX = dst.x;

@@ -105,8 +105,8 @@
     {
       "name": "Widescreen: battles",
       "weight": 6,
-      "done": 92,
-      "notes": "affine arenas extend and repeat sideways; HUD on its own scaled layer anchored to the corners, card hand lifted to show whole cards; tutorial pointers follow the HUD; battle messages docked"
+      "done": 93,
+      "notes": "affine arenas extend and repeat sideways; HUD on its own scaled layer anchored to the corners, card hand lifted to show whole cards; tutorial pointers follow the HUD; battle messages docked. Battle-entry animation retains its native aspect with dim blurred surroundings; EU/US/JP capture regression completed and inspected. Seamless arena strips and some abyss edges remain under review."
     },
     {
       "name": "Widescreen: menus & events",

@@ -35,8 +35,12 @@ Todos los puntos siguientes están pendientes salvo indicación explícita.
   el movimiento. Mapamundi: footer completo desde el inicio y al volver.
 - [ ] Naipes mundo: extensión del fondo mediante un fundido de pixel art
   escalonado/tramado basado en la paleta original, sin estirar la ilustración.
-- [ ] Entrada a combate: fondo difuminado como en las películas para llenar
+- [x] Entrada a combate: fondo difuminado como en las películas para llenar
   la ventana, manteniendo la animación central en su proporción.
+  Implementado y revisado en EU: build/battle-entry-check/20261013_230710.
+  El canvas central se recorta a 240x160 y los laterales usan el blur de películas.
+  Añadida captura reproducible: test_levelup.py --entry. EU/US/JP compilan y
+  completan las capturas; revisada la animación con blur en las tres regiones.
 - [ ] Subida de nivel: conectar header/footer; eliminar sprite/fondo que
   aparece antes/después y al seleccionar un stat. Estado 3 antes de ganar EXP.
   La antigua ranura 8 de subida de nivel fue reemplazada por el cristal;
