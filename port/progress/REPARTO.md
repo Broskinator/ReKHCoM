@@ -22,7 +22,7 @@ ordenadas por las barras de `status.json` que faltan para el 100 %.
 - Último: partida completa / TAS. Después del 100 %, la función experimental
   con las QoL de la versión de PS2 (Re:Chain of Memories) en la de GBA.
 
-## Barras pendientes y dueño (actualizado 14/10, 08:40 — total 99,0 %)
+## Barras pendientes y dueño (actualizado 14/10, 08:40 — total 98,9 %)
 
 | Barra | % | Peso | Dueño | Qué falta para el 100 % |
 |---|---|---|---|---|
