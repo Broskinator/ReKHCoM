@@ -435,6 +435,40 @@ static void DrawGlyph(SDL_Renderer* r, HdGlyph* g, float x, float y, uint32_t co
     SDL_RenderTexture(r, g->tex, NULL, &d);
 }
 
+/* Experimental card digits: outline glyphs fitted to their native ink box,
+   including the card's affine animation. Values still come from game code. */
+void PortHdTextHudDigits(SDL_Renderer* renderer, float originX, float originY, float scale) {
+    PortHudDigit digits[128];
+    HdFont* font;
+    int i, n;
+    if (!gPortConfig.hdHud) return;
+    n = PortPpuHudDigits(digits, 128);
+    if (!n) return;
+    font = FontForScale(8.0f, 2);
+    if (!font->font) return;
+    for (i = 0; i < n; i++) {
+        HdGlyph* g = Glyph(renderer, font, digits[i].code);
+        SDL_FRect box = {originX + digits[i].x * scale, originY + digits[i].y * scale,
+                         digits[i].w * scale, digits[i].h * scale};
+        uint32_t color = digits[i].color;
+        if (!g->tex || !digits[i].w || !digits[i].h) continue;
+        SDL_SetTextureScaleMode(g->tex, SDL_strcmp(SDL_GetRendererName(renderer), "software") == 0 ?
+                               SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
+        SDL_SetTextureColorMod(g->tex, color >> 16, color >> 8, color);
+        SDL_SetTextureAlphaMod(g->tex, 255);
+        {
+            int x, y;
+            for (y = 0; y < digits[i].h; y++) for (x = 0; x < digits[i].w; x++) {
+                SDL_FRect source = {x * g->w / (float)digits[i].w, y * g->h / (float)digits[i].h,
+                                    g->w / (float)digits[i].w, g->h / (float)digits[i].h};
+                SDL_FRect cell = {box.x + x * scale, box.y + y * scale, scale, scale};
+                if (PortPpuHudDigitVisible(i, digits[i].x + x, digits[i].y + y))
+                    SDL_RenderTexture(renderer, g->tex, &source, &cell);
+            }
+        }
+    }
+}
+
 static void DrawFlowing(SDL_Renderer* renderer, PortTextGlyph* glyphs, int n, float originX, float originY, float scale) {
     const uint16_t* widths = PortLatinGlyphWidths();
     HdFont* font;

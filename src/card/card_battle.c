@@ -4,6 +4,9 @@
  */
 
 #include "macros.h"
+#ifdef PLATFORM_PC
+#include "port/port.h"
+#endif
 #include "registration_data.h"
 #include "card_api.h"
 #include <string.h>
@@ -4237,11 +4240,29 @@ static void card_2(CardDisplayWork* work) {
         }
 
         if (work->valueModified) {
+#ifdef PLATFORM_PC
+            gPortHudDigit = PortHdHudEnemy(1, 0, 0) ? j + 1 : 0;
+#endif
             DrawSprite(work->x >> 8, y, gCardModifiedValueDigitFrames[j], gCardBattleState->tiles7, gCardBattleState->palette2, affine, attr, work->priority - 2);
+#ifdef PLATFORM_PC
+            gPortHudDigit = 0;
+#endif
         } else if (work->premium) {
+#ifdef PLATFORM_PC
+            gPortHudDigit = PortHdHudEnemy(1, 0, 0) ? j + 1 : 0;
+#endif
             DrawSprite(work->x >> 8, y, gCardPremiumValueDigitFrames[j], gCardBattleState->tiles6, gCardBattleState->palette2, affine, attr, work->priority - 2);
+#ifdef PLATFORM_PC
+            gPortHudDigit = 0;
+#endif
         } else {
+#ifdef PLATFORM_PC
+            gPortHudDigit = PortHdHudEnemy(1, 0, 0) ? j + 1 : 0;
+#endif
             DrawSprite(work->x >> 8, y, gCardValueDigitFrames[j], gCardBattleState->tiles5, gCardBattleState->palette, affine, attr, work->priority - 2);
+#ifdef PLATFORM_PC
+            gPortHudDigit = 0;
+#endif
         }
 
         if (work->premium) {
@@ -4260,16 +4281,34 @@ static void card_2(CardDisplayWork* work) {
     }
 
     if (work->valueModified) {
+#ifdef PLATFORM_PC
+        gPortHudDigit = PortHdHudEnemy(1, 0, 0) ? k + 1 : 0;
+#endif
         DrawSprite((work->x >> 8) - 3, y - 4, gCardValueDigitFrames[k], gCardBattleState->tiles7, gCardBattleState->palette2, affine, attr, work->priority - 10);
+#ifdef PLATFORM_PC
+        gPortHudDigit = 0;
+#endif
 
         if (work->premium) {
             DrawSprite(work->x >> 8, y, gCardBattleState->gfx2, gCardBattleState->premiumTiles2, gCardBattleState->palette, affine, attr, work->priority - 11);
         }
     } else if (work->premium) {
+#ifdef PLATFORM_PC
+        gPortHudDigit = PortHdHudEnemy(1, 0, 0) ? k + 1 : 0;
+#endif
         DrawSprite((work->x >> 8) - 3, y - 4, gCardValueDigitFrames[k], gCardBattleState->tiles6, gCardBattleState->palette2, affine, attr, work->priority - 10);
+#ifdef PLATFORM_PC
+        gPortHudDigit = 0;
+#endif
         DrawSprite(work->x >> 8, y, gCardBattleState->gfx2, gCardBattleState->premiumTiles2, gCardBattleState->palette, affine, attr, work->priority - 11);
     } else {
+#ifdef PLATFORM_PC
+        gPortHudDigit = PortHdHudEnemy(1, 0, 0) ? k + 1 : 0;
+#endif
         DrawSprite((work->x >> 8) - 3, y - 4, gCardValueDigitFrames[k], gCardBattleState->tiles5, gCardBattleState->palette, affine, attr, work->priority - 10);
+#ifdef PLATFORM_PC
+        gPortHudDigit = 0;
+#endif
     }
 }
 

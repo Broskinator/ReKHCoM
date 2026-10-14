@@ -174,6 +174,15 @@ void PortRecomSetActive(int active);
 int PortHdHudEnemy(int visible, int ratio, int layer);
 extern int gPortHdHudPart;
 int PortPpuEnemyHudRect(int* rect);
+uint32_t* PortHdHudExportBuffer(void);
+void PortHdHudExportSprite(int w, int h, int part, int ax, int ay);
+extern int gPortHudDigit; /* 0 none, 1..10 for digits 0..9 */
+typedef struct PortHudDigit {
+    int x, y, w, h, code, slot;
+    uint32_t color;
+} PortHudDigit;
+int PortPpuHudDigits(PortHudDigit* out, int max);
+int PortPpuHudDigitVisible(int digit, int x, int y);
 int PortQolButtons(void);
 void PortSetQolButtons(int on);
 int PortVideoListModes(int* w, int* h, int max);

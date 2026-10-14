@@ -2,6 +2,7 @@
  * Enemy HP values and interpolation remain owned by the original game task.
  */
 #include <SDL3/SDL.h>
+#include <stdio.h>
 #include "port/port.h"
 #include "port/port_ui.h"
 #define STB_IMAGE_IMPLEMENTATION
@@ -14,12 +15,52 @@ static SDL_Texture* sFrame;
 static SDL_Texture* sWhiteFrame;
 static SDL_FRect sSource;
 static int sAttempted;
+static uint32_t* sExportPixels;
+static uint64_t* sExportHashes;
+static int sExportCount;
+
+/* Developer-only ROM-local references; never ship these extracted sprites. */
+uint32_t* PortHdHudExportBuffer(void) {
+    if (!SDL_getenv("KHCOM_HUD_EXPORT")) return NULL;
+    if (!sExportPixels) sExportPixels = SDL_calloc(64 * 64, sizeof(uint32_t));
+    return sExportPixels;
+}
+
+void PortHdHudExportSprite(int w, int h, int part, int ax, int ay) {
+    uint64_t hash = 14695981039346656037ULL;
+    SDL_Surface* surface;
+    char name[160];
+    int i;
+    FILE* f;
+    if (!sExportPixels) return;
+    hash ^= (unsigned)w; hash *= 1099511628211ULL;
+    hash ^= (unsigned)h; hash *= 1099511628211ULL;
+    for (i = 0; i < w * h; i++) { hash ^= sExportPixels[i]; hash *= 1099511628211ULL; }
+    if (!sExportHashes) sExportHashes = SDL_calloc(2048, sizeof(uint64_t));
+    if (!sExportHashes) return;
+    for (i = 0; i < sExportCount; i++) if (sExportHashes[i] == hash) return;
+    if (sExportCount == 2048) return;
+    if (!SDL_CreateDirectory(PortConfigPath("hud-source"))) return;
+    SDL_snprintf(name, sizeof(name), "hud-source/%016llx.bmp", (unsigned long long)hash);
+    surface = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_ARGB8888, sExportPixels, w * 4);
+    if (!surface) return;
+    if (!SDL_SaveBMP(surface, PortConfigPath(name))) { SDL_DestroySurface(surface); return; }
+    SDL_DestroySurface(surface);
+    sExportHashes[sExportCount++] = hash;
+    f = fopen(PortConfigPath("hud-source/index.csv"), "a");
+    if (f) {
+        fprintf(f, "%016llx,%d,%d,%d,%d,%d\n", (unsigned long long)hash, w, h, part, ax, ay);
+        fclose(f);
+    }
+}
 
 void PortHdHudShutdown(void) {
     if (sFrame) SDL_DestroyTexture(sFrame);
     if (sWhiteFrame) SDL_DestroyTexture(sWhiteFrame);
     sFrame = NULL;
     sWhiteFrame = NULL;
+    SDL_free(sExportPixels); sExportPixels = NULL;
+    SDL_free(sExportHashes); sExportHashes = NULL;
 }
 
 void PortHdHudPrepare(SDL_Renderer* renderer) {

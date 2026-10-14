@@ -51,7 +51,11 @@ def main():
         on, off = picture("on"), picture("off")
         changed = ImageChops.difference(on, off).getbbox()
         assert changed is not None, "pilot not visible"
-        assert changed[0] > on.width // 2 and changed[3] < on.height // 5, changed
+        diff = ImageChops.difference(on, off)
+        # Only the enemy frame and numeric card ink may change in this stage.
+        diff.paste((0, 0, 0), (on.width // 2, 0, on.width, on.height // 5))
+        diff.paste((0, 0, 0), (0, on.height // 2, on.width // 4, on.height))
+        assert diff.getbbox() is None, changed
         # The green HP fill/lettering must retain positions, size and colours,
         # not merely stay somewhere in the same corner after an HD redraw.
         def hp_ink(img):

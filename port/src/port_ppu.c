@@ -272,12 +272,30 @@ typedef struct SpriteTag {
     uint8_t screen; /* drawn by a menu: goes on the screen layer */
     uint8_t header; /* a menu header (DrawMenuHeader) */
     uint8_t hdHudPart; /* HD enemy panel: frame, cap, live bar */
+    uint8_t digit;
 } SpriteTag;
 static SpriteTag sEntryTag[128];
 static SpriteTag sOamTag[128];
 static int sHudLayer;
 static int sHdText;
 int gPortHdHudPart;
+int gPortHudDigit;
+static PortHudDigit* sHudDigits;
+static int sHudDigitCount;
+static uint8_t* sHudDigitOwners;
+static size_t sHudDigitOwnerSize;
+int PortPpuHudDigits(PortHudDigit* out, int max) {
+    int n = sHudDigitCount < max ? sHudDigitCount : max;
+    if (n) memcpy(out, sHudDigits, n * sizeof(*out));
+    return n;
+}
+int PortPpuHudDigitVisible(int digit, int x, int y) {
+    int front;
+    if (!sHudDigitOwners || digit >= sHudDigitCount || x < 0 || y < 0 || x >= gPortHudW || y >= gPortHudH)
+        return 0;
+    front = sHudDigitOwners[y * gPortHudW + x];
+    return front == 0 || front >= sHudDigits[digit].slot + 1;
+}
 static int sEnemyHudRect[4]; /* left, top, right, bottom in HUD pixels */
 int PortPpuEnemyHudRect(int* rect) {
     if (sEnemyHudRect[2] < sEnemyHudRect[0]) return 0;
@@ -351,6 +369,7 @@ void PortSpriteTag(int entry) {
         sEntryTag[entry].screen = sScreenDepth > 0;
         sEntryTag[entry].header = gPortHeaderDraw != 0;
         sEntryTag[entry].hdHudPart = (uint8_t)gPortHdHudPart;
+        sEntryTag[entry].digit = (uint8_t)gPortHudDigit;
     }
 }
 
@@ -2019,6 +2038,13 @@ void PortPpuRenderHud(uint32_t* buf) {
 
     sEnemyHudRect[0] = w; sEnemyHudRect[1] = h;
     sEnemyHudRect[2] = sEnemyHudRect[3] = -1;
+    sHudDigitCount = 0;
+    if (gPortConfig.hdHud && (size_t)w * h > sHudDigitOwnerSize) {
+        uint8_t* owners = realloc(sHudDigitOwners, (size_t)w * h);
+        if (owners) { sHudDigitOwners = owners; sHudDigitOwnerSize = (size_t)w * h; }
+    }
+    if (sHudDigitOwners && (size_t)w * h <= sHudDigitOwnerSize)
+        memset(sHudDigitOwners, 0, (size_t)w * h);
     memset(buf, 0, (size_t)w * h * 4);
     if (!sHudLayer || (dispcnt & 0x80) || !(dispcnt & 0x1000))
         return;
@@ -2032,12 +2058,35 @@ void PortPpuRenderHud(uint32_t* buf) {
         int ow, oh, bw, bh, ox, oy, xg, yg, hx, hy, sx, sy;
         int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
         const SpriteTag* tag = &sOamTag[i];
+        PortHudDigit* digit = NULL;
 
         if (!tag->hud || (!affine && dbl) || shape == 3 || mode >= 2 ||
             (HdTextGlyph(i) && tag->style != 2))
             continue;
         ow = sObjSize[shape][size][0];
         oh = sObjSize[shape][size][1];
+        if (gPortConfig.hdHud && sHudDigitOwners && (size_t)w * h <= sHudDigitOwnerSize &&
+            tag->digit && tag->digit <= 10 && sHudDigitCount < 128) {
+            if (!sHudDigits) sHudDigits = calloc(128, sizeof(*sHudDigits));
+            if (sHudDigits) {
+                digit = &sHudDigits[sHudDigitCount];
+                digit->x = w; digit->y = h; digit->w = digit->h = -1;
+                digit->code = '0' + tag->digit - 1;
+                digit->slot = i;
+                digit->color = 0;
+            }
+        }
+        {
+            uint32_t* reference = PortHdHudExportBuffer();
+            if (reference) {
+                int xx, yy;
+                for (yy = 0; yy < oh; yy++) for (xx = 0; xx < ow; xx++) {
+                    int c = ObjColor(a0, a2, xx, yy, ow, mapping1d);
+                    reference[yy * ow + xx] = c < 0 ? 0 : sColorLut[c];
+                }
+                PortHdHudExportSprite(ow, oh, tag->hdHudPart, tag->ax, tag->ay);
+            }
+        }
         bw = ow << (affine && dbl);
         bh = oh << (affine && dbl);
         oy = a0 & 0xFF;
@@ -2065,7 +2114,7 @@ void PortPpuRenderHud(uint32_t* buf) {
             if (py < 0 || py >= h)
                 continue;
             for (sx = 0; sx < bw; sx++) {
-                int px = hx + sx, tx, ty, col;
+                int px = hx + sx, tx, ty, col, digitInk = 0;
                 uint32_t argb;
                 if (px < 0 || px >= w)
                     continue;
@@ -2082,6 +2131,7 @@ void PortPpuRenderHud(uint32_t* buf) {
                 col = ObjColor(a0, a2, tx, ty, ow, mapping1d);
                 if (col < 0)
                     continue;
+                digitInk = digit && ((col & 31) >= 22 || ((col >> 5) & 31) >= 22 || ((col >> 10) & 31) >= 22);
                 if (HdTextGlyph(i) && tag->style == 2 &&
                     (col == (PLTT16[256 + (a2 >> 12) * 16 + 14] & 0x7FFF) ||
                      col == (PLTT16[256 + (a2 >> 12) * 16 + 15] & 0x7FFF)))
@@ -2119,10 +2169,24 @@ void PortPpuRenderHud(uint32_t* buf) {
                         col = Darken((uint16_t)col, evy);
                 }
                 argb = sColorLut[col];
+                if (gPortConfig.hdHud && sHudDigitOwners && (size_t)w * h <= sHudDigitOwnerSize)
+                    sHudDigitOwners[py * w + px] = i + 1;
+                if (digitInk) {
+                    if (px < digit->x) digit->x = px;
+                    if (py < digit->y) digit->y = py;
+                    if (px > digit->w) digit->w = px;
+                    if (py > digit->h) digit->h = py;
+                    if ((argb & 0xFFFFFF) > (digit->color & 0xFFFFFF)) digit->color = argb;
+                    continue;
+                }
                 if (mode == 1)
                     argb = (argb & 0x00FFFFFFu) | 0xA0000000u;
                 buf[py * w + px] = argb;
             }
+        }
+        if (digit && digit->w >= digit->x) {
+            digit->w -= digit->x - 1; digit->h -= digit->y - 1;
+            sHudDigitCount++;
         }
     }
 }

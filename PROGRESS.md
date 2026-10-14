@@ -57,7 +57,7 @@ These optional additions are tracked separately from the completed base port.
 |---|---:|---|
 | HD HUD: graphics | 12.5% | 1/8 preliminary families: enemy HP frame. Checklist: port/progress/HUD_HD_INVENTARIO.md |
 | HD HUD: image lettering | 0% | 0/6 language sets. Native pilot lettering has not yet been replaced by generated PNG lettering. |
-| HD HUD: digits & symbols | 0% | Reusable generated digit/symbol atlas pending; runtime values must remain dynamic. |
+| HD HUD: digits & symbols | 16.7% | 1/6 numeric families: Sora/Riku card values use KHMenu CFF outlines, native ink geometry and HUD occlusion. Counters, totals, boss values and symbols pending. Font confirmed to contain all ten digits. |
 | HD HUD: integration | 50% | 3/6 gates: optional menus/config, PNG loader, native geometry for pilot. Complete pack, lettering/digits, inventory-wide fallback pending. |
 | HD HUD: full validation | 0% | Pilot smoke passed EU/US/JP; complete-inventory region, geometry and performance gates pending. |
 

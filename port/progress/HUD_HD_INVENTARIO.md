@@ -20,8 +20,19 @@ Each graphics family contributes one eighth of the preliminary graphics bar:
 Lettering bar: six regional language sets (EN/FR/DE/IT/ES/JA), counted only
 when image-generated HUD lettering is integrated and readable in its original
 boxes. Existing outline HD text is not counted as the image-generated method.
-Variable values require reusable digit glyphs and symbol states, not baked
-numbers in static pictures.
+Variable values use the vector outlines in KHMenu.otf, per the user's later
+instruction: match HD text quality, preserve original shapes where feasible.
+The CFF outlines contain all ten distinct digits. Numeric bar has six families:
+
+- [x] Sora/Riku card values: native ink bounds, affine motion, HUD occlusion.
+- [ ] Remaining-card counters.
+- [ ] Reload counters.
+- [ ] Stock/sleight totals.
+- [ ] Boss card values.
+- [ ] Symbols and numeric prompt variants.
+
+No static value is baked into an image. Static HUD lettering still uses image
+redraws; the vector menu face may be used where no suitable original exists.
 
 Integration bar: six gates: optional menus/config, transparent PNG loader,
 native geometry, image-letter/digit replacement, complete asset packaging,
@@ -34,3 +45,8 @@ evidence of the pilot; they do not complete whole-inventory validation.
 
 Next: export original HUD pieces with palettes/transparency to create precise
 editing references; generate lettering and player HP frame prototypes first.
+
+Developer capture: `KHCOM_HUD_EXPORT=1` saves deduplicated original OBJ images
+and an index under the isolated test's `hud-source/`. These ROM-local references
+stay under build/ and must never be packaged or committed. A basic EU battle
+yielded 25 unique HUD pieces; other states/campaigns remain to be captured.

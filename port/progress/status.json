@@ -234,8 +234,8 @@
     },
     {
       "name": "HD HUD: digits & symbols",
-      "done": 0,
-      "notes": "Reusable generated digit/symbol atlas pending; runtime values must remain dynamic."
+      "done": 16.7,
+      "notes": "1/6 numeric families: Sora/Riku card values use KHMenu CFF outlines, native ink geometry and HUD occlusion. Counters, totals, boss values and symbols pending. Font confirmed to contain all ten digits."
     },
     {
       "name": "HD HUD: integration",
