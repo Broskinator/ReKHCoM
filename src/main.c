@@ -94,6 +94,20 @@ int PortHarnessMode(const char* name, int arg) {
     };
     u32 i;
 
+    /* Isolated HUD regression: change actual actor HP, letting the original
+       task perform damage/healing interpolation and expression changes. */
+    if (strcmp(name, "hudhp") == 0 && gBtlWork != NULL && gBtlWork->actor != NULL) {
+        extern void PortLog(const char* format, ...);
+        int hp;
+        if (arg < 0 || arg > 100) return 0;
+        hp = gBtlWork->actor->maxHp * arg / 100;
+        if (hp < 1) hp = 1; /* avoid ending the battle during the render probe */
+        gBtlWork->actor->hp = hp;
+        gBtlWork->actor->invincibleTimer = 3000;
+        PortLog("harness: hudhp %d/%d", hp, gBtlWork->actor->maxHp);
+        return 1;
+    }
+
     /* Small numeric text fixture: use the existing battle task and its
        original DrawSprite path. This does not award experience or a level. */
     if (strcmp(name, "textdigits") == 0 && gBtlWork != NULL) {

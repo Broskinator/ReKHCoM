@@ -33,3 +33,7 @@ native affine sprite, including its visible mask, palette rows and OAM order.
 That does not complete the player frame/portrait family or extra-bar coverage.
 The generated attack-card candidate was rejected for pixelated contours and
 background glow; it is not part of the pack.
+
+`player-double-frame-v1.png` separates the connected metallic frame from
+portrait and sample fills. Both channels have transparent centres (verified
+alpha zero). It remains a fitting candidate, not a loaded runtime replacement.

@@ -13,8 +13,13 @@ Player and enemy green-fill position sets identical to original rendering.
 Missing-pack vs disabled captures identical. Original-view enabled/disabled
 captures identical. All three regions compile. No user save/config changed.
 
-Damage/healing states, empty HP, extra layers and long-run performance remain
-unverified. Do not count this smoke as full HUD validation.
+Follow-up: test_hd_player_hp.py passed for Sora and Riku. Four isolated
+actor-HP requests (100%, 50%, 25%, 100%) use the game's existing interpolation;
+native/HD visible coloured fill masks match at six intermediate frames.
+Native filled-pixel counts: 6875, 6175, 2075, 3500, 5100, 4475 for both actors.
+This exercises the fixture's 560-max-HP layout and its layer transition.
+Empty/death states, other maximum-HP layouts and long-run performance remain
+unverified. Do not count this as full HUD validation.
 
 Reproduce (sequential):
 python port/tools/test_hd_hud.py --version eu --build build/cx-eu --reuse-build
