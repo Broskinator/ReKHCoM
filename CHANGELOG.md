@@ -27,6 +27,8 @@ Windows x86 prerelease.
   kh_com.sav, bank n kh_com_bank<n>.sav, per version). Chosen in the in-game
   options (switches at once, writing the current bank first) or on the
   launcher's save card, which follows the selected bank.
+- Save states verified deterministic (`port/tools/test_savestate.py`): loaded
+  in a new process, a mid-battle state plays on pixel-identical (3/3).
 - Launcher install tests (`port/tools/test_launcher.py`): the three dumps,
   reinstalling, wrong size, wrong SHA-1, a non-KH file, a missing file and an
   unwritable roms folder, English interface; 11/11 pass.

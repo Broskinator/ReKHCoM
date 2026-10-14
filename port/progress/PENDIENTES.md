@@ -55,6 +55,9 @@ commit: `[x]` hecho y verificado, `[~]` hecho sin verificar del todo, `[ ]` pend
 
 ## Pruebas y publicación
 
+- [x] Estados guardados deterministas (`port/tools/test_savestate.py`): guardado a mitad de combate y
+  cargado en otro proceso, 1700 fotogramas idénticos píxel a píxel con pulsaciones (Sora, Riku, jefe: 3/3).
+
 - [x] Launcher: `port/tools/test_launcher.py` instala las tres ROM y rechaza tamaño,
   SHA-1, archivo ajeno, archivo ausente y carpeta roms no escribible (11/11, avisos visibles;
   páginas en español e inglés revisadas en captura).

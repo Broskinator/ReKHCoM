@@ -129,8 +129,8 @@
     {
       "name": "Save states",
       "weight": 2,
-      "done": 90,
-      "notes": "F5/F9, slots F6/F7; SRAM excluded; validated per build"
+      "done": 100,
+      "notes": "F5/F9, slots F6/F7; SRAM excluded; validated per build; determinism test (port/tools/test_savestate.py): a state saved mid-battle and loaded in a new process plays on pixel-identical for 1700 frames with input, as Sora, Riku and against a boss (3/3)"
     },
     {
       "name": "HD text",
