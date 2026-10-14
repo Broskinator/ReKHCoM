@@ -7,7 +7,7 @@ A native PC port of the Game Boy Advance game: the decompiled code runs as
 a real Windows program, with its own renderer, audio and launcher, in 16:9
 and at the cartridge's exact speed (59.7275 Hz).
 
-**Latest release: [v0.8](https://github.com/MatyMeatBoy/ReKHCom/releases/latest)**
+**Current prerelease: [v0.8](https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v0.8)**
 (Windows x86). Works with the **European, US and Japanese** cartridges, in all
 five European languages, English (US) and Japanese.
 
@@ -31,7 +31,12 @@ five European languages, English (US) and Japanese.
 
 ### Pixel text or HD text
 
+HD menus and dialogue use **KHMenu.otf**; movie subtitles use
+**ComicHearts.otf**. Both fonts are included in the Windows package.
+
 <p align="center"><img src="docs/screenshots/moogle_px.png" width="49%"> <img src="docs/screenshots/moogle_hd.png" width="49%"></p>
+
+<p align="center"><img src="docs/screenshots/subtitles_hd.png" width="70%"></p>
 
 ### Every language of every cartridge
 

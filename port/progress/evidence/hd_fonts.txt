@@ -1,0 +1,15 @@
+14 October 2026 — isolated EU font review, English, hd_text=1
+
+Deck: selected style=0 face=KHMenu; numeric style=2 face=KHMenu.
+Moogle explanation: selected style=0 face=KHMenu.
+Opening movie: selected style=1 face=Comic Hearts.
+
+Captures inspected visually: deck frame800, moogle frame1000,
+opening movie frame2770. README moogle image previously showed the fallback
+font and was replaced with a current native capture. New movie screenshot
+demonstrates the separate subtitle face. The v0.8 ZIP already contained both
+font files; current loader prioritizes the selected data directory and logs
+the actual GDI-selected face, rather than just successful font registration.
+
+Reproduce: python port/tools/capture_hd_fonts.py
+No user save/config changed. HUD portrait draft is not integrated or packaged.

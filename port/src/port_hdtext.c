@@ -80,12 +80,14 @@ static void LoadCustomFont(void) {
 
         /* next to the executable, or in the data folder: the packaged game
            runs from bin/ with its assets at the root (--data-dir) */
-        SDL_snprintf(path, sizeof(path), "%s%s", base ? base : "", files[i]);
+        SDL_strlcpy(path, PortConfigPath(files[i]), sizeof(path));
         if (GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES)
-            SDL_strlcpy(path, PortConfigPath(files[i]), sizeof(path));
+            SDL_snprintf(path, sizeof(path), "%s%s", base ? base : "", files[i]);
         if (MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, 1024) > 0 && AddFontResourceExW(wpath, FR_PRIVATE, NULL) > 0) {
             sFace[i] = faces[i];
             PortLog("HD text: font %s", path);
+        } else {
+            PortLog("HD text: unable to load %s; using fallback", path);
         }
     }
 }
@@ -172,6 +174,14 @@ static HdFont* FontForScale(float scale, int style) {
     {
         const WCHAR* face = sFace[style == 2 ? 0 : style];
         f->font = FontWithCap(face, f->cap, scale, face[0] == L'S' ? FW_SEMIBOLD : FW_NORMAL);
+        {
+            WCHAR selected[128];
+            char actual[256];
+            SelectObject(sDc, f->font);
+            if (GetTextFaceW(sDc, 128, selected) > 0 &&
+                WideCharToMultiByte(CP_UTF8, 0, selected, -1, actual, sizeof(actual), NULL, NULL) > 0)
+                PortLog("HD text: selected style=%d face=%s", style, actual);
+        }
     }
     f->fallback = sFace[style == 2 ? 0 : style][0] == L'S' ? f->font
                                           : FontWithCap(style ? L"Comic Sans MS" : L"Segoe UI", f->cap, scale,
