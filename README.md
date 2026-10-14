@@ -31,8 +31,7 @@ five European languages, English (US) and Japanese.
 
 ### Pixel text or HD text
 
-HD menus and dialogue use **KHMenu.otf**; movie subtitles use
-**ComicHearts.otf**. Both fonts are included in the Windows package.
+Optional HD text preserves the game's style in menus, dialogue and subtitles.
 
 <p align="center"><img src="docs/screenshots/moogle_px.png" width="49%"> <img src="docs/screenshots/moogle_hd.png" width="49%"></p>
 
@@ -170,8 +169,7 @@ completion or a compatibility guarantee.
 ## Credits
 
 - Decompilation: [Pheenoh/khcom](https://github.com/Pheenoh/khcom) and contributors (CC0).
-- HD text fonts: KHMenu, a fan-made recreation of the game's menu font, and Comic Hearts
-  by Sam, for the movie subtitles (see `port/assets/fonts/NOTICE.md`).
+- Third-party asset credits: [NOTICE.md](port/assets/fonts/NOTICE.md).
 - PC port: ReKHCoM contributors.
 
 The original decompilation README is kept in [README.decomp.md](README.decomp.md).

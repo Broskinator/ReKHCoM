@@ -67,8 +67,7 @@ Windows x86 prerelease.
 
 Windows x86 prerelease.
 
-- Movie subtitles in HD text, in Comic Hearts (a fan-made recreation of the
-  game's movie font), centred where the cartridge puts them.
+- Movie subtitles in HD text, centred where the cartridge puts them.
 - Movies: the side bars show a blurred reflection of the picture instead of
   its stretched edge column.
 - The pause menu list is back (v0.4 could show the pause menu without it);
@@ -141,8 +140,7 @@ Windows x86 prerelease with a launcher and all three cartridge versions.
   height; each screen's side bars match it (title, copyright, language select).
 - Battles: arenas repeat sideways in the wide view; the card hand is lifted
   8 px (option) so whole cards show.
-- HD text in KHMenu, a fan-made recreation of the game's font, fitted to the
-  game's line widths.
+- HD text fitted to the game's line widths.
 - Skip the opening (A, then A again).
 - Fixes: crash when reloading cards after the tutorial, stray pointers and
   division by zero behave as on the GBA, a movie skipped early no longer
