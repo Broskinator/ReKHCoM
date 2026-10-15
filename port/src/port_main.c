@@ -984,6 +984,57 @@ static void JoinHeaderLine(void) {
     }
 }
 
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+/* ffmpeg for KHCOM_RECORD, started with no console window (the player may
+   be playing in another window) and fed through a pipe */
+static HANDLE sRecordProcess;
+static FILE* OpenRecordPipe(const char* cmdline) {
+    SECURITY_ATTRIBUTES sa = { sizeof(sa), NULL, TRUE };
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+    HANDLE rd, wr, nul;
+    char buf[1024];
+    int fd;
+    if (!CreatePipe(&rd, &wr, &sa, 1 << 20))
+        return NULL;
+    SetHandleInformation(wr, HANDLE_FLAG_INHERIT, 0);
+    nul = CreateFileA("NUL", GENERIC_WRITE, FILE_SHARE_WRITE, &sa, OPEN_EXISTING, 0, NULL);
+    SDL_zero(si);
+    si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESTDHANDLES;
+    si.hStdInput = rd;
+    si.hStdOutput = nul;
+    si.hStdError = nul;
+    SDL_strlcpy(buf, cmdline, sizeof(buf));
+    if (!CreateProcessA(NULL, buf, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
+        CloseHandle(rd);
+        CloseHandle(wr);
+        CloseHandle(nul);
+        return NULL;
+    }
+    CloseHandle(pi.hThread);
+    CloseHandle(rd);
+    CloseHandle(nul);
+    sRecordProcess = pi.hProcess;
+    fd = _open_osfhandle((intptr_t)wr, _O_BINARY);
+    return fd >= 0 ? _fdopen(fd, "wb") : NULL;
+}
+static void CloseRecordPipe(FILE* f) {
+    fclose(f);
+    if (sRecordProcess) {
+        WaitForSingleObject(sRecordProcess, 60000);
+        CloseHandle(sRecordProcess);
+        sRecordProcess = NULL;
+    }
+}
+#else
+static FILE* OpenRecordPipe(const char* cmdline) { return popen(cmdline, "w"); }
+static void CloseRecordPipe(FILE* f) { pclose(f); }
+#endif
+
 static void Present(void) {
     int outW, outH;
     SDL_FRect dst;
@@ -1231,6 +1282,48 @@ static void Present(void) {
         }
     }
     SDL_SetRenderViewport(sRenderer, NULL);
+    {
+        /* KHCOM_RECORD="from-to:file.mov": frames from..to of the window piped
+           straight to ffmpeg (KHCOM_FFMPEG, else ffmpeg on the PATH) as ProRes,
+           one frame at a time, so a recording holds no frames in memory */
+        static FILE* pipe;
+        static unsigned recFrom, recTo;
+        static int recState; /* 0 unparsed, 1 waiting, 2 recording, 3 done */
+        const char* rec = SDL_getenv("KHCOM_RECORD");
+        if (rec && recState == 0) {
+            recState = SDL_sscanf(rec, "%u-%u:", &recFrom, &recTo) == 2 && SDL_strchr(rec, ':') ? 1 : 3;
+        }
+        if (recState == 1 && sFrameCount >= recFrom) {
+            char cmd[1024];
+            const char* ff = SDL_getenv("KHCOM_FFMPEG");
+            int fullW = 0, fullH = 0;
+            SDL_GetCurrentRenderOutputSize(sRenderer, &fullW, &fullH); /* the whole window, bars included */
+            SDL_snprintf(cmd, sizeof(cmd),
+                         "\"%s\" -loglevel error -y -f rawvideo -pix_fmt bgra -s %dx%d -r 60 -i - "
+                         "-c:v prores_ks -profile:v 3 -pix_fmt yuv422p10le -threads 2 \"%s\"",
+                         ff ? ff : "ffmpeg", fullW, fullH, SDL_strchr(rec, ':') + 1);
+            pipe = OpenRecordPipe(cmd);
+            recState = pipe ? 2 : 3;
+            PortLog("record: %s", pipe ? "started" : "ffmpeg not found");
+        }
+        if (recState == 2) {
+            SDL_Surface* s = SDL_RenderReadPixels(sRenderer, NULL);
+            SDL_Surface* c = s ? SDL_ConvertSurface(s, SDL_PIXELFORMAT_BGRA32) : NULL;
+            if (c) {
+                int y;
+                for (y = 0; y < c->h; y++)
+                    fwrite((const uint8_t*)c->pixels + (size_t)y * c->pitch, 4, (size_t)c->w, pipe);
+            }
+            SDL_DestroySurface(c);
+            SDL_DestroySurface(s);
+            if (sFrameCount >= recTo) {
+                CloseRecordPipe(pipe);
+                pipe = NULL;
+                recState = 3;
+                PortLog("record: done");
+            }
+        }
+    }
     {
         /* KHCOM_OUTPUT_SHOT=frames: save the presented window image. */
         const char* out = SDL_getenv("KHCOM_OUTPUT_SHOT");
