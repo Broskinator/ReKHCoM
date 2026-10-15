@@ -16,8 +16,10 @@
 
 static int sActive; /* the game being played is the Re:CoM version */
 
+/* The version belongs to the game being played (chosen at New Game,
+   remembered per save file), not to a setting. */
 int PortRecomActive(void) {
-    return gPortConfig.ps2Mode && sActive;
+    return sActive;
 }
 
 void PortRecomSetActive(int active) {

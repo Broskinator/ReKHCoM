@@ -951,6 +951,7 @@ static void PageHome(SDL_Window* window) {
         if (CycleRow(T("Idioma del juego", "Game language"), nullptr, sGameLanguage, 6, langs))
             SaveLauncherState();
     }
+#ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* save banks: hidden, the game keeps the chosen bank */
     {
         static const char* const banks[] = { "1", "2", "3", "4", "5" };
         int bank = std::clamp(Ini("save_bank"), 1, 5) - 1;
@@ -962,6 +963,7 @@ static void PageHome(SDL_Window* window) {
             SaveIni();
         }
     }
+#endif
     {
         std::error_code ec;
         fs::path save = SavePath(sSelected);
@@ -1015,7 +1017,7 @@ static void PageGraphics() {
     const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
                             T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
                             T("Auto (llenar ventana)", "Auto (fill window)") };
-    const char* zooms[] = { T("Cerca", "Near"), T("Normal", "Normal"), T("Lejos", "Far"), T("Muy lejos", "Very far"),
+    const char* zooms[] = { T("Original (GBA)", "Original (GBA)"), T("Normal", "Normal"), T("Lejos", "Far"), T("Muy lejos", "Very far"),
                             T("Lejísimos", "Farthest") };
     const char* scales[] = { T("Entero", "Integer"), T("Ajustar", "Fit"), T("Estirar", "Stretch") };
     const char* filters[] = { T("Nítido", "Sharp"), "Pixel art", T("Suave", "Smooth") };
@@ -1040,7 +1042,9 @@ static void PageGraphics() {
     }
     changed |= CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"), nullptr, Ini("zoom"), 5, zooms);
     changed |= CycleRow(T("Escalado", "Scaling"), nullptr, Ini("scale_mode"), 3, scales);
+#ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* filter: an internal setting */
     changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);
+#endif
     changed |= CycleRow(T("Tamaño del HUD", "HUD size"), nullptr, Ini("hud_size"), 3, huds);
     changed |= CycleRow(T("Escenas tamaño GBA", "GBA-size scenes"), nullptr, Ini("narrow_fit"), 2, narrow);
     ImGui::EndChild();
@@ -1112,6 +1116,7 @@ static void PageExtras() {
     bool changed = false;
     BeginCard("extras");
     Eyebrow(T("MEJORAS", "ENHANCEMENTS"));
+#ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* raised cards: an internal setting */
     {
         static const char* raise[] = { "Off", "4 px", "8 px", "12 px", "16 px" };
         int r = std::clamp(Ini("card_hud_raise") / 4, 0, 4);
@@ -1124,6 +1129,7 @@ static void PageExtras() {
             changed = true;
         }
     }
+#endif
     ImGui::Separator();
     changed |= ToggleRow(T("Voltereta con un botón", "One-button dodge roll"),
                          T("X en el mando, C en el teclado: rueda hacia la dirección que mantienes o hacia donde "
@@ -1172,13 +1178,14 @@ static void PageExtras() {
                          Ini("hd2d"));
     ImGui::Separator();
 #endif
-    changed |= ToggleRow(T("Audio suave", "Smooth audio"),
+    changed |= ToggleRow(T("Filtro de audio", "Audio filter"),
                          T("Interpolación cúbica de las muestras y un filtro paso bajo suave: menos aspereza metálica "
                            "en los agudos que dejan las bajas frecuencias de muestreo de la GBA.",
                            "Cubic sample interpolation and a gentle low-pass: less of the metallic edge the GBA's "
                            "low sample rates leave in the treble."),
                          Ini("smooth_audio"));
     ImGui::Separator();
+#ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* Re:CoM is chosen at New Game, per save */
     changed |= ToggleRow(T("Modo Re:CoM", "Re:CoM mode"),
                          T("Al empezar una partida nueva puedes elegir la versión: la original de GBA o la Re:CoM, "
                            "con mejoras de Kingdom Hearts Re:Chain of Memories (PS2) como niveles de dificultad y "
@@ -1189,6 +1196,7 @@ static void PageExtras() {
                            "faster dialogue. Each game remembers its own. Off, everything stays as the original "
                            "cartridge."),
                          Ini("ps2_mode"));
+#endif
     ImGui::EndChild();
     if (changed)
         SaveIni();

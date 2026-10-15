@@ -1368,7 +1368,7 @@ static void Present(void) {
         PortUiSetFps(sFps, sLogicFps);
         nw = PortUiDrawNotice(sNoticeBuf, 256, 14);
         if (nw > 0) {
-            float f = SDL_max(1.0f, SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W));
+            float f = SDL_max(1.0f, SDL_floorf(outH / 360.0f)); /* about a sixth of the old size at 1080p: x3 */
             SDL_FRect src = { 0, 0, (float)nw, 14 };
             SDL_FRect nd = { 4 * f, 4 * f, nw * f, 14 * f };
 

@@ -31,7 +31,7 @@ included), in all five European languages, English (US) and Japanese.
 - **Two ways to play.** New Game asks for the version: the original, exactly
   as on the cartridge, or Re:Chain of Memories, with PS2-inspired difficulty
   levels, HD text and one-button dodge and stock.
-- **HD text, HD-2D look, smooth audio** as optional enhancements.
+- **HD text and smooth audio** as optional enhancements.
 
 <p align="center"><img src="docs/screenshots/deck.png" width="32%"> <img src="docs/screenshots/status.png" width="32%"> <img src="docs/screenshots/worldcards.png" width="32%"></p>
 <p align="center"><img src="docs/screenshots/journal.png" width="32%"> <img src="docs/screenshots/worldmap.png" width="32%"> <img src="docs/screenshots/vortex.png" width="32%"></p>

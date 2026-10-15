@@ -82,7 +82,14 @@ static int PageEnd(void) {
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
     switch (item) {
-        case ITEM_PS2_MENU: return PortRecomActive();
+        /* the version and its difficulty are chosen at New Game and stay
+           with the save, as in the original: no switch for them here */
+        case ITEM_PS2_MODE:
+        case ITEM_PS2_MENU: return 0;
+        /* settings of our own, not the player's to tune */
+        case ITEM_FILTER:
+        case ITEM_CARDS:
+        case ITEM_SAVEBANK: return 0;
         case ITEM_NG_VERSION: return 1;
         case ITEM_NG_DIFFICULTY: return sNgRecom;
         case ITEM_HDHUD: return 0; /* HD HUD pending: hidden and forced off (KHCOM_HD_HUD_DEV=1 for development) */
@@ -126,7 +133,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "HD HUD (pilot)", "HUD HD (pilote)", "HD-HUD (Pilot)", "HUD HD (pilota)", "HUD HD (piloto)", "HD HUD (試験)" },
     { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
-    { "Smooth audio", "Son adouci", "Weicher Klang", "Audio morbido", "Audio suave", "なめらかな音" },
+    { "Audio filter", "Filtre audio", "Audiofilter", "Filtro audio", "Filtro de audio", "オーディオフィルター" },
     { "Re:CoM mode", "Mode Re:CoM", "Re:CoM-Modus", "Modalità Re:CoM", "Modo Re:CoM", "Re:CoMモード" },
     { "Re:CoM settings", "Réglages Re:CoM", "Re:CoM-Einstellungen", "Impostazioni Re:CoM", "Ajustes Re:CoM",
       "Re:CoM設定" },
@@ -255,7 +262,9 @@ static const char* const sViews[PORT_VIEW_COUNT][LANG_COUNT] = {
     { "Auto (fill window)", "Auto (remplir)", "Auto (füllen)", "Auto (riempi)", "Auto (llenar ventana)", "自動 (画面に合わせる)" },
 };
 static const char* const sZooms[PORT_ZOOM_COUNT][LANG_COUNT] = {
-    { "Near", "Proche", "Nah", "Vicino", "Cerca", "近い" },
+    /* the closest step shows the GBA's own 160 lines at full height, as an
+       emulator stretched to the screen: the original view */
+    { "Original (GBA)", "Original (GBA)", "Original (GBA)", "Originale (GBA)", "Original (GBA)", "オリジナル (GBA)" },
     { "Normal", "Normal", "Normal", "Normale", "Normal", "ふつう" },
     { "Far", "Loin", "Weit", "Lontano", "Lejos", "遠い" },
     { "Very far", "Très loin", "Sehr weit", "Molto lontano", "Muy lejos", "とても遠い" },
