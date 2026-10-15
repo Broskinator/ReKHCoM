@@ -1812,6 +1812,8 @@ int PortPacedByVsync(void) {
     return sPacedByVsync;
 }
 
+static uint64_t sPpuTicks;
+
 /* One display frame: draw, vertical blank, present, input, pacing. */
 static void VBlankCycle(void) {
     const char* frameLogPath = SDL_getenv("KHCOM_FRAMELOG");
@@ -1832,7 +1834,11 @@ static void VBlankCycle(void) {
     UpdateResolution();
 
     /* Visible lines (HBlank / VCount events in between). */
-    PortPpuRenderFrame();
+    {
+        uint64_t t0 = SDL_GetPerformanceCounter();
+        PortPpuRenderFrame();
+        sPpuTicks = SDL_GetPerformanceCounter() - t0;
+    }
 
     /* Line 160: vertical blank. */
     IO16(0x06) = GBA_SCREEN_H;
@@ -1844,7 +1850,24 @@ static void VBlankCycle(void) {
     IO16(0x04) &= ~1;
 
     PortAudioFrame();
-    Present();
+    {
+        /* KHCOM_PROFILE: mean PPU and present time every 240 frames */
+        static uint64_t ppuSum, presSum;
+        static int n;
+        uint64_t p0 = SDL_GetPerformanceCounter();
+        Present();
+        if (SDL_getenv("KHCOM_PROFILE")) {
+            presSum += SDL_GetPerformanceCounter() - p0;
+            ppuSum += sPpuTicks;
+            if (++n == 240) {
+                double f = 1000.0 / SDL_GetPerformanceFrequency() / n;
+                PortLog("profile: canvas %dx%d ppu %.2f ms present %.2f ms", gPortScreen.width, gPortScreen.height,
+                        ppuSum * f, presSum * f);
+                ppuSum = presSum = 0;
+                n = 0;
+            }
+        }
+    }
     PumpEvents();
 
     /* Options overlay: the game is paused until it closes. */

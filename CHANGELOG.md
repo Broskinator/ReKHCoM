@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v1.6.5 — 2026-10-15
+
+- Full speed at every zoom: the far steps that made the software renderer
+  draw more than it can at 60 fps (x2 at 1080p, 960x540) are no longer
+  offered; on very large or ultrawide screens Normal picks a scale the
+  renderer keeps up with.
+
 ## v1.6.4 — 2026-10-15
 
 - Older settings go back to Aspect ratio: Fill window once, so the picture

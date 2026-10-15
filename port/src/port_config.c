@@ -175,8 +175,17 @@ void PortConfigView(int mode, int* w, int* h) {
    Normal. */
 static int sZoomOutW = 1920, sZoomOutH = 1080;
 
+/* The smallest scale whose canvas the software PPU still draws at full
+   speed: it costs about 40 ns a pixel, so the canvas is kept near 640x360
+   (about 10 ms a frame). Larger canvases (x2 at 1080p: 960x540, 22 ms)
+   dropped below 60 fps. */
+#define ZOOM_PIXEL_BUDGET (640 * 360 * 5 / 4)
+
 static int ZoomLeast(void) {
-    return SDL_max(SDL_max((sZoomOutW + PORT_MAX_W - 1) / PORT_MAX_W, (sZoomOutH + PORT_MAX_H - 1) / PORT_MAX_H), 1);
+    int s = SDL_max(SDL_max((sZoomOutW + PORT_MAX_W - 1) / PORT_MAX_W, (sZoomOutH + PORT_MAX_H - 1) / PORT_MAX_H), 1);
+    while (((sZoomOutW + s - 1) / s) * ((sZoomOutH + s - 1) / s) > ZOOM_PIXEL_BUDGET)
+        s++;
+    return s;
 }
 
 static int ZoomRaw(int zoom) {
