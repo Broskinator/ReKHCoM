@@ -222,7 +222,7 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
-    { "config_version", 4 }, { "view_mode", 4 },   { "zoom", 1 },         { "scale_mode", 0 },
+    { "config_version", 5 }, { "view_mode", 4 },   { "zoom", 1 },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
@@ -284,6 +284,10 @@ static void LoadIni() {
             sIni["fullscreen_height"] = 0;
         }
         sIni["config_version"] = 4;
+    }
+    if (sIni["config_version"] < 5) {
+        sIni["zoom"] = 1; /* Normal, x3 at 1080p */
+        sIni["config_version"] = 5;
     }
 }
 

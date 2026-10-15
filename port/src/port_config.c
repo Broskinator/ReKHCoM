@@ -67,7 +67,7 @@ PortConfig gPortConfig = {
     },
 };
 
-#define CONFIG_VERSION 4
+#define CONFIG_VERSION 5
 
 static int sConfigVersion;
 static char sDataPath[768];
@@ -258,6 +258,10 @@ void PortConfigLoad(void) {
         gPortConfig.narrowFit = 1;
     /* ...and from before v1.5 (fullscreen 1920x1080 by default) to the
        monitor's own resolution, so ultrawide monitors fill at 32:9. */
+    /* ...and from before v1.6.2 back to the Normal zoom (x3 at 1080p): the
+       steps were renumbered while testing */
+    if (sConfigVersion < 5)
+        gPortConfig.zoom = 1;
     if (sConfigVersion < 4 && gPortConfig.fullscreenWidth == 1920 && gPortConfig.fullscreenHeight == 1080) {
         gPortConfig.fullscreenWidth = 0;
         gPortConfig.fullscreenHeight = 0;
