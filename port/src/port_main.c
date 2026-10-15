@@ -1728,6 +1728,12 @@ static void VBlankCycle(void) {
         Present();
         PumpEvents();
         Pace();
+        /* Harness: with KHCOM_VPAD the menu frames count too, so the
+           virtual pad can drive the overlay and KHCOM_RECORD films it. */
+        if (SDL_getenv("KHCOM_VPAD")) {
+            (void)PortInputKeys();
+            sFrameCount++;
+        }
     }
     IO16(0x130) = (uint16_t)(~PortInputResolve(PortInputKeys() | HarnessKeys(sFrameCount) | PortBotKeys(sFrameCount)) & 0x3FF);
     HarnessFrame();
