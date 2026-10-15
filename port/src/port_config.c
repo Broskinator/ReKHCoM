@@ -66,7 +66,7 @@ PortConfig gPortConfig = {
     },
 };
 
-#define CONFIG_VERSION 2
+#define CONFIG_VERSION 3
 
 static int sConfigVersion;
 static char sDataPath[768];
@@ -204,8 +204,12 @@ void PortConfigLoad(void) {
     }
     fclose(f);
     /* Settings files from before the auto view switch to it once. */
-    if (sConfigVersion < CONFIG_VERSION)
+    if (sConfigVersion < 2)
         gPortConfig.viewMode = PORT_VIEW_AUTO;
+    /* ...and from before v1.0 to filling the height in GBA-size scenes,
+       whose margins are now drawn on the picture's own pixel grid. */
+    if (sConfigVersion < 3)
+        gPortConfig.narrowFit = 1;
 }
 
 void PortConfigSave(void) {

@@ -9,7 +9,7 @@
 #ifdef PLATFORM_PC
 /* Door menu: the panel, cards and caption sit a few lines above the bottom
    bar instead of resting on it; the title and the bars stay in place. */
-#define MAPSEL_RAISE 6
+#define MAPSEL_RAISE 8 /* the panel's rounded bottom closes one line above the bar */
 #define MAPSEL_SHIFT(dy) (gPortSpriteShiftY = mapselBaseY + (dy))
 #else
 #define MAPSEL_RAISE 0

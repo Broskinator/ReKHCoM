@@ -222,7 +222,7 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
-    { "config_version", 2 }, { "view_mode", 4 },   { "zoom", 1 },         { "scale_mode", 0 },
+    { "config_version", 3 }, { "view_mode", 4 },   { "zoom", 1 },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 1920 }, { "fullscreen_height", 1080 },
@@ -270,6 +270,11 @@ static void LoadIni() {
     if (sIni["config_version"] < 2) {
         sIni["view_mode"] = 4;
         sIni["config_version"] = 2;
+    }
+    /* ...and from before v1.0 to filling the height in GBA-size scenes. */
+    if (sIni["config_version"] < 3) {
+        sIni["narrow_fit"] = 1;
+        sIni["config_version"] = 3;
     }
 }
 
