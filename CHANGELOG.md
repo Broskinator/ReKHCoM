@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+## v1.5 — 2026-10-15
+
+- Fullscreen uses the monitor's own resolution by default, so ultrawide
+  monitors (5120x1440 and others) fill the screen; the launcher lists the
+  monitor's resolutions.
+- Zoom: Normal shows the world at x4 on a 1080p screen; no two steps give the
+  same scale; the closest step is Original (GBA), the cartridge's view at full
+  height.
+- Battles at far zooms: the stage carries on below instead of a black band.
+- Field minimap stays in its corner at every zoom, a little in from the edge.
+- Room synthesis: the cursor, hand and card name line up with the cards
+  again, also after the event-door tutorial; the door's shade covers the whole
+  screen.
+- The Re:Chain of Memories version belongs to each save, chosen at New Game:
+  no switch in the options; loading a save brings back its settings.
+- Options trimmed: Filter, raised battle cards and save banks are internal
+  now; Smooth audio is called Audio filter; the FPS counter is smaller.
+- HD-2D look hidden until it is finished, like the HD HUD.
+
 ## v1.4 — 2026-10-15
 
 - HD text: field dialogue shows its HD letters again. Since v1.0 the message

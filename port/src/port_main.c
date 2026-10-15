@@ -243,8 +243,10 @@ static SDL_Rect AspectRect(int outW, int outH) {
    1080p uses x5 (was x6.75), 1440p x6 (was x9). Keep it independent
    of world zoom, and fit small windows without cropping their UI. */
 static float MenuScale(int outW, int outH) {
-    float fit = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
-    return SDL_min(fit, (float)SDL_max(1, outH / 216));
+    /* Menus fill the window's height, as in v1.4. A smaller menu scale left
+       black bands above and below, because the margins only extend the menus
+       sideways; it returns when the headers and footers carry on vertically. */
+    return SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
 }
 
 /* Auto view: size the canvas to the window every frame. */

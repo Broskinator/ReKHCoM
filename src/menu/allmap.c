@@ -222,8 +222,12 @@ void task_allmap_room_2(AllmapRoomWork* work) {
 
 #ifdef PLATFORM_PC
     /* Only the field diagram is a HUD element; the full map is unchanged. */
-    if (work->asSprite)
+    if (work->asSprite) {
         PortHudBegin(1, -1);
+        /* a little breathing room from the corner, at the HUD's own scale */
+        x -= 6;
+        y += 6;
+    }
 #endif
     if (work->gfx2 != NULL) {
         DrawSprite(x, y, work->gfx2, work->tiles, work->palette, NULL, flags, priority);
