@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v1.6.3 — 2026-10-15
+
+- Room synthesis is a full-screen menu again (its title band and bars reach
+  the screen's edges); only the door's spotlight before it fills the height.
+
 ## v1.6.2 — 2026-10-15
 
 - Menus and every GBA-size scene fill the screen again at any zoom (no

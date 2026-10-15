@@ -1838,7 +1838,7 @@ void PortPpuBeginFrame(void) {
     /* the door's spotlight (hitting a door, then room synthesis) is a
        GBA-size scene: shown at the window's height like the other menus,
        never as a small picture at the world's zoom */
-    gPortScreen.wide = any && !sSceneNarrow && !sSpotlight
+    gPortScreen.wide = any && !sSceneNarrow && !(sSpotlight && !(sScreenBgMask & 2u))
                        && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
                        && !(dispcnt & 0x80);
     if (getenv("KHCOM_PPULOG"))
