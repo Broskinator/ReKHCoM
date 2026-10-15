@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+## v1.4 — 2026-10-15
+
+- HD text: field dialogue shows its HD letters again. Since v1.0 the message
+  windows marked their own area as covered, so with HD text on the dialogue
+  boxes came up empty.
+- Side margins: no more black column at the right edge of the picture at
+  window sizes such as 1920x997 (a window pixel on the picture's exact edge
+  was drawn by neither the picture nor the margin).
+- Menu headers in the margin appear together with the header, not before it,
+  while a menu slides in.
+- Deck and other menus: the header's line reaches the margins together with
+  the menu's slide-in.
+- World map: the floor badge (P 1) no longer has the coloured bands drawn
+  over its continuation while it slides in.
+- Save files (New game and Load): side margins drawn from their own scene,
+  with the frame's bars and the title band carried on (the 18th screen).
+- New game: the first question no longer shows "B Back" (there is nothing
+  before it).
+- Zoom (Auto view): every step now shows more of the world than the one
+  before, and a new step, Farthest, makes everything smaller (as on a 32:9
+  monitor) on a 16:9 screen. The option shows the pixel scale it gives.
+- HD HUD: pending until it is finished; forced off for players.
+
 ## v1.3 — 2026-10-15
 
 - The opening movie's "press again to skip" prompt keeps its normal size and

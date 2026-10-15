@@ -501,7 +501,7 @@ static uint8_t sObjIndex[PORT_MAX_W];
 static uint8_t sOccBg[PORT_MAX_W * PORT_MAX_H];
 static uint8_t sOccBgLayer[PORT_MAX_W * PORT_MAX_H];
 /* HD-2D: 1 where a message window (docked layer) shows; allocated on use. */
-static uint8_t* sMsgMask;
+static uint8_t sMsgMask[PORT_MAX_W * PORT_MAX_H]; /* 1 where a message window shows */
 static uint16_t sOccObj[PORT_MAX_W * PORT_MAX_H];
 static uint8_t sObjSemi[PORT_MAX_W];
 static uint8_t sObjWin[PORT_MAX_W];
@@ -1326,8 +1326,7 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
             for (k = 0; k < 4; k++)
                 if (bgOn[k] && sBgDockedLatched[k] && (mask & WIN_BG(k)) && sBgLine[k][x] != TRANSPARENT)
                     message = 1;
-            if (sMsgMask != NULL)
-                sMsgMask[y * w + x] = (uint8_t)message;
+            sMsgMask[y * w + x] = (uint8_t)message;
             if (!(mask & WIN_OBJ) || (message && sHudLayer)) {
                 sOccBg[y * w + x] = 0;
                 sOccBgLayer[y * w + x] = 0;
@@ -2068,7 +2067,40 @@ static int HeaderBandColor(int y, int phase) {
     return sHeaderBand[phase & 1][y];
 }
 
+static uint32_t HeaderPixelRaw(int y, int phase);
+
+/* Is the header on the picture now? Its band must be in the picture's left
+   column: while a menu is still coming in (before its title has appeared)
+   the margin must not show the band. Checked once a frame, on GBA-size
+   pictures only. */
+static int HeaderOnScreen(void) {
+    static uint32_t checked = ~0u;
+    static int shown;
+    int yy, opaque = 0, match = 0;
+    if (gPortScreen.wide)
+        return 1;
+    if (checked == PortFrameCount())
+        return shown;
+    checked = PortFrameCount();
+    for (yy = 0; yy < 16 && gPortScreen.originY + yy < gPortScreen.height; yy++) {
+        uint32_t a = HeaderPixelRaw(yy, 0) & 0xFFFFFF, b = HeaderPixelRaw(yy, 1) & 0xFFFFFF;
+        uint32_t px = gPortFrame[(gPortScreen.originY + yy) * gPortScreen.width + gPortScreen.originX] & 0xFFFFFF;
+        if (!a && !b)
+            continue;
+        opaque++;
+        match += px == a || px == b;
+    }
+    shown = opaque > 0 && match * 2 >= opaque;
+    return shown;
+}
+
 uint32_t PortMenuHeaderPixel(int y, int phase) {
+    if (!sMenuHeaderFrame || !HeaderOnScreen())
+        return 0;
+    return HeaderPixelRaw(y, phase);
+}
+
+static uint32_t HeaderPixelRaw(int y, int phase) {
     int col;
     if (!sMenuHeaderFrame)
         return 0;
@@ -2480,17 +2512,24 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
                     continue;
             }
         }
-        if (!onScreen) {
+        if (!onScreen && !onHud) {
             /* HD glyphs bypass DrawObjs, but must still obey the cartridge's
                background/window and object priority. A covered glyph must
-               not be painted over a tutorial or confirmation panel. */
+               not be painted over a tutorial or confirmation panel. Glyphs on
+               the HUD layer (field dialogue) are not in the world picture, so
+               its coverage says nothing about them: checking it hid all of
+               the field's HD dialogue. */
             int px = ox + gPortScreen.originX + 4;
             int py = oy + gPortScreen.originY + 6;
             int prio = (a2 >> 10) & 3;
             if (px >= 0 && px < gPortScreen.width && py >= 0 && py < gPortScreen.height) {
                 int at = py * gPortScreen.width + px;
-                if ((sOccBg[at] == 0 && sOccObj[at] == 0) || sOccBg[at] < prio ||
-                    sOccObj[at] < prio * 128 + i)
+                /* a message window marks its area as covered (it stays in
+                   front of the HUD), but the text on it is its own: the
+                   field dialogue must stay visible */
+                int message = sHudLayer && sMsgMask[at];
+                if (!message && ((sOccBg[at] == 0 && sOccObj[at] == 0) || sOccBg[at] < prio ||
+                    sOccObj[at] < prio * 128 + i))
                     continue;
             }
         }
@@ -2540,11 +2579,6 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
 void PortPpuSpriteMask(uint8_t* out) {
     int i, n = gPortScreen.width * gPortScreen.height;
 
-    if (sMsgMask == NULL) {
-        sMsgMask = calloc(PORT_MAX_W * PORT_MAX_H, 1);
-        if (sMsgMask == NULL)
-            return;
-    }
     for (i = 0; i < n; i++) {
         uint16_t obj = sOccObj[i];
         uint8_t bg = sOccBg[i];

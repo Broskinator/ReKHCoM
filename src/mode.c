@@ -90,7 +90,8 @@ extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, g
 static int ModeIsFullScreenMenu(const Mode* mode) {
     return mode == &gModeDeck || mode == &gModeStatus || mode == &gModeJiminy || mode == &gModeAllmap
         || mode == &gModeMapinspect || mode == &gModeWorldinspect || mode == &gModeWorldselect
-        || mode == &gModeWORLDSELECT || mode == &gModeWorldwarp || mode == &gModeMsTop;
+        || mode == &gModeWORLDSELECT || mode == &gModeWorldwarp || mode == &gModeMsTop
+        || mode == &gModeMenuNew || mode == &gModeMenuLoad;
 }
 #endif
 
@@ -113,6 +114,8 @@ void ModeStart(Mode* mode, s32 arg) {
                   (mode == &gModeWORLDSELECT || mode == &gModeWorldwarp) ? PORT_SIDE_BLUR_BANDS
                   /* the journal: green paper, its title and footer bars carried on */
                   : mode == &gModeJiminy ? PORT_SIDE_GROUND_BANDS
+                  /* the save files (new game, load): their scene and their bars */
+                  : (mode == &gModeMenuNew || mode == &gModeMenuLoad) ? PORT_SIDE_SCENE_BANDS
                   : PORT_SIDE_EDGE_FADE); /* no stretched columns anywhere */
     PortSceneNarrow(ModeIsFullScreenMenu(mode));
 #endif

@@ -148,6 +148,9 @@ void PortConfigSave(void);
 void PortConfigView(int mode, int* w, int* h);
 /* Internal size and pixel scale that fill an outW x outH output (auto view). */
 void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale);
+#define PORT_ZOOM_COUNT 5 /* Auto view zoom: near, normal, far, very far, farthest */
+/* the whole-number scale a zoom step gives at the current window height */
+int PortConfigZoomScale(int zoom);
 const char* PortConfigPath(const char* name);
 
 /* ---- memory (port_memory.c) -------------------------------------------- */

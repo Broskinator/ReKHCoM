@@ -41,7 +41,7 @@ PortConfig gPortConfig = {
     0,                  /* ps2Mode (experimental) */
     0,                  /* ps2Difficulty (experimental) */
     0,                  /* ps2FastText (experimental) */
-    0,                  /* hdHud (experimental) */
+    0,                  /* hdHud: pending, forced off (see PortConfigLoad) */
     0,                  /* aspect: fill the window */
     {
         { SDLK_X, SDLK_K },             /* A */
@@ -86,7 +86,7 @@ typedef struct Key {
 static const Key sKeys[] = {
     { "config_version", &sConfigVersion, 0, 1000 },
     { "view_mode", &gPortConfig.viewMode, 0, PORT_VIEW_COUNT - 1 },
-    { "zoom", &gPortConfig.zoom, 0, 3 },
+    { "zoom", &gPortConfig.zoom, 0, PORT_ZOOM_COUNT - 1 },
     { "scale_mode", &gPortConfig.scaleMode, 0, PORT_SCALE_COUNT - 1 },
     { "filter", &gPortConfig.filter, 0, PORT_FILTER_COUNT - 1 },
     { "fullscreen", &gPortConfig.fullscreen, 0, 1 },
@@ -166,9 +166,31 @@ void PortConfigView(int mode, int* w, int* h) {
     }
 }
 
+/* Auto view's whole-number pixel scale for each zoom step at a window
+   height: Normal as it always was (180 lines), Near the largest that still
+   shows the GBA's 160 lines, and each step further out at least one scale
+   below the one before it (at 1080 lines: 6, 6, 5, 4, 3), so every step
+   shows more of the world. */
+static int sZoomOutW = 1920, sZoomOutH = 1080;
+
+int PortConfigZoomScale(int zoom) {
+    static const int target[PORT_ZOOM_COUNT] = { 160, 180, 216, 240, 360 };
+    int s[PORT_ZOOM_COUNT], k, outH = sZoomOutH;
+    /* the smallest scale whose canvas fits the renderer's limits */
+    int least = SDL_max(SDL_max((sZoomOutW + PORT_MAX_W - 1) / PORT_MAX_W, (outH + PORT_MAX_H - 1) / PORT_MAX_H), 1);
+    s[1] = SDL_max(outH / target[1], 1);
+    s[0] = SDL_max(outH / target[0], s[1]);
+    for (k = 2; k < PORT_ZOOM_COUNT; k++)
+        s[k] = SDL_max(SDL_min(outH / target[k], s[k - 1] - 1), 1);
+    return SDL_max(s[SDL_clamp(zoom, 0, PORT_ZOOM_COUNT - 1)], least);
+}
+
 void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale) {
-    static const int target[4] = { 160, 180, 216, 240 };
-    int s = outH / target[SDL_clamp(gPortConfig.zoom, 0, 3)];
+    int s;
+
+    sZoomOutW = outW;
+    sZoomOutH = outH;
+    s = PortConfigZoomScale(gPortConfig.zoom);
 
     if (s < 1)
         s = 1;
@@ -212,6 +234,11 @@ void PortConfigLoad(void) {
        whose margins are now drawn on the picture's own pixel grid. */
     if (sConfigVersion < 3)
         gPortConfig.narrowFit = 1;
+    /* HD HUD: pending, off for players until it is finished, whatever an
+       older kh_com.ini says. Development builds turn it on with
+       KHCOM_HD_HUD_DEV=1 (then kh_com.ini's hd_hud applies). */
+    if (!SDL_getenv("KHCOM_HD_HUD_DEV"))
+        gPortConfig.hdHud = 0;
 }
 
 void PortConfigSave(void) {

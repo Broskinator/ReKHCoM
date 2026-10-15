@@ -4333,7 +4333,7 @@ void LoadGameMenuDraw() {
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
         PORT_BAND(DrawSprite(128, sLoadGameMenuWork->y2 >> 8, gMenuLoadTitleFrames[2], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
-        DrawSprite(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleFrames[0], sLoadGameMenuWork->tiles2,
+        DrawMenuHeader(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleFrames[0], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 80);
         break;
     case LANGUAGE_FRENCH:
@@ -4341,7 +4341,7 @@ void LoadGameMenuDraw() {
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
         PORT_BAND(DrawSprite(128, sLoadGameMenuWork->y2 >> 8, gMenuLoadTitleFrenchFrames[2], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
-        DrawSprite(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleFrenchFrames[0], sLoadGameMenuWork->tiles2,
+        DrawMenuHeader(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleFrenchFrames[0], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 80);
         break;
     case LANGUAGE_SPANISH:
@@ -4349,7 +4349,7 @@ void LoadGameMenuDraw() {
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
         PORT_BAND(DrawSprite(128, sLoadGameMenuWork->y2 >> 8, gMenuLoadTitleSpanishFrames[2], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
-        DrawSprite(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleSpanishFrames[0], sLoadGameMenuWork->tiles2,
+        DrawMenuHeader(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleSpanishFrames[0], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 80);
         break;
     case LANGUAGE_ITALIAN:
@@ -4357,7 +4357,7 @@ void LoadGameMenuDraw() {
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
         PORT_BAND(DrawSprite(128, sLoadGameMenuWork->y2 >> 8, gMenuLoadTitleItalianFrames[2], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
-        DrawSprite(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleItalianFrames[0], sLoadGameMenuWork->tiles2,
+        DrawMenuHeader(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleItalianFrames[0], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 80);
         break;
     case LANGUAGE_GERMAN:
@@ -4366,7 +4366,7 @@ void LoadGameMenuDraw() {
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
         PORT_BAND(DrawSprite(128, sLoadGameMenuWork->y2 >> 8, gMenuLoadTitleGermanFrames[2], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
-        DrawSprite(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleGermanFrames[0], sLoadGameMenuWork->tiles2,
+        DrawMenuHeader(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleGermanFrames[0], sLoadGameMenuWork->tiles2,
             sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 80);
         break;
     }
@@ -4375,7 +4375,7 @@ void LoadGameMenuDraw() {
         sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
     PORT_BAND(DrawSprite(128, sLoadGameMenuWork->y2 >> 8, gMenuLoadTitleFrames[2], sLoadGameMenuWork->tiles2,
         sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 90));
-    DrawSprite(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleFrames[0], sLoadGameMenuWork->tiles2,
+    DrawMenuHeader(sLoadGameMenuWork->x >> 8, 0, gMenuLoadTitleFrames[0], sLoadGameMenuWork->tiles2,
         sLoadGameMenuWork->palette2, NULL, SPRITE_PRIORITY(3), 80);
 #endif
 

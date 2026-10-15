@@ -381,6 +381,13 @@ static void RenderMarginColumns(SDL_Texture* tex, int fw, int side, float picX, 
         int c = side < 0 ? xx - fw : GBA_SCREEN_W + xx;
         float a = PixelEdge(picX, c, scale), b = PixelEdge(picX, c + 1, scale);
         SDL_FRect src = { (float)xx, 0, 1, GBA_SCREEN_H }, d;
+        /* next to the picture the margin starts where the picture's own
+           pixels stop: a window pixel whose centre lies exactly on its
+           right edge is not drawn by the picture (at 1920x997 the edge is
+           at x 1707.5), and the tie rule above would skip it as well,
+           leaving a black column down the screen */
+        if (c == GBA_SCREEN_W)
+            a = SDL_ceilf(picX + GBA_SCREEN_W * scale - 0.5f);
         if (side < 0 ? b <= 0 : a >= limit)
             continue;
         d.x = a;
@@ -401,7 +408,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
        The presentation was copying that padding into otherwise black bars. */
     if (PortSpotlightActive())
         return;
-    if (sSideStyle == 6 || sSideStyle == 7) {
+    if (sSideStyle == 6 || sSideStyle == 7 || sSideStyle == 11) {
         static const uint8_t dither[16] = {0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5};
         static uint32_t pixels[PORT_MAX_W * GBA_SCREEN_H];
         int fw = SDL_clamp((int)SDL_ceilf((x1 - x0) / scale), 1, PORT_MAX_W);
@@ -414,14 +421,14 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
             sFadeSideWidth = sFadeSideTexture ? fw : 0;
         }
         if (!sFadeSideTexture) return;
-        if (sSideStyle == 7) {
+        if (sSideStyle == 7 || sSideStyle == 11) {
             extern void PortNarrowSidesFinish(void);
             PortNarrowSidesFinish();
         }
         for (yy = 0; yy < GBA_SCREEN_H; yy++) {
             for (xx = 0; xx < fw; xx++) {
                 int distance = side < 0 ? fw - xx - 1 : xx;
-                if (sSideStyle == 7) {
+                if (sSideStyle == 7 || sSideStyle == 11) {
                     /* the PPU's own margin: scenery mirrored, bands carried on */
                     extern uint32_t PortNarrowSidePixel(int side, int y, int distance);
                     uint32_t color = PortNarrowSidePixel(side, yy, distance);
@@ -485,7 +492,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                share none (the floor badge on the left) continue their edge
                column, so the badge's letters are not repeated. */
             uint32_t common = 0;
-            int best = 0, k2, plain = 0;
+            int best = 0, k2, plain = 0, badge;
             const uint32_t* bgRow = &gPortMenuBackground[(sy + yy) * gPortScreen.width];
             const uint32_t* own = &bgRow[sx];
             const uint32_t* other = &bgRow[side < 0 ? sx + GBA_SCREEN_W - 16 : sx - (GBA_SCREEN_W - 16)];
@@ -501,7 +508,20 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
             /* edges with nothing in common: a band that repeats every 1, 2 or
                4 columns (plain or a checkerboard) still repeats; a badge with
                letters does not */
-            if (sSideStyle == 5 && !best) {
+            /* the column touching the margin in a colour the other edge
+               lacks is the floor badge reaching the screen edge (also while
+               it slides in over the bands): the row carries it on plainly */
+            badge = 0;
+            if (sSideStyle == 5 && side < 0) { /* the floor badge sits on the left */
+                uint32_t adj = gPortFrame[(sy + yy) * gPortScreen.width + edgeX];
+                int adjShared = 0;
+                for (k2 = 0; k2 < 16; k2++) adjShared |= other[k2] == adj;
+                if (!adjShared) {
+                    best = 0;
+                    badge = 1;
+                }
+            }
+            if (sSideStyle == 5 && !best && !badge) {
                 int per;
                 for (per = 1; per <= 4 && !plain; per *= 2) {
                     for (xx = 0; xx + per < 16 && own[xx] == own[xx + per]; xx++) {}
@@ -522,19 +542,37 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                 if (sSideStyle == 5 && (best || plain))
                     sample = side < 0 ? sx + ((-1 - d) & 15) : sx + (d & 15);
                 *px = gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
+                /* the badge's rows: the edge as it shows, sprites included
+                   (while it slides in, its lower rows are a sprite) */
+                if (badge)
+                    *px = gPortFrame[(sy + yy) * gPortScreen.width + edgeX];
                 if (sSideStyle == 5 && best) {
                     int shared = 0;
                     for (k2 = 0; k2 < 16; k2++) shared |= other[k2] == *px;
                     if (!shared)
                         *px = common;
                 }
-                if (sSideStyle == 5) {
+                /* the band sprites pass behind the floor badge (a row whose
+                   edges share nothing): while they slide in, the badge's
+                   continuation stays in front of them, as in the picture */
+                if (sSideStyle == 5 && !badge && (best || plain)) {
                     uint32_t bandColor = PortMenuBandPixel(yy, side < 0 ? (-1 - d) & 15 : d & 15);
                     if (bandColor) *px = bandColor;
                 }
                 if (yy < 16 && side < 0) {
                     uint32_t header = PortMenuHeaderPixel(yy, d);
                     if (header) *px = header;
+                }
+                /* a menu still coming in: its header's line (a sprite) runs
+                   across the picture before the title arrives; a sprite row
+                   of one colour 64 pixels long from the edge carries on */
+                if (sSideStyle == 4 && yy < 32 && !PortMenuHeaderPixel(yy & 15, 0)) {
+                    const uint32_t* fr = &gPortFrame[(sy + yy) * gPortScreen.width];
+                    uint32_t c = fr[edgeX];
+                    int k3, step = side < 0 ? 1 : -1;
+                    for (k3 = 0; k3 < 64 && fr[edgeX + k3 * step] == c; k3++) {}
+                    if (k3 >= 64 && c != gPortMenuBackground[(sy + yy) * gPortScreen.width + edgeX])
+                        *px = c;
                 }
                 if (sSideStyle == 4 && side == sMenuPanelSide && yy >= 16 && yy < 32) {
                     uint32_t tab = PortMenuTabPixel(yy, d, side);
@@ -759,6 +797,7 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
     float scale = dst->w / src->w;
     static uint8_t bars[2][GBA_SCREEN_H];
     static uint32_t colors[2][GBA_SCREEN_H];
+    static int runs[2][GBA_SCREEN_H];
     int lbTop = 0, lbBottom = GBA_SCREEN_H;
     PortPpuSpriteMask(mask); /* bars are sprites; the scenery's own runs are not bars */
     {
@@ -786,6 +825,7 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
                     run++;
             }
             color[y] = c;
+            runs[side][y] = run;
             /* a sprite bar, or a BG bar far longer than any run of scenery;
                away from the frame's top and bottom bars (often drawn on the
                scenery layer), a run of the scenery layer itself in a
@@ -810,6 +850,12 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
     for (y = 0; y < GBA_SCREEN_H; y++) {
         if (y >= 24 && y < GBA_SCREEN_H - 24)
             continue;
+        /* style 11 (the save files): a frame line both edges show in the
+           same colour is the frame's, even where a box in front of it (the
+           message window over the bottom bar) cuts both runs short */
+        if (sSideStyle == 11 && !bars[0][y] && !bars[1][y] && colors[0][y] == colors[1][y] &&
+            runs[0][y] >= 16 && runs[1][y] >= 16)
+            bars[0][y] = bars[1][y] = 1;
         for (side = 0; side < 2; side++)
             if (bars[side][y] == 1 && !bars[!side][y] && colors[!side][y] == colors[side][y])
                 bars[!side][y] = 4;
@@ -1204,6 +1250,12 @@ static void Present(void) {
             SideBar((int)src.x, (int)src.y, -1, dst.y, scale, 0.0f, dst.x, (int)src.x);
             SideBar((int)(src.x + src.w) - SIDE_STRIP, (int)src.y, 1, dst.y, scale, dst.x + dst.w, (float)outW,
                     (int)(src.x + src.w) - 1);
+            /* style 11 (the save files): the frame's bars and title band
+               carried on over the scenery's own margin */
+            if (sSideStyle == 11) {
+                DrawEdgeBands(&src, &dst, outW, 3);
+                DrawHeaderLeft(&src, &dst);
+            }
         }
         worldScale = scale;
         worldX = dst.x - src.x * scale;

@@ -1,3 +1,12 @@
+# HD HUD: pendiente — 15/10/2026 (Claude)
+
+El HD HUD queda **desactivado para los jugadores hasta estar completo**: la
+opción está oculta en el juego y en el launcher, y `PortConfigLoad` lo fuerza a
+0 aunque `kh_com.ini` diga `hd_hud=1`. Para desarrollarlo y probarlo, arrancar
+con `KHCOM_HD_HUD_DEV=1` (entonces vale `hd_hud` del ini). Su trabajo de v0.8
+rompió el texto HD de los diálogos de campo (las ventanas de mensaje marcaban
+su zona como cubierta); arreglado en v1.4 en `PortPpuTextGlyphs`.
+
 # Codex retomó — 14/10/2026, 08:47 (Santiago)
 
 Objetivo vigente: trabajar junto a Claude hasta verificar todas las barras

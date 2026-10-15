@@ -46,7 +46,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.3"
+#define REKHCOM_VERSION "v1.4"
 #endif
 
 static bool sSpanish;
@@ -988,7 +988,8 @@ static void PageGraphics() {
     const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
                             T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
                             T("Auto (llenar ventana)", "Auto (fill window)") };
-    const char* zooms[] = { T("Cerca", "Near"), T("Normal", "Normal"), T("Lejos", "Far"), T("Muy lejos", "Very far") };
+    const char* zooms[] = { T("Cerca", "Near"), T("Normal", "Normal"), T("Lejos", "Far"), T("Muy lejos", "Very far"),
+                            T("Lejísimos", "Farthest") };
     const char* scales[] = { T("Entero", "Integer"), T("Ajustar", "Fit"), T("Estirar", "Stretch") };
     const char* filters[] = { T("Nítido", "Sharp"), "Pixel art", T("Suave", "Smooth") };
     const char* huds[] = { T("Original", "Original"), T("Grande", "Large"), T("Más grande", "Larger") };
@@ -1010,7 +1011,7 @@ static void PageGraphics() {
                               "On wider monitors, 16:9 or 21:9 leave black bars at the sides."),
                             Ini("aspect"), 3, aspects);
     }
-    changed |= CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"), nullptr, Ini("zoom"), 4, zooms);
+    changed |= CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"), nullptr, Ini("zoom"), 5, zooms);
     changed |= CycleRow(T("Escalado", "Scaling"), nullptr, Ini("scale_mode"), 3, scales);
     changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);
     changed |= CycleRow(T("Tamaño del HUD", "HUD size"), nullptr, Ini("hud_size"), 3, huds);
@@ -1098,7 +1099,7 @@ static void PageExtras() {
                            "places and colours."),
                          Ini("hd_text"));
     ImGui::Separator();
-#ifdef REKHCOM_SHOW_HD_HUD /* hidden until the HD HUD is finished; kh_com.ini hd_hud still works */
+#ifdef REKHCOM_SHOW_HD_HUD /* HD HUD pending: hidden, and the game forces it off (KHCOM_HD_HUD_DEV=1 for development) */
     changed |= ToggleRow(T("HUD HD (piloto)", "HD HUD (pilot)"),
                          T("Marco de vida del enemigo redibujado en HD. Piloto para vista panoramica; los demas elementos conservan sus graficos originales.",
                            "Redrawn HD enemy HP frame. Pilot for wide views; other elements keep their original graphics."),

@@ -85,7 +85,7 @@ static int ItemVisible(int item) {
         case ITEM_PS2_MENU: return PortRecomActive();
         case ITEM_NG_VERSION: return 1;
         case ITEM_NG_DIFFICULTY: return sNgRecom;
-        case ITEM_HDHUD: return 0; /* hidden until the HD HUD is finished (kh_com.ini hd_hud still works) */
+        case ITEM_HDHUD: return 0; /* HD HUD pending: hidden and forced off (KHCOM_HD_HUD_DEV=1 for development) */
         default: return 1;
     }
 }
@@ -251,11 +251,12 @@ static const char* const sViews[PORT_VIEW_COUNT][LANG_COUNT] = {
     { "Maximum 384x216", "Maximale 384x216", "Maximal 384x216", "Massima 384x216", "Máxima 384x216", "最大 384x216" },
     { "Auto (fill window)", "Auto (remplir)", "Auto (füllen)", "Auto (riempi)", "Auto (llenar ventana)", "自動 (画面に合わせる)" },
 };
-static const char* const sZooms[4][LANG_COUNT] = {
+static const char* const sZooms[PORT_ZOOM_COUNT][LANG_COUNT] = {
     { "Near", "Proche", "Nah", "Vicino", "Cerca", "近い" },
     { "Normal", "Normal", "Normal", "Normale", "Normal", "ふつう" },
     { "Far", "Loin", "Weit", "Lontano", "Lejos", "遠い" },
     { "Very far", "Très loin", "Sehr weit", "Molto lontano", "Muy lejos", "とても遠い" },
+    { "Farthest", "Le plus loin", "Am weitesten", "Lontanissimo", "Lejísimos", "いちばん遠い" },
 };
 static const char* const sScales[PORT_SCALE_COUNT][LANG_COUNT] = {
     { "Integer", "Entière", "Ganzzahlig", "Intera", "Entero", "ドットばい" },
@@ -534,8 +535,8 @@ static void ValueText(int item, char* out, size_t size) {
             SDL_strlcpy(out, sViews[gPortConfig.viewMode][l], size);
             break;
         case ITEM_ZOOM:
-            if (ItemEnabled(item))
-                SDL_strlcpy(out, sZooms[gPortConfig.zoom][l], size);
+            if (ItemEnabled(item)) /* the step and the pixel scale it gives here */
+                SDL_snprintf(out, size, "%s  x%d", sZooms[gPortConfig.zoom][l], PortConfigZoomScale(gPortConfig.zoom));
             else
                 SDL_strlcpy(out, sAutoOnly[l], size);
             break;
@@ -661,7 +662,7 @@ static void Change(int item, int dir) {
             gPortConfig.viewMode = sViewOrder[Wrap(ViewIndex() + dir, PORT_VIEW_COUNT)];
             break;
         case ITEM_ZOOM:
-            gPortConfig.zoom = SDL_clamp(gPortConfig.zoom + dir, 0, 3);
+            gPortConfig.zoom = SDL_clamp(gPortConfig.zoom + dir, 0, PORT_ZOOM_COUNT - 1);
             break;
         case ITEM_SCALE:
             gPortConfig.scaleMode = Wrap(gPortConfig.scaleMode + dir, PORT_SCALE_COUNT);
@@ -1257,6 +1258,16 @@ static const char* const sWizHelp[LANG_COUNT] = {
     "\xE2\x86\x91\xE2\x86\x93 選択   A 決定   B 戻る",
 };
 
+/* The first question has nothing before it: no "B Back". */
+static const char* const sWizHelpFirst[LANG_COUNT] = {
+    "\xE2\x86\x91\xE2\x86\x93 Select   A OK",
+    "\xE2\x86\x91\xE2\x86\x93 Choisir   A OK",
+    "\xE2\x86\x91\xE2\x86\x93 Wählen   A OK",
+    "\xE2\x86\x91\xE2\x86\x93 Scegli   A OK",
+    "\xE2\x86\x91\xE2\x86\x93 Elegir   A Aceptar",
+    "\xE2\x86\x91\xE2\x86\x93 選択   A 決定",
+};
+
 static int WizRows(void) {
     return sWizStep == WIZ_VERSION ? 2 : sWizStep == WIZ_DIFFICULTY ? 3 : 3;
 }
@@ -1397,7 +1408,7 @@ static void DrawWizard(int l, int width, int height) {
         y += 14;
         y += DrawWrapped(subs[i], x0 + 24, y, textW, sel ? MENU_INK : MENU_DIM, 1) * 11 + 4;
     }
-    DrawText(sWizHelp[l], x0 + 8, y0 + h - 12, MENU_DIM, 0xFFFFFFFFu);
+    DrawText(sWizStep == WIZ_VERSION ? sWizHelpFirst[l] : sWizHelp[l], x0 + 8, y0 + h - 12, MENU_DIM, 0xFFFFFFFFu);
 }
 
 static void DrawMenu(int l, int width, int height) {
