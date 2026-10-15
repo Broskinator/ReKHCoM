@@ -207,6 +207,7 @@ enum ObjTilesType {
 u8 DrawMenuHeader(s16 x, s16 y, void* sprite, void* obj, void* palette, ObjAffine* affine, u16 flags, u16 priority) {
     u8 r;
     PortMenuHeaderSource(sprite, obj, palette);
+    PortMenuHeaderAt(x);
     gPortHeaderDraw = 1;
     r = DrawSprite(x, y, sprite, obj, palette, affine, flags, priority);
     gPortHeaderDraw = 0;

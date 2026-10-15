@@ -7,7 +7,7 @@ The decompiled game runs as a real Windows program, with its own renderer, audio
 and launcher, in 16:9 and at the cartridge's exact speed (59.7275 Hz).
 
 <p align="center">
-  <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.5 for Windows</b></a>
+  <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.6 for Windows</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCom/releases">All releases</a>
 </p>
@@ -110,7 +110,7 @@ subtitles use a crisp font at the window's resolution.
 
 ## Running (Windows)
 
-1. Extract `ReKHCoM-v1.5-windows-x86.zip` into a writable folder.
+1. Extract `ReKHCoM-v1.6-windows-x86.zip` into a writable folder.
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
 3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`
@@ -165,7 +165,7 @@ your dump during the first configure step.
 To make a distributable ZIP without ROMs, saves or local settings:
 
 ```sh
-python port/tools/package_release.py --version v1.5 --sdl ../toolchain/SDL3-3.4.18
+python port/tools/package_release.py --version v1.6 --sdl ../toolchain/SDL3-3.4.18
 ```
 
 ## Controls

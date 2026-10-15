@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v1.6 — 2026-10-15
+
+- Menus follow the zoom: at Normal they fill the screen's height as before;
+  the far steps make them smaller in the same proportion as the world, with a
+  soft blurred backdrop above and below.
+- Menu headers in the side margin travel with their slide-in and slide-out
+  animation, as if the screen had always been that wide.
+- Options: the debug-menu picture of Sora fills the screen's height.
+
 ## v1.5 — 2026-10-15
 
 - Fullscreen uses the monitor's own resolution by default, so ultrawide

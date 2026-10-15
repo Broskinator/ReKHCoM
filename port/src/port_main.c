@@ -243,10 +243,17 @@ static SDL_Rect AspectRect(int outW, int outH) {
    1080p uses x5 (was x6.75), 1440p x6 (was x9). Keep it independent
    of world zoom, and fit small windows without cropping their UI. */
 static float MenuScale(int outW, int outH) {
-    /* Menus fill the window's height, as in v1.4. A smaller menu scale left
-       black bands above and below, because the margins only extend the menus
-       sideways; it returns when the headers and footers carry on vertically. */
-    return SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
+    /* Menus fill the window's height at Normal (and closer); the far zoom
+       steps make them smaller in the same proportion as the world, so
+       everything keeps one size relation. The free rows above and below get
+       the blurred reflection (MenuBackdrop). */
+    float fit = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
+    if (gPortConfig.viewMode == PORT_VIEW_AUTO) {
+        int normal = PortConfigZoomScale(1), now = PortConfigZoomScale(gPortConfig.zoom);
+        if (now < normal && normal > 0)
+            fit = SDL_max(1.0f, SDL_floorf(fit * now / normal * 4.0f + 0.5f) / 4.0f);
+    }
+    return fit;
 }
 
 /* Auto view: size the canvas to the window every frame. */
@@ -570,7 +577,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                     if (bandColor) *px = bandColor;
                 }
                 if (yy < 16 && side < 0) {
-                    uint32_t header = PortMenuHeaderPixel(yy, d);
+                    uint32_t header = PortMenuHeaderPixelAt(yy, d);
                     if (header) *px = header;
                 }
                 /* a menu still coming in: its header's line (a sprite) runs
@@ -1031,7 +1038,7 @@ static void DrawHeaderLeft(const SDL_FRect* src, const SDL_FRect* dst) {
         if (k >= 80)
             behind = row[0];
         for (xx = 0; xx < (int)SDL_ceilf(dst->x / sc); xx++) {
-            uint32_t h = PortMenuHeaderPixel(yy, xx);
+            uint32_t h = PortMenuHeaderPixelAt(yy, xx);
             SDL_FRect r;
             if (!h) h = behind;
             if (!h) continue;
@@ -1187,7 +1194,8 @@ static void Present(void) {
                 dst.y = (float)(int)((outH - dst.h) / 2);
             }
         }
-        if ((sSideStyle == 3 || sSideStyle == 8 || sSideStyle == 10 || sFitScale > 0) && !PortUiActive())
+        if ((sSideStyle == 3 || sSideStyle == 8 || sSideStyle == 10 || sFitScale > 0 || dst.h + 1 < outH)
+            && !PortUiActive())
             DrawBlurredReflection(&src, outW, outH);
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);

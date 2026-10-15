@@ -2118,6 +2118,42 @@ static int HeaderOnScreen(void) {
     return shown;
 }
 
+/* Where the header sprite was drawn (DrawMenuHeader), so its extension in
+   the margin travels with it: the margin shows the sprite's own pixels
+   where it reaches past the picture's edge, and the band only to its left,
+   as if the screen had always been that wide. */
+static int sHeaderX;
+static uint32_t sHeaderDrawn = ~0u;
+
+void PortMenuHeaderAt(int x) {
+    sHeaderX = x;
+    sHeaderDrawn = PortFrameCount();
+}
+
+static int HeaderLeft(void) {
+    const uint16_t* p = sMenuHeaderFrame;
+    int n, i, left = 32767;
+    if (!p) return 0;
+    n = *p++;
+    if (n <= 0 || n > 128) return 0;
+    for (i = 0; i < n; i++) {
+        int x = p[i * 3 + 1] & 511;
+        if (x >= 256) x -= 512;
+        if (x < left) left = x;
+    }
+    return left;
+}
+
+uint32_t PortMenuHeaderPixelAt(int y, int d) {
+    int c = -1 - d, s;
+    if (!sMenuHeaderFrame || PortFrameCount() - sHeaderDrawn > 1)
+        return PortMenuHeaderPixel(y, d);
+    s = c - sHeaderX - HeaderLeft();
+    if (s >= 0)
+        return MenuSpritePixel(sMenuHeaderFrame, sMenuHeaderTiles, sMenuHeaderPalette, y, 0, s);
+    return HeaderPixelRaw(y, d);
+}
+
 uint32_t PortMenuHeaderPixel(int y, int phase) {
     if (!sMenuHeaderFrame || !HeaderOnScreen())
         return 0;
