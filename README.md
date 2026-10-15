@@ -44,6 +44,22 @@ stays in the corners and the menus carry their own art out to the edges.
 <p align="center"><img src="docs/screenshots/ultrawide.png" width="98%"></p>
 <p align="center"><img src="docs/screenshots/ultrawide_menu.png" width="98%"></p>
 
+### Original or Re:Chain of Memories
+
+Every new game starts by asking which version to play. **Original** is the Game
+Boy Advance game exactly as on the cartridge. **Re:Chain of Memories** brings
+improvements from the PS2 remake: a choice of difficulty, faster dialogue, HD
+text and one-button dodge and stock. Each save remembers its version, and
+everything can be changed later with START + SELECT.
+
+| Difficulty | Effect |
+|---|---|
+| Beginner | Sora takes half damage and deals a quarter more. |
+| Standard | As the original: the cartridge's damage. |
+| Proud | Sora takes half again as much damage and deals less. |
+
+<p align="center"><img src="docs/screenshots/newgame_version.png" width="49%"> <img src="docs/screenshots/newgame_difficulty.png" width="49%"></p>
+
 ### Movies, as large as your screen allows
 
 In *Fill height* mode the movies are cropped to the video, without their
