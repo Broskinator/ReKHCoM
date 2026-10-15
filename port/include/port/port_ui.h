@@ -22,5 +22,12 @@ void PortUiTitleHint(void);
 void PortUiNotice(const char* text);
 /* Opening movie: show or hide the "A again skips" prompt. */
 void PortUiSkipPrompt(int visible);
+/* Movies shown cropped and enlarged: the presenter draws the prompt itself
+   (PortUiDrawSkipLayer) at the picture's normal size and place, so it is
+   left out of the frame while on is set. */
+void PortUiSkipOwnLayer(int on);
+/* Draws the prompt into frame (a copy of the picture) and returns 1 with its
+   rectangle in frame pixels, or 0 when it is not showing. */
+int PortUiDrawSkipLayer(uint32_t* frame, int width, int height, int rect[4]);
 
 #endif

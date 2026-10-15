@@ -923,6 +923,40 @@ static void MovieCrop(const SDL_FRect* src, int* top, int* bottom) {
     *bottom = cropBottom;
 }
 
+/* The opening movie's skip prompt over a cropped movie: drawn on a copy of
+   the picture and shown at the picture's normal full-height place and size
+   (normal), exactly where it sits outside movies. */
+static void DrawSkipLayer(const SDL_FRect* normal) {
+    static uint32_t* buf;
+    static SDL_Texture* tex;
+    static int bufW, bufH;
+    int r[4];
+    float sc = normal->w / GBA_SCREEN_W;
+    SDL_FRect src, dst;
+
+    if (bufW != gPortScreen.width || bufH != gPortScreen.height) {
+        SDL_free(buf);
+        if (tex) SDL_DestroyTexture(tex);
+        bufW = gPortScreen.width;
+        bufH = gPortScreen.height;
+        buf = (uint32_t*)SDL_malloc((size_t)bufW * bufH * 4);
+        tex = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING, bufW, bufH);
+        if (tex) SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_PIXELART);
+    }
+    if (!buf || !tex)
+        return;
+    memcpy(buf, sComposite, (size_t)bufW * bufH * 4);
+    if (!PortUiDrawSkipLayer(buf, bufW, bufH, r))
+        return;
+    SDL_UpdateTexture(tex, NULL, buf, bufW * 4);
+    src.x = (float)r[0]; src.y = (float)r[1]; src.w = (float)r[2]; src.h = (float)r[3];
+    dst.x = normal->x + (r[0] - gPortScreen.originX) * sc;
+    dst.y = normal->y + (r[1] - gPortScreen.originY) * sc;
+    dst.w = r[2] * sc;
+    dst.h = r[3] * sc;
+    SDL_RenderTexture(sRenderer, tex, &src, &dst);
+}
+
 /* The title bar on the left margin: its own piece of the header asset.
    Where the header is transparent the picture shows the frame's bar behind
    it (the journal's dark green top row), so the margin shows that bar too. */
@@ -1037,8 +1071,9 @@ static void CloseRecordPipe(FILE* f) { pclose(f); }
 
 static void Present(void) {
     int outW, outH;
-    SDL_FRect dst;
+    SDL_FRect dst, normal;
     float worldX, worldY, worldScale;
+    int moviePrompt;
     void PortHdHudPrepare(SDL_Renderer* renderer);
     void PortHdHudDraw(SDL_Renderer* renderer, int width, int height);
     void PortHdHudDrawLabel(SDL_Renderer* renderer, int width, int height);
@@ -1051,6 +1086,11 @@ static void Present(void) {
     /* Overlays go on a copy so the game picture survives while paused. */
     memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
     JoinHeaderLine();
+    /* movies shown cropped: the skip prompt is drawn after the movie, on its
+       own, so it neither grows with the video nor shifts the crop */
+    moviePrompt = sSideStyle == 10 && sFitScale <= 0 && !PortUiActive() && !gPortScreen.wide
+                  && gPortConfig.narrowFit && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H);
+    PortUiSkipOwnLayer(moviePrompt);
     PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
     SDL_UpdateTexture(sTexture, NULL, sComposite, gPortScreen.width * 4);
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
@@ -1074,6 +1114,7 @@ static void Present(void) {
         dst.h = GBA_SCREEN_H * scale;
         dst.x = (float)(int)((outW - dst.w) / 2);
         dst.y = (float)(int)((outH - dst.h) / 2);
+        normal = dst;
         if (sSideStyle == 10 && sFitScale <= 0 && !PortUiActive()) {
             /* movies: only the video, without its letterbox, as large as the
                window allows at the video's own proportions */
@@ -1094,6 +1135,8 @@ static void Present(void) {
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
         SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
+        if (moviePrompt)
+            DrawSkipLayer(&normal);
         if (!PortUiActive() && sSideStyle == 8 && sFitScale <= 0) {
             DrawEdgeBands(&src, &dst, outW, 3);
             DrawHeaderLeft(&src, &dst);

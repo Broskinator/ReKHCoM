@@ -1083,6 +1083,31 @@ static void DrawSkipPrompt(int l) {
     MenuButton(x, y, text, 'A');
 }
 
+static int sSkipOwnLayer;
+
+void PortUiSkipOwnLayer(int on) {
+    sSkipOwnLayer = on;
+}
+
+int PortUiDrawSkipLayer(uint32_t* frame, int width, int height, int rect[4]) {
+    const char* text;
+    int l = Lang();
+
+    if (!sSkipPrompt || sOpen)
+        return 0;
+    text = sSkipText[l];
+    sFb = frame;
+    sFbW = width;
+    sFbH = height;
+    DrawSkipPrompt(l);
+    /* MenuButton's shade: from x - 3, y - 2, the text and the A key */
+    rect[0] = gPortScreen.originX + GBA_SCREEN_W - TextWidth(text) - 41;
+    rect[1] = gPortScreen.originY + GBA_SCREEN_H - 17;
+    rect[2] = TextWidth(text) + 26 + GlyphWidth('A') + 4;
+    rect[3] = 14;
+    return 1;
+}
+
 /* The state / slot notice, on a layer of its own above everything else (the
    presenter draws it last, at the window's scale): like the app's own HUD.
    Returns the width in GBA pixels, 0 when there is no notice. */
@@ -1558,7 +1583,7 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
         HarnessFadeShot(width, height);
     }
     if (!sOpen) {
-        if (sSkipPrompt)
+        if (sSkipPrompt && !sSkipOwnLayer)
             DrawSkipPrompt(l);
         if (sTitleHintFrames > 0) {
             const char* hint = sTitleHint[l];

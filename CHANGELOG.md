@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v1.3 — 2026-10-15
+
+- The opening movie's "press again to skip" prompt keeps its normal size and
+  place when movies are shown cropped and enlarged; it no longer grows with
+  the video and runs off the screen.
+
 ## v1.2 — 2026-10-15
 
 - New game always asks first which version to play, the original or
