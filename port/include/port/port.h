@@ -36,8 +36,8 @@
 #define GBA_FPS 59.7275
 
 /* Largest internal resolution the renderer supports. */
-#define PORT_MAX_W 1280
-#define PORT_MAX_H 540
+#define PORT_MAX_W 2560
+#define PORT_MAX_H 1440
 
 #define IO8(off) (*(volatile uint8_t*)(uintptr_t)(GBA_IO + (off)))
 #define IO16(off) (*(volatile uint16_t*)(uintptr_t)(GBA_IO + (off)))
@@ -148,11 +148,10 @@ void PortConfigSave(void);
 void PortConfigView(int mode, int* w, int* h);
 /* Internal size and pixel scale that fill an outW x outH output (auto view). */
 void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale);
-#define PORT_ZOOM_COUNT 5 /* Auto view zoom: near, normal, far, very far, farthest */
-/* the whole-number scale a zoom step gives at the current window height */
-int PortConfigZoomScale(int zoom);
-int PortConfigZoomValid(int zoom);     /* the step gives a scale of its own here */
-int PortConfigZoomEffective(int zoom); /* the step in use (an unavailable one falls back) */
+int PortConfigZoomScale(int zoom);    /* zoom: 0 Enhanced, else the pixel scale xN */
+int PortConfigZoomEnhanced(void);
+int PortConfigZoomOriginal(void);
+int PortConfigZoomMin(void);
 int PortConfigZoomHeavy(int zoom);     /* the step draws more than full speed allows */
 const char* PortConfigPath(const char* name);
 
@@ -226,8 +225,9 @@ typedef struct PortScreen {
 } PortScreen;
 
 extern PortScreen gPortScreen;
-extern uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
-extern uint32_t gPortMenuBackground[PORT_MAX_W * PORT_MAX_H];
+extern uint32_t* gPortFrame;          /* PORT_MAX_W x PORT_MAX_H, on the heap (PortCanvasAlloc) */
+extern uint32_t* gPortMenuBackground;
+void PortCanvasAlloc(void);
 uint32_t PortMenuHeaderPixel(int y, int phase);
 uint32_t PortMenuHeaderPixelAt(int y, int distance); /* follows the header sprite's slide */
 uint32_t PortMenuBandPixel(int y, int phase);

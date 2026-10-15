@@ -46,7 +46,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.6.6"
+#define REKHCOM_VERSION "v1.6.7"
 #endif
 
 static bool sSpanish;
@@ -222,7 +222,7 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
-    { "config_version", 6 }, { "view_mode", 4 },   { "zoom", 1 },         { "scale_mode", 0 },
+    { "config_version", 7 }, { "view_mode", 4 },   { "zoom", 0 },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
@@ -292,6 +292,10 @@ static void LoadIni() {
     if (sIni["config_version"] < 6) {
         sIni["aspect"] = 0; /* fill the window */
         sIni["config_version"] = 6;
+    }
+    if (sIni["config_version"] < 7) {
+        sIni["zoom"] = 0; /* Enhanced; zoom is now the pixel scale */
+        sIni["config_version"] = 7;
     }
 }
 
@@ -1025,12 +1029,13 @@ static void PageGraphics() {
     const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
                             T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
                             T("Auto (llenar ventana)", "Auto (fill window)") };
-    const char* zoomNames[] = { T("Original (GBA)", "Original (GBA)"), T("Mejorado", "Enhanced"), T("Lejos", "Far"),
-                                T("Muy lejos", "Very far"), T("Lejísimos", "Farthest") };
-    /* each step with the pixel scale it gives on this monitor, as the game's
-       own options show it (port_config.c: Normal about 270 lines) */
-    static std::string zoomLabels[5];
-    const char* zooms[5];
+    /* zoom: the whole-number scales this monitor offers, x1 .. Original
+       (the GBA's 160 lines); Enhanced (x3 at 1080p) is the default and is
+       stored as 0. Scales below full speed are marked demanding. */
+    static std::string zoomLabels[16];
+    static int zoomScales[16];
+    const char* zooms[16];
+    int zoomCount = 0, zoomEnh = 3;
     {
         DEVMODEW cur;
         ZeroMemory(&cur, sizeof(cur));
@@ -1038,16 +1043,20 @@ static void PageGraphics() {
         EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &cur);
         int W = (int)cur.dmPelsWidth, H = (int)cur.dmPelsHeight;
         if (W <= 0 || H <= 0) { W = 1920; H = 1080; }
-        int least = std::max(std::max((W + 1279) / 1280, (H + 539) / 540), 1);
+        int least = std::max(std::max((W + 2559) / 2560, (H + 1439) / 1440), 1);
         int fast = least;
         while (((W + fast - 1) / fast) * ((H + fast - 1) / fast) > 640 * 360 * 5 / 4)
-            fast++; /* full speed (port_config.c); below it the step is demanding */
-        int normal = std::max((H + 180) / 360, fast);
-        for (int z = 0; z < 5; z++) {
-            int sc = z == 0 ? std::max(H / 160, 1) : std::max(normal - (z - 1), least);
-            zoomLabels[z] = std::string(zoomNames[z]) + "  x" + std::to_string(sc) +
-                            (sc < fast ? T("  (exigente)", "  (demanding)") : "");
-            zooms[z] = zoomLabels[z].c_str();
+            fast++; /* full speed (port_config.c) */
+        int orig = std::max(H / 160, least);
+        zoomEnh = std::max((H + 135) / 270, fast); /* x4 at 1080p */
+        for (int sc = least; sc <= orig && zoomCount < 16; sc++) {
+            zoomScales[zoomCount] = sc;
+            zoomLabels[zoomCount] = "x" + std::to_string(sc) +
+                                    (sc == orig ? T("  Original", "  Original")
+                                     : sc == zoomEnh ? T("  Mejorado", "  Enhanced") : "") +
+                                    (sc < fast ? T("  (exigente)", "  (demanding)") : "");
+            zooms[zoomCount] = zoomLabels[zoomCount].c_str();
+            zoomCount++;
         }
     }
     const char* scales[] = { T("Entero", "Integer"), T("Ajustar", "Fit"), T("Estirar", "Stretch") };
@@ -1071,7 +1080,20 @@ static void PageGraphics() {
                               "On wider monitors, 16:9 or 21:9 leave black bars at the sides."),
                             Ini("aspect"), 3, aspects);
     }
-    changed |= CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"), nullptr, Ini("zoom"), 5, zooms);
+    {
+        int want = Ini("zoom") > 0 ? Ini("zoom") : zoomEnh, sel = 0;
+        for (int k = 0; k < zoomCount; k++)
+            if (zoomScales[k] == want)
+                sel = k;
+        if (zoomCount > 0 &&
+            CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"),
+                     T("Escala de píxel entera: más baja muestra más mundo y exige más al PC.",
+                       "Whole-number pixel scale: lower shows more of the world and asks more of the PC."),
+                     sel, zoomCount, zooms)) {
+            Ini("zoom") = zoomScales[sel] == zoomEnh ? 0 : zoomScales[sel];
+            changed = true;
+        }
+    }
     changed |= CycleRow(T("Escalado", "Scaling"), nullptr, Ini("scale_mode"), 3, scales);
 #ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* filter: an internal setting */
     changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);

@@ -120,6 +120,12 @@ void EnemyCardDraw(CardDisplayWork* work) {
 
     gfx = work->cardDef->gfx;
 
+#ifdef PLATFORM_PC
+    extern int gPortSpriteShiftY;
+    extern int PortEnemyCardShiftY(void);
+    int shiftSaved = gPortSpriteShiftY;
+    gPortSpriteShiftY += PortEnemyCardShiftY();
+#endif
     if (work->flags & CARD_DISP_FLAG_VISIBLE) {
         if (!(work->flags & CARD_DISP_FLAG_FACE_DOWN)) {
             if (work->flags & CARD_DISP_FLAG_GFX_LOADED) {
@@ -148,6 +154,9 @@ void EnemyCardDraw(CardDisplayWork* work) {
             }
         }
     }
+#ifdef PLATFORM_PC
+    gPortSpriteShiftY = shiftSaved;
+#endif
 }
 
 void EnemyCardDestroy(CardDisplayWork* work) {

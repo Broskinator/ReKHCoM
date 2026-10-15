@@ -46,7 +46,7 @@ uint32_t PortFrameCount(void) {
 }
 static float sFitScale; /* see PortFitScreen */
 static int sInIrq;
-static uint32_t sComposite[PORT_MAX_W * PORT_MAX_H];
+static uint32_t* sComposite; /* PORT_MAX_W x PORT_MAX_H, heap */
 static int HarnessListHas(const char* list, uint32_t frame);
 static FILE* sLog;
 static int sPacedByVsync;
@@ -219,7 +219,7 @@ void PortFitScreen(void) {
 }
 static SDL_Texture* sHudTexture;
 static int sHudTexW, sHudTexH;
-static uint32_t sHudBuf[PORT_MAX_W * PORT_MAX_H];
+static uint32_t* sHudBuf;
 
 int gPortIntroRequested;
 int gPortEventTest = -1; /* KHCOM_EVENT=list:index (0 Sora, 1 Riku) */
@@ -812,7 +812,9 @@ static float PixelEdge(float origin, int r, float scale) {
 }
 
 static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, int minBlock) {
-    static uint8_t mask[PORT_MAX_W * PORT_MAX_H];
+    static uint8_t* mask;
+    if (!mask && !(mask = (uint8_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, 1)))
+        return;
     extern void PortPpuSpriteMask(uint8_t* out);
     int side, y;
     float scale = dst->w / src->w;
@@ -1287,7 +1289,9 @@ static void Present(void) {
         worldY = dst.y - src.y * scale;
     } else if (PortHd2dActive() && !PortUiActive()) {
         /* HD-2D build: the processed, larger picture, filtered to the window */
-        static uint8_t sMask[PORT_MAX_W * PORT_MAX_H];
+        static uint8_t* sMask;
+        if (!sMask)
+            sMask = (uint8_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, 1);
         static SDL_Texture* sHd2dTex;
         static int sHd2dW, sHd2dH;
         extern void PortPpuSpriteMask(uint8_t* out);
@@ -1687,6 +1691,8 @@ static void HarnessFrame(void) {
         extern void PortUiForceClose(void);
         SDL_Surface* s;
         PortUiOpenOptions();
+        UpdateResolution(); /* as the menu's own loop does */
+        PortPpuRenderFrame();
         Present();
         s = SDL_CreateSurfaceFrom(gPortScreen.width, gPortScreen.height, SDL_PIXELFORMAT_XRGB8888, sComposite,
                                   gPortScreen.width * 4);
@@ -2029,6 +2035,11 @@ int main(int argc, char** argv) {
     if (sWindow == NULL)
         PortFatal("Could not create the window: %s", SDL_GetError());
     SDL_SetWindowMinimumSize(sWindow, GBA_SCREEN_W, GBA_SCREEN_H);
+    PortCanvasAlloc();
+    sComposite = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
+    sHudBuf = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
+    if (!sComposite || !sHudBuf)
+        PortFatal("Out of memory for the picture buffers");
     sRenderer = SDL_CreateRenderer(sWindow, NULL);
     if (sRenderer == NULL)
         PortFatal("Could not create the renderer: %s", SDL_GetError());

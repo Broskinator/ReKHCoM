@@ -261,14 +261,15 @@ static const char* const sViews[PORT_VIEW_COUNT][LANG_COUNT] = {
     { "Maximum 384x216", "Maximale 384x216", "Maximal 384x216", "Massima 384x216", "Máxima 384x216", "最大 384x216" },
     { "Auto (fill window)", "Auto (remplir)", "Auto (füllen)", "Auto (riempi)", "Auto (llenar ventana)", "自動 (画面に合わせる)" },
 };
-static const char* const sZooms[PORT_ZOOM_COUNT][LANG_COUNT] = {
-    /* the closest step shows the GBA's own 160 lines at full height, as an
-       emulator stretched to the screen: the original view */
-    { "Original (GBA)", "Original (GBA)", "Original (GBA)", "Originale (GBA)", "Original (GBA)", "オリジナル (GBA)" },
+static const char* const sZoomHeavy[LANG_COUNT] = {
+    "Demanding: needs a fast PC for 60 fps", "Exigeant : un PC rapide pour 60 i/s",
+    "Anspruchsvoll: schneller PC für 60 fps", "Impegnativo: serve un PC veloce per 60 fps",
+    "Exigente: requiere un PC potente para 60 fps", "高負荷：60fpsには高性能なPCが必要",
+};
+/* the named scales: Original (the GBA's 160 lines) and Enhanced (default) */
+static const char* const sZoomNames[2][LANG_COUNT] = {
+    { "Original", "Original", "Original", "Originale", "Original", "オリジナル" },
     { "Enhanced", "Amélioré", "Verbessert", "Migliorato", "Mejorado", "強化" },
-    { "Far", "Loin", "Weit", "Lontano", "Lejos", "遠い" },
-    { "Very far", "Très loin", "Sehr weit", "Molto lontano", "Muy lejos", "とても遠い" },
-    { "Farthest", "Le plus loin", "Am weitesten", "Lontanissimo", "Lejísimos", "いちばん遠い" },
 };
 static const char* const sScales[PORT_SCALE_COUNT][LANG_COUNT] = {
     { "Integer", "Entière", "Ganzzahlig", "Intera", "Entero", "ドットばい" },
@@ -548,8 +549,13 @@ static void ValueText(int item, char* out, size_t size) {
             break;
         case ITEM_ZOOM:
             if (ItemEnabled(item)) /* the step and the pixel scale it gives here */
-                SDL_snprintf(out, size, "%s  x%d%s", sZooms[PortConfigZoomEffective(gPortConfig.zoom)][l],
-                             PortConfigZoomScale(gPortConfig.zoom), PortConfigZoomHeavy(gPortConfig.zoom) ? " !" : "");
+            {
+                int n = PortConfigZoomScale(gPortConfig.zoom);
+                const char* name = n == PortConfigZoomOriginal() ? sZoomNames[0][l]
+                                   : n == PortConfigZoomEnhanced() ? sZoomNames[1][l] : "";
+                SDL_snprintf(out, size, "x%d%s%s%s", n, *name ? "  " : "", name,
+                             PortConfigZoomHeavy(gPortConfig.zoom) ? "  !" : "");
+            }
             else
                 SDL_strlcpy(out, sAutoOnly[l], size);
             break;
@@ -676,11 +682,11 @@ static void Change(int item, int dir) {
             break;
         case ITEM_ZOOM:
             /* the next step that gives a scale of its own at this size */
-            i = PortConfigZoomEffective(gPortConfig.zoom) + dir;
-            while (i >= 0 && i < PORT_ZOOM_COUNT && !PortConfigZoomValid(i))
-                i += dir;
-            if (i >= 0 && i < PORT_ZOOM_COUNT)
-                gPortConfig.zoom = i;
+            /* x1 .. Original, one whole-number scale a step; the
+               Enhanced scale is stored as 0 so it follows the window */
+            i = SDL_clamp(PortConfigZoomScale(gPortConfig.zoom) + dir, PortConfigZoomMin(),
+                          SDL_max(PortConfigZoomOriginal(), PortConfigZoomMin()));
+            gPortConfig.zoom = i == PortConfigZoomEnhanced() ? 0 : i;
             break;
         case ITEM_SCALE:
             gPortConfig.scaleMode = Wrap(gPortConfig.scaleMode + dir, PORT_SCALE_COUNT);
@@ -1508,7 +1514,11 @@ static void DrawMenu(int l, int width, int height) {
     }
     if (sScroll + rows < PageEnd())
         DrawText("\xE2\x86\x93", barX + barW - 8, top + rows * 16 - 2, MENU_INK, 0xFFD8D8D8u);
-    DrawText(sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
+    if (sPage == PAGE_MAIN && sCursor == ITEM_ZOOM && ItemEnabled(ITEM_ZOOM) && PortConfigZoomHeavy(gPortConfig.zoom))
+        /* a demanding zoom: say so where the help line is */
+        MenuButton(barX, height - 15, sZoomHeavy[l], '!');
+    else
+        DrawText(sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
 }
 
 /* Test harness: KHCOM_OPTIONS_HOLD=n closes the menu n frames after it has

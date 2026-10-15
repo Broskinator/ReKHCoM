@@ -473,8 +473,8 @@ int PortPpuOverlayActive(void) {
 int PortPpuHudActive(void) {
     return sHudLayer;
 }
-uint32_t gPortFrame[PORT_MAX_W * PORT_MAX_H];
-uint32_t gPortMenuBackground[PORT_MAX_W * PORT_MAX_H];
+uint32_t* gPortFrame;
+uint32_t* gPortMenuBackground;
 
 #define PLTT16 ((const uint16_t*)(uintptr_t)GBA_PLTT)
 #define VRAM8 ((const uint8_t*)(uintptr_t)GBA_VRAM)
@@ -505,11 +505,11 @@ static uint8_t sObjIndex[PORT_MAX_W];
    highest-priority opaque BG (4: none) and the winning other OBJ as
    priority * 128 + OAM index (0xFFFF: none). A window that hides OBJs there
    reads as 0 / 0. */
-static uint8_t sOccBg[PORT_MAX_W * PORT_MAX_H];
-static uint8_t sOccBgLayer[PORT_MAX_W * PORT_MAX_H];
+static uint8_t* sOccBg;
+static uint8_t* sOccBgLayer;
 /* HD-2D: 1 where a message window (docked layer) shows; allocated on use. */
-static uint8_t sMsgMask[PORT_MAX_W * PORT_MAX_H]; /* 1 where a message window shows */
-static uint16_t sOccObj[PORT_MAX_W * PORT_MAX_H];
+static uint8_t* sMsgMask; /* 1 where a message window shows */
+static uint16_t* sOccObj;
 static uint8_t sObjSemi[PORT_MAX_W];
 static uint8_t sObjWin[PORT_MAX_W];
 static uint8_t sWinMask[PORT_MAX_W];
@@ -650,6 +650,13 @@ static int HudRaise(void) {
     int r = gPortConfig.cardHudRaise;
 
     return !sBattleView || r < 0 ? 0 : (r > 16 ? 16 : r);
+}
+
+/* The enemy's played card: in the world (it follows its enemy across the
+   arena) but on the bottom row of the screen, where Sora's cards are, not
+   at the GBA picture's bottom in the middle of a taller window. */
+int PortEnemyCardShiftY(void) {
+    return PortWideMarginY() - HudRaise();
 }
 
 void PortSetBattleView(int on) {
@@ -1815,6 +1822,23 @@ static void UpdateSceneNarrow(uint16_t dispcnt) {
 /* The scene is one of the full-screen menus over the field (PortSceneNarrow). */
 int PortPpuSceneIsMenu(void) {
     return sSceneNarrow;
+}
+
+/* The canvas-sized buffers live on the heap: at up to 2560x1440 (x1 at
+   1440p) they would not fit the executable's static data below the GBA
+   address space. */
+void PortCanvasAlloc(void) {
+    size_t n = (size_t)PORT_MAX_W * PORT_MAX_H;
+    if (gPortFrame)
+        return;
+    gPortFrame = (uint32_t*)calloc(n, sizeof(uint32_t));
+    gPortMenuBackground = (uint32_t*)calloc(n, sizeof(uint32_t));
+    sOccBg = (uint8_t*)calloc(n, 1);
+    sOccBgLayer = (uint8_t*)calloc(n, 1);
+    sMsgMask = (uint8_t*)calloc(n, 1);
+    sOccObj = (uint16_t*)calloc(n, sizeof(uint16_t));
+    if (!gPortFrame || !gPortMenuBackground || !sOccBg || !sOccBgLayer || !sMsgMask || !sOccObj)
+        PortFatal("Out of memory for the picture buffers");
 }
 
 void PortPpuBeginFrame(void) {

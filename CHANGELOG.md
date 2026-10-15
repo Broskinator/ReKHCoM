@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v1.6.7 — 2026-10-15
+
+- Zoom is the whole-number pixel scale, every step from x1 (the most world) to
+  Original (the GBA's 160 lines, x6 at 1080p). Enhanced, x4 at 1080p, is the
+  default. Steps below full speed (x1, x2 at 1080p) are marked demanding, with
+  a warning in the options. The picture buffers moved to the heap so x1 fits.
+- The options menu stays readable at any zoom.
+- Battles: the enemy's played card is shown on the bottom row, at the height
+  of Sora's cards.
+
 ## v1.6.6 — 2026-10-15
 
 - Zoom: the default step is called Enhanced (x3 at 1080p). The farther steps

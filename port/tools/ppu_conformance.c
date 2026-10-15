@@ -206,6 +206,7 @@ static void semantic(const char* name) {
 }
 
 int main(int argc, char** argv) {
+    PortCanvasAlloc();
     const char* name;
     uint16_t* p;
     int i;

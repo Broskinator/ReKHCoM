@@ -9,7 +9,7 @@
 
 PortConfig gPortConfig = {
     PORT_VIEW_AUTO,     /* viewMode */
-    1,                  /* zoom */
+    0,                  /* zoom: 0 = Enhanced, else the pixel scale */
     PORT_SCALE_INTEGER, /* scaleMode */
     PORT_FILTER_NEAREST, /* filter */
     0,                  /* fullscreen */
@@ -67,7 +67,7 @@ PortConfig gPortConfig = {
     },
 };
 
-#define CONFIG_VERSION 6
+#define CONFIG_VERSION 7
 
 static int sConfigVersion;
 static char sDataPath[768];
@@ -86,7 +86,7 @@ typedef struct Key {
 static const Key sKeys[] = {
     { "config_version", &sConfigVersion, 0, 1000 },
     { "view_mode", &gPortConfig.viewMode, 0, PORT_VIEW_COUNT - 1 },
-    { "zoom", &gPortConfig.zoom, 0, PORT_ZOOM_COUNT - 1 },
+    { "zoom", &gPortConfig.zoom, 0, 16 },
     { "scale_mode", &gPortConfig.scaleMode, 0, PORT_SCALE_COUNT - 1 },
     { "filter", &gPortConfig.filter, 0, PORT_FILTER_COUNT - 1 },
     { "fullscreen", &gPortConfig.fullscreen, 0, 1 },
@@ -195,36 +195,32 @@ static int ZoomFast(void) {
     return s;
 }
 
-int PortConfigZoomHeavy(int zoom) {
-    return PortConfigZoomScale(zoom) < ZoomFast();
+
+
+/* Zoom (Auto view): the whole-number pixel scale xN, from x1 (the most
+   world, a large canvas: demanding) to the GBA's own 160 lines (Original,
+   x6 at 1080p). 0 is Enhanced, the default: about 270 lines (x4 at 1080p),
+   never slower than full speed. */
+int PortConfigZoomEnhanced(void) {
+    return SDL_max((sZoomOutH + 135) / 270, ZoomFast()); /* x4 at 1080p */
 }
 
-static int ZoomRaw(int zoom) {
-    int normal = SDL_max((sZoomOutH + 180) / 360, ZoomFast()); /* x3 at 1080 lines */
-    if (zoom <= 0)
-        return SDL_max(sZoomOutH / GBA_SCREEN_H, 1);
-    return normal - (zoom - 1);
+int PortConfigZoomOriginal(void) {
+    return SDL_max(sZoomOutH / GBA_SCREEN_H, 1);
 }
 
-int PortConfigZoomValid(int zoom) {
-    if (zoom == 1)
-        return 1;
-    if (zoom < 0 || zoom >= PORT_ZOOM_COUNT)
-        return 0;
-    if (zoom == 0)
-        return ZoomRaw(0) > ZoomRaw(1);
-    return ZoomRaw(zoom) >= ZoomLeast();
-}
-
-int PortConfigZoomEffective(int zoom) {
-    zoom = SDL_clamp(zoom, 0, PORT_ZOOM_COUNT - 1);
-    while (!PortConfigZoomValid(zoom))
-        zoom += zoom > 1 ? -1 : 1;
-    return zoom;
+int PortConfigZoomMin(void) {
+    return ZoomLeast();
 }
 
 int PortConfigZoomScale(int zoom) {
-    return ZoomRaw(PortConfigZoomEffective(zoom));
+    if (zoom <= 0)
+        return PortConfigZoomEnhanced();
+    return SDL_clamp(zoom, PortConfigZoomMin(), SDL_max(PortConfigZoomOriginal(), PortConfigZoomMin()));
+}
+
+int PortConfigZoomHeavy(int zoom) {
+    return PortConfigZoomScale(zoom) < ZoomFast();
 }
 
 void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale) {
@@ -232,7 +228,12 @@ void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale) {
 
     sZoomOutW = outW;
     sZoomOutH = outH;
-    s = PortConfigZoomScale(gPortConfig.zoom);
+    /* the options menu is drawn on the canvas: while it is open the canvas
+       keeps the Enhanced size, so its text stays readable at any zoom */
+    {
+        extern int PortUiActive(void);
+        s = PortConfigZoomScale(PortUiActive() ? 0 : gPortConfig.zoom);
+    }
 
     if (s < 1)
         s = 1;
@@ -286,6 +287,9 @@ void PortConfigLoad(void) {
        it is an opt-in for very wide monitors) */
     if (sConfigVersion < 6)
         gPortConfig.aspect = 0;
+    /* ...and from the named zoom steps to Enhanced (0) or a scale (xN) */
+    if (sConfigVersion < 7)
+        gPortConfig.zoom = 0; /* Enhanced */
     if (sConfigVersion < 4 && gPortConfig.fullscreenWidth == 1920 && gPortConfig.fullscreenHeight == 1080) {
         gPortConfig.fullscreenWidth = 0;
         gPortConfig.fullscreenHeight = 0;
