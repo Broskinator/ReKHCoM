@@ -3,11 +3,10 @@
  * PC port: an optional "Re:Chain of Memories" version of the game, with
  * features taken from Kingdom Hearts Re:Chain of Memories (PS2).
  *
- * Availability is the experimental switch "Re:CoM mode" (ps2_mode, off by
- * default). While it is off nothing here touches the game, which plays
- * exactly as the cartridge (preservation). While it is on, starting a new
- * game asks for the version (original or Re:CoM) and, for Re:CoM, the
- * difficulty. Which version a game is follows its save file: the choice is
+ * Starting a new game always asks for the version (original or Re:CoM)
+ * and, for Re:CoM, the difficulty; choosing Re:CoM turns on the switch
+ * "Re:CoM mode" (ps2_mode). The original version, or any game while the
+ * switch is off, plays exactly as the cartridge (preservation). Which version a game is follows its save file: the choice is
  * kept beside the saves in kh_com_recom.ini (bank, file), never inside the
  * cartridge's save data, and comes back when that file is loaded.
  */

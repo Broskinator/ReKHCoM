@@ -83,7 +83,7 @@ static int PageEnd(void) {
 static int ItemVisible(int item) {
     switch (item) {
         case ITEM_PS2_MENU: return PortRecomActive();
-        case ITEM_NG_VERSION: return gPortConfig.ps2Mode != 0;
+        case ITEM_NG_VERSION: return 1;
         case ITEM_NG_DIFFICULTY: return sNgRecom;
         case ITEM_HDHUD: return 0; /* hidden until the HD HUD is finished (kh_com.ini hd_hud still works) */
         default: return 1;
@@ -828,7 +828,8 @@ void PortUiOpenNewGame(void) {
     /* the one-button controls stay as the player set them (on by default,
        as they always were); only Re:CoM turns them on */
     sNgQol = PortQolButtons();
-    sWizStep = gPortConfig.ps2Mode ? WIZ_VERSION : WIZ_OPTIONS;
+    /* the version is always the first question */
+    sWizStep = WIZ_VERSION;
     sWizCursor = 0;
     PortVideoApplyConfig();
 }
@@ -1250,7 +1251,6 @@ static void WizKey(int key) {
             if (sWizStep == WIZ_OPTIONS) {
                 sWizStep = sNgRecom ? WIZ_DIFFICULTY : WIZ_VERSION;
                 sWizCursor = sNgRecom ? (gPortConfig.ps2Difficulty == 1 ? 0 : gPortConfig.ps2Difficulty == 0 ? 1 : 2) : 0;
-                if (!gPortConfig.ps2Mode) sWizStep = WIZ_OPTIONS; /* nothing before it */
             } else if (sWizStep == WIZ_DIFFICULTY) {
                 sWizStep = WIZ_VERSION;
                 sWizCursor = 1;
@@ -1263,6 +1263,9 @@ static void WizKey(int key) {
         /* each version comes with its presets: the original as on the
            cartridge, Re:CoM with HD text and the one-button controls */
         sNgRecom = sWizCursor == 1;
+        /* choosing Re:CoM here is what turns the Re:CoM rules on */
+        if (sNgRecom)
+            gPortConfig.ps2Mode = 1;
         gPortConfig.hdText = sNgRecom;
         PortSetQolButtons(sNgRecom || sNgQol);
         PortVideoApplyConfig();
