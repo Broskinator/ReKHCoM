@@ -86,6 +86,9 @@ static int ItemVisible(int item) {
         case ITEM_NG_VERSION: return 1;
         case ITEM_NG_DIFFICULTY: return sNgRecom;
         case ITEM_HDHUD: return 0; /* HD HUD pending: hidden and forced off (KHCOM_HD_HUD_DEV=1 for development) */
+#ifndef PORT_HD2D
+        case ITEM_HD2D: return 0; /* HD-2D pending: hidden and forced off (KHCOM_HD2D_DEV=1 for development) */
+#endif
         default: return 1;
     }
 }
@@ -536,7 +539,8 @@ static void ValueText(int item, char* out, size_t size) {
             break;
         case ITEM_ZOOM:
             if (ItemEnabled(item)) /* the step and the pixel scale it gives here */
-                SDL_snprintf(out, size, "%s  x%d", sZooms[gPortConfig.zoom][l], PortConfigZoomScale(gPortConfig.zoom));
+                SDL_snprintf(out, size, "%s  (pixel x%d)", sZooms[PortConfigZoomEffective(gPortConfig.zoom)][l],
+                             PortConfigZoomScale(gPortConfig.zoom));
             else
                 SDL_strlcpy(out, sAutoOnly[l], size);
             break;
@@ -662,7 +666,12 @@ static void Change(int item, int dir) {
             gPortConfig.viewMode = sViewOrder[Wrap(ViewIndex() + dir, PORT_VIEW_COUNT)];
             break;
         case ITEM_ZOOM:
-            gPortConfig.zoom = SDL_clamp(gPortConfig.zoom + dir, 0, PORT_ZOOM_COUNT - 1);
+            /* the next step that gives a scale of its own at this size */
+            i = PortConfigZoomEffective(gPortConfig.zoom) + dir;
+            while (i >= 0 && i < PORT_ZOOM_COUNT && !PortConfigZoomValid(i))
+                i += dir;
+            if (i >= 0 && i < PORT_ZOOM_COUNT)
+                gPortConfig.zoom = i;
             break;
         case ITEM_SCALE:
             gPortConfig.scaleMode = Wrap(gPortConfig.scaleMode + dir, PORT_SCALE_COUNT);

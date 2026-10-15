@@ -222,10 +222,10 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
-    { "config_version", 3 }, { "view_mode", 4 },   { "zoom", 1 },         { "scale_mode", 0 },
+    { "config_version", 4 }, { "view_mode", 4 },   { "zoom", 1 },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
-    { "window_scale", 4 },   { "fullscreen_width", 1920 }, { "fullscreen_height", 1080 },
+    { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
     { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 },
@@ -276,6 +276,33 @@ static void LoadIni() {
         sIni["narrow_fit"] = 1;
         sIni["config_version"] = 3;
     }
+    /* ...and from before v1.5, whose fullscreen was 1920x1080 by default,
+       to the monitor's own resolution (ultrawide monitors fill at 32:9). */
+    if (sIni["config_version"] < 4) {
+        if (sIni["fullscreen_width"] == 1920 && sIni["fullscreen_height"] == 1080) {
+            sIni["fullscreen_width"] = 0;
+            sIni["fullscreen_height"] = 0;
+        }
+        sIni["config_version"] = 4;
+    }
+}
+
+/* The monitor's fullscreen resolutions, largest first, as the game's own
+   list: the desktop first (0x0), then each distinct mode. */
+static std::vector<std::pair<int, int>> DisplayModes() {
+    std::vector<std::pair<int, int>> modes;
+    DEVMODEW dm;
+    ZeroMemory(&dm, sizeof(dm));
+    dm.dmSize = sizeof(dm);
+    for (DWORD i = 0; EnumDisplaySettingsW(nullptr, i, &dm); i++) {
+        std::pair<int, int> m((int)dm.dmPelsWidth, (int)dm.dmPelsHeight);
+        if (m.first >= 640 && m.second >= 480 && std::find(modes.begin(), modes.end(), m) == modes.end())
+            modes.push_back(m);
+    }
+    std::sort(modes.begin(), modes.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+        return a.first * a.second > b.first * b.second || (a.first * a.second == b.first * b.second && a.first > b.first);
+    });
+    return modes;
 }
 
 static void SaveIni() {
@@ -1021,6 +1048,36 @@ static void PageGraphics() {
     BeginCard("window");
     Eyebrow(T("VENTANA", "WINDOW"));
     changed |= CycleRow(T("Pantalla completa", "Fullscreen"), nullptr, Ini("fullscreen"), 2, onoff);
+    {
+        /* fullscreen resolution: the monitor's own (desktop) by default */
+        static std::vector<std::pair<int, int>> modes = DisplayModes();
+        static std::vector<std::string> labels;
+        static std::vector<const char*> names;
+        DEVMODEW cur;
+        ZeroMemory(&cur, sizeof(cur));
+        cur.dmSize = sizeof(cur);
+        EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &cur);
+        labels.clear();
+        labels.push_back(std::string(T("Escritorio", "Desktop")) + " (" + std::to_string(cur.dmPelsWidth) + "x" +
+                         std::to_string(cur.dmPelsHeight) + ")");
+        for (auto& m : modes)
+            labels.push_back(std::to_string(m.first) + "x" + std::to_string(m.second));
+        names.clear();
+        for (auto& l : labels)
+            names.push_back(l.c_str());
+        int sel = 0;
+        for (size_t i = 0; i < modes.size(); i++)
+            if (modes[i].first == Ini("fullscreen_width") && modes[i].second == Ini("fullscreen_height"))
+                sel = (int)i + 1;
+        if (CycleRow(T("Resolución completa", "Fullscreen resolution"),
+                     T("Escritorio usa la resolución del monitor, también ultrawide.",
+                       "Desktop uses the monitor's resolution, ultrawide included."),
+                     sel, (int)names.size(), names.data())) {
+            Ini("fullscreen_width") = sel ? modes[sel - 1].first : 0;
+            Ini("fullscreen_height") = sel ? modes[sel - 1].second : 0;
+            changed = true;
+        }
+    }
     int ws = std::clamp(Ini("window_scale"), 1, 8) - 1;
     if (CycleRow(T("Tamaño de ventana", "Window size"), nullptr, ws, 8, windows)) {
         Ini("window_scale") = ws + 1;
@@ -1106,6 +1163,7 @@ static void PageExtras() {
                          Ini("hd_hud"));
     ImGui::Separator();
 #endif
+#ifdef REKHCOM_SHOW_HD2D /* HD-2D pending: hidden, and the game forces it off (KHCOM_HD2D_DEV=1 for development) */
     changed |= ToggleRow(T("Estilo HD-2D", "HD-2D look"),
                          T("Campo y combates con profundidad de campo, resplandor, gradación de color y viñeta, al "
                            "estilo de Octopath Traveler. Los sprites quedan nítidos.",
@@ -1113,6 +1171,7 @@ static void PageExtras() {
                            "manner of Octopath Traveler. Sprites stay sharp."),
                          Ini("hd2d"));
     ImGui::Separator();
+#endif
     changed |= ToggleRow(T("Audio suave", "Smooth audio"),
                          T("Interpolación cúbica de las muestras y un filtro paso bajo suave: menos aspereza metálica "
                            "en los agudos que dejan las bajas frecuencias de muestreo de la GBA.",

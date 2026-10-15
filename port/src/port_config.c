@@ -21,8 +21,8 @@ PortConfig gPortConfig = {
     0,                  /* frameSkip */
     0,                  /* showFps */
     4,                  /* windowScale */
-    1920,               /* fullscreenWidth */
-    1080,               /* fullscreenHeight */
+    0,                  /* fullscreenWidth: 0 = the desktop's resolution */
+    0,                  /* fullscreenHeight */
     100,                /* masterVolume */
     100,                /* musicVolume */
     100,                /* sfxVolume */
@@ -67,7 +67,7 @@ PortConfig gPortConfig = {
     },
 };
 
-#define CONFIG_VERSION 3
+#define CONFIG_VERSION 4
 
 static int sConfigVersion;
 static char sDataPath[768];
@@ -167,22 +167,44 @@ void PortConfigView(int mode, int* w, int* h) {
 }
 
 /* Auto view's whole-number pixel scale for each zoom step at a window
-   height: Normal as it always was (180 lines), Near the largest that still
-   shows the GBA's 160 lines, and each step further out at least one scale
-   below the one before it (at 1080 lines: 6, 6, 5, 4, 3), so every step
-   shows more of the world. */
+   height. Normal (the default) shows about 270 lines: x4 on a 1080-line
+   screen. Near is the largest scale that still shows the GBA's 160 lines;
+   Far, Very far and Farthest are one scale smaller each. A step only exists
+   where it gives its own scale (no two steps alike) within the canvas's
+   limits; an unavailable step falls back to the nearest one towards
+   Normal. */
 static int sZoomOutW = 1920, sZoomOutH = 1080;
 
+static int ZoomLeast(void) {
+    return SDL_max(SDL_max((sZoomOutW + PORT_MAX_W - 1) / PORT_MAX_W, (sZoomOutH + PORT_MAX_H - 1) / PORT_MAX_H), 1);
+}
+
+static int ZoomRaw(int zoom) {
+    int normal = SDL_max((sZoomOutH + 135) / 270, ZoomLeast());
+    if (zoom <= 0)
+        return SDL_max(sZoomOutH / GBA_SCREEN_H, 1);
+    return normal - (zoom - 1);
+}
+
+int PortConfigZoomValid(int zoom) {
+    if (zoom == 1)
+        return 1;
+    if (zoom < 0 || zoom >= PORT_ZOOM_COUNT)
+        return 0;
+    if (zoom == 0)
+        return ZoomRaw(0) > ZoomRaw(1);
+    return ZoomRaw(zoom) >= ZoomLeast();
+}
+
+int PortConfigZoomEffective(int zoom) {
+    zoom = SDL_clamp(zoom, 0, PORT_ZOOM_COUNT - 1);
+    while (!PortConfigZoomValid(zoom))
+        zoom += zoom > 1 ? -1 : 1;
+    return zoom;
+}
+
 int PortConfigZoomScale(int zoom) {
-    static const int target[PORT_ZOOM_COUNT] = { 160, 180, 216, 240, 360 };
-    int s[PORT_ZOOM_COUNT], k, outH = sZoomOutH;
-    /* the smallest scale whose canvas fits the renderer's limits */
-    int least = SDL_max(SDL_max((sZoomOutW + PORT_MAX_W - 1) / PORT_MAX_W, (outH + PORT_MAX_H - 1) / PORT_MAX_H), 1);
-    s[1] = SDL_max(outH / target[1], 1);
-    s[0] = SDL_max(outH / target[0], s[1]);
-    for (k = 2; k < PORT_ZOOM_COUNT; k++)
-        s[k] = SDL_max(SDL_min(outH / target[k], s[k - 1] - 1), 1);
-    return SDL_max(s[SDL_clamp(zoom, 0, PORT_ZOOM_COUNT - 1)], least);
+    return ZoomRaw(PortConfigZoomEffective(zoom));
 }
 
 void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale) {
@@ -234,11 +256,23 @@ void PortConfigLoad(void) {
        whose margins are now drawn on the picture's own pixel grid. */
     if (sConfigVersion < 3)
         gPortConfig.narrowFit = 1;
+    /* ...and from before v1.5 (fullscreen 1920x1080 by default) to the
+       monitor's own resolution, so ultrawide monitors fill at 32:9. */
+    if (sConfigVersion < 4 && gPortConfig.fullscreenWidth == 1920 && gPortConfig.fullscreenHeight == 1080) {
+        gPortConfig.fullscreenWidth = 0;
+        gPortConfig.fullscreenHeight = 0;
+    }
     /* HD HUD: pending, off for players until it is finished, whatever an
        older kh_com.ini says. Development builds turn it on with
        KHCOM_HD_HUD_DEV=1 (then kh_com.ini's hd_hud applies). */
     if (!SDL_getenv("KHCOM_HD_HUD_DEV"))
         gPortConfig.hdHud = 0;
+#ifndef PORT_HD2D
+    /* HD-2D look: pending as well (too many scenes still wrong); forced off
+       outside its own build unless KHCOM_HD2D_DEV=1. */
+    if (!SDL_getenv("KHCOM_HD2D_DEV"))
+        gPortConfig.hd2d = 0;
+#endif
 }
 
 void PortConfigSave(void) {

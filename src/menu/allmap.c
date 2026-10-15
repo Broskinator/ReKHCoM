@@ -220,6 +220,11 @@ void task_allmap_room_2(AllmapRoomWork* work) {
         return;
     }
 
+#ifdef PLATFORM_PC
+    /* Only the field diagram is a HUD element; the full map is unchanged. */
+    if (work->asSprite)
+        PortHudBegin(1, -1);
+#endif
     if (work->gfx2 != NULL) {
         DrawSprite(x, y, work->gfx2, work->tiles, work->palette, NULL, flags, priority);
     }
@@ -230,6 +235,10 @@ void task_allmap_room_2(AllmapRoomWork* work) {
             DrawSprite(x, y, work->gfx[i], work->tiles2[i], work->palette, NULL, flags, i - 4 + priority);
         }
     }
+#ifdef PLATFORM_PC
+    if (work->asSprite)
+        PortHudEnd();
+#endif
 }
 
 void task_allmap_room_3(AllmapRoomWork* work) {

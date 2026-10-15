@@ -1,3 +1,35 @@
+# Entrega v1.5 — coordinación vigente (15/10/2026)
+
+Pedido actual del usuario: Codex continúa el trabajo de Claude hasta completar
+la v1.5, verifica los fallos adjuntos, publica la nueva versión, retira la
+v1.4 y rehace el tráiler con capturas de la versión corregida. Este pedido
+reemplaza el reparto histórico de abajo para esta entrega.
+
+Responsable activo: **Codex**. Si Claude vuelve, leer este bloque antes de
+editar. No tocar a la vez los archivos de render, configuración o menús.
+Partidas y configuraciones del usuario se conservan; pruebas en carpetas aisladas.
+
+- [ ] Arena: reproducir hueco inferior a zoom lejano y extender su fondo.
+- [~] Zoom: normal x4 a 1920×1080; eliminar pasos duplicados en todos los idiomas.
+      Hay cambios previos de Claude en configuración y ambas interfaces; validar.
+- [~] Síntesis: panel, cursor y contadores alineados después de los tutoriales.
+      Hay corrección previa de Claude; verificar entradas y redibujados.
+- [ ] Minimapa: anclar a su esquina a cada escala, incluyendo HUD independiente.
+- [ ] Puertas: extender el sombreado fuera del rectángulo original.
+- [~] Submenús: escala entera de lectura independiente (x5 a 1080p, x6 a 1440p).
+      Encabezados arriba, pies abajo, contenido central separado; pedido confirmado.
+- [ ] Animación de salida: revisar fondos/márgenes que se glitchean al volver de submenús.
+- [ ] Verificación visual: 16:9, 21:9, 32:9 y 5120×1440; zoom normal y lejano.
+- [ ] Compilar y comprobar EU/US/JP; documentar evidencia y límites reales.
+- [ ] Actualizar changelog/README, preparar ZIP sin ROM y acceso local v1.5.
+- [ ] Publicar v1.5 y retirar release v1.4 después de validar la sustituta.
+- [ ] Grabar material nuevo, montar y verificar tráiler v1.5 desde cero.
+
+Estado inicial: trabajo en `khcom-claude`, HEAD 48f9220f4. Se conservan
+modificaciones preexistentes; el checkout `khcom` tiene trabajo HUD separado.
+
+---
+
 # Reparto de pendientes — reordenado el 14 de octubre de 2026
 
 Responsabilidades acordadas con el usuario para trabajar sin solaparse,
