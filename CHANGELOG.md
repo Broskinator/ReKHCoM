@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v1.2 — 2026-10-15
+
+- New game always asks first which version to play, the original or
+  Re:Chain of Memories (difficulty, HD text and one-button controls); before,
+  the question only appeared with the experimental Re:CoM switch on. The
+  following screen starts with that version's presets.
+- README: no development progress chart; development notes moved out of the
+  repository root.
+
 ## v1.1 — 2026-10-15
 
 - Ultrawide and other window shapes: every screen checked at 16:10, 16:9,
@@ -12,10 +21,6 @@
   the picture at most 16:9 or 21:9 with black bars at the sides on wider
   monitors.
 - README: ultrawide screenshots.
-- New game always asks first which version to play, the original or
-  Re:Chain of Memories (difficulty, HD text and one-button controls); before,
-  the question only appeared with the experimental Re:CoM switch on. The
-  following screen starts with that version's presets.
 
 ## v1.0.1 — 2026-10-14
 
