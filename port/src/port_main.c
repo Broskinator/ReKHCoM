@@ -248,7 +248,10 @@ static float MenuScale(int outW, int outH) {
        everything keeps one size relation. The free rows above and below get
        the blurred reflection (MenuBackdrop). */
     float fit = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
-    if (gPortConfig.viewMode == PORT_VIEW_AUTO) {
+    /* only the menus over the field: title, language, copyright and the
+       other GBA-size scenes always fill the height */
+    extern int PortPpuSceneIsMenu(void);
+    if (gPortConfig.viewMode == PORT_VIEW_AUTO && PortPpuSceneIsMenu()) {
         int normal = PortConfigZoomScale(1), now = PortConfigZoomScale(gPortConfig.zoom);
         if (now < normal && normal > 0)
             fit = SDL_max(1.0f, SDL_floorf(fit * now / normal * 4.0f + 0.5f) / 4.0f);

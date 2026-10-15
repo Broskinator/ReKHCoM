@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v1.6.1 — 2026-10-15
+
+- Title, language and other GBA-size screens fill the height again at every
+  zoom; only the menus over the field follow the zoom.
+- Zoom shows its pixel scale again (Normal x4 and so on), in the game and the
+  launcher.
+
 ## v1.6 — 2026-10-15
 
 - Menus follow the zoom: at Normal they fill the screen's height as before;

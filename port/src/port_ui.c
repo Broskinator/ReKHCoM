@@ -548,7 +548,7 @@ static void ValueText(int item, char* out, size_t size) {
             break;
         case ITEM_ZOOM:
             if (ItemEnabled(item)) /* the step and the pixel scale it gives here */
-                SDL_snprintf(out, size, "%s  (pixel x%d)", sZooms[PortConfigZoomEffective(gPortConfig.zoom)][l],
+                SDL_snprintf(out, size, "%s  x%d", sZooms[PortConfigZoomEffective(gPortConfig.zoom)][l],
                              PortConfigZoomScale(gPortConfig.zoom));
             else
                 SDL_strlcpy(out, sAutoOnly[l], size);

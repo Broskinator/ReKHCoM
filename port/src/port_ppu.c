@@ -1812,6 +1812,11 @@ static void UpdateSceneNarrow(uint16_t dispcnt) {
         sSceneNarrow = sNarrowWanted;
 }
 
+/* The scene is one of the full-screen menus over the field (PortSceneNarrow). */
+int PortPpuSceneIsMenu(void) {
+    return sSceneNarrow;
+}
+
 void PortPpuBeginFrame(void) {
     uint16_t dispcnt = IO16(0x00);
     int b, any = 0;
