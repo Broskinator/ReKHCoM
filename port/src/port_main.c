@@ -355,6 +355,29 @@ static uint32_t StripPixel(int sx, int sy, int x, int y) {
     return sComposite[(sy + y) * gPortScreen.width + sx + x];
 }
 
+static float PixelEdge(float origin, int r, float scale);
+
+/* A margin texture (column 0 = the outermost) drawn column by column, each
+   GBA column in the exact window pixels the picture's own sampling would
+   give it: at a scale like 6.75 the scaler alone breaks ties between two
+   columns differently for a texture placed elsewhere, shifting a margin's
+   stipple by a pixel every few columns. */
+static void RenderMarginColumns(SDL_Texture* tex, int fw, int side, float picX, float y, float scale, float limit) {
+    int xx;
+    for (xx = 0; xx < fw; xx++) {
+        int c = side < 0 ? xx - fw : GBA_SCREEN_W + xx;
+        float a = PixelEdge(picX, c, scale), b = PixelEdge(picX, c + 1, scale);
+        SDL_FRect src = { (float)xx, 0, 1, GBA_SCREEN_H }, d;
+        if (side < 0 ? b <= 0 : a >= limit)
+            continue;
+        d.x = a;
+        d.y = y;
+        d.w = b - a;
+        d.h = GBA_SCREEN_H * scale;
+        SDL_RenderTexture(sRenderer, tex, &src, &d);
+    }
+}
+
 static void SideBar(int sx, int sy, int side, float y, float scale, float x0, float x1, int edgeX) {
     float w = SIDE_STRIP * scale;
     int band;
@@ -417,10 +440,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
            menu style below), so the margin's columns and rows line up */
         SDL_SetTextureScaleMode(sFadeSideTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                            : SDL_SCALEMODE_PIXELART);
-        {
-            SDL_FRect dst = {side < 0 ? x1 - fw * scale : x0, y, fw * scale, GBA_SCREEN_H * scale};
-            SDL_RenderTexture(sRenderer, sFadeSideTexture, NULL, &dst);
-        }
+        RenderMarginColumns(sFadeSideTexture, fw, side, side < 0 ? x1 : x0 - GBA_SCREEN_W * scale, y, scale, x1);
         return;
     }
     SDL_SetTextureScaleMode(sTexture, SDL_SCALEMODE_NEAREST);
@@ -531,10 +551,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
         SDL_UpdateTexture(sMenuSideTexture, NULL, strip, fw * 4);
         SDL_SetTextureScaleMode(sMenuSideTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                            : SDL_SCALEMODE_PIXELART);
-        {
-            SDL_FRect d = { side < 0 ? x1 - fw * scale : x0, y, fw * scale, GBA_SCREEN_H * scale };
-            SDL_RenderTexture(sRenderer, sMenuSideTexture, NULL, &d);
-        }
+        RenderMarginColumns(sMenuSideTexture, fw, side, side < 0 ? x1 : x0 - GBA_SCREEN_W * scale, y, scale, x1);
         return;
     }
     if (sSideStyle == 1) {
