@@ -28,8 +28,9 @@ included), in all five European languages, English (US) and Japanese.
   m4a music, PSG and PCM reimplemented in C; native movie playback.
 - **Launcher.** Installs and checks your dump (SHA-1), picks the version,
   language, graphics, sound, controls and saves; imports GBA saves.
-- **Re:CoM mode (optional).** PS2-inspired options chosen at New Game:
-  difficulty and quality-of-life buttons. Off = the cartridge, untouched.
+- **Two ways to play.** New Game asks for the version: the original, exactly
+  as on the cartridge, or Re:Chain of Memories, with PS2-inspired difficulty
+  levels, HD text and one-button dodge and stock.
 - **HD text, HD-2D look, smooth audio** as optional enhancements.
 
 <p align="center"><img src="docs/screenshots/deck.png" width="32%"> <img src="docs/screenshots/status.png" width="32%"> <img src="docs/screenshots/worldcards.png" width="32%"></p>
@@ -66,10 +67,6 @@ subtitles use a crisp font at the window's resolution.
 ### Launcher and in-game options
 
 <p align="center"><img src="docs/screenshots/launcher.png" width="49%"> <img src="docs/screenshots/options.png" width="49%"></p>
-
-![progress](port/progress/progress.svg)
-
-See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
 
 > [!IMPORTANT]
 > This repository contains **no game assets and no ROM**. You need your own dump of one
@@ -185,8 +182,7 @@ During the opening movie, A shows a prompt; A again skips the movie.
 ## Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout and verification
-workflow. The progress percentages describe development estimates, not game
-completion or a compatibility guarantee.
+workflow.
 
 ## Credits
 
@@ -194,7 +190,7 @@ completion or a compatibility guarantee.
 - Third-party asset credits: [NOTICE.md](port/assets/fonts/NOTICE.md).
 - PC port: ReKHCoM contributors.
 
-The original decompilation README is kept in [README.decomp.md](README.decomp.md).
+The original decompilation README is kept in [docs/README.decomp.md](docs/README.decomp.md).
 
 This is an independent fan project, unaffiliated with Square Enix, Disney or
 Nintendo. Their game content and trademarks are not covered by the source
