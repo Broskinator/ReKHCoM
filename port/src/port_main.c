@@ -692,6 +692,7 @@ static void DrawBlurredReflection(const SDL_FRect* src, int outW, int outH) {
    (a title, the world warp's player bars) and is drawn on to the window's
    edge in that colour. */
 static uint32_t sBandGround; /* style 9: the ground colour, 0 otherwise */
+static void DetectLetterbox(const SDL_FRect* src, int* top, int* bottom);
 
 /* d is c darkened (the GBA's brightness fade): every channel lower by the
    same proportion, within rounding */
@@ -731,31 +732,9 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
     int lbTop = 0, lbBottom = GBA_SCREEN_H;
     PortPpuSpriteMask(mask); /* bars are sprites; the scenery's own runs are not bars */
     {
-        /* a movie's letterbox: rows from the top (and from the bottom) whose
-           every pixel is within 24 of the edge row's own uniform colour */
         extern int PortNarrowEdgeKind(int side, int y);
-        if (PortNarrowEdgeKind(0, 0) < 0) {
-            int pass;
-            for (pass = 0; pass < 2; pass++) {
-                int y0 = pass ? GBA_SCREEN_H - 1 : 0, dy = pass ? -1 : 1, yy2, x2;
-                const uint32_t* r0 = &sComposite[((int)src->y + y0) * gPortScreen.width + (int)src->x];
-                uint32_t lb = r0[0];
-                for (x2 = 0; x2 < GBA_SCREEN_W && r0[x2] == lb; x2++) {}
-                if (x2 < GBA_SCREEN_W)
-                    continue; /* no letterbox on this side */
-                for (yy2 = y0; yy2 >= 0 && yy2 < GBA_SCREEN_H; yy2 += dy) {
-                    const uint32_t* r = &sComposite[((int)src->y + yy2) * gPortScreen.width + (int)src->x];
-                    for (x2 = 0; x2 < GBA_SCREEN_W; x2++) {
-                        int sh, far = 0;
-                        for (sh = 0; sh <= 16; sh += 8)
-                            far |= SDL_abs((int)((r[x2] >> sh) & 255) - (int)((lb >> sh) & 255)) > 24;
-                        if (far) break;
-                    }
-                    if (x2 < GBA_SCREEN_W) break;
-                }
-                if (pass) lbBottom = yy2 + 1; else lbTop = yy2;
-            }
-        }
+        if (PortNarrowEdgeKind(0, 0) < 0)
+            DetectLetterbox(src, &lbTop, &lbBottom);
     }
     for (side = 0; side < 2; side++) {
         int edge = side ? (int)(src->x + src->w) - 1 : (int)src->x, step = side ? -1 : 1;
@@ -859,6 +838,61 @@ static void DrawEdgeBands(const SDL_FRect* src, const SDL_FRect* dst, int outW, 
     }
 }
 
+/* A movie's letterbox, baked into its 240x160 frames: the rows from the top
+   (and from the bottom) whose every pixel is within 24 of the edge row's own
+   uniform colour, compression noise and all. */
+static void DetectLetterbox(const SDL_FRect* src, int* top, int* bottom) {
+    int pass;
+    *top = 0;
+    *bottom = GBA_SCREEN_H;
+    for (pass = 0; pass < 2; pass++) {
+        int y0 = pass ? GBA_SCREEN_H - 1 : 0, dy = pass ? -1 : 1, yy2, x2;
+        const uint32_t* r0 = &sComposite[((int)src->y + y0) * gPortScreen.width + (int)src->x];
+        uint32_t lb = r0[0];
+        for (x2 = 0; x2 < GBA_SCREEN_W && r0[x2] == lb; x2++) {}
+        if (x2 < GBA_SCREEN_W)
+            continue; /* no letterbox on this side */
+        for (yy2 = y0; yy2 >= 0 && yy2 < GBA_SCREEN_H; yy2 += dy) {
+            const uint32_t* r = &sComposite[((int)src->y + yy2) * gPortScreen.width + (int)src->x];
+            for (x2 = 0; x2 < GBA_SCREEN_W; x2++) {
+                int sh, far = 0;
+                for (sh = 0; sh <= 16; sh += 8)
+                    far |= SDL_abs((int)((r[x2] >> sh) & 255) - (int)((lb >> sh) & 255)) > 24;
+                if (far) break;
+            }
+            if (x2 < GBA_SCREEN_W) break;
+        }
+        if (pass) *bottom = yy2 + 1; else *top = yy2;
+    }
+}
+
+/* The movie's crop: its letterbox measured over the first frames of each
+   movie (the widest bars seen, at most 24 rows a side) and then kept, so
+   dark scenes never make the picture jump. */
+static void MovieCrop(const SDL_FRect* src, int* top, int* bottom) {
+    static uint32_t lastFrame;
+    static int frames, cropTop, cropBottom, started;
+    uint32_t now = PortFrameCount();
+    int t, b;
+    if (!started || now - lastFrame > 4) {
+        started = 1;
+        frames = 0;
+        cropTop = 0;
+        cropBottom = GBA_SCREEN_H;
+    }
+    lastFrame = now;
+    if (frames < 120) {
+        DetectLetterbox(src, &t, &b);
+        if (t > 0 && t <= 24 && b < GBA_SCREEN_H && b >= GBA_SCREEN_H - 24) {
+            if (t > cropTop) cropTop = t;
+            if (b < cropBottom) cropBottom = b;
+            frames++;
+        }
+    }
+    *top = cropTop;
+    *bottom = cropBottom;
+}
+
 /* The title bar on the left margin: its own piece of the header asset.
    Where the header is transparent the picture shows the frame's bar behind
    it (the journal's dark green top row), so the margin shows that bar too. */
@@ -951,7 +985,22 @@ static void Present(void) {
         dst.h = GBA_SCREEN_H * scale;
         dst.x = (float)(int)((outW - dst.w) / 2);
         dst.y = (float)(int)((outH - dst.h) / 2);
-        if ((sSideStyle == 3 || sSideStyle == 8 || sFitScale > 0) && !PortUiActive())
+        if (sSideStyle == 10 && sFitScale <= 0 && !PortUiActive()) {
+            /* movies: only the video, without its letterbox, as large as the
+               window allows at the video's own proportions */
+            int top, bottom;
+            MovieCrop(&src, &top, &bottom);
+            if (bottom - top >= 64) {
+                src.y += top;
+                src.h = (float)(bottom - top);
+                scale = SDL_min(outW / src.w, outH / src.h);
+                dst.w = src.w * scale;
+                dst.h = src.h * scale;
+                dst.x = (float)(int)((outW - dst.w) / 2);
+                dst.y = (float)(int)((outH - dst.h) / 2);
+            }
+        }
+        if ((sSideStyle == 3 || sSideStyle == 8 || sSideStyle == 10 || sFitScale > 0) && !PortUiActive())
             DrawBlurredReflection(&src, outW, outH);
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
@@ -1019,7 +1068,7 @@ static void Present(void) {
             }
             DrawHeaderLeft(&src, &dst);
         }
-        if (!PortUiActive() && sSideStyle != 3 && sSideStyle != 8 && sSideStyle != 9 && sFitScale <= 0) {
+        if (!PortUiActive() && sSideStyle != 3 && sSideStyle != 8 && sSideStyle != 9 && sSideStyle != 10 && sFitScale <= 0) {
             SideBar((int)src.x, (int)src.y, -1, dst.y, scale, 0.0f, dst.x, (int)src.x);
             SideBar((int)(src.x + src.w) - SIDE_STRIP, (int)src.y, 1, dst.y, scale, dst.x + dst.w, (float)outW,
                     (int)(src.x + src.w) - 1);

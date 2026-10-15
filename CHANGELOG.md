@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+## v1.0 — 2026-10-14
+
+First public release (Windows x86).
+
+- Side margins, finished: the 17 GBA-size screens (journal, decks, status,
+  map and world cards, Moogle Shop, world map, world select, vortex, elite
+  bonus, START menu, room synthesis, save, level up, language select,
+  copyright and title, movies and battle entry) reviewed one by one. Every
+  margin is drawn from the screen's own art on the picture's exact pixel
+  grid: bars, boxes, titles and panels carry on to the window's edges, menu
+  stipple and world-map checkerboards keep their phase, plain backgrounds
+  stay plain (no mirrored shapes) and nothing is stretched.
+- Menu titles: the arrow's tip meets the line drawn from it.
+- Movies in Fill height mode: cropped to the video, without its letterbox,
+  and shown as large as the window allows at the video's own proportions.
+- Fill height is the default for GBA-size scenes (older settings switch to
+  it once).
+- Room synthesis: the card panel closes above the bottom bar.
+- Wide menus reach the window's right edge at every size (START menu,
+  save, room synthesis at 1280x720 lost their last 3 pixels).
+- Launcher: its language is the system's the first time and stays as
+  chosen (Español / English); fixed accented text.
+- The HD HUD pilot is hidden until it is finished.
+
 ## v0.8 — 2026-10-14
 
 Windows x86 prerelease.

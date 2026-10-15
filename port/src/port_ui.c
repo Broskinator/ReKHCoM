@@ -83,6 +83,7 @@ static int ItemVisible(int item) {
         case ITEM_PS2_MENU: return PortRecomActive();
         case ITEM_NG_VERSION: return gPortConfig.ps2Mode != 0;
         case ITEM_NG_DIFFICULTY: return sNgRecom;
+        case ITEM_HDHUD: return 0; /* hidden until the HD HUD is finished (kh_com.ini hd_hud still works) */
         default: return 1;
     }
 }

@@ -104,7 +104,7 @@ void PortSetBattleArenaBands(int left, int right, int leftStart, int leftWidth,
                              int rightStart, int rightWidth);
 /* GBA-size screens: how the side bars beyond them are filled. */
 enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE, PORT_SIDE_BLUR, PORT_SIDE_MENU, PORT_SIDE_PATTERN, PORT_SIDE_PIXEL_FADE, PORT_SIDE_EDGE_FADE,
-       PORT_SIDE_BLUR_BANDS, PORT_SIDE_GROUND_BANDS };
+       PORT_SIDE_BLUR_BANDS, PORT_SIDE_GROUND_BANDS, PORT_SIDE_MOVIE };
 void PortSideStyle(int style);
 void PortMenuPanelSide(int side);
 void PortMenuHeaderSource(void* frame, void* tiles, void* palette);

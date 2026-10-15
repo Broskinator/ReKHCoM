@@ -46,7 +46,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v0.8"
+#define REKHCOM_VERSION "v1.0"
 #endif
 
 static bool sSpanish;
@@ -289,10 +289,13 @@ static void SaveIni() {
    0 = the player chooses, then English, French, German, Italian, Spanish. */
 static const char* const kGameLanguageIds[] = { "", "en", "fr", "de", "it", "es" };
 static int sGameLanguage;
-static int sUiLanguage; /* 0 = system, 1 = Spanish, 2 = English */
+static int sUiLanguage; /* 1 = Spanish, 2 = English; 0 until chosen */
 
 static void ApplyUiLanguage() {
-    sSpanish = sUiLanguage == 1 || (sUiLanguage == 0 && PRIMARYLANGID(GetUserDefaultUILanguage()) == LANG_SPANISH);
+    /* the first time, the system's language is chosen and kept */
+    if (sUiLanguage != 1 && sUiLanguage != 2)
+        sUiLanguage = PRIMARYLANGID(GetUserDefaultUILanguage()) == LANG_SPANISH ? 1 : 2;
+    sSpanish = sUiLanguage == 1;
 }
 
 static void LoadLauncherState() {
@@ -970,7 +973,7 @@ static void PageHome(SDL_Window* window) {
             ImportSave(window, sSelected);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("%s", T("Una partida de emulador (mGBA, VBA, NO$GBA...) o de GameShark / Action Replay. "
-                                      "Se convierte a esta versiÃ³n si viene de otra regiÃ³n; la actual "
+                                      "Se convierte a esta versión si viene de otra región; la actual "
                                       "se guarda antes en backups.",
                                       "A save from an emulator (mGBA, VBA, NO$GBA...) or GameShark / Action Replay. "
                                       "It is converted to this version if it comes from another region; the current "
@@ -1088,11 +1091,13 @@ static void PageExtras() {
                            "places and colours."),
                          Ini("hd_text"));
     ImGui::Separator();
+#ifdef REKHCOM_SHOW_HD_HUD /* hidden until the HD HUD is finished; kh_com.ini hd_hud still works */
     changed |= ToggleRow(T("HUD HD (piloto)", "HD HUD (pilot)"),
                          T("Marco de vida del enemigo redibujado en HD. Piloto para vista panoramica; los demas elementos conservan sus graficos originales.",
                            "Redrawn HD enemy HP frame. Pilot for wide views; other elements keep their original graphics."),
                          Ini("hd_hud"));
     ImGui::Separator();
+#endif
     changed |= ToggleRow(T("Estilo HD-2D", "HD-2D look"),
                          T("Campo y combates con profundidad de campo, resplandor, gradación de color y viñeta, al "
                            "estilo de Octopath Traveler. Los sprites quedan nítidos.",
@@ -1108,9 +1113,9 @@ static void PageExtras() {
                          Ini("smooth_audio"));
     ImGui::Separator();
     changed |= ToggleRow(T("Modo Re:CoM", "Re:CoM mode"),
-                         T("Al empezar una partida nueva puedes elegir la versiÃ³n: la original de GBA o la Re:CoM, "
+                         T("Al empezar una partida nueva puedes elegir la versión: la original de GBA o la Re:CoM, "
                            "con mejoras de Kingdom Hearts Re:Chain of Memories (PS2) como niveles de dificultad y "
-                           "diÃ¡logos rÃ¡pidos. Cada partida recuerda la suya. Apagado, todo queda como el "
+                           "diálogos rápidos. Cada partida recuerda la suya. Apagado, todo queda como el "
                            "cartucho original.",
                            "When starting a new game you can choose the version: the original GBA one or Re:CoM, with "
                            "improvements from Kingdom Hearts Re:Chain of Memories (PS2) such as difficulty levels and "
@@ -1270,12 +1275,12 @@ static void Header() {
     ImGui::SameLine(0, Px(14));
     ImGui::TextColored(kText, "%s MatyMeatBoy", T("por", "by"));
     {
-        const char* uis[] = { T("Idioma: sistema", "Language: system"), "Idioma: Espa\xC3\xB1ol", "Language: English" };
+        const char* uis[] = { "", "Idioma: Espa\xC3\xB1ol", "Language: English" };
         float w = Px(190);
         ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - w);
         ImGui::PushStyleColor(ImGuiCol_Button, kControl);
         if (ImGui::Button(uis[sUiLanguage], ImVec2(w, 0))) {
-            sUiLanguage = (sUiLanguage + 1) % 3;
+            sUiLanguage = sUiLanguage == 1 ? 2 : 1;
             ApplyUiLanguage();
             SaveLauncherState();
         }
@@ -1479,6 +1484,7 @@ int main(int, char**) {
     ScanInstall();
     LoadIni();
     LoadLauncherState();
+    SaveLauncherState(); /* the first time, keeps the language chosen from the system */
     if (!sState[sSelected].installed) {
         for (int v = 0; v < kVersionCount; v++)
             if (sState[v].installed) {
