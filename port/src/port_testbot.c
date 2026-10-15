@@ -126,6 +126,32 @@ void PortBotDoor(int side, FldPos* pos) {
         sDoorPos[side] = pos;
 }
 
+/* Explicit test fixture only; the playthrough bot never calls this. The
+   following A input still enters the door through normal collision/tasks. */
+int PortHarnessDoorPose(int eventDoor) {
+    static const int dx[4] = {-14, 14, -14, 14};
+    static const int dy[4] = {8, -8, -8, 8};
+    static const int angle[4] = {FLD_ANGLE_UP_RIGHT, FLD_ANGLE_DOWN_LEFT,
+                               FLD_ANGLE_DOWN_RIGHT, FLD_ANGLE_UP_LEFT};
+    int side, card;
+    for (side = 0; side < 4; side++) {
+        MapDoor* door = GetMapDoor(side);
+        if (!sDoorPos[side] || !(door->flags & DOOR_FLAG_PRESENT) ||
+            (door->flags & DOOR_FLAG_OPEN) || !!(door->flags & DOOR_FLAG_EVENT) != !!eventDoor)
+            continue;
+        gFieldState->actor.fieldPosition = *sDoorPos[side];
+        gFieldState->actor.fieldPosition.x += dx[side] * 256;
+        gFieldState->actor.fieldPosition.y += dy[side] * 256;
+        gFieldState->actor.angle = angle[side];
+        MapSetCameraTarget(gFieldState->actor.fieldPosition.x, gFieldState->actor.fieldPosition.y);
+        for (card = 0; card < 270; card += 10) AddMapCard(card);
+        PortLog("harness: door pose side=%d event=%d room=%d", side, eventDoor, door->room);
+        return 1;
+    }
+    PortLog("harness: door pose unavailable event=%d", eventDoor);
+    return 0;
+}
+
 static uint16_t Toward(int dx, int dy, int dead) {
     uint16_t k = 0;
     if (dx > dead) k |= K_RIGHT;

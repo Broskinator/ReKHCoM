@@ -239,6 +239,14 @@ static SDL_Rect AspectRect(int outW, int outH) {
     return r;
 }
 
+/* A shared integer UI scale: about 216 logical lines at desktop sizes.
+   1080p uses x5 (was x6.75), 1440p x6 (was x9). Keep it independent
+   of world zoom, and fit small windows without cropping their UI. */
+static float MenuScale(int outW, int outH) {
+    float fit = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
+    return SDL_min(fit, (float)SDL_max(1, outH / 216));
+}
+
 /* Auto view: size the canvas to the window every frame. */
 static void UpdateResolution(void) {
     int outW, outH, w, h;
@@ -256,7 +264,7 @@ static void UpdateResolution(void) {
     gPortOverlayW = GBA_SCREEN_W;
     sOverlayScale = 0;
     if (gPortConfig.viewMode == PORT_VIEW_AUTO) {
-        float f = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
+        float f = MenuScale(outW, outH);
         gPortOverlayW = SDL_max(GBA_SCREEN_W, SDL_min((int)SDL_ceilf(outW / f), PORT_MAX_W));
         /* an even margin on both sides: with an odd width the menus' side
            margin ((width - 240) / 2) left the last column on the right
@@ -267,7 +275,7 @@ static void UpdateResolution(void) {
     }
     sFitScale = 0;
     if (sFit && gPortConfig.viewMode == PORT_VIEW_AUTO) {
-        float f = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
+        float f = MenuScale(outW, outH);
         w = SDL_min((int)SDL_ceilf(outW / f), PORT_MAX_W);
         h = GBA_SCREEN_H;
         sFitScale = f;
@@ -1155,7 +1163,8 @@ static void Present(void) {
         /* Scene without a wide view: show the GBA picture at full height
            (bars only at the sides), sampled with the pixel-art filter. */
         SDL_FRect src = { (float)gPortScreen.originX, (float)gPortScreen.originY, GBA_SCREEN_W, GBA_SCREEN_H };
-        float scale = SDL_min(outW / (float)GBA_SCREEN_W, outH / (float)GBA_SCREEN_H);
+        float scale = sSideStyle == 10 ? SDL_min(outW / (float)GBA_SCREEN_W, outH / (float)GBA_SCREEN_H)
+                                             : MenuScale(outW, outH);
         dst.w = GBA_SCREEN_W * scale;
         dst.h = GBA_SCREEN_H * scale;
         dst.x = (float)(int)((outW - dst.w) / 2);

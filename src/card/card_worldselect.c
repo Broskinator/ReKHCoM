@@ -260,6 +260,9 @@ void MapSelect_0(MapSelectWork* work, u8* status) {
 }
 
 u8 MapSelect_1(MapSelectWork* work, void* task) {
+#ifdef PLATFORM_PC
+    PortScreenBg(1, TRUE);
+#endif
 #ifdef VERSION_EU
     LoadBgTiles(1, gMapSelectTiles, sizeof(gMapSelectTiles));
 
@@ -356,6 +359,9 @@ u8 UpdateMapSelectSlideIn(MapSelectWork* work, void* task) {
             } else {
                 node = ListPoolFirst(&work->cards);
                 SetBgMapBlocks(1, gMapSelectBgMapBlocks, 1, 2);
+#ifdef PLATFORM_PC
+                ScrollBgMapTo(1, 0, ((u32)work->bgScrollY >> 8) + MAPSEL_RAISE); /* the panel keeps its place */
+#endif
 
                 while (node != NULL) {
                     node->flags |= MAPCARD_FLAG_RAISED;
@@ -870,8 +876,11 @@ void MapSelect_2(MapSelectWork* work) {
         DrawSprite((work->handX >> 8) - 16, (work->handY >> 8) - 12, work->gfx2, work->tiles5, work->palette3, NULL, 0, 40);
     }
 
-    if (work->scrollBarVisible) {
-        // @bug lastPage can be 0 (division by zero).
+    if (work->scrollBarVisible
+#ifdef PLATFORM_PC
+        && work->lastPage > 0 /* One page has no scroll range. */
+#endif
+    ) {
         DrawSprite(224,
 #ifdef VERSION_EU
                    (18 / work->lastPage) * work->page + 108,
@@ -904,6 +913,9 @@ void MapSelect_2(MapSelectWork* work) {
 }
 
 void MapSelect_3(MapSelectWork* work) {
+#ifdef PLATFORM_PC
+    PortScreenBg(1, FALSE);
+#endif
     TaskPoolDestroy(&work->tasks);
 
     if (work->kindEntries != NULL) {
@@ -1791,6 +1803,9 @@ u8 UpdateMapSelectTutorial(MapSelectWork* work, void* task) {
             } else {
                 node = ListPoolFirst(&work->cards);
                 SetBgMapBlocks(1, gMapSelectBgMapBlocks, 1, 2);
+#ifdef PLATFORM_PC
+                ScrollBgMapTo(1, 0, ((u32)work->bgScrollY >> 8) + MAPSEL_RAISE); /* the panel keeps its place */
+#endif
 
                 while (node != NULL) {
                     node->flags |= MAPCARD_FLAG_RAISED;
@@ -1876,6 +1891,9 @@ u8 UpdateMapSelectEventDoorTutorial(MapSelectWork* work, void* task) {
             } else {
                 node = ListPoolFirst(&work->cards);
                 SetBgMapBlocks(1, gMapSelectBgMapBlocks, 1, 2);
+#ifdef PLATFORM_PC
+                ScrollBgMapTo(1, 0, ((u32)work->bgScrollY >> 8) + MAPSEL_RAISE); /* the panel keeps its place */
+#endif
 
                 while (node != NULL) {
                     node->flags |= MAPCARD_FLAG_RAISED;

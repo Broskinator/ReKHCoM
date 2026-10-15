@@ -224,6 +224,19 @@ int PortHarnessMode(const char* name, int arg) {
         ModeRequestHeapReset(&gModeMapFix, 0);
         return 1;
     }
+    if (strcmp(name, "fieldfreeze") == 0 && gFieldState != NULL) {
+        gFieldState->flags |= FIELD_FLAG_FREEZE_ENEMIES | FIELD_FLAG_NO_ENEMY_SPAWN;
+        PortLog("harness: fieldfreeze applied");
+        return 1;
+    }
+    if (strcmp(name, "doortutorial") == 0) {
+        gGameState.progression.tutorialFlags &= ~(TUTORIAL_FLAG_MAP_SELECT | TUTORIAL_FLAG_MAP_SELECT_EVENT_DOOR);
+        return 1;
+    }
+    if (strcmp(name, "doorpose") == 0 && gFieldState != NULL) {
+        extern int PortHarnessDoorPose(int eventDoor);
+        return PortHarnessDoorPose(arg);
+    }
     if (strcmp(name, "spotlight") == 0 && gFieldState != NULL) {
         SetBgPriority(0, 2);
         SetBgPriority(1, 2);

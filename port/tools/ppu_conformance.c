@@ -9,6 +9,14 @@
 PortConfig gPortConfig;
 const void* gMsgwinMapBlocks[4];
 static int hblank;
+/* Optional HD artwork is disabled in this pixel-renderer oracle. */
+uint32_t* PortHdHudExportBuffer(void) { return NULL; }
+void PortHdHudExportSprite(int w, int h, int part, int ax, int ay) {}
+int PortHdHudLettersReady(void) { return 0; }
+int PortHdHudPlayerFrameReady(void) { return 0; }
+void PortHdHudSpriteBegin(void) {}
+int PortHdHudSpriteRegister(const uint32_t* pixels, int w, int h, int slot, int x, int y, int flip, int alpha) { return 0; }
+
 void PortLog(const char* fmt, ...) { (void)fmt; }
 int PortHd2dActive(void) { return 0; }
 uint32_t PortFrameCount(void) { return 0; }

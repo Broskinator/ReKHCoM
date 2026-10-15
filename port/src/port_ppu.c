@@ -146,6 +146,7 @@ void PortRegisterBgTextTile(void* address, int code, int style, const void* sour
 
 /* A docked layer is screen UI moved toward an edge: it shows only what the
    hardware would (no world-map continuation), so parked windows stay hidden. */
+static unsigned sScreenBgMask;
 static int sBgSplit[4]; /* PortBgSplit, below */
 static int sBgSplitBands[4]; /* repeat authored ornamental tiles in the split gap */
 static int sBgClip[4]; /* PortBgClip: UI layer kept to the GBA columns */
@@ -167,7 +168,6 @@ static int sSceneNarrow, sNarrowWanted, sNarrowWait; /* PortSceneNarrow, below *
 static int sSpotlight;
 void PortSetSpotlight(int active) { sSpotlight = active; }
 int PortSpotlightActive(void) { return sSpotlight; }
-
 void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgLatch, sizeof(sBgLatch));
     visit(sBgShift, sizeof(sBgShift));
@@ -181,6 +181,7 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(sBgWorld, sizeof(sBgWorld));
     visit(sBgWorldLatched, sizeof(sBgWorldLatched));
     visit(sBgSplit, sizeof(sBgSplit));
+    visit(&sScreenBgMask, sizeof(sScreenBgMask));
     visit(sBgSplitBands, sizeof(sBgSplitBands));
     visit(sBgClip, sizeof(sBgClip));
     visit(&sSceneNarrow, sizeof(sSceneNarrow));
@@ -371,6 +372,12 @@ int gPortOverlayW = GBA_SCREEN_W;
 int gPortScreenLayer; /* this frame uses the screen layer (set by the presenter) */
 static int sScreenDepth, sScreenMark, sOverlay;
 static int sScreenBg[4];
+void PortScreenBg(int bg, int on) {
+    if ((unsigned)bg < 4) {
+        if (on) sScreenBgMask |= 1u << bg;
+        else sScreenBgMask &= ~(1u << bg);
+    }
+}
 static uint16_t sScrLine[PORT_MAX_W];
 static uint8_t sScrPrio[PORT_MAX_W];
 static uint8_t sScrIndex[PORT_MAX_W];
@@ -748,6 +755,13 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     ty = py >> 3;
     fy = py & 7;
     outside = gy < 0 || gy >= GBA_SCREEN_H;
+    if (sSpotlight && bg == 0) {
+        /* Extend the authored shade, never the unused VRAM padding. */
+        py = ((gy < 0 ? 0 : gy >= GBA_SCREEN_H ? GBA_SCREEN_H - 1 : gy) + vofs) & hmask;
+        ty = py >> 3;
+        fy = py & 7;
+        outside = 0;
+    }
 
     for (x = 0; x < w; x++) {
         int gx = x - gPortScreen.originX - sBgShiftLatched[bg];
@@ -758,6 +772,8 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             out[x] = TRANSPARENT;
             continue;
         }
+        if (sSpotlight && bg == 0)
+            gx = (gx < 0 ? 0 : gx >= GBA_SCREEN_W ? GBA_SCREEN_W - 1 : gx);
         if (mosH > 1)
             gx -= ((gx % mosH) + mosH) % mosH;
         if (outside || gx < 0 || gx >= GBA_SCREEN_W) {
@@ -1313,9 +1329,9 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
         int found = 0, i, objDone = 0;
         uint16_t col;
 
-        if (gx < sLeft || gx >= sRight ||
-            (sSpotlight && (gx < 0 || gx >= GBA_SCREEN_W || y < gPortScreen.originY ||
-                           y >= gPortScreen.originY + GBA_SCREEN_H))) {
+        /* Once synthesis owns BG1, its stage is a full-screen UI. During
+           the door animation the spotlight still shades the wide world. */
+        if (gx < sLeft || gx >= sRight || (sSpotlight && (sScreenBgMask & 2u))) {
             dst[x] = 0xFF000000u;
             continue;
         }
@@ -1834,8 +1850,9 @@ void PortPpuBeginFrame(void) {
         int arena = (m == 2 || (m == 1 && b == 2)) && b >= 2 && (IO16(0x08 + b * 2) >> 14) >= 2;
         /* Split menus may use the engine's map-block API too; those blocks
            describe UI pages, not a world that should remain under the overlay. */
-        sScreenBg[b] = sOverlay && (sBgSplit[b] ||
-            (!sBgLatch[b].valid && !sBgWorldLatched[b].valid && !arena));
+        sScreenBg[b] = sOverlay && !(sSpotlight && b == 0 && !(sScreenBgMask & 2u)) &&
+            ((sScreenBgMask & (1u << b)) || sBgSplit[b] ||
+             (!sBgLatch[b].valid && !sBgWorldLatched[b].valid && !arena));
     }
     if (sOverlay)
         memset(gPortOverlay, 0, (size_t)gPortOverlayW * GBA_SCREEN_H * 4);
@@ -1895,6 +1912,7 @@ void PortPpuRenderFrame(void) {
         gy = y - gPortScreen.originY;
         if (gy >= sBottom) {
             memset(gPortFrame + y * w, 0, w * 4);
+            memset(gPortMenuBackground + y * w, 0, w * 4);
             continue;
         }
         RenderLine(y, gy);

@@ -91,6 +91,8 @@ void PortFitScreen(void);
    PortScreenMarginX() is that layer's margin beyond the GBA screen. */
 void PortScreenBegin(void);
 void PortScreenEnd(void);
+/* Explicit UI ownership for menus using the map-block API. */
+void PortScreenBg(int bg, int on);
 int PortScreenMarginX(void);
 void PortBgSplit(int bg, int column);
 void PortBgSplitBands(int bg, int enabled);
