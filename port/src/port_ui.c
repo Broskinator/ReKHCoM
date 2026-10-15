@@ -1430,7 +1430,7 @@ static void DrawWizard(int l, int width, int height) {
 }
 
 static void DrawMenu(int l, int width, int height) {
-    int rows, i, x, y, labelW = 0, valueW = 0, barX = 10, barW, top = MENU_TOP, artX, artY;
+    int rows, i, x, y, labelW = 0, valueW = 0, barX = 10, barW, top = MENU_TOP, artX;
     char value[64];
 
     if (sPage == PAGE_NEWGAME) {
@@ -1456,11 +1456,18 @@ static void DrawMenu(int l, int width, int height) {
 
     /* white, the picture at the bottom right */
     Fill(0, 0, width, height, 0xFFFFFFFFu);
-    artX = width - GBA_SCREEN_W;
-    artY = height - GBA_SCREEN_H;
-    for (y = 0; y < GBA_SCREEN_H; y++)
-        for (x = MENU_ART_X; x < GBA_SCREEN_W; x++)
-            Pixel(artX + x, artY + y, sMenuArt[y * GBA_SCREEN_W + x]);
+    /* the picture as tall as the screen (it was a fixed 160 lines, small on
+       a large window), sampled pixel by pixel; artX/artY stay the left/top
+       of an unscaled picture so the list's shading below still lines up */
+    {
+        int ah = height, aw = (GBA_SCREEN_W - MENU_ART_X) * height / GBA_SCREEN_H;
+        int ax0 = width - aw;
+        for (y = 0; y < ah; y++)
+            for (x = 0; x < aw; x++)
+                Pixel(ax0 + x, y, sMenuArt[(y * GBA_SCREEN_H / ah) * GBA_SCREEN_W + MENU_ART_X +
+                                           x * GBA_SCREEN_H / ah]);
+        artX = ax0 - MENU_ART_X;
+    }
     /* keep the list readable where it runs over the picture */
     for (x = barX + barW - 24; x < barX + barW + 16; x++)
         if (x >= artX + MENU_ART_X)
