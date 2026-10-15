@@ -118,6 +118,13 @@ void ModeStart(Mode* mode, s32 arg) {
                   : (mode == &gModeMenuNew || mode == &gModeMenuLoad) ? PORT_SIDE_SCENE_BANDS
                   : PORT_SIDE_EDGE_FADE); /* no stretched columns anywhere */
     PortSceneNarrow(ModeIsFullScreenMenu(mode));
+    {
+        /* the battle's opening (the heart bursting) covers the whole screen */
+        extern Mode gModeBattle;
+        extern void PortCoverIntro(void);
+        if (mode == &gModeBattle)
+            PortCoverIntro();
+    }
 #endif
     if (mode->init != NULL) {
         mode->init(arg);

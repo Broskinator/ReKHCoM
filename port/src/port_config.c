@@ -167,7 +167,7 @@ void PortConfigView(int mode, int* w, int* h) {
 }
 
 /* Auto view's whole-number pixel scale for each zoom step at a window
-   height. Normal (the default) shows about 270 lines: x4 on a 1080-line
+   height. Normal (the default) shows about 360 lines: x3 on a 1080-line
    screen. Near is the largest scale that still shows the GBA's 160 lines;
    Far, Very far and Farthest are one scale smaller each. A step only exists
    where it gives its own scale (no two steps alike) within the canvas's
@@ -180,7 +180,7 @@ static int ZoomLeast(void) {
 }
 
 static int ZoomRaw(int zoom) {
-    int normal = SDL_max((sZoomOutH + 135) / 270, ZoomLeast());
+    int normal = SDL_max((sZoomOutH + 180) / 360, ZoomLeast()); /* x3 at 1080 lines */
     if (zoom <= 0)
         return SDL_max(sZoomOutH / GBA_SCREEN_H, 1);
     return normal - (zoom - 1);

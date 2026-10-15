@@ -242,21 +242,20 @@ static SDL_Rect AspectRect(int outW, int outH) {
 /* A shared integer UI scale: about 216 logical lines at desktop sizes.
    1080p uses x5 (was x6.75), 1440p x6 (was x9). Keep it independent
    of world zoom, and fit small windows without cropping their UI. */
+/* A battle's opening animation (GBA-size, before the arena appears) is
+   scaled to cover the window, cropping the top and bottom, instead of
+   sitting at full height between margins. */
+static uint32_t sCoverFrom = 0xFFFF0000u;
+void PortCoverIntro(void) {
+    sCoverFrom = PortFrameCount();
+}
+static int CoverActive(void) {
+    return PortFrameCount() - sCoverFrom < 180 && (sFitScale > 0 || !gPortScreen.wide);
+}
+
 static float MenuScale(int outW, int outH) {
-    /* Menus fill the window's height at Normal (and closer); the far zoom
-       steps make them smaller in the same proportion as the world, so
-       everything keeps one size relation. The free rows above and below get
-       the blurred reflection (MenuBackdrop). */
-    float fit = SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
-    /* only the menus over the field: title, language, copyright and the
-       other GBA-size scenes always fill the height */
-    extern int PortPpuSceneIsMenu(void);
-    if (gPortConfig.viewMode == PORT_VIEW_AUTO && PortPpuSceneIsMenu()) {
-        int normal = PortConfigZoomScale(1), now = PortConfigZoomScale(gPortConfig.zoom);
-        if (now < normal && normal > 0)
-            fit = SDL_max(1.0f, SDL_floorf(fit * now / normal * 4.0f + 0.5f) / 4.0f);
-    }
-    return fit;
+    /* menus and every GBA-size scene always fill the window's height */
+    return SDL_min(outH / (float)GBA_SCREEN_H, outW / (float)GBA_SCREEN_W);
 }
 
 /* Auto view: size the canvas to the window every frame. */
@@ -586,7 +585,9 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                 /* a menu still coming in: its header's line (a sprite) runs
                    across the picture before the title arrives; a sprite row
                    of one colour 64 pixels long from the edge carries on */
-                if (sSideStyle == 4 && yy < 32 && !PortMenuHeaderPixel(yy & 15, 0)) {
+                /* (never over the header itself: the title stays on top) */
+                if (sSideStyle == 4 && yy < 32 && !PortMenuHeaderPixel(yy & 15, 0) &&
+                    !(yy < 16 && PortMenuHeaderPixelAt(yy, d))) {
                     const uint32_t* fr = &gPortFrame[(sy + yy) * gPortScreen.width];
                     uint32_t c = fr[edgeX];
                     int k3, step = side < 0 ? 1 : -1;
@@ -1029,8 +1030,10 @@ static void DrawSkipLayer(const SDL_FRect* normal) {
 static void DrawHeaderLeft(const SDL_FRect* src, const SDL_FRect* dst) {
     int yy, xx, any = 0;
     float sc = dst->w / src->w;
+    /* the header in the margin follows its sprite (slide in and out) */
     for (yy = 0; yy < 16 && !any; yy++)
-        any = PortMenuHeaderPixel(yy, 0) || PortMenuHeaderPixel(yy, 1);
+        for (xx = 0; xx < (int)SDL_ceilf(dst->x / sc) && !any; xx++)
+            any = PortMenuHeaderPixelAt(yy, xx) != 0;
     if (!any)
         return;
     for (yy = 0; yy < 16; yy++) {
@@ -1175,8 +1178,9 @@ static void Present(void) {
         /* Scene without a wide view: show the GBA picture at full height
            (bars only at the sides), sampled with the pixel-art filter. */
         SDL_FRect src = { (float)gPortScreen.originX, (float)gPortScreen.originY, GBA_SCREEN_W, GBA_SCREEN_H };
-        float scale = sSideStyle == 10 ? SDL_min(outW / (float)GBA_SCREEN_W, outH / (float)GBA_SCREEN_H)
-                                             : MenuScale(outW, outH);
+        float scale = CoverActive() ? SDL_max(outW / (float)GBA_SCREEN_W, outH / (float)GBA_SCREEN_H)
+                      : sSideStyle == 10 ? SDL_min(outW / (float)GBA_SCREEN_W, outH / (float)GBA_SCREEN_H)
+                                         : MenuScale(outW, outH);
         dst.w = GBA_SCREEN_W * scale;
         dst.h = GBA_SCREEN_H * scale;
         dst.x = (float)(int)((outW - dst.w) / 2);
@@ -1197,8 +1201,7 @@ static void Present(void) {
                 dst.y = (float)(int)((outH - dst.h) / 2);
             }
         }
-        if ((sSideStyle == 3 || sSideStyle == 8 || sSideStyle == 10 || sFitScale > 0 || dst.h + 1 < outH)
-            && !PortUiActive())
+        if ((sSideStyle == 3 || sSideStyle == 8 || sSideStyle == 10 || sFitScale > 0) && !PortUiActive())
             DrawBlurredReflection(&src, outW, outH);
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);

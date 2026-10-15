@@ -1835,7 +1835,11 @@ void PortPpuBeginFrame(void) {
         if ((dispcnt & (0x100 << b)) && (mode == 2 || (mode == 1 && b == 2)) && (IO16(0x08 + b * 2) >> 14) >= 2)
             any = 1;
     }
-    gPortScreen.wide = any && !sSceneNarrow && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
+    /* the door's spotlight (hitting a door, then room synthesis) is a
+       GBA-size scene: shown at the window's height like the other menus,
+       never as a small picture at the world's zoom */
+    gPortScreen.wide = any && !sSceneNarrow && !sSpotlight
+                       && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)
                        && !(dispcnt & 0x80);
     if (getenv("KHCOM_PPULOG"))
         PortLog("ppu: dispcnt %04x latch %d%d%d%d world %d%d%d%d bgcnt %04x %04x %04x %04x wide %d narrow %d", dispcnt,

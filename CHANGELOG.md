@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v1.6.2 — 2026-10-15
+
+- Menus and every GBA-size scene fill the screen again at any zoom (no
+  smaller menus with blurred bands).
+- Zoom: Normal, the default, is x3 on a 1080p screen.
+- Hitting a door: the spotlight scene fills the screen's height.
+- A battle's opening (the heart bursting) covers the whole screen.
+- Menu headers stay on top while they slide; World Cards and the Journal
+  slide their headers through the margins too.
+
 ## v1.6.1 — 2026-10-15
 
 - Title, language and other GBA-size screens fill the height again at every
