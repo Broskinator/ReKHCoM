@@ -9,7 +9,9 @@ Responsable activo: **Codex**. Si Claude vuelve, leer este bloque antes de
 editar. No tocar a la vez los archivos de render, configuración o menús.
 Partidas y configuraciones del usuario se conservan; pruebas en carpetas aisladas.
 
-- [ ] Arena: reproducir hueco inferior a zoom lejano y extender su fondo.
+- [x] Arena: fondo inferior prolongado desde el borde de la textura, antes de componer sprites.
+      EU: Ciudad de Paso, Agrabah y Pa�s de las Maravillas; x2/x3 y 5120�1440.
+      EU/US/JP compilan. Evidencia: build/v15-review/arena-* (15/10).
 - [~] Zoom: normal x4 a 1920×1080; eliminar pasos duplicados en todos los idiomas.
       Hay cambios previos de Claude en configuración y ambas interfaces; validar.
 - [~] Síntesis: panel, cursor y contadores alineados después de los tutoriales.

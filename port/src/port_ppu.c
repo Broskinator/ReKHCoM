@@ -924,6 +924,12 @@ static void DrawAffineBg(int bg, int gy, uint16_t dispcnt) {
             out[x] = TRANSPARENT;
             continue;
         }
+        /* Outside the original picture, continue the bottom of the arena
+           in texture space. Composition still handles palette zero, fades,
+           masks and sprites normally; no framebuffer colours are guessed. */
+        if (sBattleView && gPortScreen.wide && ((cnt >> 2) & 3) == 0 && ((cnt >> 8) & 31) == 12 && size >= 512 &&
+            gy >= GBA_SCREEN_H && py >= size)
+            py = size - 1;
         /* Continue authored arena ornaments only in the wide margins. The
            original hardware viewport, camera and collision remain exact.
            Reflecting each short side band joins its edge without bringing
