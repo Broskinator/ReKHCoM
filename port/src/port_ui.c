@@ -24,6 +24,7 @@ enum { LANG_EN, LANG_FR, LANG_DE, LANG_IT, LANG_ES, LANG_JA, LANG_COUNT };
 
 enum {
     ITEM_VIEW,
+    ITEM_ASPECT,
     ITEM_ZOOM,
     ITEM_SCALE,
     ITEM_HUD,
@@ -92,6 +93,7 @@ static int ItemVisible(int item) {
 /* Strings: UTF-8, one row per item, columns in LANG_* order. */
 static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "View", "Vue", "Ansicht", "Visuale", "Vista", "表示" },
+    { "Aspect ratio", "Format d'image", "Seitenverhältnis", "Proporzioni", "Relación de aspecto", "アスペクト比" },
     { "Zoom", "Zoom", "Zoom", "Zoom", "Zoom", "ズーム" },
     { "Scaling", "Mise à l'échelle", "Skalierung", "Scala", "Escalado", "スケール" },
     { "HUD size", "Taille du HUD", "HUD-Größe", "Dimensione HUD", "Tamaño del HUD", "HUDサイズ" },
@@ -269,6 +271,11 @@ static const char* const sHudSizes[3][LANG_COUNT] = {
     { "Original", "Original", "Original", "Originale", "Original", "オリジナル" },
     { "Large", "Grand", "Groß", "Grande", "Grande", "大きい" },
     { "Larger", "Plus grand", "Größer", "Più grande", "Más grande", "もっと大きい" },
+};
+static const char* const sAspect[3][LANG_COUNT] = {
+    { "Fill window", "Remplir la fenêtre", "Fenster füllen", "Riempi finestra", "Llenar ventana", "ウィンドウに合わせる" },
+    { "16:9", "16:9", "16:9", "16:9", "16:9", "16:9" },
+    { "21:9", "21:9", "21:9", "21:9", "21:9", "21:9" },
 };
 static const char* const sNarrow[2][LANG_COUNT] = {
     { "Exact pixels", "Pixels exacts", "Exakte Pixel", "Pixel esatti", "Píxel exacto", "等倍ピクセル" },
@@ -538,6 +545,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_HUD:
             SDL_strlcpy(out, sHudSizes[SDL_clamp(gPortConfig.hudSize, 0, 2)][l], size);
             break;
+        case ITEM_ASPECT:
+            SDL_strlcpy(out, sAspect[SDL_clamp(gPortConfig.aspect, 0, 2)][l], size);
+            break;
         case ITEM_NARROW:
             SDL_strlcpy(out, sNarrow[gPortConfig.narrowFit != 0][l], size);
             break;
@@ -658,6 +668,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_HUD:
             gPortConfig.hudSize = Wrap(gPortConfig.hudSize + dir, 3);
+            break;
+        case ITEM_ASPECT:
+            gPortConfig.aspect = Wrap(gPortConfig.aspect + dir, 3);
             break;
         case ITEM_NARROW:
             gPortConfig.narrowFit = !gPortConfig.narrowFit;

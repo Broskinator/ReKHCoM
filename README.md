@@ -7,7 +7,7 @@ The decompiled game runs as a real Windows program, with its own renderer, audio
 and launcher, in 16:9 and at the cartridge's exact speed (59.7275 Hz).
 
 <p align="center">
-  <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.0.1 for Windows</b></a>
+  <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.1 for Windows</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCom/releases">All releases</a>
 </p>
@@ -19,9 +19,11 @@ included), in all five European languages, English (US) and Japanese.
 
 ## Highlights
 
-- **16:9 without stretching.** Fields and battles show more of the world; the
-  menus that stay GBA-sized get margins drawn from the screen's own art (bars,
-  boxes, panels, stipple, checkerboards) on the picture's exact pixel grid.
+- **16:9 and ultrawide without stretching.** Fields and battles show more of
+  the world on any window shape, 16:10 to 32:9; the menus that stay GBA-sized
+  get margins drawn from the screen's own art (bars, boxes, panels, stipple,
+  checkerboards) on the picture's exact pixel grid at any scale. An *Aspect
+  ratio* option keeps the picture at 16:9 or 21:9 on wider monitors.
 - **Original speed and sound.** One game update per VBlank, as on the GBA;
   m4a music, PSG and PCM reimplemented in C; native movie playback.
 - **Launcher.** Installs and checks your dump (SHA-1), picks the version,
@@ -32,6 +34,14 @@ included), in all five European languages, English (US) and Japanese.
 
 <p align="center"><img src="docs/screenshots/deck.png" width="32%"> <img src="docs/screenshots/status.png" width="32%"> <img src="docs/screenshots/worldcards.png" width="32%"></p>
 <p align="center"><img src="docs/screenshots/journal.png" width="32%"> <img src="docs/screenshots/worldmap.png" width="32%"> <img src="docs/screenshots/vortex.png" width="32%"></p>
+
+### Ultrawide monitors
+
+The same view stretches to 21:9 and 32:9 screens: the world gets wider, the HUD
+stays in the corners and the menus carry their own art out to the edges.
+
+<p align="center"><img src="docs/screenshots/ultrawide.png" width="98%"></p>
+<p align="center"><img src="docs/screenshots/ultrawide_menu.png" width="98%"></p>
 
 ### Movies, as large as your screen allows
 
@@ -87,7 +97,7 @@ See [PROGRESS.md](PROGRESS.md) for the detailed breakdown.
 
 ## Running (Windows)
 
-1. Extract `ReKHCoM-v1.0.1-windows-x86.zip` into a writable folder.
+1. Extract `ReKHCoM-v1.1-windows-x86.zip` into a writable folder.
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
 3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`
@@ -142,7 +152,7 @@ your dump during the first configure step.
 To make a distributable ZIP without ROMs, saves or local settings:
 
 ```sh
-python port/tools/package_release.py --version v1.0.1 --sdl ../toolchain/SDL3-3.4.18
+python port/tools/package_release.py --version v1.1 --sdl ../toolchain/SDL3-3.4.18
 ```
 
 ## Controls

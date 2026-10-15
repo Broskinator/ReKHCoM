@@ -117,6 +117,7 @@ typedef struct PortConfig {
     int ps2Difficulty;    /* Re:CoM mode: 0 standard, 1 beginner, 2 proud */
     int ps2FastText;      /* experimental: event dialogue types one character a frame */
     int hdHud;           /* experimental HD HUD placeholder: enemy HP panel */
+    int aspect;          /* picture shape: 0 fills the window, 1 at most 16:9, 2 at most 21:9 */
     int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
     int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
 } PortConfig;

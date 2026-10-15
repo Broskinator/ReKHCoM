@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v1.1 — 2026-10-15
+
+- Ultrawide and other window shapes: every screen checked at 16:10, 16:9,
+  21:9 and 32:9 (1152x720 to 2560x1080). Menu margins are now drawn column by
+  column on the picture's own pixel grid, so at non-integer scales such as
+  6.75 (2560x1080) their stipple and checkerboards no longer slip by a pixel.
+- New video option, Aspect ratio (game and launcher): fill the window, or keep
+  the picture at most 16:9 or 21:9 with black bars at the sides on wider
+  monitors.
+- README: ultrawide screenshots.
+
 ## v1.0.1 — 2026-10-14
 
 - Fix: starting a new game in the Original version no longer turns off the

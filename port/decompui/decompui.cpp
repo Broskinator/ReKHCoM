@@ -46,7 +46,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.0.1"
+#define REKHCOM_VERSION "v1.1"
 #endif
 
 static bool sSpanish;
@@ -229,7 +229,7 @@ static const Setting kSettings[] = {
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
     { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 },
-    { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 },
+    { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
     { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
@@ -1003,6 +1003,13 @@ static void PageGraphics() {
     changed |= CycleRow(T("Vista", "View"), T("Auto llena la ventana a escala de píxel entera.",
                                               "Auto fills the window at a whole-number pixel scale."),
                         Ini("view_mode"), 5, views);
+    {
+        const char* aspects[] = { T("Llenar ventana", "Fill window"), "16:9", "21:9" };
+        changed |= CycleRow(T("Relación de aspecto", "Aspect ratio"),
+                            T("En monitores más anchos, 16:9 o 21:9 dejan bandas negras a los lados.",
+                              "On wider monitors, 16:9 or 21:9 leave black bars at the sides."),
+                            Ini("aspect"), 3, aspects);
+    }
     changed |= CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"), nullptr, Ini("zoom"), 4, zooms);
     changed |= CycleRow(T("Escalado", "Scaling"), nullptr, Ini("scale_mode"), 3, scales);
     changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);

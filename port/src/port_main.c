@@ -227,6 +227,18 @@ int gPortBattleTest = -1; /* KHCOM_BATTLE=entry:stage[:riku] of the debug battle
 int gPortMovieTest = -1; /* KHCOM_MOVIE=id (mode_movie.h) */
 int gPortStartupLanguage = -1;
 
+/* The part of the window the picture uses: all of it, or the widest 16:9 or
+   21:9 rectangle (Aspect ratio option), centred with black bars at the sides. */
+static SDL_Rect AspectRect(int outW, int outH) {
+    SDL_Rect r = { 0, 0, outW, outH };
+    float limit = gPortConfig.aspect == 1 ? 16.0f / 9.0f : gPortConfig.aspect == 2 ? 21.0f / 9.0f : 0.0f;
+    if (limit > 0 && outH > 0 && outW > (int)(outH * limit + 0.5f)) {
+        r.w = (int)(outH * limit + 0.5f);
+        r.x = (outW - r.w) / 2;
+    }
+    return r;
+}
+
 /* Auto view: size the canvas to the window every frame. */
 static void UpdateResolution(void) {
     int outW, outH, w, h;
@@ -237,6 +249,7 @@ static void UpdateResolution(void) {
     } else {
         if (!SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH) || outW <= 0 || outH <= 0)
             return;
+        outW = AspectRect(outW, outH).w;
         PortConfigAutoView(outW, outH, &w, &h, &sAutoScale);
     }
     /* screen layer: the 160 GBA lines at the window's height */
@@ -992,6 +1005,14 @@ static void Present(void) {
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
     SDL_RenderClear(sRenderer);
+    {
+        /* Aspect ratio option: draw into the chosen rectangle; the rest of
+           the window stays black */
+        SDL_Rect area = AspectRect(outW, outH);
+        SDL_SetRenderViewport(sRenderer, area.x || area.w != outW ? &area : NULL);
+        outW = area.w;
+        outH = area.h;
+    }
     if ((sFitScale > 0 || (!gPortScreen.wide && gPortConfig.narrowFit)) && !PortUiActive()
         && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)) {
         /* Scene without a wide view: show the GBA picture at full height
@@ -1209,6 +1230,7 @@ static void Present(void) {
             }
         }
     }
+    SDL_SetRenderViewport(sRenderer, NULL);
     {
         /* KHCOM_OUTPUT_SHOT=frames: save the presented window image. */
         const char* out = SDL_getenv("KHCOM_OUTPUT_SHOT");
