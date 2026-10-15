@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v1.6.4 — 2026-10-15
+
+- Older settings go back to Aspect ratio: Fill window once, so the picture
+  follows the window when it is resized (16:9 and 21:9 remain as options for
+  very wide monitors).
+
 ## v1.6.3 — 2026-10-15
 
 - Room synthesis is a full-screen menu again (its title band and bars reach

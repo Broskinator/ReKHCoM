@@ -67,7 +67,7 @@ PortConfig gPortConfig = {
     },
 };
 
-#define CONFIG_VERSION 5
+#define CONFIG_VERSION 6
 
 static int sConfigVersion;
 static char sDataPath[768];
@@ -262,6 +262,10 @@ void PortConfigLoad(void) {
        steps were renumbered while testing */
     if (sConfigVersion < 5)
         gPortConfig.zoom = 1;
+    /* ...and to filling the window (the aspect limit was left on by tests;
+       it is an opt-in for very wide monitors) */
+    if (sConfigVersion < 6)
+        gPortConfig.aspect = 0;
     if (sConfigVersion < 4 && gPortConfig.fullscreenWidth == 1920 && gPortConfig.fullscreenHeight == 1080) {
         gPortConfig.fullscreenWidth = 0;
         gPortConfig.fullscreenHeight = 0;

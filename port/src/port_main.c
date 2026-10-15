@@ -1621,6 +1621,15 @@ static void HarnessFrame(void) {
         }
     }
 
+    /* KHCOM_RESIZE=frame:WxH: resize the window then, as a player would */
+    {
+        const char* r = SDL_getenv("KHCOM_RESIZE");
+        unsigned f;
+        int w, h;
+        if (r && SDL_sscanf(r, "%u:%dx%d", &f, &w, &h) == 3 && f == sFrameCount)
+            SDL_SetWindowSize(sWindow, w, h);
+    }
+
     /* KHCOM_MODE=frame:name[:arg][,frame:name...]: switch to a game mode
        (menus, screens) or run a harness action (main.c PortHarnessMode). */
     {
