@@ -1726,6 +1726,14 @@ int main(int argc, char** argv) {
     }
     winW = gPortScreen.width * gPortConfig.windowScale;
     winH = gPortScreen.height * gPortConfig.windowScale;
+    if (SDL_getenv("KHCOM_WINDOW")) {
+        /* KHCOM_WINDOW=WxH: an exact window size (tests of other aspect ratios) */
+        int w = 0, h = 0;
+        if (SDL_sscanf(SDL_getenv("KHCOM_WINDOW"), "%dx%d", &w, &h) == 2 && w >= GBA_SCREEN_W && h >= GBA_SCREEN_H) {
+            winW = w;
+            winH = h;
+        }
+    }
     sWindow = SDL_CreateWindow("Kingdom Hearts: Chain of Memories", winW, winH,
                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     if (sWindow == NULL)

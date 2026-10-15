@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v1.0.1 — 2026-10-14
+
+- Fix: starting a new game in the Original version no longer turns off the
+  one-button controls (dodge roll, stock and return stocked cards); they stay
+  as set in the options (on by default, as before v0.8). Re:CoM still turns
+  them on.
+- Test harness: a virtual gamepad (KHCOM_VPAD) and exact window sizes
+  (KHCOM_WINDOW) for automated checks.
+
 ## v1.0 — 2026-10-14
 
 First public release (Windows x86).

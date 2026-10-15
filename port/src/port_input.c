@@ -46,8 +46,62 @@ void PortInputSuppressUntilRelease(void) {
     sSuppress = 1;
 }
 
+/* Test harness: KHCOM_VPAD="from-to:BUTTON,..." plugs in a virtual gamepad
+   and holds its buttons on those frames (SOUTH, EAST, WEST, NORTH, START,
+   BACK, LB, RB, UP, DOWN, LEFT, RIGHT, RS_LEFT, RS_RIGHT, RS_UP, RS_DOWN). */
+static SDL_Joystick* sVirtualPad;
+
+static void VirtualPadUpdate(void) {
+    static const struct { const char* name; int button; int axis; int sign; } kNames[] = {
+        { "SOUTH", SDL_GAMEPAD_BUTTON_SOUTH, -1, 0 }, { "EAST", SDL_GAMEPAD_BUTTON_EAST, -1, 0 },
+        { "WEST", SDL_GAMEPAD_BUTTON_WEST, -1, 0 }, { "NORTH", SDL_GAMEPAD_BUTTON_NORTH, -1, 0 },
+        { "START", SDL_GAMEPAD_BUTTON_START, -1, 0 }, { "BACK", SDL_GAMEPAD_BUTTON_BACK, -1, 0 },
+        { "LB", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, -1, 0 }, { "RB", SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER, -1, 0 },
+        { "UP", SDL_GAMEPAD_BUTTON_DPAD_UP, -1, 0 }, { "DOWN", SDL_GAMEPAD_BUTTON_DPAD_DOWN, -1, 0 },
+        { "LEFT", SDL_GAMEPAD_BUTTON_DPAD_LEFT, -1, 0 }, { "RIGHT", SDL_GAMEPAD_BUTTON_DPAD_RIGHT, -1, 0 },
+        { "RS_LEFT", -1, SDL_GAMEPAD_AXIS_RIGHTX, -1 }, { "RS_RIGHT", -1, SDL_GAMEPAD_AXIS_RIGHTX, 1 },
+        { "RS_UP", -1, SDL_GAMEPAD_AXIS_RIGHTY, -1 }, { "RS_DOWN", -1, SDL_GAMEPAD_AXIS_RIGHTY, 1 },
+    };
+    const char* spec = SDL_getenv("KHCOM_VPAD");
+    int held[SDL_GAMEPAD_BUTTON_COUNT] = { 0 }, axes[SDL_GAMEPAD_AXIS_COUNT] = { 0 }, i;
+    unsigned frame = PortFrameCount();
+    if (sVirtualPad == NULL || spec == NULL)
+        return;
+    while (*spec) {
+        unsigned a = 0, b = 0;
+        char name[16] = { 0 };
+        int n = 0;
+        if (SDL_sscanf(spec, "%u-%u:%15[A-Z_]%n", &a, &b, name, &n) < 3 || n == 0)
+            break;
+        for (i = 0; i < (int)SDL_arraysize(kNames); i++)
+            if (SDL_strcmp(name, kNames[i].name) == 0 && frame >= a && frame <= b) {
+                if (kNames[i].button >= 0) held[kNames[i].button] = 1;
+                else axes[kNames[i].axis] = kNames[i].sign * 32767;
+            }
+        spec += n;
+        if (*spec == ',') spec++;
+    }
+    for (i = 0; i < SDL_GAMEPAD_BUTTON_COUNT; i++)
+        SDL_SetJoystickVirtualButton(sVirtualPad, i, held[i]);
+    for (i = 0; i < SDL_GAMEPAD_AXIS_COUNT; i++)
+        SDL_SetJoystickVirtualAxis(sVirtualPad, i, (Sint16)axes[i]);
+    SDL_UpdateJoysticks();
+}
+
 void PortInputInit(void) {
     SDL_SetGamepadEventsEnabled(true);
+    if (SDL_getenv("KHCOM_VPAD")) {
+        SDL_VirtualJoystickDesc desc;
+        SDL_JoystickID id;
+        SDL_INIT_INTERFACE(&desc);
+        desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+        desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+        desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+        desc.name = "KHCOM virtual pad";
+        id = SDL_AttachVirtualJoystick(&desc);
+        sVirtualPad = id ? SDL_OpenJoystick(id) : NULL;
+        PortLog("vpad: %s", sVirtualPad ? "attached" : SDL_GetError());
+    }
 }
 
 void PortInputHandleEvent(const void* p) {
@@ -128,6 +182,7 @@ uint16_t PortInputKeys(void) {
     SDL_JoystickID* ids;
     int count, i;
 
+    VirtualPadUpdate();
     ids = SDL_GetGamepads(&count);
     if (ids != NULL) {
         for (i = 0; i < count; i++) {

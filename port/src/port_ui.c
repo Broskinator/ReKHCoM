@@ -68,6 +68,7 @@ enum {
 enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME };
 static int sPage;
 static int sNgRecom; /* new game page: the Re:CoM version chosen */
+static int sNgQol;   /* the one-button controls as set before the new game page */
 enum { WIZ_VERSION, WIZ_DIFFICULTY, WIZ_OPTIONS };
 static int sWizStep, sWizCursor; /* the new game window's step and row */
 static void WizKey(int key);
@@ -728,10 +729,11 @@ static void Change(int item, int dir) {
             break;
         case ITEM_NG_VERSION:
             /* each version comes with its presets: the original as on the
-               cartridge, Re:CoM with HD text and the one-button controls */
+               cartridge (the player's controls), Re:CoM with HD text and the
+               one-button controls */
             sNgRecom = !sNgRecom;
             gPortConfig.hdText = sNgRecom;
-            PortSetQolButtons(sNgRecom);
+            PortSetQolButtons(sNgRecom || sNgQol);
             break;
         case ITEM_NG_HDTEXT:
             gPortConfig.hdText = !gPortConfig.hdText;
@@ -810,7 +812,9 @@ void PortUiOpenNewGame(void) {
     sPage = PAGE_NEWGAME;
     sNgRecom = 0;
     gPortConfig.hdText = 0;
-    PortSetQolButtons(0);
+    /* the one-button controls stay as the player set them (on by default,
+       as they always were); only Re:CoM turns them on */
+    sNgQol = PortQolButtons();
     sWizStep = gPortConfig.ps2Mode ? WIZ_VERSION : WIZ_OPTIONS;
     sWizCursor = 0;
     PortVideoApplyConfig();
@@ -1247,7 +1251,7 @@ static void WizKey(int key) {
            cartridge, Re:CoM with HD text and the one-button controls */
         sNgRecom = sWizCursor == 1;
         gPortConfig.hdText = sNgRecom;
-        PortSetQolButtons(sNgRecom);
+        PortSetQolButtons(sNgRecom || sNgQol);
         PortVideoApplyConfig();
         sWizStep = sNgRecom ? WIZ_DIFFICULTY : WIZ_OPTIONS;
         sWizCursor = sNgRecom ? 1 : 0; /* Standard first */
