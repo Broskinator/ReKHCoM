@@ -181,15 +181,26 @@ static int sZoomOutW = 1920, sZoomOutH = 1080;
    dropped below 60 fps. */
 #define ZOOM_PIXEL_BUDGET (640 * 360 * 5 / 4)
 
+/* the smallest scale the canvas's buffers allow */
 static int ZoomLeast(void) {
-    int s = SDL_max(SDL_max((sZoomOutW + PORT_MAX_W - 1) / PORT_MAX_W, (sZoomOutH + PORT_MAX_H - 1) / PORT_MAX_H), 1);
+    return SDL_max(SDL_max((sZoomOutW + PORT_MAX_W - 1) / PORT_MAX_W, (sZoomOutH + PORT_MAX_H - 1) / PORT_MAX_H), 1);
+}
+
+/* ...and the smallest one drawn at full speed (the default never goes
+   below it; the steps beyond it stay available, marked as demanding) */
+static int ZoomFast(void) {
+    int s = ZoomLeast();
     while (((sZoomOutW + s - 1) / s) * ((sZoomOutH + s - 1) / s) > ZOOM_PIXEL_BUDGET)
         s++;
     return s;
 }
 
+int PortConfigZoomHeavy(int zoom) {
+    return PortConfigZoomScale(zoom) < ZoomFast();
+}
+
 static int ZoomRaw(int zoom) {
-    int normal = SDL_max((sZoomOutH + 180) / 360, ZoomLeast()); /* x3 at 1080 lines */
+    int normal = SDL_max((sZoomOutH + 180) / 360, ZoomFast()); /* x3 at 1080 lines */
     if (zoom <= 0)
         return SDL_max(sZoomOutH / GBA_SCREEN_H, 1);
     return normal - (zoom - 1);

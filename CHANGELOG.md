@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v1.6.6 — 2026-10-15
+
+- Zoom: the default step is called Enhanced (x3 at 1080p). The farther steps
+  (x2 at 1080p) are available again, marked as demanding: they show more of
+  the world but need a fast CPU for 60 fps.
+
 ## v1.6.5 — 2026-10-15
 
 - Full speed at every zoom: the far steps that made the software renderer

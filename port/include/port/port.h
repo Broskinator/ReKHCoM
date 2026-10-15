@@ -153,6 +153,7 @@ void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale);
 int PortConfigZoomScale(int zoom);
 int PortConfigZoomValid(int zoom);     /* the step gives a scale of its own here */
 int PortConfigZoomEffective(int zoom); /* the step in use (an unavailable one falls back) */
+int PortConfigZoomHeavy(int zoom);     /* the step draws more than full speed allows */
 const char* PortConfigPath(const char* name);
 
 /* ---- memory (port_memory.c) -------------------------------------------- */

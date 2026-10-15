@@ -265,7 +265,7 @@ static const char* const sZooms[PORT_ZOOM_COUNT][LANG_COUNT] = {
     /* the closest step shows the GBA's own 160 lines at full height, as an
        emulator stretched to the screen: the original view */
     { "Original (GBA)", "Original (GBA)", "Original (GBA)", "Originale (GBA)", "Original (GBA)", "オリジナル (GBA)" },
-    { "Normal", "Normal", "Normal", "Normale", "Normal", "ふつう" },
+    { "Enhanced", "Amélioré", "Verbessert", "Migliorato", "Mejorado", "強化" },
     { "Far", "Loin", "Weit", "Lontano", "Lejos", "遠い" },
     { "Very far", "Très loin", "Sehr weit", "Molto lontano", "Muy lejos", "とても遠い" },
     { "Farthest", "Le plus loin", "Am weitesten", "Lontanissimo", "Lejísimos", "いちばん遠い" },
@@ -548,8 +548,8 @@ static void ValueText(int item, char* out, size_t size) {
             break;
         case ITEM_ZOOM:
             if (ItemEnabled(item)) /* the step and the pixel scale it gives here */
-                SDL_snprintf(out, size, "%s  x%d", sZooms[PortConfigZoomEffective(gPortConfig.zoom)][l],
-                             PortConfigZoomScale(gPortConfig.zoom));
+                SDL_snprintf(out, size, "%s  x%d%s", sZooms[PortConfigZoomEffective(gPortConfig.zoom)][l],
+                             PortConfigZoomScale(gPortConfig.zoom), PortConfigZoomHeavy(gPortConfig.zoom) ? " !" : "");
             else
                 SDL_strlcpy(out, sAutoOnly[l], size);
             break;

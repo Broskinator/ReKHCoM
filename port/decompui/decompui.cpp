@@ -46,7 +46,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.6.5"
+#define REKHCOM_VERSION "v1.6.6"
 #endif
 
 static bool sSpanish;
@@ -1025,7 +1025,7 @@ static void PageGraphics() {
     const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
                             T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
                             T("Auto (llenar ventana)", "Auto (fill window)") };
-    const char* zoomNames[] = { T("Original (GBA)", "Original (GBA)"), T("Normal", "Normal"), T("Lejos", "Far"),
+    const char* zoomNames[] = { T("Original (GBA)", "Original (GBA)"), T("Mejorado", "Enhanced"), T("Lejos", "Far"),
                                 T("Muy lejos", "Very far"), T("Lejísimos", "Farthest") };
     /* each step with the pixel scale it gives on this monitor, as the game's
        own options show it (port_config.c: Normal about 270 lines) */
@@ -1039,12 +1039,14 @@ static void PageGraphics() {
         int W = (int)cur.dmPelsWidth, H = (int)cur.dmPelsHeight;
         if (W <= 0 || H <= 0) { W = 1920; H = 1080; }
         int least = std::max(std::max((W + 1279) / 1280, (H + 539) / 540), 1);
-        while (((W + least - 1) / least) * ((H + least - 1) / least) > 640 * 360 * 5 / 4)
-            least++; /* the game's speed limit (port_config.c) */
-        int normal = std::max((H + 180) / 360, least);
+        int fast = least;
+        while (((W + fast - 1) / fast) * ((H + fast - 1) / fast) > 640 * 360 * 5 / 4)
+            fast++; /* full speed (port_config.c); below it the step is demanding */
+        int normal = std::max((H + 180) / 360, fast);
         for (int z = 0; z < 5; z++) {
             int sc = z == 0 ? std::max(H / 160, 1) : std::max(normal - (z - 1), least);
-            zoomLabels[z] = std::string(zoomNames[z]) + "  x" + std::to_string(sc);
+            zoomLabels[z] = std::string(zoomNames[z]) + "  x" + std::to_string(sc) +
+                            (sc < fast ? T("  (exigente)", "  (demanding)") : "");
             zooms[z] = zoomLabels[z].c_str();
         }
     }
