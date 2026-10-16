@@ -1,3 +1,24 @@
+## Regresión regional y opciones táctiles (16/10/2026)
+
+- EU/US/JP: 18/18 imágenes SDL idénticas a los EXEs publicados en v1.8.3:
+  campo, combate y Barajas en 1920x1080 y 2560x720. Informe
+  build/v19-regions-report.json; test_v19_regions.py extrae solo EXEs de referencia.
+- Comparación de composición: 60/60 frames exactos, menús Deck/Mapinspect/Estado
+  y puertas, 16:9, 32:9 y resize en caliente. build/v19-composition-regression.json.
+- Escalas x2/x3/x4/x5/x6: todos los hashes de imagen coinciden; x1 ya repetido.
+- Encontrado/corregido Android: el botón … mandaba bits GBA pero nunca abría
+  PortUi (solo escuchaba eventos SDL). El touch ahora abre esa UI y navega por
+  la misma ruta teclado; pruebas de multitoque/cancel/foco/diagonales/UI pasan.
+  También comprobado en emulador: abre opciones, cambia zoom x3 -> x2, B cierra,
+  al reabrir conserva x2 y config zoom=4. Capturas build/android-options-{fixed,
+  nav,reopen}.png. No confundir estos controles con el prototipo HTML.
+- Launcher Android ofrece solo zooms que caben en la pantalla apaisada; x4 sigue
+  por defecto donde cabe. En 540p máximo x3 (160 líneas mínimas del juego), antes
+  el selector ofrecía x4 aunque el motor terminaba limitándolo silenciosamente.
+- Reconstruir APK ARM y x86 tras este checkpoint (launcher/ruta UI cambiados).
+  Alpha y v1.9 todavía sin publicar; v1.8.3 permanece estable. Falta comprobar
+  combate Android y todo lo indicado en la cabecera anterior.
+
 ## x1: segunda optimización verificada (16/10/2026)
 
 - Nueva ruta de composición para filas de mundo con fondos opacos, sin OBJ,

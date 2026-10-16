@@ -2,6 +2,7 @@
 #include <math.h>
 #include "port/port.h"
 #include "port/port_android.h"
+#include "port/port_ui.h"
 #include "touch_icons.h"
 
 typedef struct Finger { SDL_FingerID id; float x,y; int active; } Finger;
@@ -16,7 +17,31 @@ static const Button buttons[]={
     {.95f,.17f,12,"...",0}
 };
 static SDL_Texture* icons[2];
-void PortAndroidTouchClear(void) { SDL_memset(fingers,0,sizeof(fingers)); }
+static uint16_t uiHeld;
+void PortAndroidTouchClear(void) { SDL_memset(fingers,0,sizeof(fingers)); uiHeld=0; }
+static void TouchUi(void) {
+    uint16_t keys=PortAndroidTouchKeys(), pressed=keys & ~uiHeld;
+    static const struct { uint16_t bit; SDL_Keycode key; } bindings[]={
+        {0x40,SDLK_UP},{0x80,SDLK_DOWN},{0x20,SDLK_LEFT},{0x10,SDLK_RIGHT},
+        {1,SDLK_RETURN},{2,SDLK_ESCAPE},{4,SDLK_ESCAPE},{8,SDLK_ESCAPE}
+    };
+    int i;
+    uiHeld=keys;
+    if(!PortUiActive()) {
+        if((keys & 12)==12 && (pressed & 12)) {
+            PortAndroidTouchClear();
+            PortUiOpenOptions();
+        }
+        return;
+    }
+    /* The settings overlay consumes SDL keyboard/gamepad events, whereas
+       gameplay reads GBA bits. Forward touch presses to that same UI route. */
+    for(i=0;i<(int)SDL_arraysize(bindings);i++) if(pressed & bindings[i].bit) {
+        SDL_Event event={0};event.type=SDL_EVENT_KEY_DOWN;
+        event.key.key=bindings[i].key;
+        PortUiHandleEvent(&event);
+    }
+}
 void PortAndroidTouchEvent(const void* event) {
     const SDL_Event* e=event;
     int i, freeSlot=-1;
@@ -34,10 +59,12 @@ void PortAndroidTouchEvent(const void* event) {
         if(fingers[i].id!=e->tfinger.fingerID) continue;
         fingers[i].x=e->tfinger.x; fingers[i].y=e->tfinger.y;
         if(e->type==SDL_EVENT_FINGER_UP || e->type==SDL_EVENT_FINGER_CANCELED) fingers[i].active=0;
+        TouchUi();
         return;
     }
     if(e->type==SDL_EVENT_FINGER_DOWN && freeSlot>=0) {
         fingers[freeSlot]=(Finger){e->tfinger.fingerID,e->tfinger.x,e->tfinger.y,1};
+        TouchUi();
     }
 }
 uint16_t PortAndroidTouchKeys(void) {
@@ -90,7 +117,7 @@ void PortAndroidTouchDraw(SDL_Renderer* r) {
     int w,h,b; uint16_t keys=PortAndroidTouchKeys();
     SDL_GetCurrentRenderOutputSize(r,&w,&h); if(w<=0 || h<=0)return;
     aspect=(float)w/h;
-    if(!icons[0]) for(b=0;b<2;b++) {
+    for(b=0;b<2;b++) if(!icons[b]) {
         icons[b]=SDL_CreateTexture(r,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,32,32);
         if(!icons[b])return;
         SDL_UpdateTexture(icons[b],NULL,b?touch_stock:touch_roll,32*4);

@@ -21,7 +21,7 @@ public class LauncherActivity extends Activity {
     private Spinner region,language,zoom;
     private TextView status;
     private Button play;
-    private int saveRegion;
+    private int saveRegion,zoomFirst;
     private boolean busy;
     private String message="";
     private int dp(int n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}
@@ -36,13 +36,23 @@ public class LauncherActivity extends Activity {
         region=spinner(layout,"Versión",new String[]{"Europa","América","Japón"});
         language=spinner(layout,"Idioma (Europa)",new String[]{"English","Français","Deutsch","Italiano","Español"});
         language.setSelection(4);
-        zoom=spinner(layout,"Zoom",new String[]{"x1 · Exigente","x2","x3","x4","x5","x6"});zoom.setSelection(3);
+        // The game runs landscape and must retain at least 160 source lines.
+        // Offer only scales that fit this display, matching PortZoomMin/Max.
+        android.util.DisplayMetrics metrics=getResources().getDisplayMetrics();
+        int width=Math.max(metrics.widthPixels,metrics.heightPixels);
+        int height=Math.min(metrics.widthPixels,metrics.heightPixels);
+        zoomFirst=Math.max(1,Math.max((width+2559)/2560,(height+1439)/1440));
+        int zoomLast=Math.max(zoomFirst,Math.min(64,height/160));
+        String[] scales=new String[zoomLast-zoomFirst+1];
+        for(int n=0;n<scales.length;n++){int value=zoomFirst+n;scales[n]="x"+value+(value==1?" · Exigente":"");}
+        zoom=spinner(layout,"Zoom",scales);
+        zoom.setSelection(Math.max(0,Math.min(4,zoomLast)-zoomFirst));
         Button rom=button(layout,"Cargar ROM desde Archivos");rom.setOnClickListener(v->pick(10));
         play=button(layout,"Jugar");play.setOnClickListener(v->launch());
         Button saves=button(layout,"Importar partida · crea copia previa");saves.setOnClickListener(v->{saveRegion=region.getSelectedItemPosition();pick(20);});
         Button export=button(layout,"Exportar partida");export.setOnClickListener(v->{saveRegion=region.getSelectedItemPosition();Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.setType("application/octet-stream");i.addCategory(Intent.CATEGORY_OPENABLE);i.putExtra(Intent.EXTRA_TITLE,SAVES[saveRegion]);startActivityForResult(i,30);});
         status=new TextView(this);status.setTextColor(Color.rgb(180,207,240));status.setPadding(0,dp(20),0,dp(20));layout.addView(status);
-        TextView controls=new TextView(this);controls.setText("Controles: cruceta, A/B y L/R. Rodar y apilar tienen botones propios. START + SELECT abre las opciones.\n\nVersión experimental: sin estados rápidos ni texto HD. Las partidas normales se guardan en el almacenamiento privado de la app.");controls.setTextColor(Color.LTGRAY);layout.addView(controls);
+        TextView controls=new TextView(this);controls.setText("Controles: cruceta, A/B y L/R. Rodar y apilar tienen botones propios. El botón … o START + SELECT abre las opciones.\n\nVersión experimental: sin estados rápidos ni texto HD. Las partidas normales se guardan en el almacenamiento privado de la app.");controls.setTextColor(Color.LTGRAY);layout.addView(controls);
         region.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){public void onItemSelected(android.widget.AdapterView<?> a,View v,int p,long id){refresh();}public void onNothingSelected(android.widget.AdapterView<?> a){}});
         refresh();
     }
@@ -113,7 +123,7 @@ public class LauncherActivity extends Activity {
             java.util.Properties properties=new java.util.Properties();
             if(config.isFile())try(FileInputStream in=new FileInputStream(config)){properties.load(in);}
             properties.setProperty("config_version","11");properties.setProperty("view_mode","4");
-            properties.setProperty("zoom",Integer.toString((zoom.getSelectedItemPosition()+1)*2));
+            properties.setProperty("zoom",Integer.toString((zoom.getSelectedItemPosition()+zoomFirst)*2));
             properties.setProperty("hd_text","0");properties.setProperty("narrow_fit","1");
             File temp=File.createTempFile("config-",".tmp",getFilesDir());
             try(FileOutputStream out=new FileOutputStream(temp)){properties.store(out,"ReKHCoM Android alpha");out.getFD().sync();}

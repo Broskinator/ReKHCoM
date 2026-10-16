@@ -1,0 +1,46 @@
+/* ROM-free touch state / UI routing regression on the desktop SDL runtime. */
+#include <assert.h>
+#include <stdio.h>
+#include "../android/native/touch_android.c"
+static int ui,opened,count;
+static SDL_Keycode received[32];
+int PortUiActive(void) { return ui; }
+void PortUiOpenOptions(void) { ui=1;opened++; }
+int PortUiHandleEvent(const void* p) {
+    const SDL_Event* e=p;assert(e->type==SDL_EVENT_KEY_DOWN);
+    assert(count<32);received[count++]=e->key.key;return 1;
+}
+static void finger(SDL_EventType type,int id,float x,float y) {
+    SDL_Event e={0};e.type=type;e.tfinger.fingerID=id;e.tfinger.x=x;e.tfinger.y=y;
+    PortAndroidTouchEvent(&e);
+}
+int main(void) {
+    finger(SDL_EVENT_FINGER_DOWN,10,.07f,.73f);
+    finger(SDL_EVENT_FINGER_DOWN,11,.91f,.62f);
+    assert(PortAndroidTouchKeys()==(0x20|1));
+    finger(SDL_EVENT_FINGER_MOTION,10,.07f,.63f);
+    assert(PortAndroidTouchKeys()==(0x20|0x40|1));
+    finger(SDL_EVENT_FINGER_CANCELED,10,0,0);assert(PortAndroidTouchKeys()==1);
+    finger(SDL_EVENT_FINGER_UP,999,0,0);assert(PortAndroidTouchKeys()==1);
+    finger(SDL_EVENT_FINGER_UP,11,0,0);assert(!PortAndroidTouchKeys());
+    /* The dedicated settings button must open the real overlay route. */
+    finger(SDL_EVENT_FINGER_DOWN,12,.95f,.17f);
+    assert(opened==1 && ui && !PortAndroidTouchKeys());
+    finger(SDL_EVENT_FINGER_UP,12,0,0);
+    finger(SDL_EVENT_FINGER_DOWN,13,.13f,.83f);assert(count==1 && received[0]==SDLK_DOWN);
+    finger(SDL_EVENT_FINGER_MOTION,13,.13f,.84f);assert(count==1);
+    finger(SDL_EVENT_FINGER_UP,13,0,0);
+    finger(SDL_EVENT_FINGER_DOWN,13,.13f,.83f);assert(count==2 && received[1]==SDLK_DOWN);
+    finger(SDL_EVENT_FINGER_UP,13,0,0);
+    finger(SDL_EVENT_FINGER_DOWN,14,.91f,.62f);assert(received[count-1]==SDLK_RETURN);
+    finger(SDL_EVENT_FINGER_UP,14,0,0);
+    finger(SDL_EVENT_FINGER_DOWN,14,.83f,.79f);assert(received[count-1]==SDLK_ESCAPE);
+    SDL_Event e={0};e.type=SDL_EVENT_WINDOW_FOCUS_LOST;PortAndroidTouchEvent(&e);
+    assert(!PortAndroidTouchKeys());
+    ui=0;
+    finger(SDL_EVENT_FINGER_DOWN,20,.45f,.93f);assert(PortAndroidTouchKeys()==4);
+    finger(SDL_EVENT_FINGER_DOWN,21,.55f,.93f);
+    assert(opened==2 && !PortAndroidTouchKeys());
+    puts("Touch: multi-finger, diagonal, slide, cancel, focus, settings and UI routing passed");
+    return 0;
+}

@@ -14,7 +14,9 @@ def fx(name, modes, shots, keys=None, save=True, scale=4, lang="es", extra=None,
     e.update(SDL_VIDEO_DRIVER='dummy',SDL_AUDIO_DRIVER='dummy',SDL_JOYSTICK_HIDAPI='0',SDL_JOYSTICK_RAWINPUT='0',SDL_XINPUT_ENABLED='0',SDL_JOYSTICK_DIRECTINPUT='0',SDL_JOYSTICK_WGI='0',SDL_JOYSTICK_GAMEINPUT='0',SDL_JOYSTICK_GAMEINPUT_RAW='0',KHCOM_FAST='1',KHCOM_MODE=','.join(modes),KHCOM_KEYS=','.join(keys),KHCOM_OUTPUT_SHOT=','.join(map(str,shots)),KHCOM_QUIT=str(max(shots)+1))
     if extra: e.update(extra)
     args=[str(d/'khcom.exe'),'--rom',str(ROOT/'roms'/((rom or 'B8CP')+'.gba'))]+(['--language',lang] if lang else [])
-    subprocess.run(args,cwd=d,env=e,timeout=180,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=0x08000000)
+    for frame in shots:
+        (d/f'out_{frame:05d}.bmp').unlink(missing_ok=True)
+    subprocess.run(args,cwd=d,env=e,timeout=180,check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=0x08000000)
     return sorted(d.glob('out_*.bmp'))
 def sheet(bs, out, w=640, h=360):
     o=Image.new('RGB',(w*2,h*((len(bs)+1)//2)))
