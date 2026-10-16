@@ -3,8 +3,12 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <time.h>
 #undef TRANSPARENT
-#include "../src/port_ppu.c"
+#ifndef PPU_SOURCE
+#define PPU_SOURCE "../src/port_ppu.c"
+#endif
+#include PPU_SOURCE
 
 PortConfig gPortConfig;
 const void* gMsgwinMapBlocks[4];
@@ -206,12 +210,41 @@ static void semantic(const char* name) {
     }
 }
 
+/* Differential wide-world fixture. PPU_SOURCE can select a prior renderer
+   when compiling this same harness; no ROM or game fixtures are required. */
+static int WideTile(int bg, int tx, int ty) {
+    if (tx < -96 || tx >= 120 || ty < -48 || ty >= 64) return -1;
+    return ((tx + 5 * ty) & 15) | ((tx & 1) ? 0x400 : 0) |
+           ((ty & 1) ? 0x800 : 0) | (((tx + ty) & 3) << 12);
+}
+static void wide_world(const char* name) {
+    int y, bpp8 = strstr(name, "8bpp") != NULL;
+    int mosaic = strstr(name, "mosaic") != NULL;
+    IO16(0) = 0x100;
+    text(0, bpp8, 3, mosaic);
+    PortPpuSetResolution(1920, 1080);
+    PortPpuBeginFrame();
+    gPortScreen.wide = 1;
+    sBgWorldLatched[0].valid = 1;
+    sBgWorldLatched[0].fn = WideTile;
+    sBgWorldLatched[0].x = -13;
+    sBgWorldLatched[0].y = 27;
+    sBgWorldLatched[0].hofs = IO16(0x10);
+    sBgWorldLatched[0].vofs = IO16(0x12);
+    sLeft = -gPortScreen.originX;
+    sRight = gPortScreen.width - gPortScreen.originX;
+    sTop = -gPortScreen.originY;
+    sBottom = gPortScreen.height - gPortScreen.originY;
+    for (y = 0; y < gPortScreen.height; y++)
+        RenderLine(y, y - gPortScreen.originY);
+}
+
 int main(int argc, char** argv) {
     const char* name;
     uint16_t* p;
     int i;
     FILE* f;
-    if(argc!=3) return 2;
+    if(argc!=3 && argc!=4) return 2;
     name=argv[1];
     if(!VirtualAlloc((void*)GBA_IO,0x10000,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE) ||
        !VirtualAlloc((void*)GBA_PLTT,0x10000,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE) ||
@@ -225,6 +258,17 @@ int main(int argc, char** argv) {
     PortPpuSetResolution(240,160);
     if(!strcmp(name,"forced")) IO16(0)=0x80;
     else if(!strcmp(name,"backdrop")) IO16(0)=0;
+    else if(!strncmp(name,"wide_world",10)) {
+        int repeat = argc == 4 ? atoi(argv[3]) : 1;
+        clock_t start = clock();
+        if (repeat < 1 || repeat > 1000) return 2;
+        for (i = 0; i < repeat; i++) wide_world(name);
+        if (argc == 4) printf("wide benchmark: %d frames, %.3f ms/frame\n", repeat,
+            1000.0 * (clock() - start) / CLOCKS_PER_SEC / repeat);
+        f=fopen(argv[2],"wb"); if(!f) return 5;
+        fwrite(gPortFrame,4,gPortScreen.width*gPortScreen.height,f); fclose(f);
+        return 0;
+    }
     else if(!strncmp(name,"text",4)) {
         int bpp8=strstr(name,"8bpp")!=NULL, size=0;
         if(strstr(name,"size1")) size=1;

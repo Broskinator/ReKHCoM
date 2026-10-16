@@ -785,6 +785,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     uint16_t* out = sBgLine[bg];
     int x, py, ty, fy, outside;
     int w = gPortScreen.width;
+    int cachedTx = 0, cachedTy = 0, cachedEntry = -1, cachedValid = 0;
 
     (void)dispcnt;
     if (mosV > 1)
@@ -814,6 +815,58 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             gx = (gx < 0 ? 0 : gx >= GBA_SCREEN_W ? GBA_SCREEN_W - 1 : gx);
         if (mosH > 1)
             gx -= ((gx % mosH) + mosH) % mosH;
+        if ((outside || gx < 0 || gx >= GBA_SCREEN_W) && mosH == 1 &&
+            !sScreenBg[bg] && !sBgDockedLatched[bg] &&
+            (sBgLatch[bg].valid || sBgWorldLatched[bg].valid)) {
+            const BgLatch* l = &sBgLatch[bg];
+            const BgWorld* wd = &sBgWorldLatched[bg];
+            int wx = l->valid ? l->x + gx + (hofs - l->hofs) : wd->x + gx + (hofs - wd->hofs);
+            int wy = l->valid ? l->y + gy + (vofs - l->vofs) : wd->y + gy + (vofs - wd->vofs);
+            int run = 8 - (wx & 7), we, j;
+            if (run > w - x) run = w - x;
+            if (run > sRight - (x - gPortScreen.originX)) run = sRight - (x - gPortScreen.originX);
+            if (!outside && gx < 0 && run > -gx) run = -gx;
+            we = l->valid ? WorldEntry(l, wx, wy) : wd->fn(bg, wx >> 3, wy >> 3);
+            if (we < 0) {
+                for (j = 0; j < run; j++) out[x + j] = TRANSPARENT;
+                x += run - 1;
+                continue;
+            }
+            /* World extensions sample one tile row at a time. UI glyphs
+               keep the scalar path, including its exact registration order. */
+            {
+                unsigned base = ((cnt >> 2) & 3) * 0x4000;
+                unsigned off = (we & 1023) * (bpp8 ? 64 : 32);
+                if (bpp8 || !sHdText || base + off >= 0x10000 ||
+                    sBgTextTiles[(base + off) / 32].code <= 0x20) {
+                    int yy = (we & 0x800) ? 7 - (wy & 7) : wy & 7;
+                    int palette = (we >> 12) * 16;
+                    off += yy * (bpp8 ? 8 : 4);
+                    memset(sInWorld + x, 1, run);
+                    if (base + off + (bpp8 ? 8 : 4) > 0x10000) {
+                        for (j = 0; j < run; j++) out[x + j] = TRANSPARENT;
+                    } else {
+                        int xx = (we & 0x400) ? 7 - (wx & 7) : wx & 7;
+                        int step = (we & 0x400) ? -1 : 1;
+                        const uint8_t* pixels = chars + off;
+                        if (bpp8) {
+                            for (j = 0; j < run; j++, xx += step) {
+                                int c = pixels[xx];
+                                out[x + j] = c ? PLTT16[c] & 0x7FFF : TRANSPARENT;
+                            }
+                        } else {
+                            const uint16_t* colors = PLTT16 + palette;
+                            for (j = 0; j < run; j++, xx += step) {
+                                int c = (pixels[xx >> 1] >> ((xx & 1) * 4)) & 15;
+                                out[x + j] = c ? colors[c] & 0x7FFF : TRANSPARENT;
+                            }
+                        }
+                    }
+                    x += run - 1;
+                    continue;
+                }
+            }
+        }
         if (outside || gx < 0 || gx >= GBA_SCREEN_W) {
             /* Beyond the hardware picture: only map-block layers continue. */
             const BgLatch* l = &sBgLatch[bg];
@@ -826,7 +879,14 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             if (!l->valid) {
                 const BgWorld* wd = &sBgWorldLatched[bg];
                 int wx = wd->x + gx + (hofs - wd->hofs), wy = wd->y + gy + (vofs - wd->vofs);
-                we = wd->fn(bg, wx >> 3, wy >> 3);
+                /* Adjacent pixels share a map entry. Cache only this row,
+                   so HBlank scroll/VRAM changes are never carried forward. */
+                if (!cachedValid || cachedTx != (wx >> 3) || cachedTy != (wy >> 3)) {
+                    cachedTx = wx >> 3; cachedTy = wy >> 3;
+                    cachedEntry = wd->fn(bg, cachedTx, cachedTy);
+                    cachedValid = 1;
+                }
+                we = cachedEntry;
                 if (we < 0) {
                     out[x] = TRANSPARENT;
                     continue;
@@ -841,7 +901,15 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
                 fy = py & 7;
                 goto pixel;
             }
-            we = WorldEntry(l, l->x + gx + (hofs - l->hofs), l->y + gy + (vofs - l->vofs));
+            {
+                int wx = l->x + gx + (hofs - l->hofs), wy = l->y + gy + (vofs - l->vofs);
+                if (!cachedValid || cachedTx != (wx >> 3) || cachedTy != (wy >> 3)) {
+                    cachedTx = wx >> 3; cachedTy = wy >> 3;
+                    cachedEntry = WorldEntry(l, wx, wy);
+                    cachedValid = 1;
+                }
+                we = cachedEntry;
+            }
             if (we < 0) {
                 out[x] = TRANSPARENT;
                 continue;
@@ -1337,112 +1405,96 @@ static void BuildNarrowSides(int gy, uint16_t dispcnt, const int* bgOn, const in
 static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgPrio, uint32_t* frame, int objects) {
     int w = gPortScreen.width;
     uint32_t* dst = frame + y * w;
-    uint16_t bldcnt = IO16(0x50);
-    uint16_t bldalpha = IO16(0x52);
+    uint16_t bldcnt = IO16(0x50), bldalpha = IO16(0x52);
     int eva = bldalpha & 31, evb = (bldalpha >> 8) & 31;
-    int evy = IO16(0x54) & 31;
-    int effect = (bldcnt >> 6) & 3;
+    int evy = IO16(0x54) & 31, effect = (bldcnt >> 6) & 3;
     uint16_t backdrop = PLTT16[0] & 0x7FFF;
-    int order[4], n = 0, p, b, x;
+    int order[4], n = 0, p, b, x, docked = 0;
+    int collect = objects && (sHudLayer || sHdText || PortHd2dActive());
+    int row = y * w;
 
-    if (eva > 16)
-        eva = 16;
-    if (evb > 16)
-        evb = 16;
-    if (evy > 16)
-        evy = 16;
-
-    /* Backgrounds sorted by priority, lower index first on ties. */
+    if (eva > 16) eva = 16;
+    if (evb > 16) evb = 16;
+    if (evy > 16) evy = 16;
     for (p = 0; p < 4; p++)
         for (b = 0; b < 4; b++)
             if (bgOn[b] && !sScreenBg[b] && bgPrio[b] == p)
                 order[n++] = b;
+    if (collect)
+        for (b = 0; b < 4; b++)
+            if (bgOn[b] && sBgDockedLatched[b]) docked |= 1 << b;
 
     for (x = 0; x < w; x++) {
         int gx = x - gPortScreen.originX;
         uint8_t mask = sWinMask[x];
         uint16_t bd = sInWorld[x] ? backdrop : 0;
-        uint16_t top = bd, second = bd;
-        int topLayer = LAYER_BD, secondLayer = LAYER_BD;
-        int found = 0, i, objDone = 0;
-        uint16_t col;
+        uint16_t top, second = bd, col;
+        int first, topLayer, secondLayer = LAYER_BD, bg = -1;
+        int obj = objects && (mask & WIN_OBJ) && sObjLine[x] != TRANSPARENT;
+        int objFront, blend;
 
-        /* Once synthesis owns BG1, its stage is a full-screen UI. During
-           the door animation the spotlight still shades the wide world. */
         if (gx < sLeft || gx >= sRight || (sSpotlight && (sScreenBgMask & 2u))) {
             dst[x] = 0xFF000000u;
             continue;
         }
-        if ((sHudLayer || sHdText || PortHd2dActive()) && objects) {
-            int k, occ = 4, occLayer = 4, message = 0;
-            for (k = 0; k < n; k++) {
-                if ((mask & WIN_BG(order[k])) && sBgLine[order[k]][x] != TRANSPARENT) {
-                    occ = bgPrio[order[k]];
-                    occLayer = order[k];
-                    break;
-                }
+        /* Find the first visible BG once. Composition and HD occlusion use
+           the same priority decision; the second layer is needed only for
+           alpha, not for opaque pixels or brightness effects. */
+        for (first = 0; first < n; first++) {
+            b = order[first];
+            if ((mask & WIN_BG(b)) && sBgLine[b][x] != TRANSPARENT) {
+                bg = b;
+                break;
             }
-            /* message windows (docked layers) always stay in front of the HUD */
-            for (k = 0; k < 4; k++)
-                if (bgOn[k] && sBgDockedLatched[k] && (mask & WIN_BG(k)) && sBgLine[k][x] != TRANSPARENT)
-                    message = 1;
-            sMsgMask[y * w + x] = (uint8_t)message;
+        }
+        if (collect) {
+            int message = 0;
+            if (docked)
+                for (b = 0; b < 4; b++)
+                    if ((docked & (1 << b)) && (mask & WIN_BG(b)) && sBgLine[b][x] != TRANSPARENT)
+                        message = 1;
+            sMsgMask[row + x] = (uint8_t)message;
             if (!(mask & WIN_OBJ) || (message && sHudLayer)) {
-                sOccBg[y * w + x] = 0;
-                sOccBgLayer[y * w + x] = 0;
-                sOccObj[y * w + x] = 0;
+                sOccBg[row + x] = sOccBgLayer[row + x] = 0;
+                sOccObj[row + x] = 0;
             } else {
-                sOccBg[y * w + x] = (uint8_t)occ;
-                sOccBgLayer[y * w + x] = (uint8_t)occLayer;
-                sOccObj[y * w + x] = sObjLine[x] != TRANSPARENT ? (uint16_t)(sObjPrio[x] * 128 + sObjIndex[x]) : 0xFFFFu;
+                sOccBg[row + x] = bg < 0 ? 4 : (uint8_t)bgPrio[bg];
+                sOccBgLayer[row + x] = bg < 0 ? 4 : (uint8_t)bg;
+                sOccObj[row + x] = sObjLine[x] != TRANSPARENT ?
+                    (uint16_t)(sObjPrio[x] * 128 + sObjIndex[x]) : 0xFFFFu;
             }
         }
-        for (i = 0; i <= n && found < 2; i++) {
-            int prio = (i < n) ? bgPrio[order[i]] : 4;
-
-            if (objects && !objDone && (mask & WIN_OBJ) && sObjLine[x] != TRANSPARENT && sObjPrio[x] <= prio) {
-                objDone = 1;
-                if (found == 0) {
-                    top = sObjLine[x];
-                    topLayer = LAYER_OBJ;
-                } else {
-                    second = sObjLine[x];
-                    secondLayer = LAYER_OBJ;
+        objFront = obj && (bg < 0 || sObjPrio[x] <= bgPrio[bg]);
+        topLayer = objFront ? LAYER_OBJ : bg < 0 ? LAYER_BD : bg;
+        top = objFront ? sObjLine[x] : bg < 0 ? bd : sBgLine[bg][x];
+        blend = (objFront && sObjSemi[x]) ||
+                ((mask & WIN_SFX) && effect == 1 && (bldcnt & (1 << topLayer)));
+        if (blend) {
+            if (objFront) {
+                if (bg >= 0) { second = sBgLine[bg][x]; secondLayer = bg; }
+            } else if (bg >= 0) {
+                int next = -1;
+                for (b = first + 1; b < n; b++) {
+                    int k = order[b];
+                    if ((mask & WIN_BG(k)) && sBgLine[k][x] != TRANSPARENT) { next = k; break; }
                 }
-                found++;
-                if (found == 2)
-                    break;
-            }
-            if (i < n) {
-                int bg = order[i];
-                if ((mask & WIN_BG(bg)) && sBgLine[bg][x] != TRANSPARENT) {
-                    if (found == 0) {
-                        top = sBgLine[bg][x];
-                        topLayer = bg;
-                    } else {
-                        second = sBgLine[bg][x];
-                        secondLayer = bg;
-                    }
-                    found++;
+                if (obj && (next < 0 || sObjPrio[x] <= bgPrio[next])) {
+                    second = sObjLine[x]; secondLayer = LAYER_OBJ;
+                } else if (next >= 0) {
+                    second = sBgLine[next][x]; secondLayer = next;
                 }
             }
         }
-
         col = top;
-        if (topLayer == LAYER_OBJ && sObjSemi[x] && (bldcnt & (0x100 << secondLayer))) {
+        if (objFront && sObjSemi[x] && (bldcnt & (0x100 << secondLayer))) {
             col = Blend(top, second, eva, evb);
         } else if ((mask & WIN_SFX) && (bldcnt & (1 << topLayer))) {
             switch (effect) {
                 case 1:
-                    if (bldcnt & (0x100 << secondLayer))
-                        col = Blend(top, second, eva, evb);
+                    if (bldcnt & (0x100 << secondLayer)) col = Blend(top, second, eva, evb);
                     break;
-                case 2:
-                    col = Brighten(top, evy);
-                    break;
-                case 3:
-                    col = Darken(top, evy);
-                    break;
+                case 2: col = Brighten(top, evy); break;
+                case 3: col = Darken(top, evy); break;
             }
         }
         dst[x] = sColorLut[col];
