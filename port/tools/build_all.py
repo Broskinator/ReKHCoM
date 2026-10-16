@@ -32,7 +32,12 @@ def main():
     if args.jobs < 1:
         p.error('--jobs must be positive')
     if args.platform == 'android':
-        p.exit(2, 'Android game backend is not implemented yet. See port/android/README.md. No APK was built.\n')
+        command=[sys.executable,'port/tools/build_android.py','--regions',*args.versions,'--jobs',str(args.jobs)]
+        if args.dry_run:
+            print(json.dumps({'platform':'android','commands':[command]},indent=2))
+        else:
+            subprocess.run(command,cwd=ROOT,check=True)
+        return
     versions = list(dict.fromkeys(args.versions))
     if args.package and set(versions) != {'eu', 'us', 'jp'}:
         p.error('A public package requires EU, US and JP; partial packages are not supported')

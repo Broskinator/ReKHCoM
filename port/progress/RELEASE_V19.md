@@ -78,3 +78,36 @@ Rama local `claude/windows-5`; subir explícitamente a main y codex/v1.5-fixes.
 Última stable: tag v1.8.3, release 414677687, commit juego cfc5b6392,
 documentación d462f08cc. Android/diseño/build_all subido en 6d5cdbaca.
 No usar `git add .` por los gráficos privados no trackeados.
+
+
+## Actualización Android y HD (último checkpoint)
+
+- Herramientas instaladas y verificadas. SDK CLI actual usa android.exe sdk
+  install por paquete; sdkmanager.bat acepta argumentos viejos pero no instaló
+  todas las plataformas. Ya existen platform35/build-tools35.0.0/CMake3.22.1.
+- Android CMake pasa; librekhcom_eu.so/us.so/jp.so compilan. SDL3 y núcleos
+  ARMv7 ABI21; las secciones khdata/khbss y SDL_main se exportan correctamente.
+- Primera APK debug compilada (NO PUBLICADA), manifiesto runtime_tested=false.
+  build/releases/ReKHCoM-v1.9-android-alpha1-armeabi-v7a-debug.apk.
+  SHA inicial a4e06be306f24e3a49bc744cf7ee3473f416645ca7e6d043ab564159005d3557;
+  se deberá reconstruir porque los últimos cambios de lifecycle son posteriores.
+- Launcher Java real: SAF ROM con SHA, importar/exportar SRAM, configuración,
+  idioma y tres núcleos cargados por separado en :game. Multitoque SDL real,
+  iconos embebidos desde SVG; pausa en background implementada sin probar.
+- build_android.py y build_all.py --platform android automatizan toda la matriz.
+- No hay dispositivo adb conectado. Instalando emulator e imagen API24 x86 en
+  sesión 13007; el emulador moderno en host x86 no soporta ARMv7 directamente.
+  Próximo paso: permitir ABI x86 (también 32bit) como build de prueba aparte,
+  ejecutar allí y distinguir esa evidencia de probar ARM en un móvil.
+- Gradle primer intento falló por no definir repositorios de dependencias de
+  app (aapt2); corregido dependencyResolutionManagement, siguiente build pasó.
+- Error inicial ARM por malloc.h de juego sombreando bionic: -iquote en CMake.
+- Oclusión HD HUD corregida: se usa posición OAM original como en RenderHud,
+  conservando la excepción del mensaje propio. Oracle ahora **108/108**; agregado
+  semantic_hd_hud_message para no volver a ocultar diálogos propios.
+  build/ppu-conformance/20261016_101342_964485/report.json.
+- Intentos adicionales de filas uniformes / caché de map entries descartados:
+  no mostraron mejora medible en campo; no están en el código. Se conserva solo
+  la optimización affine y de capacidad verificada en 3fe40fe29.
+- Falta revisar HD sobre submenú real de Barajas (estilo0 y BG estilo2), y toda
+  la matriz Windows/Android antes de publicar v1.9/alpha. v1.8.3 no modificada.

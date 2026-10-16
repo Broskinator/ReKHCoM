@@ -4,6 +4,9 @@
 #include <SDL3/SDL.h>
 
 #include "port/port.h"
+#ifdef __ANDROID__
+#include "port/port_android.h"
+#endif
 
 #define KEY_A 0x001
 #define KEY_B 0x002
@@ -107,6 +110,9 @@ void PortInputInit(void) {
 void PortInputHandleEvent(const void* p) {
     const SDL_Event* ev = (const SDL_Event*)p;
     size_t i;
+#ifdef __ANDROID__
+    PortAndroidTouchEvent(p);
+#endif
 
     switch (ev->type) {
         case SDL_EVENT_GAMEPAD_ADDED:
@@ -181,6 +187,9 @@ uint16_t PortInputKeys(void) {
     uint16_t keys = sKeyboard;
     SDL_JoystickID* ids;
     int count, i;
+#ifdef __ANDROID__
+    keys |= PortAndroidTouchKeys();
+#endif
 
     VirtualPadUpdate();
     ids = SDL_GetGamepads(&count);

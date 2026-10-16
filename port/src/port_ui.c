@@ -83,6 +83,11 @@ static int PageEnd(void) {
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
     switch (item) {
+#ifdef __ANDROID__
+        case ITEM_HDTEXT:
+        case ITEM_FULLSCREEN:
+        case ITEM_FS_RES: return 0;
+#endif
         case ITEM_INTZOOM:
         case ITEM_SCALE: return 0;
         /* the version and its difficulty are chosen at New Game and stay

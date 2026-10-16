@@ -2034,6 +2034,10 @@ void PortCanvasAlloc(void) {
 void PortPpuBeginFrame(void) {
     uint16_t dispcnt = IO16(0x00);
     int b, any = 0;
+#ifdef __ANDROID__
+    /* Alpha keeps original pixel text until its portable font backend exists. */
+    gPortConfig.hdText = 0;
+#endif
     sBgTextCount = 0;
 
     BuildLut();
@@ -2807,13 +2811,13 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
                     continue;
             }
         }
-        if (!onScreen && !onHud) {
+        if (!onScreen) {
             /* HD glyphs bypass DrawObjs, but must still obey the cartridge's
                background/window and object priority. A covered glyph must
-               not be painted over a tutorial or confirmation panel. Glyphs on
-               the HUD layer (field dialogue) are not in the world picture, so
-               its coverage says nothing about them: checking it hid all of
-               the field's HD dialogue. */
+               not be painted over a tutorial or confirmation panel. HUD
+               glyphs use their original OAM position for coverage, just as
+               PortPpuRenderHud does. Their own docked message window is the
+               explicit exception below, keeping field dialogue visible. */
             int px = ox + gPortScreen.originX + 4;
             int py = oy + gPortScreen.originY + 6;
             int prio = (a2 >> 10) & 3;

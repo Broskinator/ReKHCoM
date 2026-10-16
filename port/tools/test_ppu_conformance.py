@@ -35,6 +35,7 @@ CASES += [f'semantic_hd_{layer}{cover}' for layer in ('world','hud','screen')
 CASES += ['semantic_hd_compact','semantic_bgtext','semantic_bgtext_stale','semantic_bgtext_clear',
           'semantic_bgtext_cover_obj','semantic_bgtext_cover_bg','semantic_bgtext_screen',
           'semantic_bgtext_explicit']
+CASES += ['semantic_hd_hud_message']
 
 def color(i):
     return ((i*3)&31) | (((i*5)&31)<<5) | (((i*7)&31)<<10)

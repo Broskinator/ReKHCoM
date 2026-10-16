@@ -17,6 +17,10 @@
 #include "port/port_hd2d.h"
 #include "port/port_ui.h"
 #include "port/port_state.h"
+#ifdef __ANDROID__
+#include "port/port_android.h"
+static int sAndroidBackground;
+#endif
 
 typedef volatile unsigned int vu32;
 
@@ -1577,6 +1581,9 @@ static void Present(void) {
             }
         }
     }
+#ifdef __ANDROID__
+    PortAndroidTouchDraw(sRenderer);
+#endif
     SDL_RenderPresent(sRenderer);
 }
 
@@ -1849,6 +1856,22 @@ static void PumpEvents(void) {
     SDL_Event ev;
 
     while (SDL_PollEvent(&ev)) {
+#ifdef __ANDROID__
+        if (ev.type == SDL_EVENT_WILL_ENTER_BACKGROUND || ev.type == SDL_EVENT_DID_ENTER_BACKGROUND) {
+            sAndroidBackground = 1;
+            PortAndroidTouchClear();
+            PortSramSyncIfDirty();
+            PortConfigSave();
+            PortAudioReset();
+            continue;
+        }
+        if (ev.type == SDL_EVENT_DID_ENTER_FOREGROUND) {
+            sAndroidBackground = 0;
+            sNextFrame = 0;
+            PortAudioReset();
+            continue;
+        }
+#endif
         switch (ev.type) {
             case SDL_EVENT_QUIT:
                 Quit();
@@ -1995,6 +2018,9 @@ static void VBlankCycle(void) {
     PumpEvents();
 
     /* Options overlay: the game is paused until it closes. */
+#ifdef __ANDROID__
+    while (sAndroidBackground) { SDL_Delay(50); PumpEvents(); }
+#endif
     while (PortUiActive()) {
         int w = gPortScreen.width, h = gPortScreen.height;
 
@@ -2003,6 +2029,9 @@ static void VBlankCycle(void) {
             PortPpuRenderFrame();
         Present();
         PumpEvents();
+#ifdef __ANDROID__
+        while (sAndroidBackground) { SDL_Delay(50); PumpEvents(); }
+#endif
         Pace();
         /* Harness: with KHCOM_VPAD the menu frames count too, so the
            virtual pad can drive the overlay and KHCOM_RECORD films it. */

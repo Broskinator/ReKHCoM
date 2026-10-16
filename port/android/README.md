@@ -1,8 +1,31 @@
 # Android — estudio del port (16/10/2026)
 
-Estado real: **no existe todavía un juego Android compilable ni una APK jugable**.
-Windows v1.8.3 sigue siendo la única estable. Los controles de esta carpeta son
-un diseño/prototipo, no una captura del juego ejecutándose en Android.
+Estado real: **los tres núcleos ARMv7 y la primera APK compilan; ejecución aún
+pendiente de verificar**. Windows v1.8.3 sigue siendo la única estable. El HTML
+es una maqueta; `native/touch_android.c` conecta los controles reales con SDL.
+No anunciar una alpha jugable hasta completar las pruebas de ejecución.
+
+## Compilar y retomar
+
+`python port/tools/build_android.py` configura y compila EU/US/JP, prepara el
+launcher nativo y ensambla una APK debug firmada. `--native-only` omite Gradle.
+`python port/tools/build_all.py --platform android` llama al mismo proceso.
+SDK35/build-tools35.0.0, NDK30.0.16248370, JDK17, CMake3.22.1 y SDL3.4.18 están
+instalados localmente bajo ../toolchain/android con licencias autorizadas.
+
+CMake convierte símbolos COFF a ELF y conserva secciones de globals. El backend
+reserva espacio virtual GBA sin reemplazar mapeos ajenos y da páginas físicas
+solo a regiones utilizadas. SRAM usa archivos privados y renombrado atómico.
+No se incluye el manejador x86 de fallos; accesos BIOS inesperados quedan por
+verificar en ejecución. HD desactivado hasta implementar fuentes portables;
+estados rápidos desactivados porque contienen punteros con ASLR.
+
+Launcher: SAF, SHA-1 por streaming y tamaño exacto para tres ROMs, importación de
+SRAM de 64KiB con copia previa y exportación, zoom x4 y selección de idioma.
+Cada biblioteca regional se carga por separado en el proceso :game.
+La app no pide permisos de Internet ni acceso global a archivos.
+Pausa/reanudación y liberación de toques implementadas; pendientes de prueba.
+Manifiesto y hashes de cada APK bajo build/releases/android-build-manifest.json.
 
 ## Herramientas y motor recomendados
 
@@ -50,9 +73,9 @@ Android 8/API26 para simplificar la primera alpha, pendiente de validar.
 7. Faltan manejo de pausa/reanudación, pérdida de superficie, interrupciones de
    audio, safe areas, multitoque y persistencia al salir al launcher.
 
-En este entorno no se encontraron Java, adb, Gradle/CMake en PATH ni un SDK bajo
-LOCALAPPDATA/Android. Instalar herramientas no elimina los bloqueos anteriores.
-Por ello no se publica una alpha vacía o un launcher que no pueda ejecutar el juego.
+Al comenzar no había herramientas Android en PATH. Ya se instalaron de sus fuentes
+oficiales bajo toolchain; la lista anterior describe los problemas de origen y
+no implica que todos sigan abiertos. La compilación no sustituye la prueba real.
 
 ## Flujo del launcher
 
@@ -115,9 +138,9 @@ sin reutilizar sus imágenes. Ver `assets/` y `preview.html`.
 ## Compilación conjunta y condiciones de alpha
 
 Ya existe `python port/tools/build_all.py`: configura y compila EU/US/JP para
-Windows, crea manifiesto de hashes y opcionalmente empaqueta. No publica ni
-cambia versiones. `--dry-run` muestra el plan; `--platform android` falla
-explícitamente mientras no exista backend Android.
+Windows, crea manifiesto de hashes y opcionalmente empaqueta. `--platform android`
+compila las tres bibliotecas y la APK experimental. No publica ni cambia versiones.
+`--dry-run` muestra el plan.
 
 La siguiente etapa es compartir lista de fuentes/opciones con CMake: matriz
 `plataforma × región × ABI`, carpeta por combinación, una sola versión de producto,

@@ -182,6 +182,7 @@ static void semantic(const char* name) {
         IO16(0)|=1|0x400;IO16(0x0c)=(2<<14)|(24<<8)|(3<<2);
         PortPpuSetResolution(320,180);gPortHudScale=1;gPortHudW=320;gPortHudH=180;
         sOamTag[1].hud=1;
+        if(strstr(name,"message")) sBgDockedLatched[0]=1;
     }
     if(strstr(name,"bgtext")) {
         o[4]=0x200;
