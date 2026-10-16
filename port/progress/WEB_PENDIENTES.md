@@ -4,6 +4,16 @@ Actualizado: 16/10/2026. Prioridad actual del usuario: navegador en GitHub Pages
 Versión: alpha independiente de la estable Windows v1.8.3. No sustituir la
 estable ni publicar la futura PC v1.9 sin cerrar sus verificaciones.
 
+## Alpha 2 — cambios en verificación
+
+- Fullscreenchange, F11/Escape y ResizeObserver sincronizan SDL/canvas entre frames.
+- Táctil centrado 16:9; pruebas C reales de centro y hit test en 5 proporciones.
+- HD con KHMenu/ComicHearts y layout compartido idéntico al Windows anterior.
+  Prueba real de SDL/WebGL sin ROM dibuja inglés, acentos y subtítulos.
+- Guardados serializados; exportar banco activo; reset espera persistencia.
+- Interfaz English principal + Español; idioma del juego por región, independiente.
+- Caché por hash para shell, motores y fuentes; falta verificación pública final.
+
 ## Hecho / observado
 
 - [x] Compilar el juego C real a WebAssembly (EU, US, JP), no un launcher vacío.
@@ -38,7 +48,8 @@ Evidencia: WEB_PUBLICACION.json (12/12 hashes y tipos MIME correctos).
 - [ ] Importar una SRAM existente, cargar, guardar en juego, recargar, volver a
   seleccionar ROM y verificar persistencia y contenido de la partida.
 - [ ] Exportar .sav y comparar con SRAM del motor; verificar nombres/bancos EU/US/JP.
-- [ ] Manejar IndexedDB bloqueado/cuota/privado con aviso preciso y exportación.
+- [x] Manejar fallo de sync con banner persistente y exportación local; probado con fallo simulado.
+- [ ] Verificar IndexedDB privado/cuota en cada navegador real.
 - [ ] Probar exportación del banco activo (actualmente botón exporta banco 1).
 - [ ] Reset/salida: confirmar sync completo antes de recargar; evitar perder un
   guardado reciente por temporizador o cierre inmediato de pestaña.
@@ -46,12 +57,12 @@ Evidencia: WEB_PUBLICACION.json (12/12 hashes y tipos MIME correctos).
 
 ## Texto HD portátil
 
-- [ ] Crear backend portátil para fuentes; el actual usa GDI de Windows.
+- [x] Crear backend Web con Canvas2D y las fuentes del port; Windows mantiene GDI.
 - [ ] Mantener métricas, anchos, baseline, colores/fades y ocultación de cada capa.
 - [ ] Diálogos, subtítulos, menús, acentos y japonés; EXP sigue pixel como pidió usuario.
 - [ ] Verificar Ver barajas / añadir-quitar naipes y animaciones, sin solapamiento.
-- [ ] Caché de glifos limitada; liberar recursos al cambiar escala/contexto.
-- [ ] Activar opción HD únicamente cuando el backend pueda dibujar el texto.
+- [x] Caché de glifos limitada; liberar recursos al cambiar escala/contexto.
+- [x] Activar HD únicamente cuando las fuentes carguen; fallback SD ante fallo.
 
 ## Audio y rendimiento
 
@@ -78,7 +89,7 @@ Evidencia: WEB_PUBLICACION.json (12/12 hashes y tipos MIME correctos).
 ## Distribución y mantenimiento
 
 - [x] Integrar Web en build_all.py para compilar todas las regiones con un comando.
-- [ ] Versionar módulos por hash para evitar mezclar JS/Wasm viejos en caché.
+- [x] Versionar módulos, shell y fuentes por hash para evitar mezclar cachés.
 - [ ] Empaquetado reproducible y publicación automatizada sin ROMs privadas.
 - [ ] Evaluar descarga offline/PWA después de validar guardados y actualizaciones.
 - [ ] Capturas públicas Web actuales, documentación para jugadores y changelog.

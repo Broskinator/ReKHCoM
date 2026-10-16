@@ -25,9 +25,11 @@ static int sAndroidBackground;
 #endif
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#include <emscripten/html5.h>
 #include "port/port_web.h"
 EM_JS(int, PortWebCanvasWidth, (void), { return Module.canvas.width; });
 EM_JS(int, PortWebCanvasHeight, (void), { return Module.canvas.height; });
+EM_ASYNC_JS(int, PortWebResetSave, (void), { return Module.saveBeforeReset ? await Module.saveBeforeReset() : 0; });
 #endif
 
 typedef volatile unsigned int vu32;
@@ -44,6 +46,14 @@ static char* sGameBss;
 static size_t sGameBssSize;
 
 static SDL_Window* sWindow;
+#ifdef __EMSCRIPTEN__
+void PortWebApplyResize(int w,int h) {
+    if(sWindow) {
+        emscripten_set_canvas_element_size("#canvas",w,h);
+        SDL_SetWindowSize(sWindow,w,h);
+    }
+}
+#endif
 static SDL_Renderer* sRenderer;
 static SDL_Texture* sTexture;
 static int sTexW, sTexH;
@@ -1875,6 +1885,11 @@ static void PumpEvents(void) {
     SDL_Event ev;
 
     while (SDL_PollEvent(&ev)) {
+#ifdef __EMSCRIPTEN__
+        if(ev.type==SDL_EVENT_RENDER_DEVICE_RESET) {
+            extern void PortWebHdClear(void);PortWebHdClear();
+        }
+#endif
 #ifdef __ANDROID__
         if (ev.type == SDL_EVENT_WILL_ENTER_BACKGROUND || ev.type == SDL_EVENT_DID_ENTER_BACKGROUND) {
             sAndroidBackground = 1;
@@ -2150,7 +2165,10 @@ void PortMovieFrame(void) {
 void PortSoftReset(void) {
 #ifdef __EMSCRIPTEN__
     PortSramSyncIfDirty();
-    EM_ASM({ Module.persistSoon && Module.persistSoon(); setTimeout(function(){location.reload();}, 500); });
+    PortConfigSave();
+    PortAudioReset();
+    if(!PortWebResetSave())return;
+    EM_ASM({ location.reload(); });
     emscripten_exit_with_live_runtime();
     return;
 #endif
@@ -2230,7 +2248,7 @@ int main(int argc, char** argv) {
 #ifdef __EMSCRIPTEN__
     winW = PortWebCanvasWidth();
     winH = PortWebCanvasHeight();
-    gPortConfig.hdText = 0;
+    gPortConfig.hdText = EM_ASM_INT({return Module.hdReady ? 1 : 0;}) && gPortConfig.hdText;
 #endif
     sWindow = SDL_CreateWindow("Kingdom Hearts: Chain of Memories", winW, winH,
                                SDL_WINDOW_RESIZABLE

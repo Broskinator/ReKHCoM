@@ -84,7 +84,9 @@ static int PageEnd(void) {
 static int ItemVisible(int item) {
     switch (item) {
 #if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#ifdef __ANDROID__
         case ITEM_HDTEXT:
+#endif
         case ITEM_FULLSCREEN:
         case ITEM_FS_RES: return 0;
 #endif

@@ -49,6 +49,7 @@ int PortRomLoad(void) {
 
 /* The bank the SRAM was loaded from (gPortConfig.saveBank can change first). */
 static int sSramBank = 1;
+EMSCRIPTEN_KEEPALIVE int PortWebActiveBank(void) {return sSramBank;}
 
 static const char* BankName(int bank) {
     static char name[64];

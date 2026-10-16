@@ -8,7 +8,7 @@ and launcher, with widescreen and ultrawide support at the cartridge's original 
 
 <p align="center">
   <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.8.3 for Windows</b></a>
-  &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCom/"><b>▶ Play in your browser · Alpha</b></a>
+  &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCom/"><b>▶ Play in your browser · Alpha 2</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCom/tags">Previous version tags</a>
 </p>
@@ -127,10 +127,14 @@ Each region uses its own save file; the launcher picks the matching version.
 
 ## Play in your browser
 
-Open [ReKHCoM Web](https://matymeatboy.github.io/ReKHCom/), select your ROM and
+Open [ReKHCoM Web · Alpha 2](https://matymeatboy.github.io/ReKHCom/), select your ROM and
 press **Play**. Your ROM stays on your device. The web alpha supports keyboard,
-gamepad and optional touch controls, original pixel text, and normal save import
-and export. Export a backup before clearing browser data.
+gamepad and centered touch controls, optional HD text with the PC fonts, and normal save import
+and export. The website starts in English and also offers Spanish; game language
+is selected separately. Fullscreen and embedded views readjust automatically.
+Export a backup before clearing browser data.
+
+[Web alpha downloads and release notes](https://github.com/MatyMeatBoy/ReKHCom/releases/tag/web-alpha2).
 
 <p align="center"><img src="docs/screenshots/web-player.jpg" width="90%"></p>
 

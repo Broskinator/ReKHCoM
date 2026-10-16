@@ -20,14 +20,25 @@ void PortStateService(void) {}
 void PortWatchdogStart(void) {}
 void PortCrashHandlerInstall(void) {}
 void PortBiosFaultInstall(void) {}
-void PortHdTextDraw(SDL_Renderer* r,int layer,float x,float y,float scale) {
-    (void)r;(void)layer;(void)x;(void)y;(void)scale;
-}
-void PortHdTextHudDigits(SDL_Renderer* r,float x,float y,float scale) {(void)r;(void)x;(void)y;(void)scale;}
 int PortCodepointToSjis(unsigned cp) {
     int lo=0,hi=(int)(sizeof(webSjis)/sizeof(webSjis[0]));
     while(lo<hi) { int m=(lo+hi)/2;if(webSjis[m][0]<cp)lo=m+1;else hi=m; }
     return lo<(int)(sizeof(webSjis)/sizeof(webSjis[0])) && webSjis[lo][0]==cp ? webSjis[lo][1] : 0;
 }
-EMSCRIPTEN_KEEPALIVE void PortWebSetVisible(int on) {hidden=!on;PortAudioReset();}
-void PortWebWaitVisible(void) {while(hidden)emscripten_sleep(100);}
+static int pendingW, pendingH;
+extern void PortWebApplyResize(int w,int h);
+EMSCRIPTEN_KEEPALIVE void PortWebResize(int w,int h) {
+    if(w>=240 && h>=160 && w<=2560 && h<=1440){pendingW=w;pendingH=h;}
+}
+EMSCRIPTEN_KEEPALIVE void PortWebFlushSave(void) {PortSramSyncIfDirty();PortConfigSave();}
+EMSCRIPTEN_KEEPALIVE void PortWebSetVisible(int on) {
+    hidden=!on;
+    SDL_Event event={0};event.type=SDL_EVENT_WINDOW_FOCUS_LOST;
+    PortInputHandleEvent(&event);
+    PortAudioReset();
+    if(hidden)PortWebFlushSave();
+}
+void PortWebWaitVisible(void) {
+    while(hidden)emscripten_sleep(100);
+    if(pendingW){int w=pendingW,h=pendingH;pendingW=0;PortWebApplyResize(w,h);}
+}

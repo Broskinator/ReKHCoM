@@ -7,12 +7,14 @@ import datetime
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
-FILES = ['index.html', 'web.css', 'web.js', '.nojekyll', 'LICENSE.md', 'SDL-LICENSE.txt']
+FILES = ['index.html', 'web.css', 'web.js', 'runtime.js', 'i18n.js', '.nojekyll', 'LICENSE.md', 'SDL-LICENSE.txt',
+         'fonts/KHMenu.otf', 'fonts/ComicHearts.otf', 'fonts/NOTICE.md']
 FILES += [f'rekhcom-{r}.{ext}' for r in ['eu','us','jp'] for ext in ['js','wasm']]
 
 
@@ -29,7 +31,15 @@ def main():
     (site / '.nojekyll').write_bytes(b'')
     shutil.copy2(ROOT / 'LICENSE.md', site / 'LICENSE.md')
     shutil.copy2(args.sdl_source / 'LICENSE.txt', site / 'SDL-LICENSE.txt')
-    unexpected = {p.name for p in site.iterdir()} - set(FILES) - {'manifest.json'}
+    for name in ['web.css','web.js','runtime.js','i18n.js']:
+        shutil.copy2(ROOT / 'port/web' / name, site / name)
+    # Version the shell too: a cached alpha1 web.js must never drive alpha2.
+    html = (ROOT / 'port/web/index.html').read_text(encoding='utf-8')
+    for name in ['web.css','runtime.js','i18n.js','web.js']:
+        version = hashlib.sha256((site / name).read_bytes()).hexdigest()[:16]
+        html = html.replace(f'"{name}"', f'"{name}?v={version}"')
+    (site / 'index.html').write_text(html,encoding='utf-8')
+    unexpected = {p.relative_to(site).as_posix() for p in site.rglob('*') if p.is_file()} - set(FILES) - {'manifest.json'}
     if unexpected:
         raise RuntimeError('Unexpected files in web output: ' + ','.join(sorted(unexpected)))
     for region in ['eu','us','jp']:
@@ -38,7 +48,7 @@ def main():
             raise RuntimeError('Invalid Wasm binary: ' + str(wasm))
         if f'rekhcom-{region}.wasm' not in (site / f'rekhcom-{region}.js').read_text():
             raise RuntimeError('JS/Wasm filename mismatch')
-    manifest = {'version':'web-alpha1', 'source_commit':git('rev-parse','HEAD'),
+    manifest = {'version':'web-alpha2', 'source_commit':git('rev-parse','HEAD'),
                 'source_dirty':bool(git('diff','--name-only')),
                 'built_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(), 'files':{}}
     for name in FILES:

@@ -10,10 +10,13 @@ SRAM and settings use IndexedDB; normal `.sav` import/export provides backups.
 - EU/US/JP WebAssembly build with Emscripten 6.0.12 and SDL 3.4.18.
 - User tested the actual game in Chrome through the opening dialogue. Original
   text works. Selecting HD at New Game exposed an empty-dialogue bug: the PPU
-  now forces original text every frame on Web, as on Android.
+  alpha1 forced original text. Alpha2 now enables HD only after fonts load, and
+  falls back to SD if rasterization fails.
 - US/JP modules require regional browser play tests.
-- This alpha uses original pixel text. Windows GDI font rasterization and
-  pointer-based quick states are unavailable on Web. Normal SRAM is supported.
+- Alpha 2 rasterizes the same KHMenu/ComicHearts font files with Canvas2D and
+  shares HD layout with Windows. A ROM-free real SDL/WebGL probe displays Latin,
+  Spanish accents and subtitles. In-game PPU/language coverage remains to test.
+  Pointer-based quick states remain unavailable. Normal SRAM is supported.
 - Physical mobile browser performance and long play sessions remain unmeasured.
 
 ## Resource use
@@ -24,7 +27,13 @@ SRAM and settings use IndexedDB; normal `.sav` import/export provides backups.
 - Canvas uses CSS pixels, without multiplying work by devicePixelRatio.
 - Pace yields to the browser instead of spinning. Hidden tabs pause logic,
   drawing and audio; SDL RenderPresent does not add a second Asyncify timer.
-- Touch drawing is enabled only when selected (default for a coarse pointer).
+- Touch drawing is enabled only when selected (default for a coarse pointer),
+  on a centered 16:9 plane shared by drawing and hit testing.
+- Fullscreen, Escape, browser F11 and responsive layout changes enqueue native
+  SDL window sizes between frames; ResizeObserver avoids stale resolutions.
+- Serialized IndexedDB sync, active-bank export, save-before-reset and persistent
+  storage warnings protect normal saves. The shell/motors/fonts use hash URLs.
+- UI starts in English, with Spanish selectable separately from cartridge language.
 - GBA pointers retain their addresses in sparse linear memory. The initial
   256 MiB linear address range is **not a measurement of resident RAM**.
   Static native data starts after the GBA range. A future memory-layout port

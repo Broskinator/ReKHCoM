@@ -1,3 +1,41 @@
+## Web Alpha 2 lista para publicar (16/10/2026)
+
+- EU/US/JP compilados sin avisos de firma. PPU 206/206; PC EU/US/JP compilan.
+- Fuentes reales KHMenu/ComicHearts dibujadas en SDL/WebGL con prueba sin ROM:
+  inglés, signos/acentos españoles y subtítulos. No confundir con partida real.
+- Native SDL resize verificado 960x540 -> 769x433 -> 960x540. Fullscreen API no
+  concedida al clic automatizado del navegador; casos F11/Escape/fullscreenchange
+  probados en JS de producción con frontera nativa controlada, no como prueba
+  manual de gameplay. El usuario debe confirmar ese ciclo en su partida.
+- Pruebas Node de frontend PASS, táctil real C en 5 proporciones PASS,
+  controles Android existentes PASS, audio 24/24 + 800k integrales PASS.
+- WEB_ALPHA2_TESTS.json contiene el alcance. Falta despliegue/hash/release y
+  actualizar evidencia pública. No afirmar que todos los navegadores/dispositivos
+  o partidas largas estén verificados. WEB_PENDIENTES.md mantiene lo restante.
+
+## Web alpha2 en desarrollo (16/10/2026)
+
+- Usuario pidió: corregir F11/Escape y resolución, centrar controles táctiles,
+  portar HD con fuentes de PC, idiomas web con inglés principal y release alpha.
+- Implementado, aún en verificación: resize coalescido por ResizeObserver,
+  fullscreenchange y window/visualViewport; export C encola tamaño, SDL aplica
+  entre frames. Guardado serializado, banco activo al exportar, reset espera
+  sync en Asyncify y no reinicia si falla. Banner persistente ante fallo IDBFS.
+- HD Web ahora rasteriza con Canvas2D las mismas KHMenu/ComicHearts. La colocación
+  se extrajo sin cambios a port_hdtext_layout.inc compartido con Windows.
+  Caché 2 escalas/estilo, 1024 JP por font; sin duplicar imágenes JS. Falta prueba
+  visual y regional. EXP sigue filtrado en PPU. Fallo de fuente vuelve a SD.
+- UI web English por defecto, selector English/Español separado de idioma ROM.
+- Táctil Web usa plano 16:9 centrado con margen; dibujo y hit tests usan la misma
+  transformación. Android sin cambios de geometría.
+- test_web_runtime.cjs PASS: tamaños fullscreen/Escape/F11, resize coalescido,
+  idiomas, nombres por banco, sync serializado y fallo quota.
+  web_touch_conformance.c PASS: centro y pulsaciones en 5 proporciones.
+- Compilando EU/US/JP: build/web-alpha2-build.log (sesión75596). Emsdk6.0.12,
+  SDL estático en D:/ReKHCoM-build/web-sdl. No desplegar hasta compilar/probar.
+- Próximo: prueba real de fuentes, regresión PC tras extraer layout, caché por
+  hash de shell/motores/fuentes; publicar Pages y prerelease web-alpha2.
+
 ## GitHub Pages verificado (16/10/2026)
 
 - URL pública operativa: https://matymeatboy.github.io/ReKHCom/ .
