@@ -1,3 +1,31 @@
+# Reparto v1.7 — 16/10/2026 (Claude). Solo Claude integra y publica.
+
+Codex: trabaja en `khcom`, commits locales, sin push ni releases. Claude
+integra tus commits en `khcom-claude` (rama claude/windows-5) y publica.
+No tocar los archivos de la columna de Claude mientras esté este bloque.
+
+**Codex — rendimiento del motor (prioridad)**
+- Objetivo: 60 fps con el lienzo grande (1920x1080 en x1; hoy PPU ~86 ms,
+  960x540 ~21 ms; ~40 ns/píxel). Medir con KHCOM_PROFILE=1 (log
+  "profile: canvas WxH ppu X ms present Y ms" cada 240 frames).
+- Ideas: RenderLine/ComposeLine por franjas en hilos (SDL_Thread, sin
+  estado compartido por línea), saltar BGs/columnas transparentes, tablas
+  de tiles precalculadas, evitar trabajo por píxel fuera de sLeft/sRight.
+- Archivos: port/src/port_ppu.c (solo el render por línea; no cambiar
+  semántica de márgenes/headers/HUD), port/tools/ppu_conformance.c.
+- Aceptación: capturas idénticas píxel a píxel antes/después (batería de
+  menús, campo, combate a 1920x1080 y 5120x1440) y tiempos del perfil.
+
+**Claude — interfaz y escalado**
+- Zoom x1..x6 (vista en múltiplos de la GBA; x1 Original, x2 Mejorado por
+  defecto) con opción Escala entera ON/OFF.
+- Parpadeo de las extensiones laterales durante el slide de submenús
+  (Mapamundi, Estado...; el Diario no lo tiene).
+- Relación de aspecto: opción para forzar ultrawide (21:9 / 32:9).
+- Resolución completa: navegar y aplicar con A.
+- Opciones por encima del HUD (hecho).
+- Archivos: port_main.c, port_ui.c, port_config.c, decompui.cpp, src/*.
+
 # Reparto tras v1.6.7 — 16/10/2026 (Claude)
 
 Publicada v1.6.7 (única release pública). Zoom = escala de píxel entera
