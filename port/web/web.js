@@ -124,7 +124,9 @@ document.addEventListener('visibilitychange',visibility);
 window.addEventListener('pagehide',()=>{if(started){core._PortWebFlushSave();store.flush();}});
 window.addEventListener('beforeunload',event=>{if(pendingSave||store?.pending){event.preventDefault();event.returnValue=t('leave');}});
 $('canvas').addEventListener('keydown',event=>{
-  if(event.key==='Enter'&&event.altKey){event.preventDefault();event.stopPropagation();toggleFullscreen();return;}
+  if(event.key==='F11'||(event.key==='Enter'&&event.altKey)){
+    event.preventDefault();event.stopPropagation();if(!event.repeat)toggleFullscreen();return;
+  }
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Backspace'].includes(event.key))event.preventDefault();
 });
 $('canvas').addEventListener('contextmenu',event=>event.preventDefault());
