@@ -239,8 +239,20 @@ void PortHudBegin(int ax, int ay) {
     sHudDepth++;
     sHudAx = ax;
     sHudAy = ay;
-    gPortSpriteShiftX = ax * PortWideMarginX();
+    /* ax 2: the HUD's scale, but placed where the world puts it (the
+       enemy's card follows its enemy across the arena) */
+    gPortSpriteShiftX = (ax == 2 ? 0 : ax) * PortWideMarginX();
     gPortSpriteShiftY = ay * PortWideMarginY();
+}
+
+int gPortWorldScale; /* the world's pixel scale (presenter), for ax 2 */
+
+/* x on the HUD canvas of a world-placed sprite (ax 2): its centre stays
+   over the same window point as in the world picture */
+static int HudWorldX(int ox, int bw, int w) {
+    int hs = gPortHudScale > 0 ? gPortHudScale : 1, ws = gPortWorldScale > 0 ? gPortWorldScale : hs;
+    int centre = ox + bw / 2 + gPortScreen.originX - gPortScreen.width / 2;
+    return w / 2 + centre * ws / hs - bw / 2;
 }
 
 void PortHudEnd(void) {
@@ -650,13 +662,6 @@ static int HudRaise(void) {
     int r = gPortConfig.cardHudRaise;
 
     return !sBattleView || r < 0 ? 0 : (r > 16 ? 16 : r);
-}
-
-/* The enemy's played card: in the world (it follows its enemy across the
-   arena) but on the bottom row of the screen, where Sora's cards are, not
-   at the GBA picture's bottom in the middle of a taller window. */
-int PortEnemyCardShiftY(void) {
-    return PortWideMarginY() - HudRaise();
 }
 
 void PortSetBattleView(int on) {
@@ -2363,9 +2368,10 @@ void PortPpuRenderHud(uint32_t* buf) {
             oy = sOamExt[i].y;
         }
         /* back to GBA-screen coordinates, then onto the HUD canvas */
-        xg = ox - tag->ax * gPortScreen.originX;
+        xg = ox - (tag->ax == 2 ? 0 : tag->ax) * gPortScreen.originX;
         yg = oy - tag->ay * gPortScreen.originY;
-        hx = tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
+        hx = tag->ax == 2 ? HudWorldX(xg, bw, w)
+             : tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
         hy = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) : yg + (h - GBA_SCREEN_H) / 2);
         if (tag->ay > 0)
             hy -= HudRaise();
@@ -2632,8 +2638,9 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
             out[n].y = oy;
         } else if (onHud) {
             int w = gPortHudW, h = gPortHudH;
-            int xg = ox - tag->ax * gPortScreen.originX, yg = oy - tag->ay * gPortScreen.originY;
-            out[n].x = tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
+            int xg = ox - (tag->ax == 2 ? 0 : tag->ax) * gPortScreen.originX, yg = oy - tag->ay * gPortScreen.originY;
+            out[n].x = tag->ax == 2 ? HudWorldX(xg, 8, w)
+                       : tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
             out[n].y = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) - HudRaise() : yg + (h - GBA_SCREEN_H) / 2);
         } else {
             if (ox + 16 <= sLeft || ox >= sRight || oy + 16 <= sTop || oy >= sBottom)

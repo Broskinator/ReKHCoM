@@ -121,10 +121,8 @@ void EnemyCardDraw(CardDisplayWork* work) {
     gfx = work->cardDef->gfx;
 
 #ifdef PLATFORM_PC
-    extern int gPortSpriteShiftY;
-    extern int PortEnemyCardShiftY(void);
-    int shiftSaved = gPortSpriteShiftY;
-    gPortSpriteShiftY += PortEnemyCardShiftY();
+    /* HUD-sized like Sora's cards, on the bottom row, over its enemy */
+    PortHudBegin(2, 1);
 #endif
     if (work->flags & CARD_DISP_FLAG_VISIBLE) {
         if (!(work->flags & CARD_DISP_FLAG_FACE_DOWN)) {
@@ -155,7 +153,7 @@ void EnemyCardDraw(CardDisplayWork* work) {
         }
     }
 #ifdef PLATFORM_PC
-    gPortSpriteShiftY = shiftSaved;
+    PortHudEnd();
 #endif
 }
 

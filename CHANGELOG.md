@@ -9,8 +9,8 @@
   default. Steps below full speed (x1, x2 at 1080p) are marked demanding, with
   a warning in the options. The picture buffers moved to the heap so x1 fits.
 - The options menu stays readable at any zoom.
-- Battles: the enemy's played card is shown on the bottom row, at the height
-  of Sora's cards.
+- Battles: the enemy's played card is drawn at the HUD's size, on the bottom
+  row at the height of Sora's cards, above its enemy.
 
 ## v1.6.6 — 2026-10-15
 

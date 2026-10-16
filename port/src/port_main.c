@@ -294,6 +294,10 @@ static void UpdateResolution(void) {
     }
     /* HUD layer: a larger whole-number scale, keeping at least 144 lines and
        the GBA width so corner-anchored elements never collide. */
+    {
+        extern int gPortWorldScale;
+        gPortWorldScale = sAutoScale;
+    }
     gPortHudScale = 0;
     if (gPortConfig.viewMode == PORT_VIEW_AUTO && sAutoScale > 0 && sFitScale == 0 && gPortConfig.hudSize > 0) {
         int hs = sAutoScale + gPortConfig.hudSize;
