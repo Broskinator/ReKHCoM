@@ -1,3 +1,27 @@
+## x1: segunda optimización verificada (16/10/2026)
+
+- Nueva ruta de composición para filas de mundo con fondos opacos, sin OBJ,
+  ventanas ni efectos de color aplicables. Mantiene máscaras de prioridad HD/HUD;
+  efectos, mensajes acoplados y sprites conservan la ruta completa.
+- Oracle independiente ampliado de 108 a **206/206**: mismos casos con mundo
+  ancho activado, recogida de prioridades y combinaciones de ventanas/mezcla.
+  Informe build/ppu-conformance/20261016_111841_642473/report.json.
+- Campo x1, 1920x1080, SDL dummy: primer par PPU 51,34 -> 39,04 ms; repetición
+  48,14 -> 39,34 ms (**18,3% menos en el par repetido**). Presentación 21,36 vs
+  21,48 ms prácticamente igual; hashes exactos de la imagen antes/después.
+  Batalla x1 28,26 -> 27,16 ms en este par; no sumar porcentajes entre pruebas.
+  Informes build/zoom-benchmark/v19-opaque-{before,after}[-repeat]/report.json.
+  Son tiempos CPU del render de software, no FPS de un GPU real ni promesa 60fps.
+- En curso comparación x2/x3/x4/x5/x6. Aún falta matriz EU/US/JP, menús/puertas,
+  ultrawide y reconstruir Android con la nueva optimización antes de publicar.
+- Android x86: SRAM EU carga, Sora se mueve, menú normal abre, pausa/reanudación
+  mantiene PID; solo 2 ticks CPU durante 3s en background. Sin crashes de runtime
+  en la sesión corregida. build/android-runtime-smoke.json. ARM físico pendiente.
+- Barajas HD: con la SRAM real y entrada natural al juego, ni foto fija ni
+  frames 2220-2241 muestran con claridad el solapamiento reportado. Evidencia
+  build/transition-review/deck-{normal-save-hd0,normal-save-hd1,submenu-slide-hd}.
+  No declarar corregido por esta ausencia de reproducción. Continúa revisión.
+
 ## Compilación tras corregir SHN_ABS
 
 ARMv7 EU/US/JP y x86 EU/US/JP compilan; el verificador ELF pasa en los seis.

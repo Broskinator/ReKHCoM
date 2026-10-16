@@ -243,10 +243,12 @@ static void wide_world(const char* name) {
 int main(int argc, char** argv) {
     const char* name;
     uint16_t* p;
-    int i;
+    int i, forceWide;
     FILE* f;
     if(argc!=3 && argc!=4) return 2;
     name=argv[1];
+    forceWide=!strncmp(name,"fast_",5);
+    if(forceWide) name+=5;
     if(!VirtualAlloc((void*)GBA_IO,0x10000,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE) ||
        !VirtualAlloc((void*)GBA_PLTT,0x10000,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE) ||
        !VirtualAlloc((void*)GBA_VRAM,0x20000,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE) ||
@@ -291,7 +293,15 @@ int main(int argc, char** argv) {
     } else if(!strncmp(name,"obj",3)) {
         obj(strstr(name,"8bpp")!=NULL,strstr(name,"1d")!=NULL,strstr(name,"flip")!=NULL,strstr(name,"affine")!=NULL,strstr(name,"mosaic")!=NULL);
     } else return 4;
-    PortPpuRenderFrame();
+    if(forceWide) {
+        /* Exercise the wide-world compositor at native dimensions so the
+           independent hardware oracle remains directly comparable. */
+        gPortConfig.hdText=1; /* Also collect the HUD/text priority metadata. */
+        PortPpuBeginFrame(); gPortScreen.wide=1; LatchAffine(1);
+        for(i=0;i<160;i++) {
+            LineStart(i); LatchAffine(0); RenderLine(i,i); StepAffine(1); HBlank(i);
+        }
+    } else PortPpuRenderFrame();
     if(!strncmp(name,"semantic",8)) {
         PortTextGlyph glyphs[128] = {0}; /* OBJ text has no BG cap/base metadata. */
         int n0=PortPpuTextGlyphs(glyphs,128,0),n1=PortPpuTextGlyphs(glyphs,128,1),n2=PortPpuTextGlyphs(glyphs,128,2);

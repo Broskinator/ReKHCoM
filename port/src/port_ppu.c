@@ -536,6 +536,7 @@ enum {
 
 static uint16_t sBgLine[4][PORT_MAX_W];
 static uint16_t sObjLine[PORT_MAX_W];
+static int sLineHasObjects;
 static uint8_t sObjPrio[PORT_MAX_W];
 static uint8_t sObjIndex[PORT_MAX_W];
 /* HUD layer: what covers each canvas pixel in the GBA's own compositing, so
@@ -1238,6 +1239,7 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
     int mosH = ((mosaic >> 8) & 15) + 1;
     int mosV = ((mosaic >> 12) & 15) + 1;
 
+    sLineHasObjects = 0;
     for (i = 0; i < w; i++) {
         sObjLine[i] = TRANSPARENT;
         sObjPrio[i] = 4;
@@ -1380,6 +1382,7 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
                     sScrSemi[x] = (mode == 1);
                 }
             } else if (sObjLine[x] == TRANSPARENT || prio < sObjPrio[x]) {
+                sLineHasObjects = 1;
                 sObjLine[x] = (uint16_t)col;
                 sObjPrio[x] = (uint8_t)prio;
                 sObjIndex[x] = (uint8_t)i;
@@ -1512,6 +1515,30 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
     if (collect)
         for (b = 0; b < 4; b++)
             if (bgOn[b] && sBgDockedLatched[b]) docked |= 1 << b;
+
+    /* Most extra world scanlines contain only opaque backgrounds. Windows,
+       object alpha, docked messages and colour effects retain the full path.
+       Keep priority metadata identical for HUD and HD text consumers. */
+    if (gPortScreen.wide && !(dispcnt & 0xE000) &&
+        (!objects || !sLineHasObjects) && !docked &&
+        (effect == 0 || !(bldcnt & 0x3F)) &&
+        !(sSpotlight && (sScreenBgMask & 2u))) {
+        for (x = 0; x < w; x++) {
+            int bg = -1;
+            for (b = 0; b < n; b++) {
+                int candidate = order[b];
+                if (sBgLine[candidate][x] != TRANSPARENT) { bg = candidate; break; }
+            }
+            dst[x] = sColorLut[bg < 0 ? (sInWorld[x] ? backdrop : 0) : sBgLine[bg][x]];
+            if (collect) {
+                sMsgMask[row + x] = 0;
+                sOccBg[row + x] = bg < 0 ? 4 : (uint8_t)bgPrio[bg];
+                sOccBgLayer[row + x] = bg < 0 ? 4 : (uint8_t)bg;
+                sOccObj[row + x] = 0xFFFFu;
+            }
+        }
+        return;
+    }
 
     for (x = 0; x < w; x++) {
         int gx = x - gPortScreen.originX;

@@ -7,11 +7,11 @@ from pathlib import Path
 from PIL import Image,ImageDraw
 R=Path(__file__).resolve().parents[2]
 SAVE=None
-def run(name,frames,keys='200-203:A',modes='',build='rel-eu',lang=None,save=False,extra=None,win='1536x864',narrow=1):
+def run(name,frames,keys='200-203:A',modes='',build='rel-eu',lang=None,save=False,extra=None,win='1536x864',narrow=1,hd=True):
  d=R/'build/transition-review'/name;d.mkdir(parents=True,exist_ok=True)
  for f in ['khcom.exe','SDL3.dll']:shutil.copy2((R/'build'/build/f) if (R/'build'/build/f).exists() else R/'build/rel-eu'/f,d/f)
  shutil.copytree(R/'port/assets/fonts',d/'assets/fonts',dirs_exist_ok=True)
- (d/'kh_com.ini').write_text(f'config_version=11\nview_mode=4\nzoom=8\nnarrow_fit={narrow}\nhd_text=1\n')
+ (d/'kh_com.ini').write_text(f'config_version=11\nview_mode=4\nzoom=8\nnarrow_fit={narrow}\nhd_text={int(hd)}\n')
  if save:shutil.copy2(SAVE,d/'kh_com.sav')
  e={k:v for k,v in os.environ.items() if not k.startswith(('KHCOM_','SDL_'))}
  for k in ['SDL_XINPUT_ENABLED','SDL_JOYSTICK_HIDAPI','SDL_JOYSTICK_RAWINPUT','SDL_JOYSTICK_DIRECTINPUT','SDL_JOYSTICK_WGI','SDL_JOYSTICK_GAMEINPUT','SDL_JOYSTICK_GAMEINPUT_RAW']:e[k]='0'

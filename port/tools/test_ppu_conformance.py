@@ -36,6 +36,8 @@ CASES += ['semantic_hd_compact','semantic_bgtext','semantic_bgtext_stale','seman
           'semantic_bgtext_cover_obj','semantic_bgtext_cover_bg','semantic_bgtext_screen',
           'semantic_bgtext_explicit']
 CASES += ['semantic_hd_hud_message']
+CASES += ['fast_'+name for name in CASES if not name.startswith('semantic')]
+CASES += ['fast_'+name for name in CASES if name.startswith('semantic') and not any(layer in name for layer in ('hud','screen'))]
 
 def color(i):
     return ((i*3)&31) | (((i*5)&31)<<5) | (((i*7)&31)<<10)
@@ -164,7 +166,8 @@ def main():
     for i,name in enumerate(args.cases):
         raw=out/(name+'.bin')
         proc=subprocess.run([str(exe),name,str(raw)],check=True,timeout=20,capture_output=True,text=True)
-        if name.startswith('semantic'):
+        scenario=name.removeprefix('fast_')
+        if scenario.startswith('semantic'):
             actual=json.loads(proc.stdout)
             want=[0,0,0]
             if not any(s in name for s in ('cover_','window','stale','clear')):
@@ -182,7 +185,7 @@ def main():
             continue
         actual=array('I'); actual.frombytes(raw.read_bytes())
         assert len(actual)==38400
-        want=expected(name)
+        want=expected(scenario)
         mismatch=[p for p,(a,b) in enumerate(zip(actual,want)) if a!=b]
         count=len(mismatch)
         result={'case':name,'pixels_compared':38400,'mismatches':count}
