@@ -1,3 +1,22 @@
+## Web Alpha 2 publicada y verificada (16/10/2026)
+
+- Código ca86d0016; Pages f9827a51ff92f6e8839103b3655dc700a2a44f27.
+- https://matymeatboy.github.io/ReKHCom/ . 17/17 archivos públicos coinciden en
+  SHA256 y tamaño, motores application/wasm, fuentes incluidas. WEB_PUBLICACION.json.
+- Prerelease https://github.com/MatyMeatBoy/ReKHCom/releases/tag/web-alpha2 .
+  ZIP 4.386.139 bytes, SHA256 1aafa9ab0552df868217a36749d1f3fa48237f80aa6f24a5269cf2f20777ee2f.
+  GitHub confirma digest y prerelease=true. La latest estable sigue v1.8.3.
+- Portada real Chrome: English por defecto, cambio Español y vuelta English
+  verificados. docs/screenshots/web-player.jpg actualizado. Interfaz y lenguaje
+  del cartucho son independientes. Alpha2 identifica la web en repo/README/About.
+- Se publicaron fix resize/fullscreen, táctil centrado, HD fuentes originales,
+  persistencia serializada/banco activo/reset protegido y caché por hash.
+- No marcar todos los bugs o plataformas como resueltos: comprobar partida real
+  Alpha2 y F11/Escape manual, guardado/bancos, US/JP, móviles y sesiones largas.
+  La prueba real de fuente/SDL fue sin ROM; la prueba F11 automatizada fue de
+  callbacks controlados porque requestFullscreen no se concedió al clic de tool.
+  WEB_ALPHA2_TESTS.json y WEB_PENDIENTES.md conservan evidencia y pendientes.
+
 ## Web Alpha 2 lista para publicar (16/10/2026)
 
 - EU/US/JP compilados sin avisos de firma. PPU 206/206; PC EU/US/JP compilan.

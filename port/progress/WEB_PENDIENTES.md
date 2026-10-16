@@ -4,7 +4,7 @@ Actualizado: 16/10/2026. Prioridad actual del usuario: navegador en GitHub Pages
 Versión: alpha independiente de la estable Windows v1.8.3. No sustituir la
 estable ni publicar la futura PC v1.9 sin cerrar sus verificaciones.
 
-## Alpha 2 — cambios en verificación
+## Alpha 2 — publicada
 
 - Fullscreenchange, F11/Escape y ResizeObserver sincronizan SDL/canvas entre frames.
 - Táctil centrado 16:9; pruebas C reales de centro y hit test en 5 proporciones.
@@ -12,7 +12,8 @@ estable ni publicar la futura PC v1.9 sin cerrar sus verificaciones.
   Prueba real de SDL/WebGL sin ROM dibuja inglés, acentos y subtítulos.
 - Guardados serializados; exportar banco activo; reset espera persistencia.
 - Interfaz English principal + Español; idioma del juego por región, independiente.
-- Caché por hash para shell, motores y fuentes; falta verificación pública final.
+- Caché por hash para shell, motores y fuentes; 17/17 archivos públicos verificados.
+- Prerelease: https://github.com/MatyMeatBoy/ReKHCom/releases/tag/web-alpha2 .
 
 ## Hecho / observado
 
@@ -23,8 +24,8 @@ estable ni publicar la futura PC v1.9 sin cerrar sus verificaciones.
 - [x] Usuario confirma texto SD correcto en diálogo de Donald.
 - [x] Corregir acceso JS a HEAPU8: export explícito en Emscripten 6.
 - [x] Corregir declaraciones C implícitas que generaban firmas Wasm incompatibles.
-- [x] Forzar texto original en cada frame Web, como Android. Re:Chain podía activar
-  hdText después del arranque y dejar cuadros vacíos con el backend HD stub.
+- [x] Alpha1 evitó cuadros vacíos forzando SD. Alpha2 dispone de backend HD real
+  y vuelve a SD únicamente si no se cargan/rasterizan las fuentes.
 - [x] Evitar duplicar ROM en MEMFS; canvas sin multiplicación por DPR; espera sin
   busy-spin; no segundo timer de SDL RenderPresent; overlay táctil opcional.
 - [x] Implementar SRAM/config en IndexedDB, importación/exportación .sav y pausa
@@ -50,9 +51,11 @@ Evidencia: WEB_PUBLICACION.json (12/12 hashes y tipos MIME correctos).
 - [ ] Exportar .sav y comparar con SRAM del motor; verificar nombres/bancos EU/US/JP.
 - [x] Manejar fallo de sync con banner persistente y exportación local; probado con fallo simulado.
 - [ ] Verificar IndexedDB privado/cuota en cada navegador real.
-- [ ] Probar exportación del banco activo (actualmente botón exporta banco 1).
-- [ ] Reset/salida: confirmar sync completo antes de recargar; evitar perder un
-  guardado reciente por temporizador o cierre inmediato de pestaña.
+- [ ] Verificar exportación del banco activo con partida real. Alpha2 ya consulta
+  el banco nativo y escribe el nombre correspondiente; nombres probados en Node.
+- [x] Reset espera el sync y se cancela si falla; sync serializado probado en Node.
+- [ ] Verificar reset con partida real y cierre abrupto del navegador. Pagehide no
+  garantiza que el navegador permita completar I/O; seguir ofreciendo exportación.
 - [ ] Pausa/resume de pestaña sin inputs atascados ni ráfaga de audio atrasado.
 
 ## Texto HD portátil
@@ -92,8 +95,8 @@ Evidencia: WEB_PUBLICACION.json (12/12 hashes y tipos MIME correctos).
 - [x] Versionar módulos, shell y fuentes por hash para evitar mezclar cachés.
 - [ ] Empaquetado reproducible y publicación automatizada sin ROMs privadas.
 - [ ] Evaluar descarga offline/PWA después de validar guardados y actualizaciones.
-- [ ] Capturas públicas Web actuales, documentación para jugadores y changelog.
-- [ ] Mantener licencia SDL/créditos; sin énfasis promocional en herramientas IA.
+- [x] Captura pública Alpha2 en inglés, README y notas de release para jugadores.
+- [x] Mantener licencia SDL/créditos y fuentes en web/ZIP.
 
 ## PC / Android siguen pendientes
 

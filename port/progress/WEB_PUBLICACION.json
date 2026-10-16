@@ -1,131 +1,114 @@
 {
+  "version": "web-alpha2",
   "url": "https://matymeatboy.github.io/ReKHCom/",
-  "source_commit": "5c39af98b516f657572829359166690e6e52f4d3",
-  "verified": [
+  "source_commit": "ca86d0016059d991c01d7ed70f3c4a7422ce281e",
+  "files": [
     {
       "file": "index.html",
-      "passed": true,
-      "bytes": 2162,
-      "content_type": "text/html; charset=utf-8"
+      "bytes": 2773,
+      "content_type": "text/html; charset=utf-8",
+      "sha256": "674b119db3eaff04578ef60bef33e1c4c4caddcf5539b29904668ace10cf3745"
     },
     {
       "file": "web.css",
-      "passed": true,
       "bytes": 1681,
-      "content_type": "text/css; charset=utf-8"
+      "content_type": "text/css; charset=utf-8",
+      "sha256": "bfe9aae2070f9ab9e584362a19713d32186b4b3262a5c80f967a171007b9a09c"
     },
     {
       "file": "web.js",
-      "passed": true,
-      "bytes": 5368,
-      "content_type": "application/javascript; charset=utf-8"
+      "bytes": 8216,
+      "content_type": "application/javascript; charset=utf-8",
+      "sha256": "7f905e4518cbec9e1e61f8187845f6fadf259a208db5edf1f3ab34dcacaa9f8c"
+    },
+    {
+      "file": "runtime.js",
+      "bytes": 3961,
+      "content_type": "application/javascript; charset=utf-8",
+      "sha256": "0cf136514e96dc3f4d0c47ffdbee50ded3fc6e4129435ca8a0ebef1028aaf633"
+    },
+    {
+      "file": "i18n.js",
+      "bytes": 4019,
+      "content_type": "application/javascript; charset=utf-8",
+      "sha256": "ce0006669a3e2d87c5c20fc12936fa9f830ae6036266568fa09452394b1a57c8"
     },
     {
       "file": ".nojekyll",
-      "passed": true,
       "bytes": 0,
-      "content_type": "application/octet-stream"
+      "content_type": "application/octet-stream",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     {
       "file": "LICENSE.md",
-      "passed": true,
       "bytes": 7167,
-      "content_type": "text/markdown; charset=utf-8"
+      "content_type": "text/markdown; charset=utf-8",
+      "sha256": "a19d58aaab15c4d0019e569d1c073d1b5286fdd37dbeee7a58a7d1ae76045ae1"
     },
     {
       "file": "SDL-LICENSE.txt",
-      "passed": true,
       "bytes": 884,
-      "content_type": "text/plain; charset=utf-8"
+      "content_type": "text/plain; charset=utf-8",
+      "sha256": "1c040b8271b37e5076359f8fd54240e371114112924d2df81ef87c7d6a1dfdfd"
+    },
+    {
+      "file": "fonts/KHMenu.otf",
+      "bytes": 28100,
+      "content_type": "font/otf",
+      "sha256": "a604f7d4696853f5f55b2d229694bd960cc2d913699e7f537703e111f2b8c194"
+    },
+    {
+      "file": "fonts/ComicHearts.otf",
+      "bytes": 39900,
+      "content_type": "font/otf",
+      "sha256": "e45739fd882607784e7ad8fc3a4c7c22f81853929bc41e099656641dcdeeae40"
+    },
+    {
+      "file": "fonts/NOTICE.md",
+      "bytes": 447,
+      "content_type": "text/markdown; charset=utf-8",
+      "sha256": "df509db185328eed411672f801e8cb46279f0cea2bfcc93e1279b8011e0fa0b6"
     },
     {
       "file": "rekhcom-eu.js",
-      "passed": true,
-      "bytes": 202867,
-      "content_type": "application/javascript; charset=utf-8"
+      "bytes": 203536,
+      "content_type": "application/javascript; charset=utf-8",
+      "sha256": "8c507373062dc39abe59fe19de22985388d7fede6483bec4f4067524b0cf39fa"
     },
     {
       "file": "rekhcom-eu.wasm",
-      "passed": true,
-      "bytes": 4338286,
-      "content_type": "application/wasm"
+      "bytes": 4358251,
+      "content_type": "application/wasm",
+      "sha256": "efaa1c53909b5a03732b6b1dea3d1f0c07abb8543ab4ab7b08a3664816d4031e"
     },
     {
       "file": "rekhcom-us.js",
-      "passed": true,
-      "bytes": 202867,
-      "content_type": "application/javascript; charset=utf-8"
+      "bytes": 203536,
+      "content_type": "application/javascript; charset=utf-8",
+      "sha256": "35ae33f2b6d2067cdc17d56e62d9f1064ca303132ba997edacdeedaec836db8c"
     },
     {
       "file": "rekhcom-us.wasm",
-      "passed": true,
-      "bytes": 4488053,
-      "content_type": "application/wasm"
+      "bytes": 4508017,
+      "content_type": "application/wasm",
+      "sha256": "e6b7d4f7170bc8ae36b191988e9dbf073589de434a6452e8964aa24f7e4f4fd1"
     },
     {
       "file": "rekhcom-jp.js",
-      "passed": true,
-      "bytes": 202867,
-      "content_type": "application/javascript; charset=utf-8"
+      "bytes": 203536,
+      "content_type": "application/javascript; charset=utf-8",
+      "sha256": "4e9704fbaf4f466f69720ddf4ece9b1bb87a93239b3d434ced1920f934389bf4"
     },
     {
       "file": "rekhcom-jp.wasm",
-      "passed": true,
-      "bytes": 4368730,
-      "content_type": "application/wasm"
+      "bytes": 4388693,
+      "content_type": "application/wasm",
+      "sha256": "506563b50a327b422771b339a3ddb475abbbf2b5a538a26d5868d84dab1f0491"
     }
   ],
   "passed": true,
-  "pages_commit": "4a7495e45451bf0c3ef8aa9d62c4d7e6ca65dd23",
-  "files": {
-    "index.html": {
-      "bytes": 2162,
-      "sha256": "355988c140d14b9b54ff619b64ad9fb3d08d4823460afec87154c5cbcad0c83a"
-    },
-    "web.css": {
-      "bytes": 1681,
-      "sha256": "bfe9aae2070f9ab9e584362a19713d32186b4b3262a5c80f967a171007b9a09c"
-    },
-    "web.js": {
-      "bytes": 5368,
-      "sha256": "af6c8b64d1444d7917d0fb7dfbec7b05422dfb87a88537e8630cdc96a1a77bd4"
-    },
-    ".nojekyll": {
-      "bytes": 0,
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    "LICENSE.md": {
-      "bytes": 7167,
-      "sha256": "a19d58aaab15c4d0019e569d1c073d1b5286fdd37dbeee7a58a7d1ae76045ae1"
-    },
-    "SDL-LICENSE.txt": {
-      "bytes": 884,
-      "sha256": "1c040b8271b37e5076359f8fd54240e371114112924d2df81ef87c7d6a1dfdfd"
-    },
-    "rekhcom-eu.js": {
-      "bytes": 202867,
-      "sha256": "f02b7f2fbeefa778e787faa1fcbbf8a76272c738583f1df5c85b9ac453871db6"
-    },
-    "rekhcom-eu.wasm": {
-      "bytes": 4338286,
-      "sha256": "345cf5a88804156c1e8b4c077f91d467807048acd447d09de6f0e9909abd276b"
-    },
-    "rekhcom-us.js": {
-      "bytes": 202867,
-      "sha256": "9af7fb69fe4a6c7abf6e6d9331edac26eb2d3601dbc11c5618cba606373d1248"
-    },
-    "rekhcom-us.wasm": {
-      "bytes": 4488053,
-      "sha256": "18f112f3a16fc507e0d00d4bc58d159feb0f0a5771c22df6835a31eb81fa896f"
-    },
-    "rekhcom-jp.js": {
-      "bytes": 202867,
-      "sha256": "8398f193f11f1577907b13cdc1e1252c2ae58543718df5f4c08fde1c7ff2d10f"
-    },
-    "rekhcom-jp.wasm": {
-      "bytes": 4368730,
-      "sha256": "821cd5ab43da95482ad5e6a5747cd806ea51dafab3a2cb06ffb3f1128228bbf5"
-    }
-  },
-  "runtime_evidence": "User tested EU locally in Chrome through opening dialogue. Public launcher and artifact integrity verified; US/JP browser gameplay remains pending."
+  "pages_commit": "f9827a51ff92f6e8839103b3655dc700a2a44f27",
+  "release": "https://github.com/MatyMeatBoy/ReKHCom/releases/tag/web-alpha2",
+  "zip_sha256": "1aafa9ab0552df868217a36749d1f3fa48237f80aa6f24a5269cf2f20777ee2f",
+  "interface_check": "Public Chrome UI defaults to English; switched to Spanish and back successfully."
 }
