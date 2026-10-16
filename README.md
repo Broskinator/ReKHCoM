@@ -7,7 +7,7 @@ The decompiled game runs as a real Windows program, with its own renderer, audio
 and launcher, in 16:9 and at the cartridge's exact speed (59.7275 Hz).
 
 <p align="center">
-  <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.8.2 for Windows</b></a>
+  <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.8.3 for Windows</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCom/releases">All releases</a>
 </p>

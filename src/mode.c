@@ -87,7 +87,9 @@ extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, g
 
 /* Derive this from the live mode so loading a state needs no extra flag. */
 int PortMenuBackgroundOnly(void) {
-    return gCurrentMode == &gModeStatus;
+    /* menus whose own BG panels reach the edge: sprites there (NEW badges,
+       the pointing glove) must never be carried into the margin */
+    return gCurrentMode == &gModeStatus || gCurrentMode == &gModeMapinspect || gCurrentMode == &gModeDeck;
 }
 
 /* The menu screens drawn over the whole GBA picture: their backgrounds end

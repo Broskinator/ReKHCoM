@@ -1,3 +1,20 @@
+# Relevo activo — v1.8.3 (16/10/2026)
+
+Pedido del usuario a Codex: resolver el guante estirado de Naipes mapa.
+Claude dejó sin commitear la extensión de PortMenuBackgroundOnly a
+Mapinspect y Deck; Codex verifica e integra ese cambio.
+
+- [x] Reproducir la franja blanca en la ventana final, frame219 a 1536x864.
+- [x] Usar los fondos de ambos paneles; conservar el guante original central.
+- [x] Antes/después: entrada/salida de Naipes mapa y Ver barajas, tres
+  resoluciones y zoom x3/x4/x6; regresión de Estado.
+- [x] Compilación EU/US/JP.
+- [ ] Publicar v1.8.3 y preparar copia local con partidas normales conservadas.
+
+El texto HD por encima del submenú de Ver barajas sigue siendo otro pendiente.
+
+---
+
 # Relevo activo — v1.8.2 (Codex, 16/10/2026)
 
 El usuario autoriza a Codex a integrar y republicar tras agotarse Claude.

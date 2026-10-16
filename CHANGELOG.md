@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v1.8.3 — 2026-10-16
+
+- Map Cards: draw transition margins from the background panels, preventing
+  the pointing glove from stretching into a horizontal stripe on entry/exit.
+- Apply the same foreground protection to Deck View; retain the Status fix.
+
 ## v1.8.2 — 2026-10-16
 
 - Language selection: keep side textures free of repeated emblems throughout
