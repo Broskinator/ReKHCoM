@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>ReKHCoM · Jugar en navegador</title>
+<link rel="stylesheet" href="web.css">
+<main>
+  <header><a href="https://github.com/MatyMeatBoy/ReKHCom">ReKHCoM</a><span>Web · Alpha</span></header>
+  <section id="setup">
+    <h1>Tu partida, en el navegador.</h1>
+    <p>Selecciona tu ROM de Kingdom Hearts: Chain of Memories para GBA. Se procesa en tu dispositivo y no se envía a ningún servidor.</p>
+    <label class="file">Seleccionar ROM <input id="rom" type="file" accept=".gba"></label>
+    <label>Idioma <select id="language"><option value="es">Español</option><option value="en">English</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option></select></label>
+    <label class="file secondary">Importar partida .sav <input id="save" type="file" accept=".sav" disabled></label>
+    <button id="play" disabled>Jugar</button>
+    <p class="hint">La ROM debe ser original y sin parches. El idioma disponible depende de su región.</p>
+  </section>
+  <p id="status" role="status" aria-live="polite">Selecciona una ROM para comenzar.</p>
+  <section id="game" hidden>
+    <div class="toolbar"><button id="fullscreen">Pantalla completa</button><button id="export">Exportar partida</button><label><input id="touch" type="checkbox"> Controles táctiles</label></div>
+    <canvas id="canvas" tabindex="0" aria-label="Juego. Usa las flechas para moverte."></canvas>
+    <p class="hint">Flechas: mover · X: A · Z: B · A/S: L/R · C: rodar · D: apilar · Intro: START · Retroceso: SELECT · Escape: opciones. También admite mando; consulta los controles en opciones.</p>
+    <p class="hint">Guarda desde el juego y exporta una copia de tu partida. El almacenamiento del navegador puede borrarse al limpiar datos. Los guardados rápidos no están disponibles en esta alpha.</p>
+  </section>
+  <details><summary>Diagnóstico</summary><pre id="log"></pre></details>
+</main>
+<script src="web.js" defer></script>
+</html>
