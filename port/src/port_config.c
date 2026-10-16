@@ -4,6 +4,9 @@
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #include "port/port.h"
 
@@ -294,4 +297,7 @@ void PortConfigSave(void) {
     for (i = 0; i < sizeof(sKeys) / sizeof(sKeys[0]); i++)
         fprintf(f, "%s=%d\n", sKeys[i].name, *sKeys[i].value);
     fclose(f);
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ if(Module.persistSoon)Module.persistSoon(); });
+#endif
 }

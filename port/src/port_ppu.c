@@ -2059,6 +2059,10 @@ void PortCanvasAlloc(void) {
 }
 
 void PortPpuBeginFrame(void) {
+#ifdef __EMSCRIPTEN__
+    extern int gPortWebHdReady;
+    if(!gPortWebHdReady)gPortConfig.hdText=0;
+#endif
     uint16_t dispcnt = IO16(0x00);
     int b, any = 0;
 #ifdef __ANDROID__

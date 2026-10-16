@@ -1,0 +1,37 @@
+{
+  "version": "web-alpha2",
+  "web_builds": [
+    "eu",
+    "us",
+    "jp"
+  ],
+  "ppu_cases": {
+    "passed": 206,
+    "total": 206
+  },
+  "frontend_unit_tests": "PASS: fullscreen/Escape/F11 model, resize coalescing, EN/ES, serial sync/quota, bank names",
+  "touch_native_tests": "PASS: centered geometry and A/diagonal at 5 aspect ratios",
+  "pc_builds": [
+    "eu",
+    "us",
+    "jp"
+  ],
+  "audio": "24/24 boundaries; 800000 integrals, max error 0",
+  "browser_font_probe": "Real SDL/WebGL rendered KHMenu, ComicHearts, Latin/Spanish punctuation and subtitles without ROM",
+  "browser_resize_probe": [
+    [
+      960,
+      540
+    ],
+    [
+      769,
+      433
+    ],
+    [
+      960,
+      540
+    ]
+  ],
+  "browser_fullscreen_probe": "Automated requestFullscreen rejected by browser user-activation policy; callback cases tested with controlled frontend/native boundary. Manual F11/Escape gameplay check remains.",
+  "gameplay_limits": "Alpha2 actual ROM gameplay, regional browser sessions and physical mobile devices remain to verify."
+}

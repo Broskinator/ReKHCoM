@@ -1,6 +1,6 @@
 # ReKHCoM
 
-Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
+PC and browser port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
 The decompiled game runs as a real Windows program, with its own renderer, audio
@@ -8,6 +8,7 @@ and launcher, with widescreen and ultrawide support at the cartridge's original 
 
 <p align="center">
   <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.8.3 for Windows</b></a>
+  &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCom/"><b>▶ Play in your browser · Alpha 2</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCom/tags">Previous version tags</a>
 </p>
@@ -101,18 +102,17 @@ subtitles use a crisp font at the window's resolution.
 
 <p align="center"><img src="docs/screenshots/launcher.png" width="49%"> <img src="docs/screenshots/options.png" width="49%"></p>
 
-> [!IMPORTANT]
-> This repository contains **no game assets and no ROM**. You need your own dump of one
-> of the cartridges:
->
-> | Version | Code | SHA-1 |
-> |---|---|---|
-> | Europe (EN, FR, DE, ES, IT) | `B8CP` | `8db73586cdb11b3795907edebf43228dbcd3e6b2` |
-> | USA | `B8CE` | `10729bd884f8fdca7a310b6d606c52e46657aa48` |
-> | Japan | `B8CJ` | `59ec0a0a4ccd1e6acb3bbd7bfb21d63988958cfa` |
->
-> Each version has its own executable and save file; the launcher picks the one
-> that matches your dump.
+### Compatible cartridges
+
+Use your own cartridge dump with the launcher or the browser player:
+
+| Version | Code | SHA-1 |
+|---|---|---|
+| Europe (EN, FR, DE, ES, IT) | `B8CP` | `8db73586cdb11b3795907edebf43228dbcd3e6b2` |
+| USA | `B8CE` | `10729bd884f8fdca7a310b6d606c52e46657aa48` |
+| Japan | `B8CJ` | `59ec0a0a4ccd1e6acb3bbd7bfb21d63988958cfa` |
+
+Each region uses its own save file; the launcher picks the matching version.
 
 ## How it works
 
@@ -124,6 +124,19 @@ subtitles use a crisp font at the window's resolution.
 - `port/` holds the platform layer: software PPU (all modes, affine, windows, blending,
   mosaic, HBlank effects), m4a sequencer/mixer in C, PSG emulation, BIOS, DMA, input,
   settings and the wide-view renderer.
+
+## Play in your browser
+
+Open [ReKHCoM Web · Alpha 2](https://matymeatboy.github.io/ReKHCom/), select your ROM and
+press **Play**. Your ROM stays on your device. The web alpha supports keyboard,
+gamepad and centered touch controls, optional HD text with the PC fonts, and normal save import
+and export. The website starts in English and also offers Spanish; game language
+is selected separately. Fullscreen and embedded views readjust automatically.
+Export a backup before clearing browser data.
+
+[Web alpha downloads and release notes](https://github.com/MatyMeatBoy/ReKHCom/releases/tag/web-alpha2).
+
+<p align="center"><img src="docs/screenshots/web-player.jpg" width="90%"></p>
 
 ## Running (Windows)
 

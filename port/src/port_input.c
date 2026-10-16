@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 
 #include "port/port.h"
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
 #include "port/port_android.h"
 #endif
 
@@ -110,7 +110,7 @@ void PortInputInit(void) {
 void PortInputHandleEvent(const void* p) {
     const SDL_Event* ev = (const SDL_Event*)p;
     size_t i;
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
     PortAndroidTouchEvent(p);
 #endif
 
@@ -187,7 +187,7 @@ uint16_t PortInputKeys(void) {
     uint16_t keys = sKeyboard;
     SDL_JoystickID* ids;
     int count, i;
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
     keys |= PortAndroidTouchKeys();
 #endif
 

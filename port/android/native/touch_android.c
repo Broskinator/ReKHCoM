@@ -4,11 +4,30 @@
 #include "port/port_android.h"
 #include "port/port_ui.h"
 #include "touch_icons.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+static int touchEnabled;
+EMSCRIPTEN_KEEPALIVE void PortWebTouchEnable(int enabled) {
+    touchEnabled=enabled;
+    PortAndroidTouchClear();
+}
+#endif
 
 typedef struct Finger { SDL_FingerID id; float x,y; int active; } Finger;
 typedef struct Button { float x,y; uint16_t bits; const char* text; int icon; } Button;
 static Finger fingers[10];
 static float aspect=16.0f/9.0f;
+#if defined(__EMSCRIPTEN__) || defined(PORT_TOUCH_CENTERED_LAYOUT)
+static float layoutX,layoutY,layoutW=1,layoutH=1,outputW=1,outputH=1;
+static void CenterLayout(int w,int h) {
+    float margin=SDL_max(8.0f,SDL_min(w,h)*.025f);
+    outputW=w;outputH=h;
+    layoutW=SDL_min(w-2*margin,(h-2*margin)*16.0f/9.0f);
+    layoutW=SDL_max(1.0f,layoutW);layoutH=layoutW*9.0f/16.0f;
+    layoutX=(w-layoutW)*.5f;layoutY=(h-layoutH)*.5f;
+    aspect=16.0f/9.0f;
+}
+#endif
 static const Button buttons[]={
     {.13f,.34f,0x200,"L",0},{.87f,.34f,0x100,"R",0},
     {.91f,.62f,1,"A",0},{.83f,.79f,2,"B",0},
@@ -43,6 +62,9 @@ static void TouchUi(void) {
     }
 }
 void PortAndroidTouchEvent(const void* event) {
+#ifdef __EMSCRIPTEN__
+    if(!touchEnabled)return;
+#endif
     const SDL_Event* e=event;
     int i, freeSlot=-1;
     if(e->type==SDL_EVENT_RENDER_DEVICE_RESET) {
@@ -68,10 +90,17 @@ void PortAndroidTouchEvent(const void* event) {
     }
 }
 uint16_t PortAndroidTouchKeys(void) {
+#ifdef __EMSCRIPTEN__
+    if(!touchEnabled)return 0;
+#endif
     uint16_t keys=0;
     int i,b;
     for(i=0;i<10;i++) if(fingers[i].active) {
-        float dx=(fingers[i].x-.13f)*aspect,dy=fingers[i].y-.73f;
+        float fx=fingers[i].x,fy=fingers[i].y;
+#if defined(__EMSCRIPTEN__) || defined(PORT_TOUCH_CENTERED_LAYOUT)
+        fx=(fx*outputW-layoutX)/layoutW;fy=(fy*outputH-layoutY)/layoutH;
+#endif
+        float dx=(fx-.13f)*aspect,dy=fy-.73f;
         if(SDL_fabsf(dx)<.17f && SDL_fabsf(dy)<.17f) {
             if(dx<-.035f) keys|=0x20;
             if(dx>.035f) keys|=0x10;
@@ -80,7 +109,7 @@ uint16_t PortAndroidTouchKeys(void) {
             continue;
         }
         for(b=0;b<(int)SDL_arraysize(buttons);b++) {
-            float x=(fingers[i].x-buttons[b].x)*aspect,y=fingers[i].y-buttons[b].y;
+            float x=(fx-buttons[b].x)*aspect,y=fy-buttons[b].y;
             float radius=b==6 || b==7 ? .055f : .075f;
             if(x*x+y*y<=radius*radius) { keys|=buttons[b].bits; break; }
         }
@@ -99,6 +128,10 @@ static void Circle(SDL_Renderer* r,float x,float y,float radius,SDL_FColor color
 }
 static void DrawButton(SDL_Renderer* r,int w,int h,float x,float y,float radius,const char* text,int icon,int active) {
     float px=x*w,py=y*h,rr=radius*h;
+#if defined(__EMSCRIPTEN__) || defined(PORT_TOUCH_CENTERED_LAYOUT)
+    px=layoutX+x*layoutW;py=layoutY+y*layoutH;rr=radius*layoutH;
+    h=(int)layoutH;
+#endif
     SDL_FColor edge={1,1,1,active?.9f:.5f},inside={.04f,.06f,.11f,active?.75f:.25f};
     Circle(r,px,py,rr,edge); Circle(r,px,py,rr-2,inside);
     if(icon) {
@@ -114,9 +147,15 @@ static void DrawButton(SDL_Renderer* r,int w,int h,float x,float y,float radius,
     }
 }
 void PortAndroidTouchDraw(SDL_Renderer* r) {
+#ifdef __EMSCRIPTEN__
+    if(!touchEnabled)return;
+#endif
     int w,h,b; uint16_t keys=PortAndroidTouchKeys();
     SDL_GetCurrentRenderOutputSize(r,&w,&h); if(w<=0 || h<=0)return;
     aspect=(float)w/h;
+#if defined(__EMSCRIPTEN__) || defined(PORT_TOUCH_CENTERED_LAYOUT)
+    CenterLayout(w,h);
+#endif
     for(b=0;b<2;b++) if(!icons[b]) {
         icons[b]=SDL_CreateTexture(r,SDL_PIXELFORMAT_RGBA32,SDL_TEXTUREACCESS_STATIC,32,32);
         if(!icons[b])return;

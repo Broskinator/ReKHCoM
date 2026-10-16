@@ -38,6 +38,9 @@
 #include "gba/macro.h"
 #include "types.h"
 #ifdef PLATFORM_PC
+#include "display.h"
+#include "m4a_song.h"
+#include "card_worldselect.h"
 #include "game_state.h"
 #include "map_api.h"
 #include "registration_data.h"

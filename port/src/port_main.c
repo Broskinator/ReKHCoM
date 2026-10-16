@@ -17,9 +17,19 @@
 #include "port/port_hd2d.h"
 #include "port/port_ui.h"
 #include "port/port_state.h"
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
 #include "port/port_android.h"
+#endif
+#ifdef __ANDROID__
 static int sAndroidBackground;
+#endif
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#include "port/port_web.h"
+EM_JS(int, PortWebCanvasWidth, (void), { return Module.canvas.width; });
+EM_JS(int, PortWebCanvasHeight, (void), { return Module.canvas.height; });
+EM_ASYNC_JS(int, PortWebResetSave, (void), { return Module.saveBeforeReset ? await Module.saveBeforeReset() : 0; });
 #endif
 
 typedef volatile unsigned int vu32;
@@ -36,6 +46,14 @@ static char* sGameBss;
 static size_t sGameBssSize;
 
 static SDL_Window* sWindow;
+#ifdef __EMSCRIPTEN__
+void PortWebApplyResize(int w,int h) {
+    if(sWindow) {
+        emscripten_set_canvas_element_size("#canvas",w,h);
+        SDL_SetWindowSize(sWindow,w,h);
+    }
+}
+#endif
 static SDL_Renderer* sRenderer;
 static SDL_Texture* sTexture;
 static int sTexW, sTexH;
@@ -145,6 +163,11 @@ void PortRaiseIrq(uint16_t flag) {
 /* Fullscreen uses the configured display mode (closest the monitor offers);
    0x0 selects the desktop resolution without a mode change. */
 static void ApplyWindowMode(void) {
+#ifdef __EMSCRIPTEN__
+    /* Browser fullscreen is requested by a user gesture in the launcher. */
+    SDL_SetRenderVSync(sRenderer, 0);
+    return;
+#endif
 #ifdef __ANDROID__
     /* Android has no desktop window mode; keep system bars out of the game. */
     SDL_SetWindowFullscreen(sWindow, true);
@@ -1587,7 +1610,7 @@ static void Present(void) {
             }
         }
     }
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
     PortAndroidTouchDraw(sRenderer);
 #endif
     SDL_RenderPresent(sRenderer);
@@ -1862,6 +1885,11 @@ static void PumpEvents(void) {
     SDL_Event ev;
 
     while (SDL_PollEvent(&ev)) {
+#ifdef __EMSCRIPTEN__
+        if(ev.type==SDL_EVENT_RENDER_DEVICE_RESET) {
+            extern void PortWebHdClear(void);PortWebHdClear();
+        }
+#endif
 #ifdef __ANDROID__
         if (ev.type == SDL_EVENT_WILL_ENTER_BACKGROUND || ev.type == SDL_EVENT_DID_ENTER_BACKGROUND) {
             sAndroidBackground = 1;
@@ -1918,6 +1946,9 @@ static void PumpEvents(void) {
    display within ~1.5 Hz of the GBA's rate the game follows the display so
    every refresh shows exactly one frame (audio is resampled to match). */
 static void Pace(void) {
+#ifdef __EMSCRIPTEN__
+    int yielded = 0;
+#endif
     uint64_t now = SDL_GetPerformanceCounter();
     double hz = GBA_FPS;
     uint64_t period;
@@ -1938,9 +1969,18 @@ static void Pace(void) {
         uint64_t leftNs = (sNextFrame - now) * 1000000000ull / sPerfFreq;
         /* SDL already implements the platform's precise wait. Reserving a
            second explicit millisecond of busy-spin wasted CPU every frame. */
+        #ifdef __EMSCRIPTEN__
+        emscripten_sleep((unsigned)((leftNs + 999999) / 1000000));
+        yielded = 1;
+#else
         SDL_DelayPrecise(leftNs);
+#endif
     }
 
+#ifdef __EMSCRIPTEN__
+    /* Always yield, even when rendering took longer than the frame budget. */
+    if (!yielded) emscripten_sleep(0);
+#endif
     sFpsFrames++;
     if (now - sFpsTime >= sPerfFreq) {
         extern volatile uint32_t gFrameCounter; /* main-loop updates (main.c) */
@@ -2028,6 +2068,9 @@ static void VBlankCycle(void) {
     while (sAndroidBackground) { SDL_Delay(50); PumpEvents(); }
 #endif
     while (PortUiActive()) {
+#ifdef __EMSCRIPTEN__
+        PortWebWaitVisible();
+#endif
         int w = gPortScreen.width, h = gPortScreen.height;
 
         UpdateResolution();
@@ -2101,6 +2144,9 @@ static void VBlankCycle(void) {
  * main loop makes one update per VBlank in every scene, at 59.7275 Hz.
  */
 void PortFrame(void) {
+#ifdef __EMSCRIPTEN__
+    PortWebWaitVisible();
+#endif
     PortStateService();
     VBlankCycle();
 }
@@ -2108,12 +2154,24 @@ void PortFrame(void) {
 /* Movies own their playback loop and run at the cartridge's frame rate,
    independently of the gameplay speed setting and main-loop save states. */
 void PortMovieFrame(void) {
+#ifdef __EMSCRIPTEN__
+    PortWebWaitVisible();
+#endif
     VBlankCycle();
 }
 
 /* ---- reset ----------------------------------------------------------------------- */
 
 void PortSoftReset(void) {
+#ifdef __EMSCRIPTEN__
+    PortSramSyncIfDirty();
+    PortConfigSave();
+    PortAudioReset();
+    if(!PortWebResetSave())return;
+    EM_ASM({ location.reload(); });
+    emscripten_exit_with_live_runtime();
+    return;
+#endif
     memcpy(sGameData, sDataSnapshot, sDataSize);
     memset(sGameBss, 0, sGameBssSize);
     memset((void*)(uintptr_t)GBA_IO, 0, GBA_IO_SIZE);
@@ -2163,6 +2221,10 @@ int main(int argc, char** argv) {
     if (!PortMemoryInit())
         return 1;
 
+#ifdef __EMSCRIPTEN__
+    /* Pace owns browser yields; don't add another timer in RenderPresent. */
+    SDL_SetHint(SDL_HINT_EMSCRIPTEN_ASYNCIFY, "0");
+#endif
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS))
         PortFatal("SDL_Init failed: %s", SDL_GetError());
     PortConfigLoad();
@@ -2183,8 +2245,17 @@ int main(int argc, char** argv) {
             winH = h;
         }
     }
+#ifdef __EMSCRIPTEN__
+    winW = PortWebCanvasWidth();
+    winH = PortWebCanvasHeight();
+    gPortConfig.hdText = EM_ASM_INT({return Module.hdReady ? 1 : 0;}) && gPortConfig.hdText;
+#endif
     sWindow = SDL_CreateWindow("Kingdom Hearts: Chain of Memories", winW, winH,
-                               SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+                               SDL_WINDOW_RESIZABLE
+#ifndef __EMSCRIPTEN__
+                               | SDL_WINDOW_HIGH_PIXEL_DENSITY
+#endif
+                               );
     if (sWindow == NULL)
         PortFatal("Could not create the window: %s", SDL_GetError());
     SDL_SetWindowMinimumSize(sWindow, GBA_SCREEN_W, GBA_SCREEN_H);
@@ -2222,7 +2293,9 @@ int main(int argc, char** argv) {
     }
     if (SDL_getenv("KHCOM_LOADSTATE"))
         PortStateRequestLoad(PortConfigPath(SDL_getenv("KHCOM_LOADSTATE")));
+#ifndef __EMSCRIPTEN__
     setjmp(sResetJmp);
+#endif
     IO16(0x130) = 0x3FF;
     AgbMain();
     Quit();

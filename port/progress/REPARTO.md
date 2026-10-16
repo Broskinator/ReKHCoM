@@ -1,3 +1,101 @@
+## Web Alpha 2 lista para publicar (16/10/2026)
+
+- EU/US/JP compilados sin avisos de firma. PPU 206/206; PC EU/US/JP compilan.
+- Fuentes reales KHMenu/ComicHearts dibujadas en SDL/WebGL con prueba sin ROM:
+  inglés, signos/acentos españoles y subtítulos. No confundir con partida real.
+- Native SDL resize verificado 960x540 -> 769x433 -> 960x540. Fullscreen API no
+  concedida al clic automatizado del navegador; casos F11/Escape/fullscreenchange
+  probados en JS de producción con frontera nativa controlada, no como prueba
+  manual de gameplay. El usuario debe confirmar ese ciclo en su partida.
+- Pruebas Node de frontend PASS, táctil real C en 5 proporciones PASS,
+  controles Android existentes PASS, audio 24/24 + 800k integrales PASS.
+- WEB_ALPHA2_TESTS.json contiene el alcance. Falta despliegue/hash/release y
+  actualizar evidencia pública. No afirmar que todos los navegadores/dispositivos
+  o partidas largas estén verificados. WEB_PENDIENTES.md mantiene lo restante.
+
+## Web alpha2 en desarrollo (16/10/2026)
+
+- Usuario pidió: corregir F11/Escape y resolución, centrar controles táctiles,
+  portar HD con fuentes de PC, idiomas web con inglés principal y release alpha.
+- Implementado, aún en verificación: resize coalescido por ResizeObserver,
+  fullscreenchange y window/visualViewport; export C encola tamaño, SDL aplica
+  entre frames. Guardado serializado, banco activo al exportar, reset espera
+  sync en Asyncify y no reinicia si falla. Banner persistente ante fallo IDBFS.
+- HD Web ahora rasteriza con Canvas2D las mismas KHMenu/ComicHearts. La colocación
+  se extrajo sin cambios a port_hdtext_layout.inc compartido con Windows.
+  Caché 2 escalas/estilo, 1024 JP por font; sin duplicar imágenes JS. Falta prueba
+  visual y regional. EXP sigue filtrado en PPU. Fallo de fuente vuelve a SD.
+- UI web English por defecto, selector English/Español separado de idioma ROM.
+- Táctil Web usa plano 16:9 centrado con margen; dibujo y hit tests usan la misma
+  transformación. Android sin cambios de geometría.
+- test_web_runtime.cjs PASS: tamaños fullscreen/Escape/F11, resize coalescido,
+  idiomas, nombres por banco, sync serializado y fallo quota.
+  web_touch_conformance.c PASS: centro y pulsaciones en 5 proporciones.
+- Compilando EU/US/JP: build/web-alpha2-build.log (sesión75596). Emsdk6.0.12,
+  SDL estático en D:/ReKHCoM-build/web-sdl. No desplegar hasta compilar/probar.
+- Próximo: prueba real de fuentes, regresión PC tras extraer layout, caché por
+  hash de shell/motores/fuentes; publicar Pages y prerelease web-alpha2.
+
+## GitHub Pages verificado (16/10/2026)
+
+- URL pública operativa: https://matymeatboy.github.io/ReKHCom/ .
+- Pages commit 4a7495e45451bf0c3ef8aa9d62c4d7e6ca65dd23, source 5c39af98b.
+  Build GitHub: built. Los 12 archivos públicos coinciden por SHA256/tamaño;
+  los tres Wasm se sirven como application/wasm. WEB_PUBLICACION.json.
+- README/About enlazan Web; captura pública docs/screenshots/web-player.jpg.
+  La portada conserva créditos, requisitos de ROM y foco en funciones del player.
+- Prueba de gameplay sigue siendo EU local realizada por el usuario; la captura
+  pública es del launcher. No confundir integridad/publicación con partida larga.
+- Pendientes completos en WEB_PENDIENTES.md. HD Web NO está implementado; SD
+  forzado evita diálogos vacíos. Próximo: guardar/recargar/exportar, US/JP reales,
+  audio/pausa y móviles antes de asumir compatibilidad completa.
+
+## Web publicado en rama y limpieza final (16/10/2026)
+
+- Source d7f16c549 pusheado main/codex/v1.5-fixes. gh-pages e57d1e0ae con
+  EU/US/JP finales, guardia SD por frame y manifiesto. Pages construyendo:
+  https://matymeatboy.github.io/ReKHCom/ . About y README enlazan el juego.
+- publish_web.py conserva bytes exactos con hash-object --no-filters para que
+  autocrlf no invalide hashes en Windows. Regenerar manifiesto tras source commit.
+- Pruebas finales: ABI Wasm PASS; PPU PC 206/206; PC EU/US/JP compilan;
+  táctil PASS; stock EU/US/JP PASS; audio 24/24 + 800.000 integrales sin error.
+- Limpieza: 134 duplicados de pruebas eliminados (1.155.677.212 bytes), 20
+  temporales Windows >7 días (7.142.395 bytes), BMP generados convertidos a PNG
+  con igualdad RGBA verificada (4.562.465.029 bytes ahorrados). Total 5.725.284.636
+  bytes (~5,73 GB). C: ~9,7 GB libres. Inventario hasta profundidad 5 de los otros
+  proyectos no encontró .tmp/.temp/.dmp antiguos; no se borró nada ambiguo.
+- Manifiestos privados build/cleanup-20261016-{web-review,windows-temp,lossless-images}.json.
+  Se conservaron fuentes, SDK, releases, ROMs/SRAM/states, trailer y cuatro imágenes
+  del usuario en raíz. No limpiar toolchains activos para ganar espacio.
+
+## Navegador: alpha y seguimiento (16/10/2026)
+
+- Prioridad del usuario: publicar el juego real en GitHub Pages. EU probado por
+  usuario en Chrome hasta diálogos iniciales; SD correcto. No afirmar test de
+  combate Web, sesiones largas ni rendimiento móvil todavía.
+- Emsdk 6.0.12 en D:/ReKHCoM-build/toolchain/emsdk; SDL3 3.4.18 estático en
+  D:/ReKHCoM-build/web-sdl. build_all.py --platform web compila EU/US/JP.
+- build_web.py transforma imports fijos LLVM a constantes; conserva ABI wasm32,
+  relocaciones de funciones reales y Asyncify para bucles de juego/películas.
+- test_web_abi.py PASS: constantes, hardware fijo, globales nativos, espera
+  Asyncify y callback de retorno convertido. build/web-abi/report.json.
+- Se corrigieron prototipos faltantes (Wasm atrapaba firmas void/int) y el export
+  HEAPU8 del loader. La pantalla vacía al elegir HD era configuración activada
+  después del arranque por Re:Chain: Web fuerza SD por frame, como Android.
+- Port web: ROM local SHA-1, SRAM/config IndexedDB, importar/exportar .sav,
+  controles teclado/mando/táctiles opcionales, pausa hidden y canvas sin DPR.
+  Persistencia y mobile están implementados pero pendientes de pruebas completas.
+- PC EU/US/JP recompilado; oracle PPU 206/206 PASS:
+  build/ppu-conformance/20261016_130024_063894/report.json.
+- Lista específica y prioridades futuras: [WEB_PENDIENTES.md](WEB_PENDIENTES.md).
+  Consultarla antes de retomar HD, guardados, móviles y rendimiento.
+- Publicación en preparación con publish_web.py: allowlist de archivos, hashes y
+  árbol gh-pages aislado. No ROMs/SRAM/config. La estable PC sigue v1.8.3.
+- Limpieza autorizada: 1.155.677.212 bytes de duplicados de transition-review;
+  7.142.395 bytes de temporales Windows >7 días. Logs build/cleanup-20261016-*.
+  Capturas BMP antiguas se convierten a PNG con verificación píxel a píxel;
+  conservar fuentes, releases, ROMs, estados y partidas.
+
 ## Android: combate regional y nuevo objetivo Web (16/10/2026)
 
 - Batalla Android EU/US/JP: los tres llegan a frame600, producen imagen real

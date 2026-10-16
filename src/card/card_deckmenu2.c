@@ -29,6 +29,7 @@
 #include "sprites_deck_menu.h"
 
 #ifdef PLATFORM_PC
+#include "engine.h"
 #include <stdlib.h>
 void PortLog(const char* format, ...);
 void PortRegisterBgTextTile(void* address, int code, int style, const void* source32);

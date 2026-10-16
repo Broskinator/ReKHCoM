@@ -18,19 +18,35 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--platform', choices=['windows', 'android'], default='windows')
+    p.add_argument('--platform', choices=['windows', 'android', 'web'], default='windows')
     p.add_argument('--versions', nargs='+', choices=['eu', 'us', 'jp'], default=['eu', 'us', 'jp'])
     p.add_argument('--jobs', type=int, default=3, help='Total compiler workers; region builds run sequentially')
     p.add_argument('--out-prefix', default='build/rel-')
     p.add_argument('--toolchain', type=Path)
     p.add_argument('--sdl', type=Path)
     p.add_argument('--ninja', type=Path)
+    p.add_argument('--emsdk', type=Path)
+    p.add_argument('--web-sdl-build', type=Path)
+    p.add_argument('--web-work', type=Path)
     p.add_argument('--package', action='store_true')
     p.add_argument('--release-version')
     p.add_argument('--dry-run', action='store_true')
     args = p.parse_args()
     if args.jobs < 1:
         p.error('--jobs must be positive')
+    if args.platform == 'web':
+        if not all([args.emsdk, args.sdl, args.web_sdl_build, args.web_work]):
+            p.error('Web requires --emsdk, --sdl (source), --web-sdl-build and --web-work')
+        commands = [[sys.executable, 'port/tools/build_web.py', '--emsdk', str(args.emsdk),
+                     '--sdl-source', str(args.sdl), '--sdl-build', str(args.web_sdl_build),
+                     '--work', str(args.web_work), '--jobs', str(args.jobs), '--region', region]
+                    for region in dict.fromkeys(args.versions)]
+        if args.dry_run:
+            print(json.dumps({'platform':'web', 'commands':commands}, indent=2))
+        else:
+            for command in commands:
+                subprocess.run(command, cwd=ROOT, check=True, env=dict(os.environ, PYTHONUTF8='1'))
+        return
     if args.platform == 'android':
         command=[sys.executable,'port/tools/build_android.py','--regions',*args.versions,'--jobs',str(args.jobs)]
         if args.dry_run:
