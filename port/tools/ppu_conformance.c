@@ -292,7 +292,7 @@ int main(int argc, char** argv) {
     } else return 4;
     PortPpuRenderFrame();
     if(!strncmp(name,"semantic",8)) {
-        PortTextGlyph glyphs[128];
+        PortTextGlyph glyphs[128] = {0}; /* OBJ text has no BG cap/base metadata. */
         int n0=PortPpuTextGlyphs(glyphs,128,0),n1=PortPpuTextGlyphs(glyphs,128,1),n2=PortPpuTextGlyphs(glyphs,128,2);
         printf("{\"counts\":[%d,%d,%d],\"cap\":%d,\"base\":%d}\n",n0,n1,n2,
                n0+n1+n2 ? glyphs[0].cap : -1,n0+n1+n2 ? glyphs[0].base : -1);
