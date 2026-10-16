@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <title>Rodar: silueta de Sora y flecha curva</title>
+ <g fill="#fff">
+  <!-- Spiky hair, head and bent torso; original compact touch glyph. -->
+  <path d="M21 24 14 21 20 18 17 12 25 15 28 7 32 15 39 11 37 20 42 23 36 25C35 30 30 32 26 29L24 33 31 39 39 33 45 37 38 45C35 48 30 48 27 45L18 37C15 33 17 28 21 24Z"/>
+  <!-- Oversized shoes and tucked arm retain the character's silhouette. -->
+  <path d="M39 33 43 28 51 29 54 34 51 39 44 38ZM24 42 21 47 23 53 32 54 36 51 33 46ZM22 29 17 29 12 35 15 39 23 34Z"/>
+ </g>
+ <path d="M12 47A25 25 0 0 1 9 22M46 53A25 25 0 0 0 55 16" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+ <path d="m50 17 6-7 4 10Z" fill="#fff"/>
+</svg>

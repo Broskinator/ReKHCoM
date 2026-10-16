@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ReKHCoM · prueba de controles móviles</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111620;color:#e8edf6;font:15px system-ui;padding:24px;max-width:1400px;margin:auto}h1{font-size:24px;margin:0 0 8px}p{color:#aab6c9;line-height:1.6;max-width:900px}.tools{display:flex;flex-wrap:wrap;gap:20px;align-items:center;margin:20px 0}label{display:flex;gap:8px;align-items:center}.screen{position:relative;aspect-ratio:16/9;isolation:isolate;background:#191b28 url('../../docs/screenshots/battle.png') center/cover;border-radius:24px;overflow:hidden;touch-action:none;--alpha:.52;--size:1}.controls{position:absolute;inset:0}.key{position:absolute;display:grid;place-items:center;transform:translate(-50%,-50%) scale(var(--size));width:7.2%;aspect-ratio:1;border:2px solid #fff;border-radius:50%;color:white;background:#0a0d19;opacity:var(--alpha);font:bold clamp(15px,2.5vw,32px) system-ui;user-select:none;touch-action:none;cursor:pointer;padding:12px}.key.active{opacity:.95;background:#3a5173;box-shadow:0 0 0 3px #ffffff55}.key img{width:100%;height:100%;pointer-events:none}.shoulder{width:11%;aspect-ratio:2.5;border-radius:14px;font-size:24px}.small{width:7%;aspect-ratio:2.5;border-radius:40px;font-size:clamp(9px,1vw,15px);padding:4px}.dpad{position:absolute;left:6%;top:50%;width:22%;aspect-ratio:1}.dpad .key{width:34%;border-radius:13px;padding:0;font-size:clamp(15px,2.3vw,28px)}.badge{position:absolute;left:50%;top:4%;transform:translateX(-50%);background:#101722d9;padding:7px 12px;border-radius:20px;color:#d3dcf0;font-size:12px}.result{min-height:2em;margin:16px 0;font:14px ui-monospace,monospace;color:#b9d7ff}.note{font-size:13px}input{accent-color:#a9c9ff}button:focus-visible{outline:3px solid #91baff;outline-offset:4px}
+</style>
+<h1>Controles móviles · prototipo</h1>
+<p>Layout GBA transparente, con rodar y apilar como acciones independientes.
+Esta es una captura de PC con controles de prueba: todavía no ejecuta el juego en Android.</p>
+<div class="tools"><label>Opacidad <input id="opacity" type="range" min="20" max="90" value="52"></label><label>Tamaño <input id="size" type="range" min="85" max="120" value="100"></label><label><input id="visible" type="checkbox" checked> Mostrar controles</label></div>
+<div class="screen" id="screen">
+ <div class="badge">A/B + L/R · multitoque · arte propio</div>
+ <div class="controls" id="controls">
+  <button class="key shoulder" data-action="L" style="left:13%;top:30%">L</button>
+  <button class="key shoulder" data-action="R" style="left:87%;top:30%">R</button>
+  <div class="dpad">
+   <button class="key" data-action="UP" aria-label="Arriba" style="left:50%;top:17%">▲</button>
+   <button class="key" data-action="LEFT" aria-label="Izquierda" style="left:17%;top:50%">◀</button>
+   <button class="key" data-action="RIGHT" aria-label="Derecha" style="left:83%;top:50%">▶</button>
+   <button class="key" data-action="DOWN" aria-label="Abajo" style="left:50%;top:83%">▼</button>
+  </div>
+  <button class="key" data-action="A" style="left:91%;top:61%">A</button>
+  <button class="key" data-action="B" style="left:83%;top:77%">B</button>
+  <button class="key" data-action="DODGE" aria-label="Rodar" title="Rodar" style="left:73%;top:70%"><img src="assets/roll.svg" alt=""></button>
+  <button class="key" data-action="STOCK" aria-label="Apilar naipes" title="Apilar naipes" style="left:81%;top:49%"><img src="assets/stock.svg" alt=""></button>
+  <button class="key small" data-action="SELECT" style="left:45%;top:93%">SELECT</button>
+  <button class="key small" data-action="START" style="left:55%;top:93%">START</button>
+ </div>
+</div>
+<output class="result" id="state" aria-live="polite">Sin pulsaciones</output>
+<p class="note">Puedes mantener varios botones con varios dedos. Al soltar o perder el foco se liberan las acciones. Las zonas, diagonales y safe areas definitivas se implementarán en SDL y se probarán en dispositivos reales.</p>
+<script>
+const screen=document.querySelector('#screen'),controls=document.querySelector('#controls'),held=new Map(),keyboard=new Set();
+function update(){const actions=new Set([...held.values(),...keyboard].filter(Boolean));document.querySelectorAll('.key').forEach(b=>b.classList.toggle('active',actions.has(b.dataset.action)));document.querySelector('#state').textContent=actions.size?[...actions].join(' + '):'Sin pulsaciones'}
+function clear(){held.clear();keyboard.clear();update()}
+function at(x,y){return document.elementFromPoint(x,y)?.closest('[data-action]')?.dataset.action}
+controls.addEventListener('pointerdown',e=>{const a=at(e.clientX,e.clientY);if(!a)return;e.preventDefault();held.set(e.pointerId,a);controls.setPointerCapture(e.pointerId);update()});
+controls.addEventListener('pointermove',e=>{if(!held.has(e.pointerId))return;const a=at(e.clientX,e.clientY);held.set(e.pointerId,a||'');update()});
+for(const ev of ['pointerup','pointercancel','lostpointercapture'])controls.addEventListener(ev,e=>{held.delete(e.pointerId);update()});
+document.querySelectorAll('.key').forEach(b=>{b.addEventListener('keydown',e=>{if(![' ','Enter'].includes(e.key))return;e.preventDefault();keyboard.add(b.dataset.action);update()});b.addEventListener('keyup',()=>{keyboard.delete(b.dataset.action);update()});b.addEventListener('blur',()=>{keyboard.delete(b.dataset.action);update()})});
+window.addEventListener('blur',clear);document.addEventListener('visibilitychange',()=>{if(document.hidden)clear()});
+document.querySelector('#opacity').addEventListener('input',e=>screen.style.setProperty('--alpha',e.target.value/100));
+document.querySelector('#size').addEventListener('input',e=>screen.style.setProperty('--size',e.target.value/100));
+document.querySelector('#visible').addEventListener('change',e=>{clear();controls.hidden=!e.target.checked});
+</script>
+</html>

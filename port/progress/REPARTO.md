@@ -1,3 +1,19 @@
+# Trabajo activo — Android y rendimiento PC v1.9 (16/10/2026)
+
+- [x] v1.8.3 única stable publicada, tags previos conservados, README/capturas actuales.
+- [x] Estudio Android, bloqueos nativos y ruta SDL/NDK/launcher SAF: ../android/README.md.
+- [x] Diseño táctil GBA, iconos vectoriales propios de rodar/apilar y prototipo HTML.
+- [x] build_all.py configura/compila EU/US/JP juntos; compilación incremental verificada.
+- [x] Limpieza autorizada: 1.377 BMP generados, 6,50 GiB recuperados. PNG de evidencia,
+  informes, ROMs, partidas/estados, ejecutables y tráiler final conservados.
+- [ ] Android: backend ARM/ELF, memoria y sustitutos Win32; no hay alpha jugable aún.
+- [ ] PC v1.9: benchmark x1/x2/x4, optimizaciones medidas, regresiones y release.
+
+El prototipo táctil aún no está conectado al juego. No anunciar Android disponible.
+Detalle limpieza: build/cleanup-20261016.json. No se borraron archivos del usuario.
+
+---
+
 # Relevo activo — v1.8.3 (16/10/2026)
 
 Pedido del usuario a Codex: resolver el guante estirado de Naipes mapa.

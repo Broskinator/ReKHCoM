@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+ <title>Apilar: tres naipes y símbolo de suma</title>
+ <g fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round">
+  <path d="M12 20H8V52H32V48M20 13H16V44H40V40"/>
+  <path d="M24 10 29 15 36 7 43 15 48 10V37H24Z"/>
+ </g>
+ <path d="M34 20H38V25H43V29H38V34H34V29H29V25H34ZM44 44H50V39H54V44H60V48H54V54H50V48H44Z" fill="#fff"/>
+</svg>
