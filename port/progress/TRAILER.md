@@ -1,11 +1,13 @@
 # Tráiler v4 retomado por Codex — v1.8.2 republicada
 
 - [x] Tomas nuevas de juego, audio y launcher con la build pública d7b95a8cd.
-- [x] x4 explícito, 32:9 Agrabah/Halloween, seis idiomas y opciones internas.
+- [x] x4 explícito, dos arenas 32:9, seis idiomas y opciones internas.
 - [x] Intro sin consola: 240x160 nativos, expansión, slider y cámara compartida.
 - [x] Paseo de castillo largo sin congelar su final; música desde el slider.
 - [x] Audio final termina antes de los poscréditos Android.
-- [~] Render y revisión del montaje final.
+- [x] Export final revisado, decodificado y comprobado contra la fuente.
+
+Entrega y límites de verificación: TRAILER_V4_ENTREGA.md.
 
 Trabajo nuevo separado en ../Trailer/v182 (se conserva el material anterior).
 Scripts portables en port/tools/trailer/README.md. ZIP del juego ya publicado;

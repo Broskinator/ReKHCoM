@@ -19,6 +19,7 @@ Orden:
 5. `python launcher.py`, `python postcred.py` (el segundo puede omitirse si
    ya existe el clip de arte aprobado), `python composites.py`.
 6. `python acts.py A B D E F`, `python final.py`.
+7. `python verify_final.py` y revisión visual de sus hojas de contacto.
 
 La intro usa un recorte de 240x160 píxeles nativos del paseo x4: ambas
 mitades del slider comparten cámara y tiempo. Crece, revela 16:9 y ajusta

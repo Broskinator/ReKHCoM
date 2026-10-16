@@ -36,6 +36,6 @@ fa.append(f'[m1][m2][m3]amix=inputs=3:normalize=0:duration=longest,volume=0.85[m
 fa.append(f'[{a}]volume=0.9[sfx]')
 fa.append(f'[mus][sfx]amix=inputs=2:normalize=0:duration=longest,atrim=0:{total},loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[aout]')
 out=os.path.join(T,'ReKHCoM_trailer_v4.mp4')
-args+=['-filter_complex_threads','2','-filter_complex',';'.join(fv+fa),'-map',f'[{v}]','-map','[aout]','-c:v','libx264','-preset','slow','-crf','16','-pix_fmt','yuv420p','-profile:v','high','-threads','2','-movflags','+faststart','-c:a','aac','-b:a','320k',out]
+args+=['-filter_complex_threads','2','-filter_complex',';'.join(fv+fa),'-map',f'[{v}]','-map','[aout]','-c:v','libx264','-preset','medium','-crf','16','-pix_fmt','yuv420p','-profile:v','high','-threads','2','-movflags','+faststart','-c:a','aac','-b:a','320k',out]
 r=subprocess.run(args,creationflags=0x08000000,capture_output=True,text=True)
 print('ok' if r.returncode==0 else r.stderr[-3000:], 'total %.2f'%total, 'starts', [round(s,2) for s in starts])

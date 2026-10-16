@@ -8,7 +8,7 @@ Este bloque sustituye las exclusividades históricas de abajo.
 - [x] C: blank antes de reutilizar gráficos; fixture real antes/después.
 - [x] Matriz: 270 frames presentados en 1536x864/1920x1080; EU/US/JP compilan.
 - [x] v1.8.2 republicada: ZIP/SHA verificados, tag anterior conservado y copia local anterior.
-- [~] Tráiler v4: grabando de nuevo con la build publicada; intro sin consola.
+- [x] Tráiler v4 local terminado y verificado; scripts/continuidad en TRAILER_V4_ENTREGA.md.
 - [ ] Futuro: HD sobre el submenú de barajas, aplazado en el último reparto.
 
 Detalles: RELEASE_V182.md. Los intentos previos de A-C quedan sustituidos.

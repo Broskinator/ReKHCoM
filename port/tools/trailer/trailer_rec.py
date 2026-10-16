@@ -65,7 +65,7 @@ def blocks_to_wav(raw, rates, a, b, out):
     with wave.open(str(out),'wb') as w:
         w.setnchannels(2); w.setsampwidth(2); w.setframerate(48000); w.writeframes(pcm.tobytes())
     return len(lines)
-used={'03_entrada_combate_corazon','08a_pelicula_extendida','09a_tienda_texto_pixel','09b_tienda_texto_hd','13_titulo','15_menu_opciones','00c_castillo_gba_4x3','00d_castillo_pc_16x9','05_sala_mundo_3_salto','07a_triptico_combate_32x9','07d_widescreen_halloween_32x9'}
+used={'03_entrada_combate_corazon','08a_pelicula_extendida','09a_tienda_texto_pixel','09b_tienda_texto_hd','13_titulo','15_menu_opciones','05_sala_mundo_3_salto','07a_triptico_combate_32x9','07d_widescreen_halloween_32x9'}
 used.update(f'04_combate_arena_{n}' for n in [0,1,2,4,5,6,8])
 used.update(f'05_sala_mundo_{n}' for n in [2,4,5,6,8])
 used.update(f'10_idioma_{n}' for n in ['fr','de','es','it','us','jp'])
