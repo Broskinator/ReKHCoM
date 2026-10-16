@@ -32,6 +32,7 @@
 #include <string>
 #include <vector>
 
+#include "../include/port/port_zoom.h"
 #include "imgui.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_sdl3.h"
@@ -46,7 +47,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.7"
+#define REKHCOM_VERSION "v1.7.1"
 #endif
 
 static bool sSpanish;
@@ -222,7 +223,7 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
-    { "config_version", 8 }, { "view_mode", 4 },   { "zoom", 2 },         { "scale_mode", 0 },
+    { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_CLASSIC },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
@@ -298,6 +299,12 @@ static void LoadIni() {
         sIni["integer_zoom"] = 1;
         sIni["config_version"] = 8;
     }
+    if (sIni["config_version"] < PORT_ZOOM_CONFIG_VERSION) {
+        sIni["zoom"] = PORT_ZOOM_CLASSIC;
+        sIni["integer_zoom"] = 1;
+        sIni["config_version"] = PORT_ZOOM_CONFIG_VERSION;
+    }
+
 }
 
 /* The monitor's fullscreen resolutions, largest first, as the game's own
@@ -1030,28 +1037,36 @@ static void PageGraphics() {
     const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
                             T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
                             T("Auto (llenar ventana)", "Auto (fill window)") };
-    /* zoom: x1..x6, the view as a multiple of the GBA's (x1 Original, x2
-       Enhanced, the default); "integer" where the scale is a whole number
-       on this monitor, "demanding" where it is heavy for 60 fps */
-    static std::string zoomLabels[6];
-    const char* zooms[6];
+    static std::string zoomLabels[PORT_ZOOM_LEVELS];
+    const char* zooms[PORT_ZOOM_LEVELS];
+    int W = 1920, H = 1080;
     {
         DEVMODEW cur;
         ZeroMemory(&cur, sizeof(cur));
         cur.dmSize = sizeof(cur);
-        EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &cur);
-        int W = (int)cur.dmPelsWidth, H = (int)cur.dmPelsHeight;
-        if (W <= 0 || H <= 0) { W = 1920; H = 1080; }
-        for (int z = 1; z <= 6; z++) {
-            float f = H / (160.0f * z);
-            if (Ini("integer_zoom")) f = std::max(1.0f, (float)(int)f);
-            bool exact = H % (160 * z) == 0;
-            bool heavy = (W / f) * (H / f) > 640 * 360 * 5 / 4;
-            zoomLabels[z - 1] = "x" + std::to_string(z) +
-                                (z == 1 ? T("  Original (GBA)", "  Original (GBA)") : z == 2 ? T("  Mejorado", "  Enhanced") : "") +
-                                (exact ? T("  (entera)", "  (integer)") : "") + (heavy ? T("  (exigente)", "  (demanding)") : "");
-            zooms[z - 1] = zoomLabels[z - 1].c_str();
+        if (EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &cur) && cur.dmPelsWidth && cur.dmPelsHeight) {
+            W = (int)cur.dmPelsWidth; H = (int)cur.dmPelsHeight;
         }
+        if (Ini("fullscreen") && Ini("fullscreen_width") > 0 && Ini("fullscreen_height") > 0) {
+            W = Ini("fullscreen_width"); H = Ini("fullscreen_height");
+        } else if (!Ini("fullscreen")) {
+            int view = Ini("view_mode");
+            int baseW = view == 0 ? 240 : view == 1 ? 284 : view == 3 ? 384 : 320;
+            int baseH = view == 0 || view == 1 ? 160 : view == 3 ? 216 : 180;
+            W = baseW * std::clamp(Ini("window_scale"), 1, 8);
+            H = baseH * std::clamp(Ini("window_scale"), 1, 8);
+        }
+    }
+    int zoomCount = PortZoomCount(Ini("integer_zoom"), W, H);
+    for (int i = 0; i < zoomCount; i++) {
+        int z = PortZoomAt(i, Ini("integer_zoom"), W, H);
+        float f = z * 0.5f;
+        bool heavy = (W / f) * (H / f) > 640 * 360 * 5 / 4;
+        zoomLabels[i] = "x" + std::to_string(z / 2) +
+            ((z & 1) ? "-x" + std::to_string(z / 2 + 1) + T("  (intermedia)", "  (intermediate)") : "") +
+            (z == PortZoomClassicScale(W, H) * 2 ? "  (v1.4)" : "") +
+            (heavy ? T("  (exigente)", "  (demanding)") : "");
+        zooms[i] = zoomLabels[i].c_str();
     }
     const char* scales[] = { T("Entero", "Integer"), T("Ajustar", "Fit"), T("Estirar", "Stretch") };
     const char* filters[] = { T("Nítido", "Sharp"), "Pixel art", T("Suave", "Smooth") };
@@ -1064,8 +1079,8 @@ static void PageGraphics() {
 
     BeginCard("display");
     Eyebrow(T("PANTALLA", "DISPLAY"));
-    changed |= CycleRow(T("Vista", "View"), T("Auto llena la ventana a escala de píxel entera.",
-                                              "Auto fills the window at a whole-number pixel scale."),
+    changed |= CycleRow(T("Vista", "View"), T("Auto adapta el encuadre a la ventana.",
+                                              "Auto adapts the view to the window."),
                         Ini("view_mode"), 5, views);
     {
         const char* aspects[] = { T("Llenar ventana", "Fill window"), "16:9", "21:9", T("Forzar 21:9", "Force 21:9"),
@@ -1076,19 +1091,22 @@ static void PageGraphics() {
                             Ini("aspect"), 5, aspects);
     }
     {
-        int sel = std::clamp(Ini("zoom"), 1, 6) - 1;
+        int sel = PortZoomIndex(Ini("zoom"), Ini("integer_zoom"), W, H);
         if (CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"),
-                     T("Cuánto mundo se ve: x1 es la vista de la GBA; más alto muestra más y exige más al PC.",
-                       "How much world you see: x1 is the GBA's view; higher shows more and asks more of the PC."),
-                     sel, 6, zooms)) {
-            Ini("zoom") = sel + 1;
+                     T("Numeración v1.4: x4 amplía cada píxel cuatro veces. Menos aumento muestra más mundo y exige más al PC.",
+                       "v1.4 numbering: x4 enlarges each pixel four times. Lower scales show more world and cost more CPU."),
+                     sel, zoomCount, zooms)) {
+            Ini("zoom") = PortZoomAt(sel, Ini("integer_zoom"), W, H);
             changed = true;
         }
     }
-    changed |= CycleRow(T("Escala entera", "Integer scale"),
-                        T("Píxeles nítidos a escala entera (recomendado). Apágala para los zoom intermedios exactos.",
-                          "Sharp pixels at whole-number scales (recommended). Turn off for exact in-between zooms."),
-                        Ini("integer_zoom"), 2, onoff);
+    if (CycleRow(T("Solo escalas enteras", "Integer scales only"),
+                 T("Solo ampliaciones enteras de píxel. Desactiva para mostrar también los pasos intermedios.",
+                   "Whole pixel magnifications only. Turn off to also show the intermediate steps."),
+                 Ini("integer_zoom"), 2, onoff)) {
+        Ini("zoom") = PortZoomNormalize(Ini("zoom"), Ini("integer_zoom"), W, H);
+        changed = true;
+    }
     changed |= CycleRow(T("Escalado", "Scaling"), nullptr, Ini("scale_mode"), 3, scales);
 #ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* filter: an internal setting */
     changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);

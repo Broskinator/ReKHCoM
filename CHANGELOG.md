@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## v1.7.1 — 2026-10-16
+
+- Audio: interpolation at the end of a PCM sample uses its real loop or edge,
+  never the bytes following it; short loops no longer pick up unrelated data.
+- Audio: prime the playback buffer at startup and after loading a state to
+  protect against initial underruns; reset the queue's drift estimate too.
+- Faster PSG square-wave synthesis, with mathematically identical output.
+- Faster software PPU: decode wide-world backgrounds by tile spans and share
+  visible-layer decisions between composition and HD-text occlusion.
+- Reduce idle CPU use in the frame timer; retain independent presentation
+  buffers for correct menu fades and ultrawide gameplay.
+- Restore v1.4 pixel-scale numbering and its classic preset (x4 at 1080p).
+  Integer-only selection now filters real whole pixel scales. Turning it off
+  adds explicitly marked intermediate steps, without decimal labels.
+- Keep v1.7's aspect ratio and menu transition fixes.
+- Normal save files remain compatible. Quick save states are build-specific;
+  retain the matching executable for states from earlier releases.
+
 ## v1.7 — 2026-10-16
 
 - Zoom x1 to x6: how much world you see, as a multiple of the GBA's view

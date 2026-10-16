@@ -1,3 +1,16 @@
+# Coordinación vigente — 16/10/2026
+
+Claude sin créditos. El usuario autoriza a Codex a integrar el último trabajo,
+corregir el audio (ranura 1 de v1.6.7), optimizar audio/gráficos, publicar una
+release unificada y retirar releases anteriores conservando los tags.
+Este pedido reemplaza temporalmente la exclusividad de integración de abajo.
+
+Codex trabaja en khcom-claude; integrados los tres commits de rendimiento de
+codex/ppu-performance. Ver AUDIO_BUZZ_V171.md y RELEASE_V171.md para evidencia.
+No tocar el trabajo HUD antiguo sin commitear de khcom ni los guardados reales.
+
+---
+
 # Reparto v1.7 — 16/10/2026 (Claude). Solo Claude integra y publica.
 
 Codex: trabaja en `khcom`, commits locales, sin push ni releases. Claude

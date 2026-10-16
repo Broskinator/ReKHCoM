@@ -1,3 +1,21 @@
+# Reparto vigente — v1.7.1 (16/10/2026)
+
+Codex asume integración y publicación por pedido del usuario; Claude sin créditos.
+Referencia actual: CODEX_COORDINACION.md. Los bloques anteriores son históricos.
+
+- [x] Integrar rendimiento Codex sobre interfaz y escalado v1.7 de Claude.
+- [x] Capturar ranura 1 de v1.6.7 en un directorio aislado.
+- [x] Corregir interpolación PCM fuera de muestra: 24 regresiones pasan.
+- [x] Optimizar síntesis PSG: 800.000 integrales idénticas a la referencia.
+- [x] Preparar buffer de audio antes de reproducir y al cargar un estado.
+- [x] Reducir espera activa; descartar omisión de copia tras detectar regresión ultrawide.
+- [x] Recuperar numeración de píxeles v1.4, predeterminado x4 a 1080p y filtro real de enteras/intermedias.
+- [x] Verificación regional, estados y capturas contra paquete público v1.7; seis casos Auto y 116 pruebas de zoom.
+- [ ] Publicar v1.7.1 unificada; comprobar ZIP/sha256 y acceso local.
+- [ ] Retirar releases anteriores del lote solicitado; conservar todos los tags.
+
+---
+
 # Entrega v1.5 — reparto vigente (15/10/2026)
 
 El usuario pide dejar continuidad para Claude y pushear cada bloque. Esta sección
