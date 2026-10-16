@@ -46,8 +46,7 @@ uint32_t PortFrameCount(void) {
 }
 static float sFitScale; /* see PortFitScreen */
 static int sInIrq;
-static uint32_t* sComposite; /* Current presentation source. */
-static uint32_t* sCompositeStorage; /* Writable copy for overlays, on the heap. */
+static uint32_t* sComposite; /* Writable presentation copy, on the heap. */
 static int HarnessListHas(const char* list, uint32_t frame);
 static FILE* sLog;
 static int sPacedByVsync;
@@ -1200,13 +1199,8 @@ static void Present(void) {
     moviePrompt = sSideStyle == 10 && sFitScale <= 0 && !PortUiActive() && !gPortScreen.wide
                   && gPortConfig.narrowFit && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H);
     PortUiSkipOwnLayer(moviePrompt);
-    /* The usual wide gameplay frame needs no writable overlay copy. Keep
-       the original picture intact whenever menus, hints or fades draw. */
-    sComposite = sCompositeStorage;
-    if (gPortScreen.wide && !PortUiNeedsFrameCopy())
-        sComposite = gPortFrame;
-    else
-        memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
+    /* Menus and paused frames require an independent presentation buffer. */
+    memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
     JoinHeaderLine();
     PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
     SDL_UpdateTexture(sTexture, NULL, sComposite, gPortScreen.width * 4);
@@ -2085,8 +2079,7 @@ int main(int argc, char** argv) {
         PortFatal("Could not create the window: %s", SDL_GetError());
     SDL_SetWindowMinimumSize(sWindow, GBA_SCREEN_W, GBA_SCREEN_H);
     PortCanvasAlloc();
-    sCompositeStorage = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
-    sComposite = sCompositeStorage;
+    sComposite = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
     sHudBuf = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
     if (!sComposite || !sHudBuf)
         PortFatal("Out of memory for the picture buffers");

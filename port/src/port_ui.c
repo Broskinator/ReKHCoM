@@ -106,7 +106,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "View", "Vue", "Ansicht", "Visuale", "Vista", "表示" },
     { "Aspect ratio", "Format d'image", "Seitenverhältnis", "Proporzioni", "Relación de aspecto", "アスペクト比" },
     { "Zoom", "Zoom", "Zoom", "Zoom", "Zoom", "ズーム" },
-    { "Integer scale", "Échelle entière", "Ganzzahlige Skalierung", "Scala intera", "Escala entera", "整数スケール" },
+    { "Integer scales only", "Échelles entières seules", "Nur ganze Pixelskalen", "Solo scale intere", "Solo escalas enteras", "整数スケールのみ" },
     { "Scaling", "Mise à l'échelle", "Skalierung", "Scala", "Escalado", "スケール" },
     { "HUD size", "Taille du HUD", "HUD-Größe", "Dimensione HUD", "Tamaño del HUD", "HUDサイズ" },
     { "GBA-size scenes", "Scènes format GBA", "Szenen im GBA-Format", "Scene formato GBA", "Escenas tamaño GBA", "GBAサイズの場面" },
@@ -268,11 +268,6 @@ static const char* const sZoomHeavy[LANG_COUNT] = {
     "Anspruchsvoll: schneller PC für 60 fps", "Impegnativo: serve un PC veloce per 60 fps",
     "Exigente: requiere un PC potente para 60 fps", "高負荷：60fpsには高性能なPCが必要",
 };
-/* the named scales: Original (the GBA's 160 lines) and Enhanced (default) */
-static const char* const sZoomNames[2][LANG_COUNT] = {
-    { "Original", "Original", "Original", "Originale", "Original", "オリジナル" },
-    { "Enhanced", "Amélioré", "Verbessert", "Migliorato", "Mejorado", "強化" },
-};
 static const char* const sScales[PORT_SCALE_COUNT][LANG_COUNT] = {
     { "Integer", "Entière", "Ganzzahlig", "Intera", "Entero", "ドットばい" },
     { "Fit", "Ajuster", "Einpassen", "Adatta", "Ajustar", "合わせる" },
@@ -297,7 +292,7 @@ static const char* const sAspect[5][LANG_COUNT] = {
 };
 static const char* const sPressA[LANG_COUNT] = { "A: apply", "A : appliquer", "A: übernehmen", "A: applica",
     "A: aplicar", "A: 決定" };
-static const char* const sExact[LANG_COUNT] = { "integer", "entière", "ganzzahlig", "intera", "entera", "整数" };
+static const char* const sIntermediate[LANG_COUNT] = { " (intermediate)", " (intermédiaire)", " (Zwischenstufe)", " (intermedio)", " (intermedia)", " (中間)" };
 static const char* const sNarrow[2][LANG_COUNT] = {
     { "Exact pixels", "Pixels exacts", "Exakte Pixel", "Pixel esatti", "Píxel exacto", "等倍ピクセル" },
     { "Fill height", "Remplir la hauteur", "Höhe füllen", "Riempi altezza", "Llenar altura", "高さに合わせる" },
@@ -560,13 +555,12 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_ZOOM:
             if (ItemEnabled(item)) /* the step and the pixel scale it gives here */
             {
-                /* xN, its name (x1 Original GBA, x2 Enhanced), whether its
-                   scale is a whole number here, and a warning if heavy */
-                int z = SDL_clamp(gPortConfig.zoom, 1, PORT_ZOOM_LEVELS);
-                SDL_snprintf(out, size, "x%d%s%s%s%s%s", z, z <= 2 ? "  " : "", z <= 2 ? sZoomNames[z - 1][l] : "",
-                             PortConfigZoomExact(z) ? "  (" : "", PortConfigZoomExact(z) ? sExact[l] : "",
-                             PortConfigZoomExact(z) ? ")" : "");
-                if (PortConfigZoomHeavy(z))
+                int z = PortConfigZoomId(gPortConfig.zoom);
+                if (z & 1)
+                    SDL_snprintf(out, size, "x%d-x%d%s", z / 2, z / 2 + 1, sIntermediate[l]);
+                else
+                    SDL_snprintf(out, size, "x%d%s", z / 2, gPortConfig.zoom == PORT_ZOOM_CLASSIC ? "  (v1.4)" : "");
+                if (PortConfigZoomHeavy(gPortConfig.zoom))
                     SDL_strlcat(out, "  !", size);
             }
             else
@@ -702,10 +696,11 @@ static void Change(int item, int dir) {
             gPortConfig.viewMode = sViewOrder[Wrap(ViewIndex() + dir, PORT_VIEW_COUNT)];
             break;
         case ITEM_ZOOM:
-            gPortConfig.zoom = SDL_clamp(gPortConfig.zoom + dir, 1, PORT_ZOOM_LEVELS);
+            gPortConfig.zoom = PortConfigZoomNext(gPortConfig.zoom, dir);
             break;
         case ITEM_INTZOOM:
             gPortConfig.integerZoom = !gPortConfig.integerZoom;
+            gPortConfig.zoom = PortConfigZoomId(gPortConfig.zoom);
             break;
         case ITEM_SCALE:
             gPortConfig.scaleMode = Wrap(gPortConfig.scaleMode + dir, PORT_SCALE_COUNT);
@@ -1289,6 +1284,7 @@ static void ShortValue(int item, char* out, size_t size) {
     char* paren;
 
     ValueText(item, out, size);
+    if (item == ITEM_ZOOM) return; /* Intermediate/classic labels are meaningful. */
     paren = SDL_strstr(out, " (");
     if (paren != NULL && paren != out)
         *paren = 0;
@@ -1645,10 +1641,6 @@ static void HarnessOptionsShot(uint32_t* frame, int width, int height) {
     SDL_snprintf(name, sizeof(name), "options_%04d_%02d.bmp", sHarnessTick, sCursor);
     SDL_SaveBMP(surface, PortConfigPath(name));
     SDL_DestroySurface(surface);
-}
-
-int PortUiNeedsFrameCopy(void) {
-    return sOpen || sReturn > 0 || sTitleHintFrames > 0 || (sSkipPrompt && !sSkipOwnLayer);
 }
 
 void PortUiDraw(uint32_t* frame, int width, int height) {

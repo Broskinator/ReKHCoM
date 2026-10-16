@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "port/port_zoom.h"
 
 #define GBA_EWRAM 0x02000000u
 #define GBA_EWRAM_SIZE 0x40000u
@@ -118,7 +119,7 @@ typedef struct PortConfig {
     int ps2FastText;      /* experimental: event dialogue types one character a frame */
     int hdHud;           /* experimental HD HUD placeholder: enemy HP panel */
     int aspect;          /* picture shape: 0 fills the window, 1 at most 16:9, 2 at most 21:9, 3 force 21:9, 4 force 32:9 */
-    int integerZoom;     /* 1: Auto view at whole-number pixel scales (default) */
+    int integerZoom;     /* 1: select only whole pixel scales (v1.4 numbering) */
     int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
     int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
 } PortConfig;
@@ -149,10 +150,12 @@ void PortConfigSave(void);
 void PortConfigView(int mode, int* w, int* h);
 /* Internal size and pixel scale that fill an outW x outH output (auto view). */
 void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale);
-#define PORT_ZOOM_LEVELS 6
+
+int PortConfigZoomId(int level);
+int PortConfigZoomNext(int level, int dir);
 float PortConfigZoomScaleF(int level); /* pixel scale of a zoom level here */
 int PortConfigZoomScale(int level);    /* ...rounded down (HUD, labels) */
-int PortConfigZoomExact(int level);    /* the level's scale is a whole number here */
+int PortConfigZoomExact(int level);    /* the pixel scale is whole */
 int PortConfigZoomHeavy(int zoom);     /* the step draws more than full speed allows */
 const char* PortConfigPath(const char* name);
 

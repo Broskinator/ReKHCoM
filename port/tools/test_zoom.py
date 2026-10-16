@@ -5,26 +5,52 @@ ROOT=Path(__file__).resolve().parents[2]
 OUT=ROOT/'build/zoom-regression'; OUT.mkdir(exist_ok=True)
 code = r"""
 #include <assert.h>
+#include <math.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include "port/port.h"
+extern float gPortAutoScaleF;
+int PortUiActive(void) { return 0; }
 int main(void) {
- int sizes[][2]={{320,180},{960,540},{1280,720},{1920,1080},{3440,1440},{5120,1440}};
- int i,z,w,h,s,prev;
- for(i=0;i<6;i++) {
-  gPortConfig.zoom=1; PortConfigAutoView(sizes[i][0],sizes[i][1],&w,&h,&s);
-  if(i==3) assert(s==4);
-  if(i==5) assert(s==5);
-  prev=999;
-  for(z=0;z<PORT_ZOOM_COUNT;z++) {
-   gPortConfig.zoom=z; PortConfigAutoView(sizes[i][0],sizes[i][1],&w,&h,&s);
-   assert(w<=PORT_MAX_W && h<=PORT_MAX_H && w>=240 && h>=160);
-   if(PortConfigZoomValid(z)) { assert(s<prev); prev=s; }
-   assert(PortConfigZoomValid(PortConfigZoomEffective(z)));
+ int sizes[][2]={{320,180},{960,540},{1280,720},{1920,1080},{3440,1440},{5120,1440},{7680,2160}};
+ int i,z,w,h,s,k,only,prev,cases=0;
+ assert(gPortConfig.zoom==PORT_ZOOM_CLASSIC && gPortConfig.integerZoom==1);
+ for(only=0;only<2;only++) {
+  gPortConfig.integerZoom=only;
+  for(i=0;i<7;i++) {
+   int W=sizes[i][0],H=sizes[i][1],count=PortZoomCount(only,W,H);
+   prev=999;
+   for(k=0;k<count;k++) {
+    z=PortZoomAt(k,only,W,H);
+    assert(z<prev);prev=z;
+    assert(PortZoomIndex(z,only,W,H)==k);
+    assert(PortZoomStep(z,1,only,W,H)==PortZoomAt(k+1,only,W,H));
+    assert(PortZoomStep(z,-1,only,W,H)==PortZoomAt(k-1,only,W,H));
+    if(only) assert(!(z&1));
+    gPortConfig.zoom=z;PortConfigAutoView(W,H,&w,&h,&s);
+    assert(w<=PORT_MAX_W && h<=PORT_MAX_H && w>=240 && h>=160);
+    assert(fabsf(gPortAutoScaleF-z*0.5f)<0.001f);
+    assert(abs(h-(int)ceilf(H/(z*0.5f)))<=1);
+    cases++;
+   }
   }
-  printf("%dx%d: distinct scales and bounds OK\n",sizes[i][0],sizes[i][1]);
  }
+ gPortConfig.integerZoom=1;gPortConfig.zoom=PORT_ZOOM_CLASSIC;
+ PortConfigAutoView(1920,1080,&w,&h,&s);
+ assert(w==480 && h==270 && s==4);
+ assert(PortZoomClassicScale(5120,1440)==5);
+ assert(PortZoomNormalize(9,0,1920,1080)==9);
+ assert(PortZoomNormalize(9,1,1920,1080)==10);
+ PortConfigSetDataPath(".");
+ FILE* f=fopen("kh_com.ini","w"); assert(f);
+ fprintf(f,"config_version=8\nzoom=6\ninteger_zoom=0\n"); fclose(f);
+ PortConfigLoad(); assert(gPortConfig.zoom==PORT_ZOOM_CLASSIC && gPortConfig.integerZoom);
+ gPortConfig.zoom=9;gPortConfig.integerZoom=0;PortConfigSave();
+ gPortConfig.zoom=1;PortConfigLoad();assert(gPortConfig.zoom==9 && !gPortConfig.integerZoom);
+ printf("PASS: %d resolution/zoom cases, exact v1.4 x4, distinct integer/half selectors, INI migration/persistence\n",cases);
  return 0;
 }
+
 """
 (OUT/'zoom.c').write_text(code)
 cc=next((ROOT.parent/'toolchain').glob('llvm-mingw-*/bin/i686-w64-mingw32-clang.exe'))
