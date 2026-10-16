@@ -403,6 +403,7 @@ static int sFadeSideW[2], sMenuSideW[2];
 #define sMenuSideWidth sMenuSideW[side > 0]
 static int sSideStyle; /* engine.h: stretch, colour, texture, blur, menu, pattern */
 static int sMenuPanelSide = -1;
+extern int PortMenuBackgroundOnly(void);
 void PortMenuPanelSide(int side) { sMenuPanelSide = side; }
 
 void PortSideStyle(int style) {
@@ -448,6 +449,7 @@ extern int PortMenuSliding(void);
 static void SideBar(int sx, int sy, int side, float y, float scale, float x0, float x1, int edgeX) {
     float w = SIDE_STRIP * scale;
     int band;
+    int backgroundOnly = PortMenuBackgroundOnly();
 
     if (x1 - x0 <= 0)
         return;
@@ -581,7 +583,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
             uint32_t shownEdge = gPortFrame[(sy + yy) * gPortScreen.width + edgeX];
             /* the edge's background hidden this frame (rows of plain colour
                in the picture where the background has something else) */
-            int hidden = sSideStyle == 4 && PortMenuSliding() && shownEdge != bgRow[edgeX];
+            int hidden = sSideStyle == 4 && !backgroundOnly && PortMenuSliding() && shownEdge != bgRow[edgeX];
             for (xx = 0; xx < fw; xx++) {
                 int d = side < 0 ? fw - 1 - xx : xx, sample = edgeX;
                 uint32_t* px = &strip[yy * fw + xx];

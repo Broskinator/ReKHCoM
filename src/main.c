@@ -135,6 +135,16 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
 
+    /* Isolated status transition probe: populate the existing stock list
+       and toggle its NEW badges. Never used outside KHCOM_MODE fixtures. */
+    if (strcmp(name, "statusnew") == 0) {
+        gGameState.progression.learnedStocks = ~(u64)0;
+        gGameState.progression.learnedStocks2 = ~(u64)0;
+        gGameState.progression.newStocks = arg ? ~(u64)0 : 0;
+        gGameState.progression.newStocks2 = arg ? ~(u64)0 : 0;
+        return 1;
+    }
+
     if (strcmp(name, "progress") == 0) {
         extern void PortLog(const char* format, ...);
         PortLog("harness: progress flags=%u floor=%u world=%u room=%u story=%u level=%u mode=%s",

@@ -85,6 +85,11 @@ void ModeBlankDisplay() {
 extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, gModeWorldinspect,
     gModeWorldselect, gModeWORLDSELECT, gModeWorldwarp, gModeMsTop;
 
+/* Derive this from the live mode so loading a state needs no extra flag. */
+int PortMenuBackgroundOnly(void) {
+    return gCurrentMode == &gModeStatus;
+}
+
 /* The menu screens drawn over the whole GBA picture: their backgrounds end
    at its edges, so they keep the GBA framing in the wide view. */
 static int ModeIsFullScreenMenu(const Mode* mode) {
