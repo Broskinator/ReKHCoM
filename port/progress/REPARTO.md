@@ -1,3 +1,14 @@
+## Quiver enviado por el usuario; nombre oficial ReKHCoM (16/10/2026)
+
+- Usuario confirma que ya envio la propuesta a Quiver. No reenviar ni crear PR
+  duplicado. Aceptacion/publicacion aun sin verificar; falta URL o recibo.
+- Repo renombrado via GitHub API de ReKHCom a ReKHCoM (ultima M mayuscula).
+  Origin y enlaces activos actualizados; URLs de historia abajo son originales.
+- Canonico: https://github.com/MatyMeatBoy/ReKHCoM
+- Web: https://matymeatboy.github.io/ReKHCoM/
+- Icono: https://raw.githubusercontent.com/MatyMeatBoy/ReKHCoM/main/docs/quiver/icon.png
+- GitHub redirige referencias al repo anterior. Verificar Pages tras despliegue.
+
 ## Quiver Launcher: kit listo, envio pendiente de login (16/10/2026)
 
 - Pedido del usuario: proponer ReKHCoM, preparar banner/assets y PR.

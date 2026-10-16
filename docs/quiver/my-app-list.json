@@ -3,7 +3,7 @@
     {
       "name": "Kingdom Hearts: Chain of Memories",
       "project": "ReKHCoM",
-      "repository": "MatyMeatBoy/ReKHCom",
+      "repository": "MatyMeatBoy/ReKHCoM",
       "repositorySource": "github",
       "folderName": "KingdomHeartsChainOfMemories-ReKHCoM",
       "releaseAssetFilter": "windows-x86.zip",
@@ -14,7 +14,7 @@
         "widescreen",
         "ultrawide"
       ],
-      "appIconUrl": "https://raw.githubusercontent.com/MatyMeatBoy/ReKHCom/main/docs/quiver/icon.png"
+      "appIconUrl": "https://raw.githubusercontent.com/MatyMeatBoy/ReKHCoM/main/docs/quiver/icon.png"
     }
   ]
 }

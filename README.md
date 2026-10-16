@@ -7,10 +7,10 @@ The decompiled game runs as a real Windows program, with its own renderer, audio
 and launcher, with widescreen and ultrawide support at the cartridge's original speed.
 
 <p align="center">
-  <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.8.3 for Windows</b></a>
-  &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCom/"><b>▶ Play in your browser · Alpha 2</b></a>
+  <a href="https://github.com/MatyMeatBoy/ReKHCoM/releases/latest"><b>⬇ Download ReKHCoM v1.8.3 for Windows</b></a>
+  &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCoM/"><b>▶ Play in your browser · Alpha 2</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
-  &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCom/tags">Previous version tags</a>
+  &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCoM/tags">Previous version tags</a>
 </p>
 
 Works with the **European, US and Japanese** cartridges (your own dump; no ROM is
@@ -127,20 +127,20 @@ Each region uses its own save file; the launcher picks the matching version.
 
 ## Play in your browser
 
-Open [ReKHCoM Web · Alpha 2](https://matymeatboy.github.io/ReKHCom/), select your ROM and
+Open [ReKHCoM Web · Alpha 2](https://matymeatboy.github.io/ReKHCoM/), select your ROM and
 press **Play**. Your ROM stays on your device. The web alpha supports keyboard,
 gamepad and centered touch controls, optional HD text with the PC fonts, and normal save import
 and export. The website starts in English and also offers Spanish; game language
 is selected separately. Fullscreen and embedded views readjust automatically.
 Export a backup before clearing browser data.
 
-[Web alpha downloads and release notes](https://github.com/MatyMeatBoy/ReKHCom/releases/tag/web-alpha2).
+[Web alpha downloads and release notes](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/web-alpha2).
 
 <p align="center"><img src="docs/screenshots/web-player.jpg" width="90%"></p>
 
 ## Running (Windows)
 
-1. Download the [stable v1.8.3 ZIP](https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v1.8.3)
+1. Download the [stable v1.8.3 ZIP](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.8.3)
    and extract `ReKHCoM-v1.8.3-windows-x86.zip` into a writable folder.
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
@@ -174,8 +174,8 @@ Requirements: Python 3 with PyYAML, [llvm-mingw](https://github.com/mstorsjo/llv
 By default the tools are looked up in `../toolchain/`.
 
 ```sh
-git clone https://github.com/MatyMeatBoy/ReKHCom.git
-cd ReKHCom
+git clone https://github.com/MatyMeatBoy/ReKHCoM.git
+cd ReKHCoM
 python -m pip install pyyaml
 # Copy your dumps to roms/B8CP.gba, roms/B8CE.gba and/or roms/B8CJ.gba first.
 python port/configure_pc.py              # European game + launcher, build/pc; --debug for a console build

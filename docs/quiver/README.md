@@ -1,7 +1,7 @@
 # ReKHCoM — Quiver submission kit
 
-Status: prepared, **not submitted or accepted**. The official submission form
-requires a signed-in Quiver account.
+Status: **submitted by the project owner**, as confirmed in this conversation.
+Catalog acceptance and a public listing have not yet been verified.
 
 Submit at <https://quiverlauncher.com/submit>. The former
 [tgeorgiadis/quiver-community-app-catalog](https://github.com/tgeorgiadis/quiver-community-app-catalog)
@@ -14,7 +14,7 @@ requests. Do not open a catalog PR there.
 
 **Project:** ReKHCoM
 
-**Source:** <https://github.com/MatyMeatBoy/ReKHCom>
+**Source:** <https://github.com/MatyMeatBoy/ReKHCoM>
 
 **Type/platform:** PC port; decompilation; GBA; Windows.
 
@@ -25,7 +25,7 @@ support for EU, US and Japanese cartridges.
 Launch ReKHCoM.exe and select your own unmodified EU, US or Japanese GBA ROM.
 No ROM is included. Native save import is available in the launcher.
 
-The browser version is a separate [Web Alpha](https://matymeatboy.github.io/ReKHCom/).
+The browser version is a separate [Web Alpha](https://matymeatboy.github.io/ReKHCoM/).
 Do not advertise Android or native Linux/macOS as released, verified platforms.
 
 ## Artwork
@@ -57,7 +57,7 @@ existing project and upstream credits.
 Stable release: **v1.8.3**, Windows x86 ZIP, 21,078,082 bytes.
 SHA256: `b3abf8685532393b0f0b4ab090dbc30757cd835b840e5398ecbd7f1dc5f83b51`.
 
-- Repository: `MatyMeatBoy/ReKHCom`.
+- Repository: `MatyMeatBoy/ReKHCoM`.
 - Asset filter: `windows-x86.zip` (excludes Web Alpha downloads).
 - Preferred Windows executable: `ReKHCoM.exe`.
 - Archive has a single top-level `ReKHCoM-v1.8.3-windows-x86` directory.
@@ -82,8 +82,9 @@ choose ReKHCoM.exe manually if prompted. Installation through Quiver is untested
 - [ ] Apply any field/image requirements from that form.
 - [ ] Fill the required AI-use metadata truthfully using the site's definitions.
       Coding assistants contributed substantially; do not select “none”.
-- [ ] Submit and record the receipt or resulting URL.
+- [x] Submitted by the project owner (confirmation in conversation).
+- [ ] Record the submission receipt or resulting catalog URL.
 - [ ] Test installation and launch from Quiver with a user-supplied ROM.
 
 Research date: 2026-10-16. Public API search for ReKHCoM returned no entries.
-No Quiver PR or submission has been created at this stage.
+The owner submitted through the official website; no Quiver PR was needed.
