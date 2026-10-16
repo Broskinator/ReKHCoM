@@ -9,15 +9,15 @@ p = argparse.ArgumentParser()
 p.add_argument('--build', type=Path, default=ROOT/'build/rel-eu')
 p.add_argument('--rom', type=Path, default=ROOT/'roms/B8CP.gba')
 args = p.parse_args()
-out = ROOT/'build/v18-review/exp'; out.mkdir(parents=True, exist_ok=True)
+out = ROOT/'build/v181-review/exp'; out.mkdir(parents=True, exist_ok=True)
 cases = [(W,H,z,0,1) for W,H in [(1920,1080),(5120,1440)]
-         for z in range(2*(H//160),2*max((W+2559)//2560,(H+1439)//1440)-1,-1)]
+         for z in range(2*(H//160),2*max((W+2559)//2560,(H+1439)//1440)-1,-2)]
 cases += [(W,H,8,hd,hud) for W,H in [(1920,1080),(5120,1440)] for hd,hud in [(1,0),(1,1),(1,2)]]
 def run(case):
  W,H,z,hd,hud=case; name=f'{W}x{H}-z{z}-hd{hd}-hud{hud}'; d=out/name; d.mkdir(exist_ok=True)
  for f in ['khcom.exe','SDL3.dll']: shutil.copy2(args.build/f,d/f)
  shutil.copytree(ROOT/'port/assets/fonts',d/'assets/fonts',dirs_exist_ok=True)
- (d/'kh_com.ini').write_text(f'config_version=10\nview_mode=4\nzoom={z}\ninteger_zoom=0\nhd_text={hd}\nhud_size={hud}\n')
+ (d/'kh_com.ini').write_text(f'config_version=11\nview_mode=4\nzoom={z}\ninteger_zoom=0\nhd_text={hd}\nhud_size={hud}\n')
  env={k:v for k,v in os.environ.items() if not k.startswith(('KHCOM_','SDL_'))}
  env.update(SDL_VIDEO_DRIVER='dummy',SDL_AUDIO_DRIVER='dummy',KHCOM_FAST='1',KHCOM_WINDOW=f'{W}x{H}',
   KHCOM_BATTLE='0:1:0',KHCOM_KEYS='60-63:A',KHCOM_MODE='140:textdigits:12345,260:textlevel:1',

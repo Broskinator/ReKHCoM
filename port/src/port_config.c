@@ -43,7 +43,7 @@ PortConfig gPortConfig = {
     0,                  /* ps2FastText (experimental) */
     0,                  /* hdHud: pending, forced off (see PortConfigLoad) */
     0,                  /* aspect: fill the window */
-    0,                  /* integerZoom: legacy key, all zooms are available */
+    0,                  /* integerZoom: legacy key, not shown in the UI */
     {
         { SDLK_X, SDLK_K },             /* A */
         { SDLK_Z, SDLK_J },             /* B */
@@ -173,10 +173,10 @@ void PortConfigView(int mode, int* w, int* h) {
 static int sZoomOutW = 1920, sZoomOutH = 1080;
 #define ZOOM_PIXEL_BUDGET (640 * 360 * 5 / 4)
 int PortConfigZoomId(int level) {
-    return PortZoomNormalize(level, 0, sZoomOutW, sZoomOutH);
+    return PortZoomNormalize(level, 1, sZoomOutW, sZoomOutH);
 }
 int PortConfigZoomNext(int level, int dir) {
-    return PortZoomStep(level, dir, 0, sZoomOutW, sZoomOutH);
+    return PortZoomStep(level, dir, 1, sZoomOutW, sZoomOutH);
 }
 float PortConfigZoomScaleF(int level) {
     return PortConfigZoomId(level) * 0.5f;
@@ -261,8 +261,8 @@ void PortConfigLoad(void) {
         gPortConfig.zoom = PORT_ZOOM_DEFAULT;
         gPortConfig.integerZoom = 1;
     }
-    /* Remove the filter without moving the picture of an old rounded choice. */
-    if (sConfigVersion < 10 && gPortConfig.integerZoom && (gPortConfig.zoom & 1))
+    /* Only numbered, whole-pixel steps remain; migrate old half steps up. */
+    if (gPortConfig.zoom & 1)
         gPortConfig.zoom++;
     if (gPortConfig.zoom == PORT_ZOOM_CLASSIC) gPortConfig.zoom = PORT_ZOOM_DEFAULT;
     gPortConfig.integerZoom = 0;

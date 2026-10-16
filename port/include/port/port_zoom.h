@@ -6,7 +6,7 @@
 #define PORT_ZOOM_LEVELS 128
 #define PORT_ZOOM_CLASSIC 0
 #define PORT_ZOOM_DEFAULT 8 /* x4, independent of monitor size */
-#define PORT_ZOOM_CONFIG_VERSION 10
+#define PORT_ZOOM_CONFIG_VERSION 11
 /* User-facing reference annotations; these do not alter rendering geometry. */
 static inline int PortZoomReference(int id) { return id == 12 ? 1 : id == 6 ? 2 : 0; }
 static inline int PortZoomMin(int width, int height) {

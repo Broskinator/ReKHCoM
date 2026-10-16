@@ -15,7 +15,7 @@ int main(void) {
  int sizes[][2]={{320,180},{960,540},{1280,720},{1920,1080},{3440,1440},{5120,1440},{7680,2160}};
  int i,z,w,h,s,k,only,prev,cases=0;
  assert(gPortConfig.zoom==PORT_ZOOM_DEFAULT && gPortConfig.integerZoom==0);
- for(only=0;only<2;only++) {
+ for(only=1;only<2;only++) {
   gPortConfig.integerZoom=only;
   for(i=0;i<7;i++) {
    int W=sizes[i][0],H=sizes[i][1],count=PortZoomCount(only,W,H);
@@ -47,15 +47,17 @@ int main(void) {
  FILE* f=fopen("kh_com.ini","w"); assert(f);
  fprintf(f,"config_version=8\nzoom=6\ninteger_zoom=0\n"); fclose(f);
  PortConfigLoad(); assert(gPortConfig.zoom==PORT_ZOOM_DEFAULT && !gPortConfig.integerZoom);
- gPortConfig.zoom=9;gPortConfig.integerZoom=0;PortConfigSave();
- gPortConfig.zoom=1;PortConfigLoad();assert(gPortConfig.zoom==9 && !gPortConfig.integerZoom);
+ gPortConfig.zoom=10;gPortConfig.integerZoom=0;PortConfigSave();
+ gPortConfig.zoom=1;PortConfigLoad();assert(gPortConfig.zoom==10 && !gPortConfig.integerZoom);
  assert(PortZoomReference(12)==1 && PortZoomReference(6)==2 && PortZoomReference(8)==0);
  f=fopen("kh_com.ini","w");assert(f);
  fprintf(f,"config_version=9\nzoom=9\ninteger_zoom=1\n");fclose(f);
  PortConfigLoad();assert(gPortConfig.zoom==10 && !gPortConfig.integerZoom);
  PortConfigAutoView(1920,1080,&w,&h,&s);
- gPortConfig.integerZoom=1;assert(PortConfigZoomNext(12,1)==11); /* hidden legacy key cannot filter */
- printf("PASS: %d resolution/zoom cases, exact v1.4 x4, distinct integer/half selectors, INI migration/persistence\n",cases);
+ gPortConfig.integerZoom=1;assert(PortConfigZoomNext(12,1)==10); /* no intermediate step */
+ gPortConfig.integerZoom=0;assert(PortConfigZoomNext(12,1)==10);
+ for(z=1;z<=PORT_ZOOM_LEVELS;z++)assert(!(PortConfigZoomId(z)&1));
+ printf("PASS: %d resolution/zoom cases, exact v1.4 x4, numbered selector without intermediate steps, INI migration/persistence\n",cases);
  return 0;
 }
 

@@ -47,7 +47,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.8"
+#define REKHCOM_VERSION "v1.8.1"
 #endif
 
 static bool sSpanish;
@@ -304,7 +304,7 @@ static void LoadIni() {
         sIni["integer_zoom"] = 1;
         sIni["config_version"] = 9;
     }
-    if (sIni["config_version"] < 10 && sIni["integer_zoom"] && (sIni["zoom"] & 1))
+    if (sIni["zoom"] & 1)
         sIni["zoom"]++;
     if (sIni["zoom"] == PORT_ZOOM_CLASSIC) sIni["zoom"] = PORT_ZOOM_DEFAULT;
     sIni["integer_zoom"] = 0;
@@ -1062,13 +1062,12 @@ static void PageGraphics() {
             H = baseH * std::clamp(Ini("window_scale"), 1, 8);
         }
     }
-    int zoomCount = PortZoomCount(0, W, H);
+    int zoomCount = PortZoomCount(1, W, H);
     for (int i = 0; i < zoomCount; i++) {
-        int z = PortZoomAt(i, 0, W, H);
+        int z = PortZoomAt(i, 1, W, H);
         float f = z * 0.5f;
         bool heavy = (W / f) * (H / f) > 640 * 360 * 5 / 4;
         zoomLabels[i] = "x" + std::to_string(z / 2) +
-            ((z & 1) ? "-x" + std::to_string(z / 2 + 1) + T("  (intermedia)", "  (intermediate)") : "") +
             (heavy ? T("  (exigente)", "  (demanding)") : "");
         if (PortZoomReference(z))
             zoomLabels[i] += std::string(T("  (íntegra x", "  (integer x")) + std::to_string(PortZoomReference(z)) + ")";
@@ -1097,12 +1096,12 @@ static void PageGraphics() {
                             Ini("aspect"), 5, aspects);
     }
     {
-        int sel = PortZoomIndex(Ini("zoom"), 0, W, H);
+        int sel = PortZoomIndex(Ini("zoom"), 1, W, H);
         if (CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"),
                      T("Escala de píxeles: x4 amplía cada píxel cuatro veces. Menos aumento muestra más mundo y exige más al PC.",
                        "Pixel scale: x4 enlarges each pixel four times. Lower scales show more world and cost more CPU."),
                      sel, zoomCount, zooms)) {
-            Ini("zoom") = PortZoomAt(sel, 0, W, H);
+            Ini("zoom") = PortZoomAt(sel, 1, W, H);
             changed = true;
         }
     }
