@@ -20,8 +20,8 @@ Sin editor de vídeo ni IA. Todo está en `../Trailer/` (fuera del repo):
     `KHCOM_WAVDUMP`; los WAV van a `Trailer/audio/sfx/`. La música va aparte
     (`Trailer/audio/m_titulo.wav`, `m_combate_agrabah.wav`).
   - `cards.py` títulos (Palatino, brillo, línea dorada) -> `tools/cards/`.
-  - `sweep.py` barrido texto ORIGINAL/HD; `console.py` dibuja la consola
-    genérica (sin marca); `intro.py` monta la intro de la consola;
+  - `sweep.py` barrido texto ORIGINAL/HD; `console.py` (descartado: consola
+    genérica); `intro.py` monta la intro (quitar la consola, ver abajo);
     `postcred.py` post-créditos Sincorazón "ANDROID RELEASE / COMING SOON"
     (ya hecho: `clips/16_postcreditos_android.mov`).
   - `edit.py` motor de montaje (xfade, transición corazón `heart_expr.txt`,
@@ -38,11 +38,16 @@ Revisa con hojas de contacto (ffmpeg select+tile), 3-4 por tramo, no más.
 ## Mejoras pedidas por el usuario para la v4 (pendientes)
 
 1. Grabar TODO con la versión publicada más nueva (v1.8.2), zoom x4.
-2. Intro: escena del Castillo del Olvido (blanco, contraste) dentro de la
-   consola (`cards/console.png`, hueco de pantalla 480x320 en 720,350).
-   Empieza con "2004 · Game Boy Advance"; push-in rápido hasta llenar la
-   altura; luego el SLIDER (como el de texto ORIGINAL/HD) abre de 4:3 a 16:9
-   a pantalla completa; quedarse >=3 s en 16:9 con "2026 · Native on PC".
+2. Intro (SIN consola: la idea de la GBA dibujada queda descartada).
+   Escena del Castillo del Olvido (blanco, contraste) con Sora andando.
+   Empieza en la resolución original de la GBA: el cuadro 240x160 en su
+   proporción (clip `00c_castillo_gba_4x3`, pixel exacto, centrado en negro)
+   con "2004 · Game Boy Advance". Crece rápido hasta llenar la altura y el
+   SLIDER (como el de texto ORIGINAL/HD) lo abre a la vista 16:9 de nuestro
+   port a pantalla completa (clip `00d_castillo_pc_16x9`, mismo momento del
+   paseo); se queda >=3 s en 16:9 con "2026 · Native on PC". No usar
+   `console.py` ni `cards/console.png`; `intro.py` hay que adaptarlo
+   quitando la capa de la consola.
 3. La música empieza justo cuando pasa a 16:9 (T_REVEAL en `final.py`) y
    sigue hasta el nombre del proyecto, como antes.
 4. Salas: progresión encadenada — cortar de una sala a la siguiente con
