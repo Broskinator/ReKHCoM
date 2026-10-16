@@ -255,6 +255,7 @@ typedef struct PortTextGlyph {
     uint8_t semi; /* 0 opaque, else the alpha (0..255) of a blended sprite */
     uint8_t style; /* 0 dialogue / menu font, 1 movie subtitles, 2 numbers in cells */
     uint8_t cap, base; /* style 2: digit height and baseline row in the cell (0: 5 and 7) */
+    uint8_t clip0, clip1; /* visible columns [clip0, clip1) of the 8-pixel cell; 0,0: all */
     uint32_t face, shadow;
 } PortTextGlyph;
 int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud);

@@ -1955,7 +1955,22 @@ void PortPpuBeginFrame(void) {
     BuildLut();
     UpdateSceneNarrow(dispcnt);
     for (b = 0; b < 4; b++) {
-        sBgLatch[b].valid = ValidateBgLatch(b, dispcnt);
+        /* A room change clears one layer's VRAM a frame before the others:
+           a layer that was part of the world last frame and is still shown
+           keeps its world one more frame, rather than leaving a hole while
+           its neighbours still draw the old room (white silhouettes on
+           black during the fade between rooms). */
+        static int prevLatch[4], grace[4];
+        int v = ValidateBgLatch(b, dispcnt);
+        if (!v && prevLatch[b] && !grace[b] && (dispcnt & (0x100 << b)) && sBgLatch[b].map != NULL) {
+            grace[b] = 1;
+            sBgLatch[b].valid = 1;
+        } else {
+            if (v)
+                grace[b] = 0;
+            sBgLatch[b].valid = v;
+        }
+        prevLatch[b] = v;
         sBgWorldLatched[b].valid = !sBgLatch[b].valid && ValidateBgWorld(b, dispcnt);
         any |= sBgLatch[b].valid | sBgWorldLatched[b].valid;
     }
@@ -2671,6 +2686,17 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
                     (occBg[at] == priority && occLayer[at] < bg) ||
                     occObj[at] < (priority + 1) * 128) continue; /* OBJ wins ties with BG. */
                 out[n] = *glyph;
+                /* a window over part of the cell (a menu opened beside the
+                   number): only the columns left uncovered are drawn */
+                {
+                    int c0 = 4, c1 = 4, row = py * width;
+                    #define BG_TEXT_SHOWN(cx) (glyph->x + (cx) >= 0 && glyph->x + (cx) < width &&                         !((occBg[row + glyph->x + (cx)] == 0 && occObj[row + glyph->x + (cx)] == 0) ||                           occBg[row + glyph->x + (cx)] < priority ||                           (occBg[row + glyph->x + (cx)] == priority && occLayer[row + glyph->x + (cx)] < bg) ||                           occObj[row + glyph->x + (cx)] < (priority + 1) * 128))
+                    while (c0 > 0 && BG_TEXT_SHOWN(c0 - 1)) c0--;
+                    while (c1 < 8 && BG_TEXT_SHOWN(c1)) c1++;
+                    #undef BG_TEXT_SHOWN
+                    out[n].clip0 = (uint8_t)c0;
+                    out[n].clip1 = (uint8_t)(c0 == 0 && c1 == 8 ? 0 : c1);
+                }
                 face = (uint16_t)glyph->face; shadow = (uint16_t)glyph->shadow;
                 if (bldcnt & (1 << bg)) {
                     if (effect == 2) { face = Brighten(face, evy); shadow = Brighten(shadow, evy); }
@@ -2761,6 +2787,7 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
             }
         }
         out[n].code = tag->text;
+        out[n].clip0 = out[n].clip1 = 0;
         out[n].style = tag->style;
         out[n].semi = 0;
         if (((a0 >> 10) & 3) == 1) {

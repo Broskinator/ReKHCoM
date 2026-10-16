@@ -619,8 +619,19 @@ static void DrawSmallNumbers(SDL_Renderer* renderer, PortTextGlyph* glyphs, int 
         x = originX + glyphs[i].x * scale + (8.0f * scale - glyph->advance) * 0.5f;
         baseline = originY + (glyphs[i].y + base) * scale;
         int alpha = glyphs[i].semi ? glyphs[i].semi : 0xFF;
+        if (glyphs[i].clip1) {
+            /* part of the cell is under a window: draw only the rest */
+            SDL_Rect clip;
+            clip.x = (int)SDL_floorf(originX + (glyphs[i].x + glyphs[i].clip0) * scale);
+            clip.w = (int)SDL_ceilf(originX + (glyphs[i].x + glyphs[i].clip1) * scale) - clip.x;
+            clip.y = (int)SDL_floorf(originY + (glyphs[i].y - 4) * scale);
+            clip.h = (int)SDL_ceilf(16 * scale);
+            SDL_SetRenderClipRect(renderer, &clip);
+        }
         DrawGlyph(renderer, glyph, x + shadow, baseline + shadow, glyphs[i].shadow, alpha);
         DrawGlyph(renderer, glyph, x, baseline, glyphs[i].face, alpha);
+        if (glyphs[i].clip1)
+            SDL_SetRenderClipRect(renderer, NULL);
     }
 }
 

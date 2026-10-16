@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v1.8.2 — 2026-10-16
+
+- Deck View: HD numbers half under the deck's submenu are cut at its edge
+  instead of drawing over it.
+- Room changes: no more one-frame flash of the old room's shapes (white
+  silhouettes on black) at the end of the fade between rooms.
+
 ## v1.8.1 — 2026-10-16
 
 - Status entry/exit draws its margins from background layers. NEW badges and
