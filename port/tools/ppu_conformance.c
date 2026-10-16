@@ -17,6 +17,7 @@ int PortHdHudPlayerFrameReady(void) { return 0; }
 void PortHdHudSpriteBegin(void) {}
 int PortHdHudSpriteRegister(const uint32_t* pixels, int w, int h, int slot, int x, int y, int flip, int alpha) { return 0; }
 
+void PortFatal(const char* fmt, ...) { (void)fmt; abort(); }
 void PortLog(const char* fmt, ...) { (void)fmt; }
 int PortHd2dActive(void) { return 0; }
 uint32_t PortFrameCount(void) { return 0; }
@@ -206,7 +207,6 @@ static void semantic(const char* name) {
 }
 
 int main(int argc, char** argv) {
-    PortCanvasAlloc();
     const char* name;
     uint16_t* p;
     int i;
@@ -217,6 +217,7 @@ int main(int argc, char** argv) {
        !VirtualAlloc((void*)GBA_PLTT,0x10000,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE) ||
        !VirtualAlloc((void*)GBA_VRAM,0x20000,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE) ||
        !VirtualAlloc((void*)GBA_OAM,0x10000,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE)) return 3;
+    PortCanvasAlloc(); /* Reserve fixed hardware addresses before the large heap buffers. */
     p=(uint16_t*)(uintptr_t)GBA_PLTT;
     for(i=0;i<512;i++) p[i]=color(i%256);
     p[0]=color(17);
