@@ -11,6 +11,14 @@
    verificado (el state solo carga con el exe v1.8.1: BuildId).
 3. Título -> Cargar: el margen derecho se oscurece durante el fundido.
    No reproducido en el arnés.
+4. Arranque: justo después de elegir idioma, 1 frame con los márgenes sin
+   pintar (negros) antes de la pantalla siguiente. Probable cambio de modo
+   (mode_lang -> copyright) en el que PortSideStyle/margen aún no tiene datos;
+   capturar frame a frame desde ~frame 250 con KHCOM_SHOTS.
+
+Regla: quien trabaje (Claude o Codex) documenta aquí los pendientes al
+avanzar; si a uno se le acaban los tokens, el otro continúa desde esta lista.
+Solo Claude publica releases; Codex deja commits locales para integrar.
 
 # Pendientes tras v1.8.1 — 16/10/2026 (Claude). Solo Claude integra y publica.
 
