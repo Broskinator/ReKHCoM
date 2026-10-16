@@ -16,6 +16,13 @@
    (mode_lang -> copyright) en el que PortSideStyle/margen aún no tiene datos;
    capturar frame a frame desde ~frame 250 con KHCOM_SHOTS.
 
+   Hallazgo (Claude, arnés 1536x864, A en frame 200): fundido de mode_lang
+   236-249 con márgenes de textura que no siguen el brillo del centro y que
+   repiten los iconos de Sora de abajo (frames 246-247); frame 251 (primer
+   frame de copyright1) con centro negro y margen derecho BLANCO. El usuario
+   pide además que esa transición sea suave. Prioridad para v1.8.2 junto con
+   2 y 3; el punto 1 (números HD) puede quedar para el futuro.
+
 Regla: quien trabaje (Claude o Codex) documenta aquí los pendientes al
 avanzar; si a uno se le acaban los tokens, el otro continúa desde esta lista.
 Solo Claude publica releases; Codex deja commits locales para integrar.
