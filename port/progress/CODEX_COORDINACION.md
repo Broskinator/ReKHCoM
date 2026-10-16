@@ -46,6 +46,10 @@ frame del fundido siguiente. Probablemente el mismo mecanismo que el Bug A
 (margen que no sigue el brillo del centro). Objetivo: ambos márgenes con
 el mismo color/brillo que el borde de la imagen en cada frame.
 
+## Después de los bugs: tráiler v4
+Sigue `port/progress/TRAILER.md` (pasos, scripts en `Trailer/tools/` y
+mejoras pedidas). Solo cuando los bugs A-C estén publicados.
+
 ## Bug C — Destello del cuarto anterior al cambiar de sala
 Usuario: puerta arriba-derecha (isométrico) en su partida; state en
 ReKHCoM-v1.8.1/ReKHCoM-v1.8.1-windows-x86/states/slot1.khst (SOLO carga
