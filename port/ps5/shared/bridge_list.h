@@ -48,3 +48,4 @@ X(sinf)       /* float (float) */
 X(cosf)       /* float (float) */
 X(powf)       /* float (float, float) */
 X(set_title)  /* void (const char*): unused where there is no window */
+X(notify)     /* void (const char* name): the app draws the box assets/<name>.rgba over the game for five seconds */

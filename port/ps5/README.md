@@ -36,7 +36,12 @@ Test without a console:
 `KHCOM_DATA=<dir with the .gba> port/ps5/build/linux_host port/ps5/build/guest-eu/guest.bin --shot 100 shot.ppm`
 (`KHCOM_PADS="60-63:A"` scripts buttons; the game's own `KHCOM_*` variables work).
 
+## Save states
+
+The touchpad with L3 saves a state, the touchpad with R3 loads it (F5 and F9 on the PC). A notice on the console reminds
+this when the app opens. They are written to `/data/ReKHCom/states/` and only load in the same build of the game.
+
 ## Not available yet
 
-Quick states, HD text and Shift-JIS text input (Japanese names) are off, as on Android.
+HD text and Shift-JIS text input (Japanese names) are off in the Japanese version (no CJK font is included).
 Not tested on the console yet.

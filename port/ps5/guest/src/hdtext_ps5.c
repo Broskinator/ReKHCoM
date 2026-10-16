@@ -696,3 +696,9 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
     }
 }
 
+
+/* Shift-JIS code of a Unicode character (two-byte codes only), 0 if none: the options overlay draws Japanese with the
+   cartridge's own font. Only ASCII is known here (no code page tables). */
+int PortCodepointToSjis(unsigned cp) {
+    return cp < 128 ? (int)cp : 0;
+}

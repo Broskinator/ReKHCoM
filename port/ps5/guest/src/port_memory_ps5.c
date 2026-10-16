@@ -1,9 +1,10 @@
 /*
  * GBA address space for the PS5 build.
  *
- * The host maps every region at its hardware address before the guest starts
- * (host/ps5_host.c), so the game's register macros, VRAM/OAM pointers and the
- * pointers baked into ROM data are valid as-is.
+ * Every region is committed at its hardware address, so the game's register
+ * macros, VRAM/OAM pointers and the pointers baked into ROM data are valid
+ * as-is. The host (app/ps5_host.c) maps the whole 0x02000000-0x0E010000 range
+ * as one zeroed block and the game image below it, before the game starts.
  */
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +14,7 @@
 #include "bridge_calls.h"
 
 #define MAX_PATH 1024
+#define GBA_SPACE_END 0x0E010000u
 
 /* Stand-in for the BIOS area behind BIOS_PTR(): reads see the open-bus value
    left by the BIOS (the opcode after the SWI return), writes are undone every
@@ -31,20 +33,19 @@ static uint8_t sSramShadow[GBA_SRAM_SIZE];
 static int sSramLoaded;
 
 int PortMemoryInit(void) {
-    /* The host maps the regions; a quick write test proves they are there. */
-    static const uint32_t bases[] = { GBA_EWRAM, GBA_IWRAM, GBA_PLTT, GBA_VRAM, GBA_OAM, GBA_ROM, GBA_SRAM };
-    size_t i;
+    /* the host has mapped the range: both ends must answer */
+    volatile uint8_t* first = (volatile uint8_t*)(uintptr_t)GBA_EWRAM;
+    volatile uint8_t* last = (volatile uint8_t*)(uintptr_t)(GBA_SPACE_END - 1);
+    uint8_t keepFirst = *first, keepLast = *last;
 
-    for (i = 0; i < sizeof(bases) / sizeof(bases[0]); i++) {
-        volatile uint8_t* p = (volatile uint8_t*)(uintptr_t)bases[i];
-        uint8_t keep = p[0];
-        p[0] = (uint8_t)(keep ^ 0xA5);
-        if (p[0] != (uint8_t)(keep ^ 0xA5)) {
-            PortFatal("GBA region %08X is not mapped", bases[i]);
-            return 0;
-        }
-        p[0] = keep;
+    *first = (uint8_t)(keepFirst ^ 0xA5);
+    *last = (uint8_t)(keepLast ^ 0xA5);
+    if (*first != (uint8_t)(keepFirst ^ 0xA5) || *last != (uint8_t)(keepLast ^ 0xA5)) {
+        PortFatal("The GBA address space 0x%08X-0x%08X is not mapped.", GBA_EWRAM, GBA_SPACE_END);
+        return 0;
     }
+    *first = keepFirst;
+    *last = keepLast;
     return 1;
 }
 
@@ -76,35 +77,35 @@ static int TryRom(const char* path) {
 }
 
 static int FindRom(void) {
-    static const char* const names[] = { PORT_ROM_CODE ".gba", "baserom.gba", "roms/" PORT_ROM_CODE ".gba",
+    char path[MAX_PATH], name[256];
+    static const char* const names[] = { "baserom.gba", "roms/" PORT_ROM_CODE ".gba",
                                          "../../roms/" PORT_ROM_CODE ".gba" /* development tree */ };
     size_t i;
+    int dir;
 
     if (gPortRomPath != NULL && TryRom(gPortRomPath))
+        return 1;
+    /* the data folder may not be listable: the plain name first */
+    if (TryRom(PortConfigPath(PORT_ROM_CODE ".gba")))
         return 1;
     for (i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
         if (TryRom(PortConfigPath(names[i])))
             return 1;
     }
     /* Any dump of this cartridge version in the data folder. */
-    {
-        int d = h_dir_open(PortConfigPath(""));
-        char name[256], path[MAX_PATH];
-        size_t n;
-
-        if (d >= 0) {
-            while (h_dir_next(d, name, sizeof(name))) {
-                n = strlen(name);
-                if (n > 4 && strcasecmp(name + n - 4, ".gba") == 0) {
-                    snprintf(path, sizeof(path), "%s", PortConfigPath(name));
-                    if (TryRom(path)) {
-                        h_dir_close(d);
-                        return 1;
-                    }
+    dir = h_dir_open(PortConfigPath(""));
+    if (dir >= 0) {
+        while (h_dir_next(dir, name, sizeof(name))) {
+            size_t n = strlen(name);
+            if (n > 4 && strcasecmp(name + n - 4, ".gba") == 0) {
+                snprintf(path, sizeof(path), "%s", PortConfigPath(name));
+                if (TryRom(path)) {
+                    h_dir_close(dir);
+                    return 1;
                 }
             }
-            h_dir_close(d);
         }
+        h_dir_close(dir);
     }
     return 0;
 }
@@ -179,7 +180,7 @@ void PortSramSyncIfDirty(void) {
     int written = fwrite(sram, 1, GBA_SRAM_SIZE, f) == GBA_SRAM_SIZE;
     int closed = fclose(f) == 0;
     if (written && closed) {
-        if (rename(tmp, PortConfigPath(BankName(sSramBank))) == 0)
+        if (h_rename(tmp, PortConfigPath(BankName(sSramBank))) == 0)
             memcpy(sSramShadow, sram, GBA_SRAM_SIZE);
     }
 }

@@ -1,5 +1,4 @@
-/* PS5 platform glue. Cartridge saves work as on the other platforms;
- * pointer-based quick states and the GDI HD text are not available here. */
+/* What the PS5 build adds to the desktop port: the settings it starts with, the MMPX switch, the process entry. */
 #include <SDL3/SDL.h>
 #include <stdint.h>
 #include "port/port.h"
@@ -7,24 +6,7 @@
 #include "port/port_ui.h"
 #include "bridge_calls.h"
 
-extern char __start_khdata[], __stop_khdata[], __start_khbss[], __stop_khbss[];
-void PortGameSections(char** data, size_t* size, char** bss, size_t* bsize) {
-    *data = __start_khdata;
-    *size = (size_t)(__stop_khdata - __start_khdata);
-    *bss = __start_khbss;
-    *bsize = (size_t)(__stop_khbss - __start_khbss);
-}
-
-int gPortInMainLoop, gPortStateSlot = 1;
 int gPortMmpx; /* the MMPX 3.2 filter on the game picture (Options, saved as mmpx) */
-const char* PortStatePath(int slot) { (void)slot; return ""; }
-void PortStateRequestSave(const char* path) { (void)path; PortUiNotice("Quick states are not available on PS5"); }
-void PortStateRequestLoad(const char* path) { (void)path; PortUiNotice("Quick states are not available on PS5"); }
-void PortStateService(void) {}
-void PortWatchdogStart(void) {}
-void PortCrashHandlerInstall(void) {}
-void PortBiosFaultInstall(void) { PortLog("PS5: explicit BIOS_PTR helpers; the host recovers integer divisions by zero"); }
-int PortCodepointToSjis(unsigned cp) { return cp < 128 ? (int)cp : 0; }
 
 FILE* popen(const char* cmd, const char* mode) { (void)cmd; (void)mode; return NULL; }
 int pclose(FILE* f) { (void)f; return -1; }

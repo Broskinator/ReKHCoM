@@ -180,6 +180,26 @@ MESSAGES = {
 }
 
 
+TOASTS = {
+    'toast-states': ['Touchpad + L3: save state', 'Touchpad + R3: load state'],
+}
+
+
+def render_toasts(out):
+    """Small boxes the app draws over the game for two seconds: RGBA with a w, h header."""
+    import struct
+    from PIL import Image, ImageDraw, ImageFont
+    font = ImageFont.truetype(str(ROOT / 'port/assets/fonts/KHMenu.otf'), 40)
+    for name, lines in TOASTS.items():
+        w, h = 760, 40 + 62 * len(lines)
+        panel = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+        d = ImageDraw.Draw(panel)
+        d.rounded_rectangle((0, 0, w - 1, h - 1), 24, fill=(14, 16, 36, 225), outline=(130, 150, 255, 255), width=3)
+        for i, line in enumerate(lines):
+            d.text((w // 2, 20 + 62 * i + 31), line, font=font, fill=(235, 238, 255, 255), anchor='mm')
+        (out / f'{name}.rgba').write_bytes(struct.pack('<II', w, h) + panel.tobytes())
+
+
 def render_messages(out):
     """Full-screen notices drawn by the app when it has nothing to play: RGBA with a w, h header."""
     import struct
@@ -206,6 +226,7 @@ def build_host(regions):
     for region in regions:
         shutil.copy2(BUILD / f'guest-{region}/guest.bin', assets / f'guest-{region}.bin')
     render_messages(assets)
+    render_toasts(assets)
     shutil.copytree(HERE / 'assets/fonts', assets / 'fonts')
     env = dict(os.environ,
                APP_VULKAN='1', APP_SOURCE_DIR='app', APP_PARAM='sce_sys/param.json', APP_SCE_SYS='sce_sys',

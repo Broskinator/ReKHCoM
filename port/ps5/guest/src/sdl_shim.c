@@ -368,8 +368,13 @@ bool SDL_RenderFillRect(SDL_Renderer* r, const SDL_FRect* rect) {
 void PortPs5LockSettings(void);
 
 bool SDL_RenderPresent(SDL_Renderer* r) {
+    static bool sToast;
     (void)r;
     PortPs5LockSettings();
+    if (!sToast) { /* the game is running: tell how the save states are used */
+        sToast = true;
+        h_notify("toast-states");
+    }
     Open();
     h_gfx_end();
     sFrameOpen = false;
@@ -625,13 +630,16 @@ static const signed char kButtonOf[17] = {
 static bool Held(const HostPad* p, int button) {
     int bit;
     if (!p->connected) return false;
+    /* touchpad held: L3 and R3 drive the save states (below), not the game */
+    if (((p->buttons >> 16) & 1) && (button == SDL_GAMEPAD_BUTTON_LEFT_STICK || button == SDL_GAMEPAD_BUTTON_RIGHT_STICK))
+        return false;
     for (bit = 0; bit < 17; bit++) /* several buttons can stand for one (Select) */
         if (kButtonOf[bit] == button && ((p->buttons >> bit) & 1))
             return true;
     return false;
 }
 
-/* Holding the touchpad for a full second is the Escape key of the PC: it opens the options. */
+/* Holding the touchpad for three seconds is the Escape key of the PC: it opens the options. */
 static void TouchpadHold(const HostPad* pads) {
     static uint64_t sDownAt;
     static bool sFired;
@@ -648,7 +656,7 @@ static void TouchpadHold(const HostPad* pads) {
     }
     if (!sDownAt)
         sDownAt = h_ticks_us();
-    if (!sFired && h_ticks_us() - sDownAt >= 1000000) {
+    if (!sFired && h_ticks_us() - sDownAt >= 3000000) {
         SDL_Event e;
         memset(&e, 0, sizeof(e));
         e.type = SDL_EVENT_KEY_DOWN;
@@ -656,6 +664,27 @@ static void TouchpadHold(const HostPad* pads) {
         e.key.down = true;
         Push(&e);
         sFired = true;
+    }
+}
+
+/* Save states, as F5 / F9 on the PC: the touchpad with L3 saves, the touchpad with R3 loads. */
+static void StateKeys(const HostPad* prev, const HostPad* now) {
+    static const struct { int bit; SDL_Keycode key; } keys[2] = { { 14, SDLK_F5 }, { 15, SDLK_F9 } };
+    int i;
+
+    if (!now->connected)
+        return;
+    for (i = 0; i < 2; i++) {
+        bool both = ((now->buttons >> 16) & 1) && ((now->buttons >> keys[i].bit) & 1);
+        bool before = ((prev->buttons >> 16) & 1) && ((prev->buttons >> keys[i].bit) & 1);
+        if (both && !before) {
+            SDL_Event e;
+            memset(&e, 0, sizeof(e));
+            e.type = SDL_EVENT_KEY_DOWN;
+            e.key.key = keys[i].key;
+            e.key.down = true;
+            Push(&e);
+        }
     }
 }
 
@@ -670,6 +699,7 @@ static void Refresh(void) {
         p->id = (SDL_JoystickID)(i + 1);
         p->prev = p->now;
         p->now = now[i];
+        StateKeys(&p->prev, &p->now);
         if (p->now.connected && !p->present) {
             SDL_Event e;
             memset(&e, 0, sizeof(e));

@@ -13,7 +13,7 @@ SECTIONS {
         LONG(__region_end)
         LONG(gPortBiosArea)
     }
-    .text : { *(.text .text.*) }
+    .text : { __text_start = .; *(.text .text.*) __text_end = .; }
     .rodata : ALIGN(64) { *(.rodata .rodata.*) }
     .data : ALIGN(64) { *(.data .data.*) }
     khdata : ALIGN(64) {

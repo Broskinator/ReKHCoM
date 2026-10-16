@@ -188,7 +188,53 @@ static void H_gfx_size(int *w, int *h)
     *h = plat_height();
 }
 static void H_gfx_begin(uint32_t clear) { plat_begin_frame(clear); }
-static void H_gfx_end(void) { plat_end_frame(); }
+/* A box the app draws over the game for five seconds (assets/<name>.rgba), fading out at the end. The game asks by name. */
+typedef struct
+{
+    int tex, w, h;
+} Notice;
+static Notice LoadNotice(const char *name);
+static Notice sToast = {-1, 0, 0};
+static uint64_t sToastUntil;
+
+static void H_notify(const char *name)
+{
+    if (sToast.tex >= 0)
+        vkp_ui_texture_free(sToast.tex);
+    sToast = LoadNotice(name);
+    sToastUntil = plat_ticks_us() + 5000000u;
+}
+
+static void DrawToast(void)
+{
+    uint64_t now = plat_ticks_us();
+    if (sToast.tex < 0)
+        return;
+    if (now >= sToastUntil)
+    {
+        vkp_ui_texture_free(sToast.tex);
+        sToast.tex = -1;
+        return;
+    }
+    {
+        uint64_t left = sToastUntil - now;
+        uint32_t alpha = left < 400000u ? (uint32_t)(left * 255u / 400000u) : 255u;
+        uint32_t tint = (alpha << 24) | 0xFFFFFFu;
+        float k = plat_width() / 1920.0f, dw = (float)sToast.w * k, dh = (float)sToast.h * k;
+        float x0 = (plat_width() - dw) / 2, y0 = plat_height() - dh - 90.0f * k;
+        VkpUiVertex q[6] = {{x0, y0, 0, 0, tint},      {x0 + dw, y0, 1, 0, tint},      {x0, y0 + dh, 0, 1, tint},
+                            {x0 + dw, y0, 1, 0, tint}, {x0, y0 + dh, 0, 1, tint},      {x0 + dw, y0 + dh, 1, 1, tint}};
+        vkp_ui_clip(0, 0, 0, 0);
+        vkp_ui_blend(true);
+        vkp_ui_draw(sToast.tex, q, 6);
+    }
+}
+
+static void H_gfx_end(void)
+{
+    DrawToast();
+    plat_end_frame();
+}
 static int H_tex_create(const void *rgba, int w, int h, int smooth)
 {
     return vkp_ui_texture_create((const uint8_t *)rgba, w, h, smooth != 0, false, true);
@@ -687,10 +733,6 @@ static void InstallFaultHandlers(const Ps5GuestHeader *h)
 }
 
 /* Notices drawn when there is nothing to play (assets/<name>.rgba: w, h, then RGBA). */
-typedef struct
-{
-    int tex, w, h;
-} Notice;
 
 static Notice LoadNotice(const char *name)
 {
@@ -837,20 +879,14 @@ static bool LoadImage(const char *region, Ps5GuestHeader *header)
         return false;
     }
     fseek(f, 0, SEEK_SET);
-    static const struct
+    /* As on the desktop build: the whole GBA address range is committed and zeroed as one block, so an access to a mirror
+     * or to a gap between the regions reads zeros instead of faulting. */
+    if (!MapAt(GBA_LOW, GBA_HIGH - GBA_LOW, "the GBA address space"))
     {
-        uintptr_t base;
-        size_t bytes;
-        const char *name;
-    } gba[] = {{0x02000000u, 0x40000, "EWRAM"}, {0x03000000u, 0x10000, "IWRAM"}, {0x04000000u, 0x10000, "IO"},
-               {0x05000000u, 0x10000, "palette"}, {0x06000000u, 0x20000, "VRAM"}, {0x07000000u, 0x10000, "OAM"},
-               {0x08000000u, 0x02000000, "ROM"}, {0x0E000000u, 0x10000, "SRAM"}};
-    for (size_t i = 0; i < sizeof(gba) / sizeof(gba[0]); ++i)
-        if (!MapAt(gba[i].base, gba[i].bytes, gba[i].name))
-        {
-            fclose(f);
-            return false;
-        }
+        fclose(f);
+        return false;
+    }
+    memset((void *)(uintptr_t)GBA_LOW, 0, GBA_HIGH - GBA_LOW);
     if (!MapAt(PS5G_BASE, h.regionEnd - PS5G_BASE, "the game"))
     {
         fclose(f);
@@ -946,7 +982,7 @@ int main(void)
         [HF_pow] = (uintptr_t)(double (*)(double, double))pow, [HF_exp] = (uintptr_t)(double (*)(double))exp,
         [HF_log_e] = (uintptr_t)(double (*)(double))log, [HF_fmod] = (uintptr_t)(double (*)(double, double))fmod,
         [HF_sinf] = (uintptr_t)(float (*)(float))sinf, [HF_cosf] = (uintptr_t)(float (*)(float))cosf,
-        [HF_powf] = (uintptr_t)(float (*)(float, float))powf, [HF_set_title] = (uintptr_t)H_set_title,
+        [HF_powf] = (uintptr_t)(float (*)(float, float))powf, [HF_set_title] = (uintptr_t)H_set_title, [HF_notify] = (uintptr_t)H_notify,
     };
     for (int i = 0; i < HF_COUNT; ++i)
         if (!t[i])

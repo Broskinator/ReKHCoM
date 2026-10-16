@@ -50,4 +50,5 @@ float h_sinf(float);
 float h_cosf(float);
 float h_powf(float, float);
 void h_set_title(const char*);
+void h_notify(const char*);
 #endif
