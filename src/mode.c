@@ -102,6 +102,12 @@ static int ModeIsFullScreenMenu(const Mode* mode) {
 
 void ModeStart(Mode* mode, s32 arg) {
     gModeBlankColor = FadeGetColor();
+#ifdef PLATFORM_PC
+    /* The native renderer runs before the next VBlank. Blank now, before
+       the new mode reuses VRAM/palettes, rather than rendering released
+       scenery for one frame with the new mode's palette. */
+    ModeBlankDisplay();
+#endif
     VTransReset();
     BgReset();
     SpriteReset();

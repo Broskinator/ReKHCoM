@@ -1,3 +1,20 @@
+# Relevo activo — v1.8.2 (Codex, 16/10/2026)
+
+El usuario autoriza a Codex a integrar y republicar tras agotarse Claude.
+Este bloque sustituye las exclusividades históricas de abajo.
+
+- [x] A: fondo actual en transiciones e idioma sin emblemas repetidos.
+- [x] B: histograma exacto compartido; margen derecho del título corregido.
+- [x] C: blank antes de reutilizar gráficos; fixture real antes/después.
+- [x] Matriz: 270 frames presentados en 1536x864/1920x1080; EU/US/JP compilan.
+- [ ] Republicar v1.8.2 con ZIP/SHA comprobados y copia local anterior.
+- [ ] Tráiler v4 tras publicación, según TRAILER.md.
+- [ ] Futuro: HD sobre el submenú de barajas, aplazado en el último reparto.
+
+Detalles: RELEASE_V182.md. Los intentos previos de A-C quedan sustituidos.
+
+---
+
 # Reparto vigente — v1.8.1 (16/10/2026)
 
 - [x] Estado: usar fondos para márgenes de entrada/salida, sin extender avisos NUEVO.

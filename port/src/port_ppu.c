@@ -1740,10 +1740,13 @@ static void RenderLine(int y, int gy) {
     DrawObjs(gy, dispcnt);
     BuildWindows(gy, dispcnt);
     ComposeLine(y, dispcnt, bgOn, bgPrio, gPortFrame, 1);
-    if (sSceneNarrow) {
+    /* The presenter also uses this background in non-menu narrow scenes,
+       including the blank frame between modes. Never leave last frame's
+       palette/fade in the buffer. */
+    if (sSceneNarrow || !gPortScreen.wide)
         ComposeLine(y, dispcnt, bgOn, bgPrio, gPortMenuBackground, 0);
+    if (sSceneNarrow)
         BuildNarrowSides(gy, dispcnt, bgOn, bgPrio);
-    }
     if (sOverlay && gy >= 0 && gy < GBA_SCREEN_H)
         ComposeOverlayLine(gy, dispcnt, bgOn, bgPrio);
 }
@@ -1955,22 +1958,7 @@ void PortPpuBeginFrame(void) {
     BuildLut();
     UpdateSceneNarrow(dispcnt);
     for (b = 0; b < 4; b++) {
-        /* A room change clears one layer's VRAM a frame before the others:
-           a layer that was part of the world last frame and is still shown
-           keeps its world one more frame, rather than leaving a hole while
-           its neighbours still draw the old room (white silhouettes on
-           black during the fade between rooms). */
-        static int prevLatch[4], grace[4];
-        int v = ValidateBgLatch(b, dispcnt);
-        if (!v && prevLatch[b] && !grace[b] && (dispcnt & (0x100 << b)) && sBgLatch[b].map != NULL) {
-            grace[b] = 1;
-            sBgLatch[b].valid = 1;
-        } else {
-            if (v)
-                grace[b] = 0;
-            sBgLatch[b].valid = v;
-        }
-        prevLatch[b] = v;
+        sBgLatch[b].valid = ValidateBgLatch(b, dispcnt);
         sBgWorldLatched[b].valid = !sBgLatch[b].valid && ValidateBgWorld(b, dispcnt);
         any |= sBgLatch[b].valid | sBgWorldLatched[b].valid;
     }

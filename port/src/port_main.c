@@ -687,14 +687,22 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
         return;
     }
     if (sSideStyle == 1) {
-        /* the strip's most common colour: the screen's background */
-        static uint16_t count[4096];
+        /* One shared background for both sides. Counting exact colours
+           matters during fades: 4-bit bins merged grey paper with black
+           artwork, making only the right margin go dark. */
+        static uint16_t count[8192];
+        static uint32_t colors[8192];
         uint32_t bd = 0;
-        int i, best = 0;
+        int i, best = 0, left = side < 0 ? sx : sx - (GBA_SCREEN_W - SIDE_STRIP);
         memset(count, 0, sizeof(count));
-        for (i = 0; i < GBA_SCREEN_H * SIDE_STRIP; i++) {
-            uint32_t c = StripPixel(sx, sy, i % SIDE_STRIP, i / SIDE_STRIP);
-            int q = ((c >> 20) & 15) << 8 | ((c >> 12) & 15) << 4 | ((c >> 4) & 15);
+        for (i = 0; i < GBA_SCREEN_H * SIDE_STRIP * 2; i++) {
+            int strip = i / (GBA_SCREEN_H * SIDE_STRIP);
+            int offset = i % (GBA_SCREEN_H * SIDE_STRIP);
+            uint32_t c = StripPixel(left + strip * (GBA_SCREEN_W - SIDE_STRIP), sy,
+                                    offset % SIDE_STRIP, offset / SIDE_STRIP);
+            unsigned q = (c * 2654435761u) >> 19;
+            while (count[q] && colors[q] != c) q = (q + 1) & 8191;
+            colors[q] = c;
             if (++count[q] > best) {
                 best = count[q];
                 bd = c;
@@ -715,11 +723,12 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
         /* texture: 8-line bands; a band with drawing in it (an emblem)
            takes the nearest clean band above (or below) instead. Sampled
            like the picture, so each 16-column tile sits on its pixel grid */
-        /* thresholds relative to the strip's own contrast, so a fade (which
-           lowers every contrast together) never turns an emblem band into
-           a "clean" one that the margin would repeat */
-        int clean[GBA_SCREEN_H / 8], n = GBA_SCREEN_H / 8, b, glo = 255, ghi = 0;
-        int blo[GBA_SCREEN_H / 8], bhi[GBA_SCREEN_H / 8], bchroma[GBA_SCREEN_H / 8];
+        /* Palette fades subtract brightness and clip dark ink to black;
+           they do not scale texture contrast. Choose the least contrasted
+           paper bands in this frame, so emblems never become clean merely
+           because their black ink has reached the fade's floor. */
+        int clean[GBA_SCREEN_H / 8], n = GBA_SCREEN_H / 8, b;
+        int spread[GBA_SCREEN_H / 8], best = 10000;
         for (b = 0; b < n; b++) {
             int x, yy, lo = 255, hi = 0, chroma = 0;
             for (yy = b * 8; yy < b * 8 + 8; yy++) {
@@ -732,16 +741,11 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                     chroma = SDL_max(chroma, SDL_max(r, SDL_max(g, bl)) - SDL_min(r, SDL_min(g, bl)));
                 }
             }
-            blo[b] = lo; bhi[b] = hi; bchroma[b] = chroma;
-            glo = SDL_min(glo, lo); ghi = SDL_max(ghi, hi);
+            spread[b] = hi - lo + chroma;
+            best = SDL_min(best, spread[b]);
         }
-        {
-            /* the bright screen's thresholds (64 and 40 of 255), scaled by
-               how far the fade has dimmed the strip's range */
-            float k = SDL_max(ghi, 1) / 255.0f;
-            for (b = 0; b < n; b++)
-                clean[b] = bchroma[b] <= 40 * k && bhi[b] - blo[b] <= 64 * k;
-        }
+        for (b = 0; b < n; b++)
+            clean[b] = spread[b] == best;
         for (band = 0; band < n; band++) {
             int srcBand = band, k;
             float by = y + band * 8 * scale, pos;

@@ -4,10 +4,15 @@
 
 ## v1.8.2 — 2026-10-16
 
-- Deck View: HD numbers half under the deck's submenu are cut at its edge
-  instead of drawing over it.
-- Room changes: no more one-frame flash of the old room's shapes (white
-  silhouettes on black) at the end of the fade between rooms.
+- Language selection: keep side textures free of repeated emblems throughout
+  the fade, and match the blank transition frame's background.
+- Title to Load: both margins follow the same exact background colour during
+  the fade; dark artwork no longer wins a quantized colour bucket on one side.
+- Room changes: blank the display before the next mode reuses graphics memory,
+  eliminating the old room's one-frame white silhouettes. Replaces the
+  unverified layer-retention workaround.
+- Deck View: retain the partial HD-number clipping improvement. Overlapping
+  text reported in the live submenu remains a known issue for a future fix.
 
 ## v1.8.1 — 2026-10-16
 

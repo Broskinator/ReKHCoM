@@ -45,6 +45,8 @@
 #include "mode_chkbtl.h"
 #include "battle.h"
 #include "mode_mapchk.h"
+#include "fade.h"
+#include "world_types.h"
 #include "map_runtime.h"
 #include "card_api.h"
 #include "player_progression_types.h"
@@ -232,6 +234,18 @@ int PortHarnessMode(const char* name, int arg) {
         SetupSoraNewGame();
         gMapFloorState.room = MAP_ROOM_ENTRANCE_HALL;
         ModeRequestHeapReset(&gModeMapFix, 0);
+        return 1;
+    }
+    /* Reproduce a white-fade castle exit through the real room-transition
+       update, without depending on a previous executable's pointer state. */
+    if (strcmp(name, "roomtransition") == 0 && gFieldState != NULL) {
+        extern void MapFixSetUpdate(void (*update)(void));
+        extern void MapFixLeaveEntranceHall(void);
+        gMapRoomState->flags |= ROOM_FLAG_ENTER_WORLD;
+        gMapFloorState.flags |= FLOOR_FLAG_ENTRY_EVENT_DONE;
+        gMapFloorState.world = WORLD_TRAVERSE_TOWN;
+        MapFixSetUpdate(MapFixLeaveEntranceHall);
+        FadeStartOut(FADE_MODE_WHITE, 16);
         return 1;
     }
     if (strcmp(name, "fieldfreeze") == 0 && gFieldState != NULL) {
