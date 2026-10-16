@@ -1,3 +1,14 @@
+# Reparto vigente — v1.8.1 (16/10/2026)
+
+- [x] Estado: usar fondos para márgenes de entrada/salida, sin extender avisos NUEVO.
+- [x] Derivar el comportamiento del modo actual, sin una bandera que se pierda al cargar estados.
+- [x] Quitar pasos intermedios; conservar x4 predeterminado e indicaciones x6/x3.
+- [x] Migración de selecciones intermedias antiguas y 41 casos de zoom.
+- [~] Comparación visual entrada/salida, avisos activados/desactivados, 16:9/32:9.
+- [ ] Publicar v1.8.1 y preparar acceso local.
+
+---
+
 # Reparto vigente — v1.8 (16/10/2026)
 
 Codex integra y publica por pedido del usuario. Claude sin créditos.

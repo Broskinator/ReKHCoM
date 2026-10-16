@@ -1,3 +1,17 @@
+# Pendientes tras v1.7.1 — 16/10/2026 (Claude). Solo Claude integra y publica.
+
+**Claude (por solucionar)**
+- Zumbido de audio (hecho en v1.7.1): rampa de volumen por canal en el
+  mezclador m4a. Queda revisar los pasos por frame del PSG/CGB (canales 1-4)
+  en combate: el salto en el límite de frame bajó de 3.2x a 2.7x, no a 1x.
+- Verificar el ritmo de frames en un PC real con la partida guardada del
+  usuario (combate de Ciudad de Paso): en el arnés el trabajo por frame es
+  ~20 ms por el renderer software; comprobar que no haya cortes de audio.
+- Tráiler v4 (pausado por el usuario).
+
+**Codex**
+- Rendimiento del motor (ver reparto v1.7 abajo): 60 fps en x3+ a 1080p.
+
 # Actualización — v1.8 (16/10/2026)
 
 Pedido final del usuario: publicar v1.8 (la propuesta v1.7.2 no se publicó).

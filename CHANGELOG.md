@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v1.8.1 — 2026-10-16
+
+- Status entry/exit draws its margins from background layers. NEW badges and
+  other foreground pixels no longer stretch into horizontal stripes.
+- Remove intermediate zoom steps from the launcher and in-game selector.
+  Keep the numbered scales, x4 default and x6/x3 reference annotations.
+- Migrate an old intermediate selection to the next whole pixel scale.
+
 ## v1.8 — 2026-10-16
 
 - Simplify zoom options: remove the integer-only filter and the separate
@@ -33,6 +41,12 @@
 - Keep v1.7's aspect ratio and menu transition fixes.
 - Normal save files remain compatible. Quick save states are build-specific;
   retain the matching executable for states from earlier releases.
+
+## v1.7.1 — 2026-10-16
+
+- Audio: no more 60 Hz buzz. The music engine changes each note's volume once
+  a frame (envelopes, fades); the mixer now ramps it smoothly across the
+  frame instead of stepping at every frame boundary.
 
 ## v1.7 — 2026-10-16
 

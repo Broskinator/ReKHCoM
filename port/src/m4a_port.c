@@ -597,11 +597,18 @@ static int IsMusicChannel(const SoundChannel* chan) {
 static int32_t sHistL[8][PORT_MIX_MAX];
 static int32_t sHistR[8][PORT_MIX_MAX];
 
+/* Each channel's volume as it was at the end of the last frame. The m4a
+   engine updates envelopes once per VBlank; stepping the volume at every
+   frame boundary is a 60 Hz "zipper" buzz, so the mixer ramps from the last
+   frame's volume to this one's across the frame. */
+static s32 sLastVolR[MAX_DIRECTSOUND_CHANNELS], sLastVolL[MAX_DIRECTSOUND_CHANNELS];
+
 static void MixChannel(SoundInfo* info, SoundChannel* chan, int n, int over) {
     WaveData* wav = chan->wav;
     u8 flags = chan->statusFlags;
     u32 env;
     s32 volR, volL;
+    int64_t rampR, rampL, stepR, stepL; /* volume ramp, 16.16 */
     s8* loopStart = NULL;
     s32 loopLen = 0;
     int i;
@@ -618,6 +625,11 @@ static void MixChannel(SoundInfo* info, SoundChannel* chan, int n, int over) {
             return;
         }
         flags = SOUND_CHANNEL_SF_ENV_ATTACK;
+        {
+            int ci = (int)(chan - info->chans);
+            if (ci >= 0 && ci < MAX_DIRECTSOUND_CHANNELS)
+                sLastVolR[ci] = sLastVolL[ci] = 0; /* a new note rises from silence */
+        }
         chan->currentPointer = wav->data;
         chan->count = wav->size;
         chan->fw = 0;
@@ -670,6 +682,21 @@ static void MixChannel(SoundInfo* info, SoundChannel* chan, int n, int over) {
     chan->envelopeVolumeLeft = (u8)((chan->leftVolume * env) >> 8);
     volR = (s32)(chan->envelopeVolumeRight * gain * 256.0f);
     volL = (s32)(chan->envelopeVolumeLeft * gain * 256.0f);
+    {
+        int ci = (int)(chan - info->chans);
+        if (ci >= 0 && ci < MAX_DIRECTSOUND_CHANNELS) {
+            rampR = (int64_t)sLastVolR[ci] << 16;
+            rampL = (int64_t)sLastVolL[ci] << 16;
+            stepR = n > 0 ? (((int64_t)volR << 16) - rampR) / n : 0;
+            stepL = n > 0 ? (((int64_t)volL << 16) - rampL) / n : 0;
+            sLastVolR[ci] = volR;
+            sLastVolL[ci] = volL;
+        } else {
+            rampR = (int64_t)volR << 16;
+            rampL = (int64_t)volL << 16;
+            stepR = stepL = 0;
+        }
+    }
 
     if (flags & 0x10) {
         loopStart = wav->data + wav->loopStart;
@@ -683,8 +710,10 @@ static void MixChannel(SoundInfo* info, SoundChannel* chan, int n, int over) {
 
         for (i = 0; i < n; i++) {
             s32 s = *p++;
-            outR[i] += (s * volR) >> 8;
-            outL[i] += (s * volL) >> 8;
+            outR[i] += (s * (s32)(rampR >> 16)) >> 8;
+            outL[i] += (s * (s32)(rampL >> 16)) >> 8;
+            rampR += stepR;
+            rampL += stepL;
             if (--count == 0) {
                 if (loopLen) {
                     count = loopLen;
@@ -746,8 +775,10 @@ static void MixChannel(SoundInfo* info, SoundChannel* chan, int n, int over) {
                 s = cur * 256 + (s32)(((int64_t)fw * d) >> 15);
             }
 
-            outR[i] += (s * volR) >> 16;
-            outL[i] += (s * volL) >> 16;
+            outR[i] += (s32)(((int64_t)s * (rampR >> 16)) >> 16);
+            outL[i] += (s32)(((int64_t)s * (rampL >> 16)) >> 16);
+            rampR += stepR;
+            rampL += stepL;
 
             fw += step;
             adv = fw >> 23;
