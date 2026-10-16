@@ -1324,6 +1324,22 @@ static void Present(void) {
                 DrawHeaderLeft(&src, &dst);
             }
         }
+        /* Sprite-only cutscene messages have a plain authored backdrop.
+           Sample the rendered background (including fades), not a stale
+           side style or palette from the preceding scene. */
+        if (!(IO16(0) & 0x0F00) && !PortUiActive()) {
+            uint32_t c = gPortMenuBackground[gPortScreen.originY * gPortScreen.width + gPortScreen.originX];
+            SDL_FRect margins[4] = {
+                {0, 0, dst.x, (float)outH},
+                {dst.x + dst.w, 0, outW - dst.x - dst.w, (float)outH},
+                {dst.x, 0, dst.w, dst.y},
+                {dst.x, dst.y + dst.h, dst.w, outH - dst.y - dst.h}
+            };
+            int i;
+            SDL_SetRenderDrawColor(sRenderer, (Uint8)(c >> 16), (Uint8)(c >> 8), (Uint8)c, 255);
+            for (i = 0; i < 4; i++) if (margins[i].w > 0 && margins[i].h > 0)
+                SDL_RenderFillRect(sRenderer, &margins[i]);
+        }
         worldScale = scale;
         worldX = dst.x - src.x * scale;
         worldY = dst.y - src.y * scale;

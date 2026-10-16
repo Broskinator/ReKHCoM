@@ -110,7 +110,7 @@ int PortHarnessMode(const char* name, int arg) {
 
     /* Small numeric text fixture: use the existing battle task and its
        original DrawSprite path. This does not award experience or a level. */
-    if (strcmp(name, "textdigits") == 0 && gBtlWork != NULL) {
+    if ((strcmp(name, "textdigits") == 0 || strcmp(name, "textlevel") == 0) && gBtlWork != NULL) {
         Task* task = ListPoolFirst(&gBtlWork->taskPools[1].head);
         BtlExpWork* work;
         extern void PortLog(const char* format, ...);
@@ -121,7 +121,7 @@ int PortHarnessMode(const char* name, int arg) {
         if (task == NULL)
             return 0;
         work = task->work;
-        work->level = gGameState.progression.level;
+        work->level = gGameState.progression.level - (strcmp(name, "textlevel") == 0 ? 1 : 0);
         work->lastExp = gGameState.progression.exp;
         work->timer = 0;
         work->state = 1; /* BTL_EXP_STATE_GAIN, local to btl_exp.c */
@@ -131,7 +131,7 @@ int PortHarnessMode(const char* name, int arg) {
         work->gfx = gBtlExpNextLvFrame2;
 #endif
         BtlExpSetNumber(work, (u32)arg % 100000);
-        PortLog("harness: textdigits %d", arg % 100000);
+        PortLog("harness: %s %d", name, arg % 100000);
         return 1;
     }
 

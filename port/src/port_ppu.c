@@ -554,6 +554,7 @@ static uint8_t sWinMask[PORT_MAX_W];
 /* Wide view: 1 where some layer has world data (or inside the GBA picture);
    the backdrop shows black elsewhere, i.e. beyond the edge of the world. */
 static uint8_t sInWorld[PORT_MAX_W];
+static uint16_t sWorldPadding[4]; /* Opaque, uniform map-corner padding; never scenery repeated. */
 
 /* Affine background reference points (internal registers). */
 static int32_t sAffX[2], sAffY[2];
@@ -713,6 +714,28 @@ static int WorldEntry(const BgLatch* l, int wx, int wy) {
     return block[((wy & 255) >> 3) * 32 + ((wx & 255) >> 3)];
 }
 
+/* Only a completely uniform, opaque corner tile is safe exterior padding.
+ * Carry its palette colour beyond the map without stretching scenery or UI. */
+static uint16_t WorldPadding(int bg, const BgLatch* l) {
+    int corner, bpp8 = (IO16(8 + bg * 2) & 0x80) != 0;
+    unsigned base = ((IO16(8 + bg * 2) >> 2) & 3) * 0x4000;
+    if (!l->valid || sBgDockedLatched[bg] || sScreenBg[bg]) return TRANSPARENT;
+    for (corner = 0; corner < 4; corner++) {
+        int entry = WorldEntry(l, (corner & 1) ? l->width * 256 - 1 : 0,
+                                  (corner & 2) ? l->height * 256 - 1 : 0);
+        unsigned off; int ci, i, bytes = bpp8 ? 64 : 32;
+        const uint8_t* tile;
+        if (entry < 0) continue;
+        off = base + (entry & 1023) * bytes;
+        if (off + bytes > 0x10000) continue;
+        tile = VRAM8 + off; ci = bpp8 ? tile[0] : tile[0] & 15;
+        if (!ci || (!bpp8 && tile[0] != ci * 17)) continue;
+        for (i = 1; i < bytes && tile[i] == tile[0]; i++) {}
+        if (i == bytes) return PLTT16[(bpp8 ? 0 : (entry >> 12) * 16) + ci] & 0x7FFF;
+    }
+    return TRANSPARENT;
+}
+
 static int VramEntry(int bg, int gx, int gy) {
     uint16_t cnt = IO16(0x08 + bg * 2);
     const uint16_t* screen = (const uint16_t*)(VRAM8 + ((cnt >> 8) & 31) * 0x800);
@@ -828,7 +851,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             if (!outside && gx < 0 && run > -gx) run = -gx;
             we = l->valid ? WorldEntry(l, wx, wy) : wd->fn(bg, wx >> 3, wy >> 3);
             if (we < 0) {
-                for (j = 0; j < run; j++) out[x + j] = TRANSPARENT;
+                for (j = 0; j < run; j++) out[x + j] = sWorldPadding[bg];
                 x += run - 1;
                 continue;
             }
@@ -911,7 +934,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
                 we = cachedEntry;
             }
             if (we < 0) {
-                out[x] = TRANSPARENT;
+                out[x] = sWorldPadding[bg];
                 continue;
             }
             sInWorld[x] = 1;
@@ -1278,7 +1301,7 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
                     col = band;
             }
             if (HdTextGlyph(i) && sOamTag[i].style == 2 && (ci == 14 || ci == 15))
-                continue; /* EXP cells keep their authored blue panel pixels. */
+                col = PLTT16[256 + palBank * 16 + 13] & 0x7FFF; /* Refill old ink with the blue panel, not transparency. */
             if (mode == 2) {
                 sObjWin[x] = 1;
                 continue;
@@ -1972,6 +1995,7 @@ void PortPpuBeginFrame(void) {
     }
     if (sOverlay)
         memset(gPortOverlay, 0, (size_t)gPortOverlayW * GBA_SCREEN_H * 4);
+    for (b = 0; b < 4; b++) sWorldPadding[b] = WorldPadding(b, &sBgLatch[b]);
     if (gPortScreen.wide) {
         sLeft = -gPortScreen.originX;
         sRight = gPortScreen.width - gPortScreen.originX;
@@ -2511,7 +2535,7 @@ void PortPpuRenderHud(uint32_t* buf) {
                 if (HdTextGlyph(i) && tag->style == 2 &&
                     (col == (PLTT16[256 + (a2 >> 12) * 16 + 14] & 0x7FFF) ||
                      col == (PLTT16[256 + (a2 >> 12) * 16 + 15] & 0x7FFF)))
-                    continue;
+                    col = PLTT16[256 + (a2 >> 12) * 16 + 13] & 0x7FFF;
                 {
                     /* hidden where the cartridge draws something in front */
                     int cx = ox + sx + gPortScreen.originX, cy = oy + sy + gPortScreen.originY;
