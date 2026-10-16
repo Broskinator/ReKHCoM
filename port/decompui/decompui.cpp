@@ -1064,7 +1064,6 @@ static void PageGraphics() {
         bool heavy = (W / f) * (H / f) > 640 * 360 * 5 / 4;
         zoomLabels[i] = "x" + std::to_string(z / 2) +
             ((z & 1) ? "-x" + std::to_string(z / 2 + 1) + T("  (intermedia)", "  (intermediate)") : "") +
-            (z == PortZoomClassicScale(W, H) * 2 ? "  (v1.4)" : "") +
             (heavy ? T("  (exigente)", "  (demanding)") : "");
         zooms[i] = zoomLabels[i].c_str();
     }
@@ -1093,8 +1092,8 @@ static void PageGraphics() {
     {
         int sel = PortZoomIndex(Ini("zoom"), Ini("integer_zoom"), W, H);
         if (CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"),
-                     T("Numeración v1.4: x4 amplía cada píxel cuatro veces. Menos aumento muestra más mundo y exige más al PC.",
-                       "v1.4 numbering: x4 enlarges each pixel four times. Lower scales show more world and cost more CPU."),
+                     T("Escala de píxeles: x4 amplía cada píxel cuatro veces. Menos aumento muestra más mundo y exige más al PC.",
+                       "Pixel scale: x4 enlarges each pixel four times. Lower scales show more world and cost more CPU."),
                      sel, zoomCount, zooms)) {
             Ini("zoom") = PortZoomAt(sel, Ini("integer_zoom"), W, H);
             changed = true;

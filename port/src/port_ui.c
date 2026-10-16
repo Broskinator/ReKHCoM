@@ -559,7 +559,7 @@ static void ValueText(int item, char* out, size_t size) {
                 if (z & 1)
                     SDL_snprintf(out, size, "x%d-x%d%s", z / 2, z / 2 + 1, sIntermediate[l]);
                 else
-                    SDL_snprintf(out, size, "x%d%s", z / 2, gPortConfig.zoom == PORT_ZOOM_CLASSIC ? "  (v1.4)" : "");
+                    SDL_snprintf(out, size, "x%d", z / 2);
                 if (PortConfigZoomHeavy(gPortConfig.zoom))
                     SDL_strlcat(out, "  !", size);
             }

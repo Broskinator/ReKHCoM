@@ -77,5 +77,8 @@ estaban ocultos como drafts y se mantienen así. No borrar tags ni partidas.
 
 Cierre de QA: seis casos Auto (campo/combate 16:9 y 32:9, media escala y
 filtro entero), síntesis/estado/combate contra v1.7 a lienzo fijo idénticos.
-Capturas de menús revisadas: x4 (v1.4) legible; fondo de arena continúa sin negro
+Capturas de menús revisadas: x4 legible; fondo de arena continúa sin negro
 vacío inferior. EU/US/JP y guardar/cargar estado nuevo pasan.
+
+Último ajuste solicitado: no mostrar la procedencia v1.4 en opciones/ayuda.
+Las etiquetas visibles son xN o xN-xM (intermedia); la equivalencia es interna.
