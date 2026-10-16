@@ -10,9 +10,12 @@ requests. Do not open a catalog PR there.
 
 ## Catalog copy
 
-**Game:** Kingdom Hearts: Chain of Memories  
-**Project:** ReKHCoM  
-**Source:** <https://github.com/MatyMeatBoy/ReKHCom>  
+**Game:** Kingdom Hearts: Chain of Memories
+
+**Project:** ReKHCoM
+
+**Source:** <https://github.com/MatyMeatBoy/ReKHCom>
+
 **Type/platform:** PC port; decompilation; GBA; Windows.
 
 Revisit Castle Oblivion in a native PC port of Kingdom Hearts: Chain of Memories,
