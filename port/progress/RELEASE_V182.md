@@ -41,7 +41,11 @@ no describirlo como completamente resuelto.
 
 ## Publicación
 
-Pendiente completar matriz, ZIP/SHA y sustitución de assets de v1.8.2.
-El paquete es ROM-free. Mantener una copia de la distribución anterior para
+Matriz completada (270 frames); Estado sin fuga NUEVO a 1920x1080/5120x1440.
+v1.8.2 republicada en el commit d7b95a8cd; ZIP 21.077.291 bytes, SHA-256
+2953cfa1f76ddf4af3f39a8bdf4bb638fed4b203abe637b8644f568f179f77bc.
+GitHub confirmó el digest de ambos assets y latest público.
+Tag anterior conservado como v1.8.2-before-republish-20261016.
+El paquete es ROM-free. Guardada copia local en ../ReKHCoM-v1.8.2-anterior-20261016 para
 sus estados rápidos antes de actualizar la carpeta local.
 Tráiler v4: continuar tras publicar los bugs siguiendo TRAILER.md.
