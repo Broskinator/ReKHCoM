@@ -43,6 +43,13 @@ async function main(){
   observed();observed();assert.equal(frames.size,1);drain();
   element('interface-language').value='es';element('interface-language').listeners.change();
   assert.equal(document.documentElement.lang,'es');assert.equal(element('pause').textContent,'Pausar');
+  // F11 must request game fullscreen, rather than only resizing browser chrome.
+  context.innerHeight=1080;
+  element('canvas').requestFullscreen=async()=>{document.fullscreenElement=element('canvas');events.fullscreenchange();};
+  let prevented=false;
+  element('canvas').listeners.keydown({key:'F11',preventDefault(){prevented=true;},stopPropagation(){}});
+  drain();assert(prevented);assert.equal(document.fullscreenElement,element('canvas'));
+  assert.deepEqual(sizes.at(-1),[1920,1080]);
   console.log('Web: fullscreen/Escape/F11 sizing, resize coalescing, languages, bank naming, serial saves and quota recovery PASS');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

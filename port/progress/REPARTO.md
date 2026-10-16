@@ -1,3 +1,39 @@
+## Web Alpha 2: cierre F11 y artefactos finales (16/10/2026)
+
+- F11 ahora pide fullscreen del canvas (igual Alt+Enter), previene repetición y
+  deja Escape al navegador. No depende solo de ocultar barras de Chrome. Test
+  de producción JS también prueba la petición F11 y el callback de resolución.
+- Código final 292080d89; Pages ac7dd3c372160f04fb2e48d77eba79c54d935468.
+  Nueva verificación pública 17/17 hashes PASS. WEB_PUBLICACION.json actualizado.
+- Tag web-alpha2, creado en esta tarea, se actualizó con lease desde ca86d0016 a
+  292080d89 para incorporar F11. No se cambiaron tags anteriores ni Windows.
+- ZIP final 4.386.176 bytes, SHA256
+  0134d45a734e51f8237ed4ea8c851a72d4257aff28d7022749951e8deb3358fc.
+  Assets reemplazados en el mismo prerelease. Supersede hashes de Alpha2 previos.
+- El usuario debe exportar su partida y recargar una pestaña vieja para ejecutar
+  el motor nuevo. No intentar cambiar un Wasm activo durante una partida.
+- Conserva pendientes de gameplay real regional, F11/Escape manual, persistencia
+  real y dispositivos físicos. No declarar todos los bugs universalmente cerrados.
+
+## Web Alpha 2 publicada y verificada (16/10/2026)
+
+- Código ca86d0016; Pages f9827a51ff92f6e8839103b3655dc700a2a44f27.
+- https://matymeatboy.github.io/ReKHCom/ . 17/17 archivos públicos coinciden en
+  SHA256 y tamaño, motores application/wasm, fuentes incluidas. WEB_PUBLICACION.json.
+- Prerelease https://github.com/MatyMeatBoy/ReKHCom/releases/tag/web-alpha2 .
+  ZIP 4.386.139 bytes, SHA256 1aafa9ab0552df868217a36749d1f3fa48237f80aa6f24a5269cf2f20777ee2f.
+  GitHub confirma digest y prerelease=true. La latest estable sigue v1.8.3.
+- Portada real Chrome: English por defecto, cambio Español y vuelta English
+  verificados. docs/screenshots/web-player.jpg actualizado. Interfaz y lenguaje
+  del cartucho son independientes. Alpha2 identifica la web en repo/README/About.
+- Se publicaron fix resize/fullscreen, táctil centrado, HD fuentes originales,
+  persistencia serializada/banco activo/reset protegido y caché por hash.
+- No marcar todos los bugs o plataformas como resueltos: comprobar partida real
+  Alpha2 y F11/Escape manual, guardado/bancos, US/JP, móviles y sesiones largas.
+  La prueba real de fuente/SDL fue sin ROM; la prueba F11 automatizada fue de
+  callbacks controlados porque requestFullscreen no se concedió al clic de tool.
+  WEB_ALPHA2_TESTS.json y WEB_PENDIENTES.md conservan evidencia y pendientes.
+
 ## Web Alpha 2 lista para publicar (16/10/2026)
 
 - EU/US/JP compilados sin avisos de firma. PPU 206/206; PC EU/US/JP compilan.
