@@ -26,6 +26,7 @@ enum {
     ITEM_VIEW,
     ITEM_ASPECT,
     ITEM_ZOOM,
+    ITEM_INTZOOM,
     ITEM_SCALE,
     ITEM_HUD,
     ITEM_NARROW,
@@ -105,6 +106,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "View", "Vue", "Ansicht", "Visuale", "Vista", "表示" },
     { "Aspect ratio", "Format d'image", "Seitenverhältnis", "Proporzioni", "Relación de aspecto", "アスペクト比" },
     { "Zoom", "Zoom", "Zoom", "Zoom", "Zoom", "ズーム" },
+    { "Integer scale", "Échelle entière", "Ganzzahlige Skalierung", "Scala intera", "Escala entera", "整数スケール" },
     { "Scaling", "Mise à l'échelle", "Skalierung", "Scala", "Escalado", "スケール" },
     { "HUD size", "Taille du HUD", "HUD-Größe", "Dimensione HUD", "Tamaño del HUD", "HUDサイズ" },
     { "GBA-size scenes", "Scènes format GBA", "Szenen im GBA-Format", "Scene formato GBA", "Escenas tamaño GBA", "GBAサイズの場面" },
@@ -286,11 +288,16 @@ static const char* const sHudSizes[3][LANG_COUNT] = {
     { "Large", "Grand", "Groß", "Grande", "Grande", "大きい" },
     { "Larger", "Plus grand", "Größer", "Più grande", "Más grande", "もっと大きい" },
 };
-static const char* const sAspect[3][LANG_COUNT] = {
+static const char* const sAspect[5][LANG_COUNT] = {
     { "Fill window", "Remplir la fenêtre", "Fenster füllen", "Riempi finestra", "Llenar ventana", "ウィンドウに合わせる" },
     { "16:9", "16:9", "16:9", "16:9", "16:9", "16:9" },
     { "21:9", "21:9", "21:9", "21:9", "21:9", "21:9" },
+    { "Force 21:9", "Forcer 21:9", "21:9 erzwingen", "Forza 21:9", "Forzar 21:9", "21:9に固定" },
+    { "Force 32:9", "Forcer 32:9", "32:9 erzwingen", "Forza 32:9", "Forzar 32:9", "32:9に固定" },
 };
+static const char* const sPressA[LANG_COUNT] = { "A: apply", "A : appliquer", "A: übernehmen", "A: applica",
+    "A: aplicar", "A: 決定" };
+static const char* const sExact[LANG_COUNT] = { "integer", "entière", "ganzzahlig", "intera", "entera", "整数" };
 static const char* const sNarrow[2][LANG_COUNT] = {
     { "Exact pixels", "Pixels exacts", "Exakte Pixel", "Pixel esatti", "Píxel exacto", "等倍ピクセル" },
     { "Fill height", "Remplir la hauteur", "Höhe füllen", "Riempi altezza", "Llenar altura", "高さに合わせる" },
@@ -518,6 +525,8 @@ static int ViewIndex(void) {
     return 0;
 }
 
+static int sFsPending = -1; /* resolution row: the entry being browsed, -1 none */
+
 static int ModeIndex(void) {
     int i;
 
@@ -530,6 +539,7 @@ static int ModeIndex(void) {
 static int ItemEnabled(int item) {
     switch (item) {
         case ITEM_ZOOM:
+        case ITEM_INTZOOM:
             return gPortConfig.viewMode == PORT_VIEW_AUTO;
         case ITEM_SCALE:
             return gPortConfig.viewMode != PORT_VIEW_AUTO;
@@ -550,11 +560,14 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_ZOOM:
             if (ItemEnabled(item)) /* the step and the pixel scale it gives here */
             {
-                int n = PortConfigZoomScale(gPortConfig.zoom);
-                const char* name = n == PortConfigZoomOriginal() ? sZoomNames[0][l]
-                                   : n == PortConfigZoomEnhanced() ? sZoomNames[1][l] : "";
-                SDL_snprintf(out, size, "x%d%s%s%s", n, *name ? "  " : "", name,
-                             PortConfigZoomHeavy(gPortConfig.zoom) ? "  !" : "");
+                /* xN, its name (x1 Original GBA, x2 Enhanced), whether its
+                   scale is a whole number here, and a warning if heavy */
+                int z = SDL_clamp(gPortConfig.zoom, 1, PORT_ZOOM_LEVELS);
+                SDL_snprintf(out, size, "x%d%s%s%s%s%s", z, z <= 2 ? "  " : "", z <= 2 ? sZoomNames[z - 1][l] : "",
+                             PortConfigZoomExact(z) ? "  (" : "", PortConfigZoomExact(z) ? sExact[l] : "",
+                             PortConfigZoomExact(z) ? ")" : "");
+                if (PortConfigZoomHeavy(z))
+                    SDL_strlcat(out, "  !", size);
             }
             else
                 SDL_strlcpy(out, sAutoOnly[l], size);
@@ -566,7 +579,7 @@ static void ValueText(int item, char* out, size_t size) {
             SDL_strlcpy(out, sHudSizes[SDL_clamp(gPortConfig.hudSize, 0, 2)][l], size);
             break;
         case ITEM_ASPECT:
-            SDL_strlcpy(out, sAspect[SDL_clamp(gPortConfig.aspect, 0, 2)][l], size);
+            SDL_strlcpy(out, sAspect[SDL_clamp(gPortConfig.aspect, 0, 4)][l], size);
             break;
         case ITEM_NARROW:
             SDL_strlcpy(out, sNarrow[gPortConfig.narrowFit != 0][l], size);
@@ -577,11 +590,21 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_FULLSCREEN:
             SDL_strlcpy(out, sOnOff[gPortConfig.fullscreen != 0][l], size);
             break;
-        case ITEM_FS_RES:
-            if (gPortConfig.fullscreenWidth <= 0)
+        case ITEM_FS_RES: {
+            /* the resolution being browsed; A applies it */
+            int idx = sFsPending >= 0 ? sFsPending : ModeIndex();
+            if (idx == 0)
                 SDL_strlcpy(out, sDesktop[l], size);
             else
-                SDL_snprintf(out, size, "%dx%d", gPortConfig.fullscreenWidth, gPortConfig.fullscreenHeight);
+                SDL_snprintf(out, size, "%dx%d", sModeW[idx - 1], sModeH[idx - 1]);
+            if (sFsPending >= 0 && sFsPending != ModeIndex()) {
+                SDL_strlcat(out, "  ", size);
+                SDL_strlcat(out, sPressA[l], size);
+            }
+            break;
+        }
+        case ITEM_INTZOOM:
+            SDL_strlcpy(out, sOnOff[gPortConfig.integerZoom != 0][l], size);
             break;
         case ITEM_VSYNC:
             SDL_strlcpy(out, sOnOff[gPortConfig.vsync != 0][l], size);
@@ -672,8 +695,6 @@ static int Wrap(int v, int n) {
 static void Close(void);
 
 static void Change(int item, int dir) {
-    int i;
-
     if (!ItemEnabled(item))
         return;
     switch (item) {
@@ -681,12 +702,10 @@ static void Change(int item, int dir) {
             gPortConfig.viewMode = sViewOrder[Wrap(ViewIndex() + dir, PORT_VIEW_COUNT)];
             break;
         case ITEM_ZOOM:
-            /* the next step that gives a scale of its own at this size */
-            /* x1 .. Original, one whole-number scale a step; the
-               Enhanced scale is stored as 0 so it follows the window */
-            i = SDL_clamp(PortConfigZoomScale(gPortConfig.zoom) + dir, PortConfigZoomMin(),
-                          SDL_max(PortConfigZoomOriginal(), PortConfigZoomMin()));
-            gPortConfig.zoom = i == PortConfigZoomEnhanced() ? 0 : i;
+            gPortConfig.zoom = SDL_clamp(gPortConfig.zoom + dir, 1, PORT_ZOOM_LEVELS);
+            break;
+        case ITEM_INTZOOM:
+            gPortConfig.integerZoom = !gPortConfig.integerZoom;
             break;
         case ITEM_SCALE:
             gPortConfig.scaleMode = Wrap(gPortConfig.scaleMode + dir, PORT_SCALE_COUNT);
@@ -695,7 +714,7 @@ static void Change(int item, int dir) {
             gPortConfig.hudSize = Wrap(gPortConfig.hudSize + dir, 3);
             break;
         case ITEM_ASPECT:
-            gPortConfig.aspect = Wrap(gPortConfig.aspect + dir, 3);
+            gPortConfig.aspect = Wrap(gPortConfig.aspect + dir, 5);
             break;
         case ITEM_NARROW:
             gPortConfig.narrowFit = !gPortConfig.narrowFit;
@@ -707,10 +726,9 @@ static void Change(int item, int dir) {
             gPortConfig.fullscreen = !gPortConfig.fullscreen;
             break;
         case ITEM_FS_RES:
-            i = Wrap(ModeIndex() + dir, sModeCount + 1);
-            gPortConfig.fullscreenWidth = i ? sModeW[i - 1] : 0;
-            gPortConfig.fullscreenHeight = i ? sModeH[i - 1] : 0;
-            break;
+            /* browse only; ConfirmFsRes (A) applies */
+            sFsPending = Wrap((sFsPending >= 0 ? sFsPending : ModeIndex()) + dir, sModeCount + 1);
+            return;
         case ITEM_VSYNC:
             gPortConfig.vsync = !gPortConfig.vsync;
             break;
@@ -800,6 +818,15 @@ static void Change(int item, int dir) {
             gPortConfig.masterVolume = SDL_clamp(gPortConfig.masterVolume + dir * 10, 0, 100);
             break;
     }
+    PortVideoApplyConfig();
+}
+
+/* A on the resolution row: the browsed resolution takes effect */
+static void ConfirmFsRes(void) {
+    int i = sFsPending >= 0 ? sFsPending : ModeIndex();
+    gPortConfig.fullscreenWidth = i ? sModeW[i - 1] : 0;
+    gPortConfig.fullscreenHeight = i ? sModeH[i - 1] : 0;
+    sFsPending = -1;
     PortVideoApplyConfig();
 }
 
@@ -911,6 +938,7 @@ void PortUiTitleHint(void) {
 }
 
 static void Move(int dir) {
+    sFsPending = -1; /* leaving the row drops a resolution not applied */
     do {
         int first = PageFirst(), n = PageEnd() - first;
         sCursor = first + Wrap(sCursor - first + dir, n);
@@ -1014,6 +1042,8 @@ int PortUiHandleEvent(const void* p) {
             case SDLK_K:
                 if (sCursor == ITEM_CLOSE)
                     Close();
+                else if (sCursor == ITEM_FS_RES)
+                    ConfirmFsRes();
                 else
                     Change(sCursor, 1);
                 break;
@@ -1051,6 +1081,8 @@ int PortUiHandleEvent(const void* p) {
             case SDL_GAMEPAD_BUTTON_SOUTH:
                 if (sCursor == ITEM_CLOSE)
                     Close();
+                else if (sCursor == ITEM_FS_RES)
+                    ConfirmFsRes();
                 else
                     Change(sCursor, 1);
                 break;

@@ -9,7 +9,7 @@
 
 PortConfig gPortConfig = {
     PORT_VIEW_AUTO,     /* viewMode */
-    0,                  /* zoom: 0 = Enhanced, else the pixel scale */
+    2,                  /* zoom: x2, Enhanced */
     PORT_SCALE_INTEGER, /* scaleMode */
     PORT_FILTER_NEAREST, /* filter */
     0,                  /* fullscreen */
@@ -43,6 +43,7 @@ PortConfig gPortConfig = {
     0,                  /* ps2FastText (experimental) */
     0,                  /* hdHud: pending, forced off (see PortConfigLoad) */
     0,                  /* aspect: fill the window */
+    1,                  /* integerZoom */
     {
         { SDLK_X, SDLK_K },             /* A */
         { SDLK_Z, SDLK_J },             /* B */
@@ -67,7 +68,7 @@ PortConfig gPortConfig = {
     },
 };
 
-#define CONFIG_VERSION 7
+#define CONFIG_VERSION 8
 
 static int sConfigVersion;
 static char sDataPath[768];
@@ -86,7 +87,8 @@ typedef struct Key {
 static const Key sKeys[] = {
     { "config_version", &sConfigVersion, 0, 1000 },
     { "view_mode", &gPortConfig.viewMode, 0, PORT_VIEW_COUNT - 1 },
-    { "zoom", &gPortConfig.zoom, 0, 16 },
+    { "zoom", &gPortConfig.zoom, 1, PORT_ZOOM_LEVELS },
+    { "integer_zoom", &gPortConfig.integerZoom, 0, 1 },
     { "scale_mode", &gPortConfig.scaleMode, 0, PORT_SCALE_COUNT - 1 },
     { "filter", &gPortConfig.filter, 0, PORT_FILTER_COUNT - 1 },
     { "fullscreen", &gPortConfig.fullscreen, 0, 1 },
@@ -114,7 +116,7 @@ static const Key sKeys[] = {
     { "ps2_difficulty", &gPortConfig.ps2Difficulty, 0, 2 },
     { "ps2_fast_text", &gPortConfig.ps2FastText, 0, 1 },
     { "hd_hud", &gPortConfig.hdHud, 0, 1 },
-    { "aspect", &gPortConfig.aspect, 0, 2 },
+    { "aspect", &gPortConfig.aspect, 0, 4 },
 #define BIND(name, act)                                                           { "kb_" name, &gPortConfig.keys[act][0], 0, 0x7FFFFFFF },                     { "kb_" name "_2", &gPortConfig.keys[act][1], 0, 0x7FFFFFFF },                { "pad_" name, &gPortConfig.pad[act], -1, SDL_GAMEPAD_BUTTON_COUNT - 1 }
     BIND("a", PORT_ACT_A), BIND("b", PORT_ACT_B), BIND("l", PORT_ACT_L), BIND("r", PORT_ACT_R),
     BIND("start", PORT_ACT_START), BIND("select", PORT_ACT_SELECT), BIND("up", PORT_ACT_UP),
@@ -197,56 +199,48 @@ static int ZoomFast(void) {
 
 
 
-/* Zoom (Auto view): the whole-number pixel scale xN, from x1 (the most
-   world, a large canvas: demanding) to the GBA's own 160 lines (Original,
-   x6 at 1080p). 0 is Enhanced, the default: about 270 lines (x4 at 1080p),
-   never slower than full speed. */
-int PortConfigZoomEnhanced(void) {
-    return SDL_max((sZoomOutH + 135) / 270, ZoomFast()); /* x4 at 1080p */
+/* Zoom (Auto view): level N shows N times the GBA's view (160*N lines):
+   x1 is the cartridge's own picture at full height, x2 (Enhanced) the
+   default. With Integer scale on, the pixel scale is rounded down to a
+   whole number (sharp, may show a little more); off, it is exact. */
+float PortConfigZoomScaleF(int level) {
+    float f = sZoomOutH / (float)(GBA_SCREEN_H * SDL_clamp(level, 1, PORT_ZOOM_LEVELS));
+    float least = (float)ZoomLeast();
+    if (gPortConfig.integerZoom)
+        f = SDL_floorf(f);
+    return SDL_max(f, SDL_max(least, 1.0f));
 }
 
-int PortConfigZoomOriginal(void) {
-    return SDL_max(sZoomOutH / GBA_SCREEN_H, 1);
+int PortConfigZoomScale(int level) {
+    return (int)PortConfigZoomScaleF(level);
 }
 
-int PortConfigZoomMin(void) {
-    return ZoomLeast();
+int PortConfigZoomExact(int level) {
+    return sZoomOutH % (GBA_SCREEN_H * SDL_clamp(level, 1, PORT_ZOOM_LEVELS)) == 0;
 }
 
-int PortConfigZoomScale(int zoom) {
-    if (zoom <= 0)
-        return PortConfigZoomEnhanced();
-    return SDL_clamp(zoom, PortConfigZoomMin(), SDL_max(PortConfigZoomOriginal(), PortConfigZoomMin()));
+int PortConfigZoomHeavy(int level) {
+    float f = PortConfigZoomScaleF(level);
+    return (sZoomOutW / f) * (sZoomOutH / f) > ZOOM_PIXEL_BUDGET;
 }
 
-int PortConfigZoomHeavy(int zoom) {
-    return PortConfigZoomScale(zoom) < ZoomFast();
-}
+float gPortAutoScaleF; /* the Auto view's exact pixel scale (may be fractional) */
 
 void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale) {
-    int s;
+    float f;
+    extern int PortUiActive(void);
 
     sZoomOutW = outW;
     sZoomOutH = outH;
     /* the options menu is drawn on the canvas: while it is open the canvas
        keeps the Enhanced size, so its text stays readable at any zoom */
-    {
-        extern int PortUiActive(void);
-        s = PortConfigZoomScale(PortUiActive() ? 0 : gPortConfig.zoom);
-    }
-
-    if (s < 1)
-        s = 1;
-    /* Grow the scale until the canvas fits the renderer's limits. */
-    while ((outW + s - 1) / s > PORT_MAX_W || (outH + s - 1) / s > PORT_MAX_H)
-        s++;
-    *w = (outW + s - 1) / s;
-    *h = (outH + s - 1) / s;
-    if (*w < GBA_SCREEN_W)
-        *w = GBA_SCREEN_W;
-    if (*h < GBA_SCREEN_H)
-        *h = GBA_SCREEN_H;
-    *scale = s;
+    f = PortConfigZoomScaleF(PortUiActive() ? 2 : gPortConfig.zoom);
+    while (SDL_ceilf(outW / f) > PORT_MAX_W || SDL_ceilf(outH / f) > PORT_MAX_H)
+        f += 0.25f;
+    *w = SDL_max((int)SDL_ceilf(outW / f), GBA_SCREEN_W);
+    *h = SDL_max((int)SDL_ceilf(outH / f), GBA_SCREEN_H);
+    *scale = SDL_max((int)f, 1);
+    gPortAutoScaleF = f;
 }
 
 void PortConfigLoad(void) {
@@ -288,8 +282,10 @@ void PortConfigLoad(void) {
     if (sConfigVersion < 6)
         gPortConfig.aspect = 0;
     /* ...and from the named zoom steps to Enhanced (0) or a scale (xN) */
-    if (sConfigVersion < 7)
-        gPortConfig.zoom = 0; /* Enhanced */
+    if (sConfigVersion < 8) {
+        gPortConfig.zoom = 2; /* x2, Enhanced */
+        gPortConfig.integerZoom = 1;
+    }
     if (sConfigVersion < 4 && gPortConfig.fullscreenWidth == 1920 && gPortConfig.fullscreenHeight == 1080) {
         gPortConfig.fullscreenWidth = 0;
         gPortConfig.fullscreenHeight = 0;

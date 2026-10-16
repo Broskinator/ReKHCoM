@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## v1.7 — 2026-10-16
+
+- Zoom x1 to x6: how much world you see, as a multiple of the GBA's view
+  (x1 Original GBA, x2 Enhanced, the default). The options show which levels
+  are an exact whole-number scale on your screen and which are demanding.
+- New option, Integer scale (on by default): sharp whole-number pixels; off
+  gives the exact in-between zooms.
+- Aspect ratio: Force 21:9 and Force 32:9, an ultrawide picture in any window.
+- Fullscreen resolution: browse with left/right, press A to apply.
+- Menus: their side extensions no longer blink while a menu slides in or out
+  (the margins follow the sprites of the same frame).
+- The options menu is drawn above the battle HUD and the menu layers.
+
 ## v1.6.7 — 2026-10-15
 
 - Zoom is the whole-number pixel scale, every step from x1 (the most world) to

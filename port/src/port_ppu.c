@@ -150,20 +150,54 @@ static unsigned sScreenBgMask;
 static int sBgSplit[4]; /* PortBgSplit, below */
 static int sBgSplitBands[4]; /* repeat authored ornamental tiles in the split gap */
 static int sBgClip[4]; /* PortBgClip: UI layer kept to the GBA columns */
-static const uint16_t* sMenuHeaderFrame;
-static const ObjTiles* sMenuHeaderTiles;
-static const ObjPalette* sMenuHeaderPalette;
 typedef struct MenuBandSource {
     const uint16_t* frame;
     const ObjTiles* tiles;
     const ObjPalette* palette;
     int y;
 } MenuBandSource;
-static MenuBandSource sMenuBands[2];
-static const uint16_t* sMenuTabFrame;
-static const ObjTiles* sMenuTabTiles;
-static const ObjPalette* sMenuTabPalette;
-static int sMenuTabBg[2] = {-1, -1}, sMenuTabX[2], sMenuTabY[2];
+/* The menu assets the margins carry on (header, bands, tabs). The game sets
+   them while it draws a frame, but that frame's sprites reach the screen
+   only after the next VBlank: the margins use the values latched with them
+   (PortMenuLatch), so they never run a frame ahead of the picture (the
+   extensions blinked while a menu slid in or out). */
+typedef struct MenuSources {
+    const uint16_t* headerFrame;
+    const ObjTiles* headerTiles;
+    const ObjPalette* headerPalette;
+    MenuBandSource bands[2];
+    const uint16_t* tabFrame;
+    const ObjTiles* tabTiles;
+    const ObjPalette* tabPalette;
+    int tabBg[2], tabX[2], tabY[2];
+    int headerX, headerDrawn;
+} MenuSources;
+static MenuSources sMenuShown = { .tabBg = { -1, -1 } }, sMenuPend = { .tabBg = { -1, -1 } };
+#define sMenuHeaderFrame sMenuShown.headerFrame
+#define sMenuHeaderTiles sMenuShown.headerTiles
+#define sMenuHeaderPalette sMenuShown.headerPalette
+#define sMenuBands sMenuShown.bands
+#define sMenuTabFrame sMenuShown.tabFrame
+#define sMenuTabTiles sMenuShown.tabTiles
+#define sMenuTabPalette sMenuShown.tabPalette
+#define sMenuTabBg sMenuShown.tabBg
+#define sMenuTabX sMenuShown.tabX
+#define sMenuTabY sMenuShown.tabY
+
+/* VBlank: the sprites drawn this frame go on screen; so do their sources */
+static uint32_t sMenuModeStart, sMenuHeaderMoved;
+void PortMenuLatch(void) {
+    if (sMenuPend.headerX != sMenuShown.headerX || sMenuPend.headerDrawn != sMenuShown.headerDrawn)
+        sMenuHeaderMoved = PortFrameCount();
+    sMenuShown = sMenuPend;
+    sMenuPend.headerDrawn = 0;
+}
+
+/* a menu sliding in (its first frames) or out (its header moving) */
+int PortMenuSliding(void) {
+    uint32_t now = PortFrameCount();
+    return now - sMenuModeStart < 45 || now - sMenuHeaderMoved < 8;
+}
 static int sSceneNarrow, sNarrowWanted, sNarrowWait; /* PortSceneNarrow, below */
 static int sSpotlight;
 void PortSetSpotlight(int active) { sSpotlight = active; }
@@ -188,16 +222,8 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(&sNarrowWanted, sizeof(sNarrowWanted));
     visit(&sNarrowWait, sizeof(sNarrowWait));
     visit(&sSpotlight, sizeof(sSpotlight));
-    visit(&sMenuHeaderFrame, sizeof(sMenuHeaderFrame));
-    visit(&sMenuHeaderTiles, sizeof(sMenuHeaderTiles));
-    visit(&sMenuHeaderPalette, sizeof(sMenuHeaderPalette));
-    visit(sMenuBands, sizeof(sMenuBands));
-    visit(&sMenuTabFrame, sizeof(sMenuTabFrame));
-    visit(&sMenuTabTiles, sizeof(sMenuTabTiles));
-    visit(&sMenuTabPalette, sizeof(sMenuTabPalette));
-    visit(sMenuTabBg, sizeof(sMenuTabBg));
-    visit(sMenuTabX, sizeof(sMenuTabX));
-    visit(sMenuTabY, sizeof(sMenuTabY));
+    visit(&sMenuShown, sizeof(sMenuShown));
+    visit(&sMenuPend, sizeof(sMenuPend));
 }
 
 void PortSetBgShiftX(int bg, int shift) {
@@ -1977,21 +2003,23 @@ void PortPpuVBlankLines(void) {
  */
 void PortMenuTabBg(int side, int bg, int x, int y) {
     int i = side > 0;
-    sMenuTabBg[i] = bg; sMenuTabX[i] = x; sMenuTabY[i] = y;
-    sMenuTabFrame = NULL;
+    sMenuPend.tabBg[i] = bg; sMenuPend.tabX[i] = x; sMenuPend.tabY[i] = y;
+    sMenuPend.tabFrame = NULL;
 }
 void PortMenuTabSprite(void* frame, void* tiles, void* palette) {
-    sMenuTabFrame = frame; sMenuTabTiles = tiles; sMenuTabPalette = palette;
+    sMenuPend.tabFrame = frame; sMenuPend.tabTiles = tiles; sMenuPend.tabPalette = palette;
 }
 
 void PortMenuHeaderSource(void* frame, void* tiles, void* palette) {
-    sMenuHeaderFrame = frame;
-    sMenuHeaderTiles = tiles;
-    sMenuHeaderPalette = palette;
+    sMenuPend.headerFrame = frame;
+    sMenuPend.headerTiles = tiles;
+    sMenuPend.headerPalette = palette;
     if (!frame) {
-        memset(sMenuBands, 0, sizeof(sMenuBands));
-        sMenuTabFrame = NULL;
-        sMenuTabBg[0] = sMenuTabBg[1] = -1;
+        memset(sMenuPend.bands, 0, sizeof(sMenuPend.bands));
+        sMenuPend.tabFrame = NULL;
+        sMenuPend.tabBg[0] = sMenuPend.tabBg[1] = -1;
+        sMenuShown = sMenuPend; /* a new mode: nothing of the old one stays */
+        sMenuModeStart = PortFrameCount();
     }
 }
 
@@ -2160,12 +2188,9 @@ static int HeaderOnScreen(void) {
    the margin travels with it: the margin shows the sprite's own pixels
    where it reaches past the picture's edge, and the band only to its left,
    as if the screen had always been that wide. */
-static int sHeaderX;
-static uint32_t sHeaderDrawn = ~0u;
-
 void PortMenuHeaderAt(int x) {
-    sHeaderX = x;
-    sHeaderDrawn = PortFrameCount();
+    sMenuPend.headerX = x;
+    sMenuPend.headerDrawn = 1;
 }
 
 static int HeaderLeft(void) {
@@ -2184,9 +2209,9 @@ static int HeaderLeft(void) {
 
 uint32_t PortMenuHeaderPixelAt(int y, int d) {
     int c = -1 - d, s;
-    if (!sMenuHeaderFrame || PortFrameCount() - sHeaderDrawn > 1)
+    if (!sMenuHeaderFrame || !sMenuShown.headerDrawn)
         return PortMenuHeaderPixel(y, d);
-    s = c - sHeaderX - HeaderLeft();
+    s = c - sMenuShown.headerX - HeaderLeft();
     if (s >= 0)
         return MenuSpritePixel(sMenuHeaderFrame, sMenuHeaderTiles, sMenuHeaderPalette, y, 0, s);
     return HeaderPixelRaw(y, d);
@@ -2215,10 +2240,10 @@ static uint32_t HeaderPixelRaw(int y, int phase) {
 
 void PortMenuBandSource(int band, int y, void* frame, void* tiles, void* palette) {
     if ((unsigned)band >= 2) return;
-    sMenuBands[band].frame = frame;
-    sMenuBands[band].tiles = tiles;
-    sMenuBands[band].palette = palette;
-    sMenuBands[band].y = y;
+    sMenuPend.bands[band].frame = frame;
+    sMenuPend.bands[band].tiles = tiles;
+    sMenuPend.bands[band].palette = palette;
+    sMenuPend.bands[band].y = y;
 }
 
 uint32_t PortMenuBandPixel(int y, int phase) {

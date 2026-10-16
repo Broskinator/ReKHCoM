@@ -236,6 +236,15 @@ static SDL_Rect AspectRect(int outW, int outH) {
         r.w = (int)(outH * limit + 0.5f);
         r.x = (outW - r.w) / 2;
     }
+    /* Force 21:9 / 32:9: an ultrawide picture in any window (bands above
+       and below when the window is narrower) */
+    if (gPortConfig.aspect >= 3 && outW > 0) {
+        float force = gPortConfig.aspect == 3 ? 21.0f / 9.0f : 32.0f / 9.0f;
+        if (outW < (int)(outH * force + 0.5f)) {
+            r.h = (int)(outW / force + 0.5f);
+            r.y = (outH - r.h) / 2;
+        }
+    }
     return r;
 }
 
@@ -268,7 +277,11 @@ static void UpdateResolution(void) {
     } else {
         if (!SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH) || outW <= 0 || outH <= 0)
             return;
-        outW = AspectRect(outW, outH).w;
+        {
+            SDL_Rect area = AspectRect(outW, outH);
+            outW = area.w;
+            outH = area.h;
+        }
         PortConfigAutoView(outW, outH, &w, &h, &sAutoScale);
     }
     /* screen layer: the 160 GBA lines at the window's height */
@@ -325,9 +338,12 @@ static void OutputRect(int outW, int outH, SDL_FRect* dst) {
         return;
     }
     if (sAutoScale > 0) {
-        /* Whole-number scale; the canvas may overhang the window by < 1 pixel. */
-        dst->w = sw * sAutoScale;
-        dst->h = sh * sAutoScale;
+        /* the Auto view's scale (whole with Integer scale on); the canvas
+           may overhang the window by < 1 pixel */
+        extern float gPortAutoScaleF;
+        float f = gPortAutoScaleF > 0 ? gPortAutoScaleF : (float)sAutoScale;
+        dst->w = SDL_roundf(sw * f);
+        dst->h = SDL_roundf(sh * f);
         dst->x = (float)((outW - (int)dst->w) / 2);
         dst->y = (float)((outH - (int)dst->h) / 2);
         return;
@@ -376,9 +392,15 @@ void PortHdTextDraw(SDL_Renderer* renderer, int hudLayer, float originX, float o
    (PortSideStyle): its edge columns stretched (default), its background
    colour, or its paper texture repeated mirrored from clean bands. */
 #define SIDE_STRIP 16
-static SDL_Texture* sMenuSideTexture;
-static SDL_Texture* sFadeSideTexture;
-static int sFadeSideWidth;
+/* one texture per side: both margins are drawn in the same frame, and a
+   shared texture let one side show the other's (or last frame's) pixels */
+static SDL_Texture* sMenuSideTex[2];
+static SDL_Texture* sFadeSideTex[2];
+static int sFadeSideW[2], sMenuSideW[2];
+#define sMenuSideTexture sMenuSideTex[side > 0]
+#define sFadeSideTexture sFadeSideTex[side > 0]
+#define sFadeSideWidth sFadeSideW[side > 0]
+#define sMenuSideWidth sMenuSideW[side > 0]
 static int sSideStyle; /* engine.h: stretch, colour, texture, blur, menu, pattern */
 static int sMenuPanelSide = -1;
 void PortMenuPanelSide(int side) { sMenuPanelSide = side; }
@@ -420,6 +442,8 @@ static void RenderMarginColumns(SDL_Texture* tex, int fw, int side, float picX, 
         SDL_RenderTexture(sRenderer, tex, &src, &d);
     }
 }
+
+extern int PortMenuSliding(void);
 
 static void SideBar(int sx, int sy, int side, float y, float scale, float x0, float x1, int edgeX) {
     float w = SIDE_STRIP * scale;
@@ -495,7 +519,6 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
            texture is sampled exactly like the picture, so every row and
            column lines up with it pixel for pixel. */
         static uint32_t strip[PORT_MAX_W * GBA_SCREEN_H];
-        static int sMenuSideWidth;
         int fw = SDL_clamp((int)SDL_ceilf((x1 - x0) / scale) + 1, 1, PORT_MAX_W);
         int yy, xx;
         if (sMenuSideWidth != fw) {
@@ -516,7 +539,11 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                column, so the badge's letters are not repeated. */
             uint32_t common = 0;
             int best = 0, k2, plain = 0, badge;
-            const uint32_t* bgRow = &gPortMenuBackground[(sy + yy) * gPortScreen.width];
+            /* the world map's bands come from the picture as shown (sprites,
+               fades and all, the same frame), so the margins never lag a
+               frame behind them while the menu slides */
+            const uint32_t* bgRow = sSideStyle == 5 ? &sComposite[(sy + yy) * gPortScreen.width]
+                                                    : &gPortMenuBackground[(sy + yy) * gPortScreen.width];
             const uint32_t* own = &bgRow[sx];
             const uint32_t* other = &bgRow[side < 0 ? sx + GBA_SCREEN_W - 16 : sx - (GBA_SCREEN_W - 16)];
             if (sSideStyle == 5)
@@ -536,7 +563,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                it slides in over the bands): the row carries it on plainly */
             badge = 0;
             if (sSideStyle == 5 && side < 0) { /* the floor badge sits on the left */
-                uint32_t adj = gPortFrame[(sy + yy) * gPortScreen.width + edgeX];
+                uint32_t adj = sComposite[(sy + yy) * gPortScreen.width + edgeX];
                 int adjShared = 0;
                 for (k2 = 0; k2 < 16; k2++) adjShared |= other[k2] == adj;
                 if (!adjShared) {
@@ -551,6 +578,10 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                     plain = xx + per >= 16;
                 }
             }
+            uint32_t shownEdge = gPortFrame[(sy + yy) * gPortScreen.width + edgeX];
+            /* the edge's background hidden this frame (rows of plain colour
+               in the picture where the background has something else) */
+            int hidden = sSideStyle == 4 && PortMenuSliding() && shownEdge != bgRow[edgeX];
             for (xx = 0; xx < fw; xx++) {
                 int d = side < 0 ? fw - 1 - xx : xx, sample = edgeX;
                 uint32_t* px = &strip[yy * fw + xx];
@@ -564,11 +595,11 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                    its floor badge and text retain the plain edge fill. */
                 if (sSideStyle == 5 && (best || plain))
                     sample = side < 0 ? sx + ((-1 - d) & 15) : sx + (d & 15);
-                *px = gPortMenuBackground[(sy + yy) * gPortScreen.width + sample];
+                *px = bgRow[sample];
                 /* the badge's rows: the edge as it shows, sprites included
                    (while it slides in, its lower rows are a sprite) */
                 if (badge)
-                    *px = gPortFrame[(sy + yy) * gPortScreen.width + edgeX];
+                    *px = sComposite[(sy + yy) * gPortScreen.width + edgeX];
                 if (sSideStyle == 5 && best) {
                     int shared = 0;
                     for (k2 = 0; k2 < 16; k2++) shared |= other[k2] == *px;
@@ -578,7 +609,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                 /* the band sprites pass behind the floor badge (a row whose
                    edges share nothing): while they slide in, the badge's
                    continuation stays in front of them, as in the picture */
-                if (sSideStyle == 5 && !badge && (best || plain)) {
+                if (0 && sSideStyle == 5 && !badge && (best || plain)) { /* the composite has the bands */
                     uint32_t bandColor = PortMenuBandPixel(yy, side < 0 ? (-1 - d) & 15 : d & 15);
                     if (bandColor) *px = bandColor;
                 }
@@ -599,10 +630,15 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                     if (k3 >= 64 && c != gPortMenuBackground[(sy + yy) * gPortScreen.width + edgeX])
                         *px = c;
                 }
-                if (sSideStyle == 4 && side == sMenuPanelSide && yy >= 16 && yy < 32) {
+                if (sSideStyle == 4 && side == sMenuPanelSide && yy >= 16 && yy < 32 && !hidden) {
                     uint32_t tab = PortMenuTabPixel(yy, d, side);
                     if (tab) *px = tab;
                 }
+                /* while a menu slides in or out, a window or the sliding art
+                   hides the background at the picture's edge: the margin
+                   carries on what the edge shows, never what is not there yet */
+                if (hidden && !(yy < 16 && side < 0 && PortMenuHeaderPixelAt(yy, d)))
+                    *px = shownEdge;
             }
         }
         /* The tab strip: a line between rows of the panel's own colour is
@@ -1175,7 +1211,7 @@ static void Present(void) {
         /* Aspect ratio option: draw into the chosen rectangle; the rest of
            the window stays black */
         SDL_Rect area = AspectRect(outW, outH);
-        SDL_SetRenderViewport(sRenderer, area.x || area.w != outW ? &area : NULL);
+        SDL_SetRenderViewport(sRenderer, area.x || area.y || area.w != outW || area.h != outH ? &area : NULL);
         outW = area.w;
         outH = area.h;
     }
@@ -1335,7 +1371,8 @@ static void Present(void) {
     }
     if (!PortUiActive())
         PortHdTextDraw(sRenderer, 0, worldX, worldY, worldScale);
-    if (PortPpuOverlayActive() && sOverlayScale > 0) {
+    /* the options menu covers everything: no layer is drawn over it */
+    if (PortPpuOverlayActive() && sOverlayScale > 0 && !PortUiActive()) {
         SDL_FRect od;
         if (sOverlayTex == NULL || sOverlayTexW != gPortOverlayW) {
             if (sOverlayTex != NULL)
@@ -1355,7 +1392,7 @@ static void Present(void) {
         if (!PortUiActive())
             PortHdTextDraw(sRenderer, 2, od.x, od.y, sOverlayScale);
     }
-    if (PortPpuHudActive()) {
+    if (PortPpuHudActive() && !PortUiActive()) {
         SDL_FRect hd;
         if (sHudTexture == NULL || sHudTexW != gPortHudW || sHudTexH != gPortHudH) {
             if (sHudTexture != NULL)
@@ -1866,6 +1903,10 @@ static void VBlankCycle(void) {
         static int n;
         uint64_t p0 = SDL_GetPerformanceCounter();
         Present();
+        {
+            extern void PortMenuLatch(void);
+            PortMenuLatch(); /* this frame's menu sprites show from the next one */
+        }
         if (SDL_getenv("KHCOM_PROFILE")) {
             presSum += SDL_GetPerformanceCounter() - p0;
             ppuSum += sPpuTicks;

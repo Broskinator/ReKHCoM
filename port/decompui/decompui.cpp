@@ -46,7 +46,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.6.7"
+#define REKHCOM_VERSION "v1.7"
 #endif
 
 static bool sSpanish;
@@ -222,14 +222,14 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
-    { "config_version", 7 }, { "view_mode", 4 },   { "zoom", 0 },         { "scale_mode", 0 },
+    { "config_version", 8 }, { "view_mode", 4 },   { "zoom", 2 },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
     { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 },
-    { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 },
+    { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 1 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
     { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
@@ -293,9 +293,10 @@ static void LoadIni() {
         sIni["aspect"] = 0; /* fill the window */
         sIni["config_version"] = 6;
     }
-    if (sIni["config_version"] < 7) {
-        sIni["zoom"] = 0; /* Enhanced; zoom is now the pixel scale */
-        sIni["config_version"] = 7;
+    if (sIni["config_version"] < 8) {
+        sIni["zoom"] = 2; /* x2 Enhanced: zoom is now the view as a multiple of the GBA's */
+        sIni["integer_zoom"] = 1;
+        sIni["config_version"] = 8;
     }
 }
 
@@ -1029,13 +1030,11 @@ static void PageGraphics() {
     const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
                             T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
                             T("Auto (llenar ventana)", "Auto (fill window)") };
-    /* zoom: the whole-number scales this monitor offers, x1 .. Original
-       (the GBA's 160 lines); Enhanced (x3 at 1080p) is the default and is
-       stored as 0. Scales below full speed are marked demanding. */
-    static std::string zoomLabels[16];
-    static int zoomScales[16];
-    const char* zooms[16];
-    int zoomCount = 0, zoomEnh = 3;
+    /* zoom: x1..x6, the view as a multiple of the GBA's (x1 Original, x2
+       Enhanced, the default); "integer" where the scale is a whole number
+       on this monitor, "demanding" where it is heavy for 60 fps */
+    static std::string zoomLabels[6];
+    const char* zooms[6];
     {
         DEVMODEW cur;
         ZeroMemory(&cur, sizeof(cur));
@@ -1043,20 +1042,15 @@ static void PageGraphics() {
         EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &cur);
         int W = (int)cur.dmPelsWidth, H = (int)cur.dmPelsHeight;
         if (W <= 0 || H <= 0) { W = 1920; H = 1080; }
-        int least = std::max(std::max((W + 2559) / 2560, (H + 1439) / 1440), 1);
-        int fast = least;
-        while (((W + fast - 1) / fast) * ((H + fast - 1) / fast) > 640 * 360 * 5 / 4)
-            fast++; /* full speed (port_config.c) */
-        int orig = std::max(H / 160, least);
-        zoomEnh = std::max((H + 135) / 270, fast); /* x4 at 1080p */
-        for (int sc = least; sc <= orig && zoomCount < 16; sc++) {
-            zoomScales[zoomCount] = sc;
-            zoomLabels[zoomCount] = "x" + std::to_string(sc) +
-                                    (sc == orig ? T("  Original", "  Original")
-                                     : sc == zoomEnh ? T("  Mejorado", "  Enhanced") : "") +
-                                    (sc < fast ? T("  (exigente)", "  (demanding)") : "");
-            zooms[zoomCount] = zoomLabels[zoomCount].c_str();
-            zoomCount++;
+        for (int z = 1; z <= 6; z++) {
+            float f = H / (160.0f * z);
+            if (Ini("integer_zoom")) f = std::max(1.0f, (float)(int)f);
+            bool exact = H % (160 * z) == 0;
+            bool heavy = (W / f) * (H / f) > 640 * 360 * 5 / 4;
+            zoomLabels[z - 1] = "x" + std::to_string(z) +
+                                (z == 1 ? T("  Original (GBA)", "  Original (GBA)") : z == 2 ? T("  Mejorado", "  Enhanced") : "") +
+                                (exact ? T("  (entera)", "  (integer)") : "") + (heavy ? T("  (exigente)", "  (demanding)") : "");
+            zooms[z - 1] = zoomLabels[z - 1].c_str();
         }
     }
     const char* scales[] = { T("Entero", "Integer"), T("Ajustar", "Fit"), T("Estirar", "Stretch") };
@@ -1074,26 +1068,27 @@ static void PageGraphics() {
                                               "Auto fills the window at a whole-number pixel scale."),
                         Ini("view_mode"), 5, views);
     {
-        const char* aspects[] = { T("Llenar ventana", "Fill window"), "16:9", "21:9" };
+        const char* aspects[] = { T("Llenar ventana", "Fill window"), "16:9", "21:9", T("Forzar 21:9", "Force 21:9"),
+                                  T("Forzar 32:9", "Force 32:9") };
         changed |= CycleRow(T("Relación de aspecto", "Aspect ratio"),
                             T("En monitores más anchos, 16:9 o 21:9 dejan bandas negras a los lados.",
                               "On wider monitors, 16:9 or 21:9 leave black bars at the sides."),
-                            Ini("aspect"), 3, aspects);
+                            Ini("aspect"), 5, aspects);
     }
     {
-        int want = Ini("zoom") > 0 ? Ini("zoom") : zoomEnh, sel = 0;
-        for (int k = 0; k < zoomCount; k++)
-            if (zoomScales[k] == want)
-                sel = k;
-        if (zoomCount > 0 &&
-            CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"),
-                     T("Escala de píxel entera: más baja muestra más mundo y exige más al PC.",
-                       "Whole-number pixel scale: lower shows more of the world and asks more of the PC."),
-                     sel, zoomCount, zooms)) {
-            Ini("zoom") = zoomScales[sel] == zoomEnh ? 0 : zoomScales[sel];
+        int sel = std::clamp(Ini("zoom"), 1, 6) - 1;
+        if (CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"),
+                     T("Cuánto mundo se ve: x1 es la vista de la GBA; más alto muestra más y exige más al PC.",
+                       "How much world you see: x1 is the GBA's view; higher shows more and asks more of the PC."),
+                     sel, 6, zooms)) {
+            Ini("zoom") = sel + 1;
             changed = true;
         }
     }
+    changed |= CycleRow(T("Escala entera", "Integer scale"),
+                        T("Píxeles nítidos a escala entera (recomendado). Apágala para los zoom intermedios exactos.",
+                          "Sharp pixels at whole-number scales (recommended). Turn off for exact in-between zooms."),
+                        Ini("integer_zoom"), 2, onoff);
     changed |= CycleRow(T("Escalado", "Scaling"), nullptr, Ini("scale_mode"), 3, scales);
 #ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* filter: an internal setting */
     changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);
