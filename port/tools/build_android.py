@@ -10,9 +10,40 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import struct
 import urllib.request
 
 ROOT=Path(__file__).resolve().parents[2]
+
+
+def verify_fixed_symbols(path):
+    """Absolute cartridge pointers must not receive the ELF load bias.
+
+    Android API24's loader rebases SHN_ABS dynamic relocations. Local binding
+    resolves these at link time; reject a library that reintroduces them.
+    """
+    data=path.read_bytes()
+    if data[:6]!=b'\x7fELF\x01\x01':
+        raise ValueError(f'Expected little-endian ELF32: {path}')
+    start=struct.unpack_from('<I',data,32)[0]
+    stride,count=struct.unpack_from('<HH',data,46)
+    sections=[struct.unpack_from('<10I',data,start+i*stride) for i in range(count)]
+    bad=[]
+    for section in sections:
+        if section[1] not in (4,9):continue # SHT_RELA / SHT_REL
+        symbols=sections[section[6]]
+        strings=sections[symbols[6]]
+        for at in range(section[4],section[4]+section[5],section[9]):
+            info=struct.unpack_from('<I',data,at+4)[0]
+            index=info>>8
+            if not index:continue
+            symbol=symbols[4]+index*symbols[9]
+            name=struct.unpack_from('<I',data,symbol)[0]
+            shndx=struct.unpack_from('<H',data,symbol+14)[0]
+            if shndx==0xfff1:
+                begin=strings[4]+name;end=data.index(b'\0',begin)
+                bad.append(data[begin:end].decode())
+    if bad:raise ValueError('Rebased GBA absolute symbols: '+', '.join(sorted(set(bad))[:12]))
 
 
 def main():
@@ -43,6 +74,8 @@ def main():
          '-DANDROID_PLATFORM=android-21',f'-DSDL_SOURCE_DIR={sdl}','-DCMAKE_BUILD_TYPE=Release',
          '-DREGIONS='+';'.join(args.regions)])
     run([ninja,'-C',native,'-j',args.jobs])
+    for region in args.regions:
+        verify_fixed_symbols(native/f'librekhcom_{region}.so')
     if args.native_only:return
     stage=ROOT/('build/android-app'+suffix);stage.mkdir(exist_ok=True)
     shutil.copytree(ROOT/'port/android/app',stage/'app',dirs_exist_ok=True)
@@ -95,4 +128,8 @@ android {
     digest=hashlib.sha256(target.read_bytes()).hexdigest()
     target.with_suffix('.apk.sha256').write_text(f'{digest}  {target.name}\n')
     (out/('android-build-manifest'+suffix+'.json')).write_text(json.dumps({'apk':target.name,'sha256':digest,'regions':args.regions,
-        'abi':args.abi,'version':'1.9-android-alpha1','d
+        'abi':args.abi,'version':'1.9-android-alpha1','debug_signed':True,'runtime_tested':False},indent=2))
+    print('Built (runtime verification still required):',target,digest)
+
+
+if __name__=='__main__':main()

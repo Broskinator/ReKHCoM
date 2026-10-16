@@ -20,6 +20,10 @@ void PortAndroidTouchClear(void) { SDL_memset(fingers,0,sizeof(fingers)); }
 void PortAndroidTouchEvent(const void* event) {
     const SDL_Event* e=event;
     int i, freeSlot=-1;
+    if(e->type==SDL_EVENT_RENDER_DEVICE_RESET) {
+        for(i=0;i<2;i++) { SDL_DestroyTexture(icons[i]); icons[i]=NULL; }
+        return;
+    }
     if(e->type==SDL_EVENT_WINDOW_FOCUS_LOST || e->type==SDL_EVENT_WILL_ENTER_BACKGROUND) {
         PortAndroidTouchClear(); return;
     }

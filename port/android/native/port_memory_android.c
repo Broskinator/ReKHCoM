@@ -168,10 +168,11 @@ void PortSramSyncIfDirty(void) {
     f = fopen(tmp, "wb");
     if (f == NULL)
         return;
-    if (fwrite(sram, 1, GBA_SRAM_SIZE, f) == GBA_SRAM_SIZE && fclose(f) == 0) {
+    /* Always close exactly once, including failed writes / failed close. */
+    int written = fwrite(sram, 1, GBA_SRAM_SIZE, f) == GBA_SRAM_SIZE;
+    int closed = fclose(f) == 0;
+    if (written && closed) {
         if (rename(tmp, PortConfigPath(BankName(sSramBank))) == 0)
             memcpy(sSramShadow, sram, GBA_SRAM_SIZE);
-    } else {
-        fclose(f);
     }
 }

@@ -1,3 +1,23 @@
+## Retoma: Android en ejecución (16/10/2026)
+
+- APK x86 de prueba instalada en emulador oficial API24. Launcher SAF importó
+  ROM EU desde Archivos; el juego alcanza selección de idioma y título, y los
+  botones táctiles respondieron. No confundir con validación de ARM en móvil.
+- Primer arranque reprodujo SIGSEGV en SoundMainBTM: Android rebasa SHN_ABS,
+  incluido gNumMusicPlayers=26; el bucle sale de tabla. -Bsymbolic resuelve
+  localmente estas referencias; tras corregirlo el título arranca. Verificador
+  ELF en build_android.py rechaza futuras relocaciones a símbolos absolutos.
+- AVD aislado en D:/ReKHCoM-build/android-avd (C: sin espacio suficiente).
+  Scripts/logs locales build/start_android_emulator.py, build/android_ui.py,
+  build/android-{first,second}-launch.log y capturas android-title.png.
+- Liberados 1.073.755.621 bytes de ZIPs ya extraídos y con hash oficial
+  verificado. Manifiesto build/android-archive-cleanup.json; ROM/saves intactos.
+- En prueba: fullscreen Android, recreación de iconos tras reinicio del renderer,
+  cierre único del archivo SRAM en errores (antes podía cerrarlo dos veces).
+- Pendientes PC: Barajas HD, regresión completa, rendimiento x1, cerrar v1.9.
+  Pendientes Android: campo/combate, lifecycle/SRAM, ARM real y alpha pública.
+  Stable v1.8.3 intacta. No publicar la APK como validada aún.
+
 # Trabajo activo — Android y rendimiento PC v1.9 (16/10/2026)
 
 - [x] v1.8.3 única stable publicada, tags previos conservados, README/capturas actuales.

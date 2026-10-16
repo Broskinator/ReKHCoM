@@ -32,7 +32,7 @@ public class LauncherActivity extends Activity {
         layout.setPadding(dp(24),dp(32),dp(24),dp(24));layout.setBackgroundColor(Color.rgb(17,22,32));
         scroll.addView(layout);setContentView(scroll);
         TextView title=new TextView(this);title.setText("ReKHCoM · Android alpha");title.setTextSize(26);title.setTextColor(Color.WHITE);layout.addView(title);
-        TextView info=new TextView(this);info.setText("Pruebas ARMv7 · Texto original · Sin ROM incluida\nInstala tu volcado europeo, americano o japonés.");info.setTextColor(Color.LTGRAY);info.setPadding(0,dp(12),0,dp(24));layout.addView(info);
+        TextView info=new TextView(this);info.setText("Pruebas Android · Texto original · Sin ROM incluida\nInstala tu volcado europeo, americano o japonés.");info.setTextColor(Color.LTGRAY);info.setPadding(0,dp(12),0,dp(24));layout.addView(info);
         region=spinner(layout,"Versión",new String[]{"Europa","América","Japón"});
         language=spinner(layout,"Idioma (Europa)",new String[]{"English","Français","Deutsch","Italiano","Español"});
         language.setSelection(4);

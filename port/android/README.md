@@ -1,7 +1,7 @@
 # Android — estudio del port (16/10/2026)
 
-Estado real: **los tres núcleos ARMv7 y la primera APK compilan; ejecución aún
-pendiente de verificar**. Windows v1.8.3 sigue siendo la única estable. El HTML
+Estado real: **los tres núcleos ARMv7 y la primera APK compilan; arranque y controles comprobados
+en emulador API24 x86; gameplay y ARM físico pendientes**. Windows v1.8.3 sigue siendo la única estable. El HTML
 es una maqueta; `native/touch_android.c` conecta los controles reales con SDL.
 No anunciar una alpha jugable hasta completar las pruebas de ejecución.
 
@@ -47,7 +47,7 @@ su salida y el overlay; no equivale a trasladar automáticamente todo el PPU a G
 
 SDL documenta SDK 35+, NDK r28c+ y API mínima 21 en su guía actual. Fijar versiones
 exactas del SDK/NDK/Gradle/SDL en el proyecto al implementarlo; mínimo propuesto
-Android 8/API26 para simplificar la primera alpha, pendiente de validar.
+API21 en la compilación actual; ejecución comprobada parcialmente en API24.
 
 ## Bloqueos comprobados en el código
 
@@ -164,3 +164,16 @@ el estado es «port en preparación», no «Android disponible».
 - [Android: Frame Pacing / Swappy](https://developer.android.com/games/sdk/frame-pacing)
 - [RetroArch: layout GBA landscape](https://github.com/libretro/common-overlays/blob/master/gamepads/gba/gba.cfg)
 - [RetroArch: overlays de entrada](https://docs.libretro.com/development/retroarch/input/overlay/)
+
+## Símbolos absolutos: regresión de arranque
+
+En API24, las referencias dinámicas SHN_ABS recibían la base ASLR de la .so.
+Esto transformaba el valor 26 de gNumMusicPlayers y acababa escribiendo fuera
+ de la tabla de audio (SIGSEGV en SoundMainBTM). Se enlaza con -Bsymbolic para
+resolver los símbolos del núcleo localmente. build_android.py inspecciona ELF32
+ y rechaza relocaciones que aún referencien símbolos absolutos. Mantener esa
+comprobación tanto para ARMv7 como para x86 de pruebas.
+
+Prueba local: importar B8CP.gba desde SAF, iniciar Jugar, selección de idioma,
+confirmar con A, START para alcanzar título. x86 solo prueba el backend común;
+no ofrece datos de rendimiento ARM ni garantiza compatibilidad en móviles.

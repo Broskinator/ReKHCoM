@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 project(ReKHCoMAndroid C CXX ASM)
-if(NOT ANDROID OR NOT ANDROID_ABI STREQUAL "armeabi-v7a")
-    message(FATAL_ERROR "The first Android backend requires armeabi-v7a; ARM64 needs a pointer-layout port")
+if(NOT ANDROID OR (NOT ANDROID_ABI STREQUAL "armeabi-v7a" AND NOT ANDROID_ABI STREQUAL "x86"))
+    message(FATAL_ERROR "The first Android backend requires a 32-bit ABI (armeabi-v7a or x86); ARM64 needs a pointer-layout port")
 endif()
 get_filename_component(ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." ABSOLUTE)
 if(NOT SDL_SOURCE_DIR)
@@ -57,5 +57,8 @@ foreach(region IN LISTS REGIONS)
     endforeach()
     target_include_directories(rekhcom_${region} PRIVATE "${ROOT}/port/include")
     target_link_libraries(rekhcom_${region} PRIVATE SDL3::SDL3 log android m)
-    target_link_options(rekhcom_${region} PRIVATE -Wl,-z,nostart-stop-gc)
+    # Cartridge symbols are SHN_ABS (hardware addresses and integer constants).
+    # Bind locally: older Android loaders otherwise add the shared-object bias
+    # to GLOB_DAT absolute symbols, e.g. the music-player count 26.
+    target_link_options(rekhcom_${region} PRIVATE -Wl,-z,nostart-stop-gc -Wl,-Bsymbolic)
 endforeach()

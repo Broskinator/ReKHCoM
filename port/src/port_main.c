@@ -145,6 +145,12 @@ void PortRaiseIrq(uint16_t flag) {
 /* Fullscreen uses the configured display mode (closest the monitor offers);
    0x0 selects the desktop resolution without a mode change. */
 static void ApplyWindowMode(void) {
+#ifdef __ANDROID__
+    /* Android has no desktop window mode; keep system bars out of the game. */
+    SDL_SetWindowFullscreen(sWindow, true);
+    SDL_SetRenderVSync(sRenderer, gPortConfig.vsync ? 1 : 0);
+    return;
+#endif
     SDL_DisplayID display = SDL_GetDisplayForWindow(sWindow);
     SDL_DisplayMode mode;
 
