@@ -1,3 +1,13 @@
+# Actualización — v1.8 (16/10/2026)
+
+Pedido final del usuario: publicar v1.8 (la propuesta v1.7.2 no se publicó).
+HD solo donde ya correspondía a diálogos/subtítulos/menús; números EXP originales
+siempre y en su posición anterior. Selector sin filas de enteras/escalado,
+anotaciones x6→íntegra x1 con aviso y x3→íntegra x2. x4 actual predeterminado.
+Incluye bordes cinematográficos de las ranuras 1/2/3. Ver RELEASE_V18.md.
+
+---
+
 # Coordinación vigente — 16/10/2026
 
 Claude sin créditos. El usuario autoriza a Codex a integrar el último trabajo,

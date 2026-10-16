@@ -1,3 +1,19 @@
+# Reparto vigente — v1.8 (16/10/2026)
+
+Codex integra y publica por pedido del usuario. Claude sin créditos.
+
+- [x] Ocultar «Solo escalas enteras» y «Escalado» en juego y launcher.
+- [x] Mantener todos los pasos; anotar x6 como íntegra x1 con aviso y x3 como íntegra x2.
+- [x] x4 actual predeterminado, también en ultrawide; migrar sin perder zoom explícito.
+- [x] EXP: números originales siempre; quitar HD solo de esos avisos. Posición original conservada.
+- [x] Reproducir ranuras 1/2/3 de v1.7.1 sin alterar los originales.
+- [x] Relleno de mapa exterior en ranuras 1/3: imagen original idéntica, 16:9 y 32:9.
+- [x] Mensajes sin BG: márgenes según fondo renderizado y sus fades.
+- [x] Matriz de 32 configuraciones y 3 avisos EXP; HD activado/desactivado idéntico, EU/US/JP y estados nuevos pasan.
+- [ ] Publicar v1.8 y preparar carpeta/acceso local.
+
+---
+
 # Reparto vigente — v1.7.1 (16/10/2026)
 
 Codex asume integración y publicación por pedido del usuario; Claude sin créditos.

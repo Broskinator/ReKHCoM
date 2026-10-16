@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## v1.8 — 2026-10-16
+
+- Simplify zoom options: remove the integer-only filter and the separate
+  scaling row from the launcher and in-game menu. Keep all zoom steps.
+- Mark x6 as the integer x1 reference with a warning, and x3 as integer x2.
+  Default to x4 at every supported output size; preserve explicit selections.
+- EXP gain, next-level and level-up notices always use their original
+  pixel-art numbers, even with HD text enabled. Keep HD dialogue, subtitles
+  and menus; preserve notice positions and experience/level calculations.
+- Extend uniform, opaque map padding beyond cinematic map boundaries. Never
+  stretch patterned scenery or change the original GBA image.
+- Sprite-only cinematic messages fill their margins from the current rendered
+  backdrop, including fades, instead of a previous scene's side treatment.
+
 ## v1.7.1 — 2026-10-16
 
 - Audio: interpolation at the end of a PCM sample uses its real loop or edge,
