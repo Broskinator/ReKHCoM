@@ -229,7 +229,7 @@ typedef struct PortScreen {
 } PortScreen;
 
 extern PortScreen gPortScreen;
-extern uint32_t* gPortFrame;          /* PORT_MAX_W x PORT_MAX_H, on the heap (PortCanvasAlloc) */
+extern uint32_t* gPortFrame;          /* Active canvas capacity, on the heap (PortCanvasAlloc) */
 extern uint32_t* gPortMenuBackground;
 void PortCanvasAlloc(void);
 uint32_t PortMenuHeaderPixel(int y, int phase);

@@ -6,8 +6,14 @@
 - [x] build_all.py configura/compila EU/US/JP juntos; compilación incremental verificada.
 - [x] Limpieza autorizada: 1.377 BMP generados, 6,50 GiB recuperados. PNG de evidencia,
   informes, ROMs, partidas/estados, ejecutables y tráiler final conservados.
-- [ ] Android: backend ARM/ELF, memoria y sustitutos Win32; no hay alpha jugable aún.
-- [ ] PC v1.9: benchmark x1/x2/x4, optimizaciones medidas, regresiones y release.
+- [~] Android: SDK/NDK/JDK descargándose con licencias autorizadas; backend ARM pendiente.
+- [x] Benchmark x1/x2/x4 y primera optimización PC: seis imágenes idénticas.
+- [x] Buffers por capacidad activa y caché de coordenadas affine; oracle sin regresiones.
+- [~] PC v1.9: campo/x1, HD en submenú de Barajas, matriz de regresión y release.
+- [ ] Revisar fallos semánticos históricos de oclusión HUD (3).
+
+Checkpoint detallado y comandos: RELEASE_V19.md. Batalla x1 repetida: PPU
+24,05 → 17,87 ms; campo 30,09 → 29,35 ms. No prometer aún 60fps ni mejora total.
 
 El prototipo táctil aún no está conectado al juego. No anunciar Android disponible.
 Detalle limpieza: build/cleanup-20261016.json. No se borraron archivos del usuario.

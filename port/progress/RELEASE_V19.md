@@ -1,0 +1,80 @@
+# v1.9 — trabajo activo, NO publicada (16/10/2026)
+
+## Pedido vigente
+
+Usuario autoriza todos los pendientes para v1.9: optimizar PC en todas sus
+variantes, usar x1 de benchmark, conservar corrección visual/audio, resolver
+pendiente HD de Barajas. También construir y probar el port Android (backend
+ARM, launcher con selector de ROM y controles táctiles), publicar alpha solo
+cuando sea jugable. Autoriza SDK/NDK y sus licencias, así como limpiar temporales.
+No sustituir la stable v1.8.3 ni su ZIP mientras v1.9 no esté verificada.
+
+## Cambios implementados y primera validación
+
+- `port_ppu.c`: buffers de canvas/oclusiones crecen hasta el tamaño necesario,
+  conservando capacidad en los cambios menú/mundo; cero en la parte nueva.
+  Realloc al cambiar resolución; no se cambian dimensiones ni escalas visibles.
+- `port_main.c`: presentación al tamaño activo, HUD asignado solo al usarse.
+- `DrawStraightAffine`: camino pa=256, pc=0, sin mosaico horizontal. Reutiliza
+  únicamente las coordenadas X; clave incluye scroll, BG control, recorte,
+  geometría y bandas de arena. Lee VRAM y paleta de nuevo en cada scanline.
+  Conserva el camino general para rotación, escala o mosaico.
+- Benchmark: `python port/tools/benchmark_zoom.py --label <nombre> --frames 480`.
+  Subprocesos aislados, SDL dummy, 1080p, x1/x2/x4, campo y batalla, frame479.
+  `build/zoom-benchmark/v183-before/report.json` y `v19-first/report.json`:
+  las **seis imágenes finales coinciden SHA-256**. No mide GPU real ni una
+  partida completa. Registra capacidad privada y working set por separado.
+- Repetición x1 para evitar atribuir diferencias de carga/frecuencia a la mejora:
+  `v183-repeat/report.json` frente a `v19-repeat/report.json`.
+  Campo PPU 30,09 → 29,35 ms (~2,5%, no mejora sustancial aún).
+  Batalla PPU 24,05 → 17,87 ms (~25,7% menos tiempo).
+  Commit privado pico en campo x1 361,60 → 322,57 MiB; en x4 la primera
+  comparación 356,30 → 284,81 MiB. **No afirmar que baja el RSS:** sus picos
+  son similares o ligeramente mayores. Los buffers retienen la capacidad máxima
+  alcanzada durante esa ejecución; no reducen capacidad al volver a x4.
+- Oracle PPU: 104/107, sin fallos nuevos; los tres históricos son
+  semantic_hd_hud_cover_bg/cover_obj/window. Todos los píxeles hardware pasan.
+  `build/ppu-conformance/20261016_045819_092143/report.json`.
+
+## Pendientes antes de publicar PC
+
+- [ ] Optimizar más campo/x1, midiendo antes/después con carga comparable.
+- [ ] Probar explícitamente crecimiento y cambios de resolución/zoom, HUD, estados,
+      menús/puertas/cinemáticas, HD on/off y ultrawide; comparar con v1.8.3.
+- [ ] Resolver HD sobre submenú de Barajas; revisar los tres fallos semánticos.
+- [ ] Comprobar audio, compilar EU/US/JP y actualizar versión a v1.9 solo al cerrar.
+- [ ] Empaquetar, revisar SHA/privacidad, publicar stable y preparar copia local.
+
+## Android
+
+Estudio y bloqueos: `port/android/README.md`. Prototipo `preview.html`, iconos
+propios `assets/roll.svg` y `stock.svg`. SVG parseados y rasterizados con sharp;
+JS del prototipo pasa análisis sintáctico. El visor del navegador bloqueó file://,
+por lo que no se verificó interacción táctil real; no eludir esa restricción.
+Todavía **no hay APK ni backend ARM**. No anunciarla como disponible.
+
+Usuario aceptó expresamente licencias SDK/NDK e instalación en toolchain.
+Instalador local `build/setup_android_tools.py` (sesión shell 98801 al escribir
+este checkpoint): descarga SDK commandline-tools latest, NDK r30
+30.0.16248370 y Temurin JDK17 desde Google/Adoptium; verifica SHA oficiales.
+Instalación en `../toolchain/android/`, manifiesto de URLs/hashes en
+`../toolchain/android/downloads.json`. Confirmar finalización antes de utilizar.
+Faltan SDK platform/build-tools, SDL Android, Gradle/CMake y proyecto nativo.
+La compilación ARMv7 necesita sustituir PE/Win32, GDI, ensamblador COFF y el
+manejador x86 de fallos BIOS; arm64 además requiere resolver punteros de 32 bits.
+
+## Limpieza y preservación
+
+Se eliminaron 1.377 capturas `out_*.bmp` / `shot_*.bmp` de ocho carpetas de
+review dentro de `build`, todas verificadas bajo el workspace. 6,50 GiB libres
+recuperados, unos 12,68 GiB disponibles antes de instalar Android. Manifiesto
+`build/cleanup-20261016.json`. Se conservan PNGs de evidencia, ejecutables,
+informes, ROMs, partidas/estados, herramientas, tráiler final y sus fuentes.
+No tocar los cuatro archivos gráficos no trackeados del usuario en la raíz.
+
+## Integración / continuación
+
+Rama local `claude/windows-5`; subir explícitamente a main y codex/v1.5-fixes.
+Última stable: tag v1.8.3, release 414677687, commit juego cfc5b6392,
+documentación d462f08cc. Android/diseño/build_all subido en 6d5cdbaca.
+No usar `git add .` por los gráficos privados no trackeados.

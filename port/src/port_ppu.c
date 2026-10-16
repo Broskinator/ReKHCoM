@@ -621,6 +621,8 @@ void PortPpuSetResolution(int w, int h) {
     gPortViewTop = -gPortScreen.originY;
     gPortViewRight = w - gPortScreen.originX;
     gPortViewBottom = h - gPortScreen.originY;
+    if (gPortFrame)
+        PortCanvasAlloc();
 }
 
 /* Development aid (KHCOM_OAMDUMP): log the sprites of the current frame. */
@@ -1022,6 +1024,66 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
    mosV lines, which the following lines of the block reuse. */
 static int32_t sMosAffX[2], sMosAffY[2];
 
+/* Axis-aligned affine stages reuse their horizontal address calculation
+   between scanlines. Cache coordinates only: VRAM and palette are still read
+   on each line, so HBlank changes never reuse stale tile pixels or colours. */
+static void DrawStraightAffine(int bg, int gy, uint16_t cnt, int32_t refX, int32_t refY) {
+    static int keys[2][14], valid[2];
+    static int16_t columns[2][PORT_MAX_W];
+    int key[14], a = bg - 2, w = gPortScreen.width;
+    int size = 128 << (cnt >> 14), tiles = size >> 3, wrap = (cnt >> 13) & 1;
+    int py = refY >> 8, ornaments, x, i, lastTile = -1;
+    uint16_t colors[8];
+    uint16_t* out = sBgLine[bg];
+    const uint8_t* chars = VRAM8 + ((cnt >> 2) & 3) * 0x4000;
+    const uint8_t* screen = VRAM8 + ((cnt >> 8) & 31) * 0x800;
+
+    if (sBattleView && gPortScreen.wide && ((cnt >> 2) & 3) == 0 &&
+        ((cnt >> 8) & 31) == 12 && size >= 512 && gy >= GBA_SCREEN_H && py >= size)
+        py = size - 1;
+    ornaments = sBattleView && sArenaBands[1] && size >= 512 &&
+                ((cnt >> 2) & 3) == 0 && ((cnt >> 8) & 31) == 12 && py >= 0 && py < size;
+    if (wrap) py &= size - 1;
+    else if (py < 0 || py >= size) {
+        for (x = 0; x < w; x++) out[x] = TRANSPARENT;
+        return;
+    }
+    key[0] = refX; key[1] = w; key[2] = gPortScreen.originX;
+    key[3] = sLeft; key[4] = sRight; key[5] = cnt;
+    key[6] = sBattleView; key[7] = ornaments;
+    for (i = 0; i < 6; i++) key[8 + i] = sArenaBands[i];
+    if (!valid[a] || memcmp(keys[a], key, sizeof(key))) {
+        for (x = 0; x < w; x++) {
+            int gx = x - gPortScreen.originX;
+            int px = (refX + 256 * gx) >> 8;
+            if (gx < sLeft || gx >= sRight) { columns[a][x] = -1; continue; }
+            if (ornaments && (gx < 0 || gx >= GBA_SCREEN_W)) {
+                if (px < sArenaBands[0])
+                    px = ArenaBandPixel(sArenaBands[0] - 1 - px, sArenaBands[2], sArenaBands[3], 0);
+                else if (px >= sArenaBands[1])
+                    px = ArenaBandPixel(px - sArenaBands[1], sArenaBands[4], sArenaBands[5], 1);
+            }
+            if (wrap || ((px < 0 || px >= size) && size >= 512 && (gx < 0 || gx >= GBA_SCREEN_W)))
+                px &= size - 1;
+            columns[a][x] = (px >= 0 && px < size) ? (int16_t)px : -1;
+        }
+        memcpy(keys[a], key, sizeof(key)); valid[a] = 1;
+    }
+    screen += (py >> 3) * tiles;
+    for (x = 0; x < w; x++) {
+        int px = columns[a][x], tile;
+        if (px < 0) { out[x] = TRANSPARENT; continue; }
+        sInWorld[x] = 1;
+        tile = screen[px >> 3];
+        if (tile != lastTile) {
+            const uint8_t* pixels = chars + tile * 64 + (py & 7) * 8;
+            for (i = 0; i < 8; i++) colors[i] = pixels[i] ? PLTT16[pixels[i]] & 0x7FFF : TRANSPARENT;
+            lastTile = tile;
+        }
+        out[x] = colors[px & 7];
+    }
+}
+
 static void DrawAffineBg(int bg, int gy, uint16_t dispcnt) {
     int a = bg - 2;
     uint16_t cnt = IO16(0x08 + bg * 2);
@@ -1048,6 +1110,10 @@ static void DrawAffineBg(int bg, int gy, uint16_t dispcnt) {
         }
         refX = sMosAffX[a];
         refY = sMosAffY[a];
+    }
+    if (pa == 256 && pc == 0 && mosH == 1) {
+        DrawStraightAffine(bg, gy, cnt, refX, refY);
+        return;
     }
     rx = refX + (int32_t)pa * (-gPortScreen.originX);
     ry = refY + (int32_t)pc * (-gPortScreen.originX);
@@ -1933,21 +1999,36 @@ int PortPpuSceneIsMenu(void) {
     return sSceneNarrow;
 }
 
-/* The canvas-sized buffers live on the heap: at up to 2560x1440 (x1 at
-   1440p) they would not fit the executable's static data below the GBA
-   address space. */
+/* Grow to the active canvas, retaining capacity across menu/world switches.
+   Each allocation remains separately aligned. New space is zeroed just as
+   the former maximum-sized calloc buffers were; existing pixels survive a
+   resize until the next frame renders them. */
 void PortCanvasAlloc(void) {
-    size_t n = (size_t)PORT_MAX_W * PORT_MAX_H;
-    if (gPortFrame)
+    static size_t capacity;
+    size_t n = (size_t)gPortScreen.width * gPortScreen.height;
+    uint32_t* frame;
+    uint32_t* background;
+    uint8_t *bg, *layer, *message;
+    uint16_t* obj;
+    if (n <= capacity)
         return;
-    gPortFrame = (uint32_t*)calloc(n, sizeof(uint32_t));
-    gPortMenuBackground = (uint32_t*)calloc(n, sizeof(uint32_t));
-    sOccBg = (uint8_t*)calloc(n, 1);
-    sOccBgLayer = (uint8_t*)calloc(n, 1);
-    sMsgMask = (uint8_t*)calloc(n, 1);
-    sOccObj = (uint16_t*)calloc(n, sizeof(uint16_t));
-    if (!gPortFrame || !gPortMenuBackground || !sOccBg || !sOccBgLayer || !sMsgMask || !sOccObj)
+    frame = (uint32_t*)realloc(gPortFrame, n * sizeof(*frame));
+    background = (uint32_t*)realloc(gPortMenuBackground, n * sizeof(*background));
+    bg = (uint8_t*)realloc(sOccBg, n);
+    layer = (uint8_t*)realloc(sOccBgLayer, n);
+    message = (uint8_t*)realloc(sMsgMask, n);
+    obj = (uint16_t*)realloc(sOccObj, n * sizeof(*obj));
+    if (!frame || !background || !bg || !layer || !message || !obj)
         PortFatal("Out of memory for the picture buffers");
+    gPortFrame = frame; gPortMenuBackground = background;
+    sOccBg = bg; sOccBgLayer = layer; sMsgMask = message; sOccObj = obj;
+    memset(frame + capacity, 0, (n - capacity) * sizeof(*frame));
+    memset(background + capacity, 0, (n - capacity) * sizeof(*background));
+    memset(bg + capacity, 0, n - capacity);
+    memset(layer + capacity, 0, n - capacity);
+    memset(message + capacity, 0, n - capacity);
+    memset(obj + capacity, 0, (n - capacity) * sizeof(*obj));
+    capacity = n;
 }
 
 void PortPpuBeginFrame(void) {

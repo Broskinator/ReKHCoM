@@ -47,6 +47,17 @@ uint32_t PortFrameCount(void) {
 static float sFitScale; /* see PortFitScreen */
 static int sInIrq;
 static uint32_t* sComposite; /* Writable presentation copy, on the heap. */
+static size_t sCompositeCapacity, sHudCapacity;
+static void GrowPixelBuffer(uint32_t** buffer, size_t* capacity, size_t pixels) {
+    uint32_t* grown;
+    if (pixels <= *capacity)
+        return;
+    grown = (uint32_t*)SDL_realloc(*buffer, pixels * sizeof(*grown));
+    if (!grown)
+        PortFatal("Out of memory for the presentation buffers");
+    *buffer = grown;
+    *capacity = pixels;
+}
 static int HarnessListHas(const char* list, uint32_t frame);
 static FILE* sLog;
 static int sPacedByVsync;
@@ -1230,6 +1241,7 @@ static void Present(void) {
     void PortHdTextHudDigits(SDL_Renderer* renderer, float originX, float originY, float scale);
 
     EnsureTexture();
+    GrowPixelBuffer(&sComposite, &sCompositeCapacity, (size_t)gPortScreen.width * gPortScreen.height);
     PortHdHudPrepare(sRenderer);
     /* movies shown cropped: the skip prompt is drawn after the movie, on its
        own, so it neither grows with the video nor shifts the crop */
@@ -1466,6 +1478,7 @@ static void Present(void) {
             SDL_SetTextureBlendMode(sHudTexture, SDL_BLENDMODE_BLEND);
             SDL_SetTextureScaleMode(sHudTexture, SDL_SCALEMODE_NEAREST);
         }
+        GrowPixelBuffer(&sHudBuf, &sHudCapacity, (size_t)gPortHudW * gPortHudH);
         PortPpuRenderHud(sHudBuf);
         SDL_UpdateTexture(sHudTexture, NULL, sHudBuf, sHudTexW * 4);
         hd.w = (float)(sHudTexW * gPortHudScale);
@@ -2141,10 +2154,7 @@ int main(int argc, char** argv) {
         PortFatal("Could not create the window: %s", SDL_GetError());
     SDL_SetWindowMinimumSize(sWindow, GBA_SCREEN_W, GBA_SCREEN_H);
     PortCanvasAlloc();
-    sComposite = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
-    sHudBuf = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
-    if (!sComposite || !sHudBuf)
-        PortFatal("Out of memory for the picture buffers");
+    GrowPixelBuffer(&sComposite, &sCompositeCapacity, (size_t)gPortScreen.width * gPortScreen.height);
     sRenderer = SDL_CreateRenderer(sWindow, NULL);
     if (sRenderer == NULL)
         PortFatal("Could not create the renderer: %s", SDL_GetError());
