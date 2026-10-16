@@ -1,3 +1,22 @@
+## Quiver Launcher: kit listo, envio pendiente de login (16/10/2026)
+
+- Pedido del usuario: proponer ReKHCoM, preparar banner/assets y PR.
+- Cambio de canal oficial verificado: quiver-community-app-catalog archivado el
+  09/10; no acepta PR/issues. Los envios van a https://quiverlauncher.com/submit.
+- Formulario requiere login. Pestana Chrome abierta; usuario avisado por pregunta
+  asincrona. NO se envio propuesta, NO existe PR y NO afirmar aceptacion.
+- docs/quiver/: 5 PNG + SVG editables, ficha inglesa, submission-draft.json,
+  my-app-list.json. Banner 1920x620, capsule 600x900, hero 1920x1080,
+  logo transparente 1200x240, icon 512x512. Dimensiones comunes propuestas;
+  falta contrastar requisitos del formulario tras login.
+- Windows v1.8.3 unico stable: SHA256 y contenido ZIP verificados contra GitHub.
+  Filtro windows-x86.zip; entrada ReKHCoM.exe; preservar bin/assets/DLLs.
+- API publica no encuentra ReKHCoM. Propiedad preferredExecutables windows
+  observada en catalogo actual; verificar disponibilidad en formulario.
+- Siguiente: login -> revisar campos, metadatos IA honestos segun definiciones
+  oficiales -> enviar -> guardar recibo -> probar instalacion/arranque Quiver.
+  No abrir PR al catalogo archivado ni issue de reemplazo que ignore su canal.
+
 ## Web Alpha 2: cierre F11 y artefactos finales (16/10/2026)
 
 - F11 ahora pide fullscreen del canvas (igual Alt+Enter), previene repetición y
