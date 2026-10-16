@@ -1,3 +1,21 @@
+## Web publicado en rama y limpieza final (16/10/2026)
+
+- Source d7f16c549 pusheado main/codex/v1.5-fixes. gh-pages e57d1e0ae con
+  EU/US/JP finales, guardia SD por frame y manifiesto. Pages construyendo:
+  https://matymeatboy.github.io/ReKHCom/ . About y README enlazan el juego.
+- publish_web.py conserva bytes exactos con hash-object --no-filters para que
+  autocrlf no invalide hashes en Windows. Regenerar manifiesto tras source commit.
+- Pruebas finales: ABI Wasm PASS; PPU PC 206/206; PC EU/US/JP compilan;
+  táctil PASS; stock EU/US/JP PASS; audio 24/24 + 800.000 integrales sin error.
+- Limpieza: 134 duplicados de pruebas eliminados (1.155.677.212 bytes), 20
+  temporales Windows >7 días (7.142.395 bytes), BMP generados convertidos a PNG
+  con igualdad RGBA verificada (4.562.465.029 bytes ahorrados). Total 5.725.284.636
+  bytes (~5,73 GB). C: ~9,7 GB libres. Inventario hasta profundidad 5 de los otros
+  proyectos no encontró .tmp/.temp/.dmp antiguos; no se borró nada ambiguo.
+- Manifiestos privados build/cleanup-20261016-{web-review,windows-temp,lossless-images}.json.
+  Se conservaron fuentes, SDK, releases, ROMs/SRAM/states, trailer y cuatro imágenes
+  del usuario en raíz. No limpiar toolchains activos para ganar espacio.
+
 ## Navegador: alpha y seguimiento (16/10/2026)
 
 - Prioridad del usuario: publicar el juego real en GitHub Pages. EU probado por

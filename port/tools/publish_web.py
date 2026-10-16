@@ -55,7 +55,8 @@ def main():
     env = dict(os.environ, GIT_INDEX_FILE=str(index))
     git('read-tree','--empty',env=env)
     for name in FILES + ['manifest.json']:
-        blob = git('hash-object','-w',str(site / name))
+        # Preserve the exact bytes covered by manifest hashes on Windows too.
+        blob = git('hash-object','--no-filters','-w',str(site / name))
         git('update-index','--add','--cacheinfo',f'100644,{blob},{name}',env=env)
     tree = git('write-tree',env=env)
     remote = git('ls-remote','origin','refs/heads/gh-pages')

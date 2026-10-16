@@ -22,9 +22,9 @@ estable ni publicar la futura PC v1.9 sin cerrar sus verificaciones.
 
 ## Publicación inmediata
 
-- [ ] Recompilar los tres módulos con la protección SD final; cero avisos de firma.
-- [ ] Prueba ejecutable ABI Wasm/Asyncify con memoria fija y callback convertido.
-- [ ] Publicar GitHub Pages con allowlist; conservar ROM/SRAM/config privados.
+- [x] Recompilar los tres módulos con la protección SD final; cero avisos de firma.
+- [x] Prueba ejecutable ABI Wasm/Asyncify con memoria fija y callback convertido.
+- [x] Publicar rama gh-pages con allowlist; conservar ROM/SRAM/config privados.
 - [ ] Verificar URL pública y añadir enlace al README y al About del repositorio.
 - [ ] Registrar commit, hashes, tamaño y evidencia exacta del despliegue.
 
@@ -74,7 +74,7 @@ estable ni publicar la futura PC v1.9 sin cerrar sus verificaciones.
 
 ## Distribución y mantenimiento
 
-- [ ] Integrar Web en build_all.py para compilar todas las regiones con un comando.
+- [x] Integrar Web en build_all.py para compilar todas las regiones con un comando.
 - [ ] Versionar módulos por hash para evitar mezclar JS/Wasm viejos en caché.
 - [ ] Empaquetado reproducible y publicación automatizada sin ROMs privadas.
 - [ ] Evaluar descarga offline/PWA después de validar guardados y actualizaciones.

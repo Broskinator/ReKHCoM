@@ -7,11 +7,11 @@ SRAM and settings use IndexedDB; normal `.sav` import/export provides backups.
 
 ## Current verification
 
-- EU WebAssembly builds with Emscripten 6.0.12 and SDL 3.4.18.
+- EU/US/JP WebAssembly build with Emscripten 6.0.12 and SDL 3.4.18.
 - User tested the actual game in Chrome through the opening dialogue. Original
   text works. Selecting HD at New Game exposed an empty-dialogue bug: the PPU
   now forces original text every frame on Web, as on Android.
-- US/JP modules are being compiled and require regional browser play tests.
+- US/JP modules require regional browser play tests.
 - This alpha uses original pixel text. Windows GDI font rasterization and
   pointer-based quick states are unavailable on Web. Normal SRAM is supported.
 - Physical mobile browser performance and long play sessions remain unmeasured.
