@@ -4,18 +4,35 @@ Native PC port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), buil
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
 The decompiled game runs as a real Windows program, with its own renderer, audio
-and launcher, in 16:9 and at the cartridge's exact speed (59.7275 Hz).
+and launcher, with widescreen and ultrawide support at the cartridge's original speed.
 
 <p align="center">
   <a href="https://github.com/MatyMeatBoy/ReKHCom/releases/latest"><b>⬇ Download ReKHCoM v1.8.3 for Windows</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
-  &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCom/releases">All releases</a>
+  &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCom/tags">Previous version tags</a>
 </p>
 
 Works with the **European, US and Japanese** cartridges (your own dump; no ROM is
 included), in all five European languages, English (US) and Japanese.
 
 <p align="center"><img src="docs/screenshots/battle.png" width="49%"> <img src="docs/screenshots/field.png" width="49%"></p>
+
+## What's new in v1.8.3
+
+- **Cleaner menu animations.** The pointing glove no longer turns into a white
+  stripe when opening or closing Map Cards. Status screens keep their corrected
+  transitions too, including on ultrawide monitors.
+- **All recent fixes included.** Smoother audio without the reported buzz, cleaner
+  room changes and title fades, and correctly filled cinematic borders.
+- **x4 zoom by default.** Choose your preferred numbered scale in the launcher or
+  in-game options. No intermediate steps clutter the selector.
+- **Crisp text where it helps.** Optional HD dialogue, subtitles and menus;
+  experience and level-up numbers keep their original pixel art.
+
+The gameplay, menu, language and launcher screenshots below were captured from
+v1.8.3. The unchanged new-game selection screens remain reference images.
+
+<p align="center"><img src="docs/screenshots/mapcards.png" width="49%"> <img src="docs/screenshots/status.png" width="49%"></p>
 
 ## Highlights
 
@@ -24,8 +41,8 @@ included), in all five European languages, English (US) and Japanese.
   get margins drawn from the screen's own art (bars, boxes, panels, stipple,
   checkerboards) on the picture's exact pixel grid at any scale. An *Aspect
   ratio* option keeps the picture at 16:9 or 21:9 on wider monitors.
-- **Original speed and sound.** One game update per VBlank, as on the GBA;
-  m4a music, PSG and PCM reimplemented in C; native movie playback.
+- **Original pace, smoother sound.** Play at the cartridge's original speed,
+  with optional audio smoothing and native movie playback.
 - **Launcher.** Installs and checks your dump (SHA-1), picks the version,
   language, graphics, sound, controls and saves; imports GBA saves.
 - **Two ways to play.** New Game asks for the version: the original, exactly
@@ -38,7 +55,7 @@ included), in all five European languages, English (US) and Japanese.
 
 ### Ultrawide monitors
 
-The same view stretches to 21:9 and 32:9 screens: the world gets wider, the HUD
+The view expands to 21:9 and 32:9 screens: the world gets wider, the HUD
 stays in the corners and the menus carry their own art out to the edges.
 
 <p align="center"><img src="docs/screenshots/ultrawide.png" width="98%"></p>
@@ -110,7 +127,8 @@ subtitles use a crisp font at the window's resolution.
 
 ## Running (Windows)
 
-1. Extract `ReKHCoM-v1.7.1-windows-x86.zip` into a writable folder.
+1. Download the [stable v1.8.3 ZIP](https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v1.8.3)
+   and extract `ReKHCoM-v1.8.3-windows-x86.zip` into a writable folder.
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
 3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`
@@ -130,6 +148,7 @@ to the build that created them.
 
 ### Known limitations
 
+- Some HD text can overlap the Deck View submenu; that separate issue is still open.
 - Movie transitions during events and the ending still need verification.
 - Neither Sora's story nor Reverse/Rebirth has a verified full playthrough.
 - Some rendering, audio streaming, and widescreen scenes still need verification.

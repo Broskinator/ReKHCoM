@@ -17,9 +17,12 @@ def run(c):
  (d/'kh_com.ini').write_text(f'config_version=11\nview_mode=4\nzoom={z}\nhd_text=1\nnarrow_fit=1\n')
  e={k:v for k,v in os.environ.items() if not k.startswith(('KHCOM_','SDL_'))}
  for hint in ['SDL_XINPUT_ENABLED','SDL_JOYSTICK_HIDAPI','SDL_JOYSTICK_RAWINPUT','SDL_JOYSTICK_DIRECTINPUT','SDL_JOYSTICK_WGI','SDL_JOYSTICK_GAMEINPUT','SDL_JOYSTICK_GAMEINPUT_RAW']:e[hint]='0'
- e.update(SDL_VIDEO_DRIVER='dummy',SDL_AUDIO_DRIVER='dummy',KHCOM_FAST='1',KHCOM_WINDOW=f'{W}x{H}',KHCOM_MODE=f'60:room:10901,120:fieldfreeze,180:{mode}',KHCOM_KEYS='470-472:B',KHCOM_QUIT='510',KHCOM_OUTPUT_SHOT=','.join(map(str,frames)),KHCOM_TRACE_MODES='1')
+ actual_mode='Mode_Deck' if mode=='mode_deck' else mode
+ e.update(SDL_VIDEO_DRIVER='dummy',SDL_AUDIO_DRIVER='dummy',KHCOM_FAST='1',KHCOM_WINDOW=f'{W}x{H}',KHCOM_MODE=f'60:room:10901,120:fieldfreeze,180:{actual_mode}',KHCOM_KEYS='470-472:B',KHCOM_QUIT='510',KHCOM_OUTPUT_SHOT=','.join(map(str,frames)),KHCOM_TRACE_MODES='1')
  subprocess.run([str(d/'khcom.exe'),'--rom',str(ROOT/'roms/B8CP.gba'),'--language','es'],cwd=d,env=e,check=True,timeout=180,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
- assert f'mode {mode}' in (d/'kh_com.log').read_text(errors='replace')
+ log=(d/'kh_com.log').read_text(errors='replace')
+ assert 'harness: no mode' not in log,log
+ assert f'mode {actual_mode}' in log
  rows={}
  for f in frames:
   file=d/f'out_{f:05d}.bmp';im=Image.open(file).convert('RGB');file.unlink()

@@ -4,9 +4,12 @@
 
 ## v1.8.3 — 2026-10-16
 
-- Map Cards: draw transition margins from the background panels, preventing
-  the pointing glove from stretching into a horizontal stripe on entry/exit.
-- Apply the same foreground protection to Deck View; retain the Status fix.
+- Map Cards: the pointing glove no longer stretches into a white stripe when
+  opening or closing the menu, including on ultrawide screens.
+- Deck View uses the same protection during transitions. Status keeps its
+  corrected animations, including NEW notices.
+- Includes the recent audio, cinematic border, room transition and zoom fixes;
+  x4 remains the default. Normal saves remain compatible.
 
 ## v1.8.2 — 2026-10-16
 

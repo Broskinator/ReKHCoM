@@ -9,7 +9,9 @@ Mapinspect y Deck; Codex verifica e integra ese cambio.
 - [x] Antes/después: entrada/salida de Naipes mapa y Ver barajas, tres
   resoluciones y zoom x3/x4/x6; regresión de Estado.
 - [x] Compilación EU/US/JP.
-- [ ] Publicar v1.8.3 y preparar copia local con partidas normales conservadas.
+- [x] ZIP verificado; copia local v1.8.3 con partidas normales conservadas.
+- [ ] Publicar v1.8.3 como única stable; retirar release anterior conservando tags.
+- [ ] Renovar README y capturas con información útil para jugadores.
 
 El texto HD por encima del submenú de Ver barajas sigue siendo otro pendiente.
 
