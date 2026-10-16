@@ -1,3 +1,17 @@
+# Abiertos tras v1.8.2 — 16/10/2026 (Claude). El usuario confirma que NO están corregidos en v1.8.2.
+
+1. Ver barajas: al abrir el submenú, los números/textos HD siguen encima del
+   menú. Intento v1.8.2: recorte por columnas en DrawSmallNumbers (solo
+   estilo 2, solo BG); pasó en el arnés a 1536x864 pero no en el juego real.
+   Revisar también glifos de estilo 0 y el orden capa HD vs. sprites del menú.
+2. Cambio de sala (puerta arriba-derecha de la partida slot 1, v1.8.1
+   states/slot1.khst): 1 frame con siluetas blancas del cuarto anterior.
+   Causa vista con KHCOM_PPULOG: frame con latch 0110 (BG3 pierde el latch
+   antes que BG1/BG2). Intento v1.8.2: gracia de 1 frame del latch; NO
+   verificado (el state solo carga con el exe v1.8.1: BuildId).
+3. Título -> Cargar: el margen derecho se oscurece durante el fundido.
+   No reproducido en el arnés.
+
 # Pendientes tras v1.8.1 — 16/10/2026 (Claude). Solo Claude integra y publica.
 
 **Claude (por solucionar)**
