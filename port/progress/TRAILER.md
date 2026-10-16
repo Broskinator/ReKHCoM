@@ -59,3 +59,57 @@ Revisa con hojas de contacto (ffmpeg select+tile), 3-4 por tramo, no más.
 6. Mostrar el menú de opciones interno (clip 15) y el launcher.
 7. Sin capturas sueltas (nada de World Warp ni frames congelados de la
    película al final). Transiciones como la v3 (destellos, corazón, slider).
+
+## Guion (estructura actual en `acts.py`, ~1:15)
+
+Actos unidos en `final.py` con estas transiciones entre ellos: A->B corazón
+(`heart`, 1 s), B->D negro, D->E destello, E->F destello largo.
+
+- **A — Intro y logo.** Castillo 4:3 GBA -> slider -> 16:9 (ver mejora 2),
+  tarjetas `c01` "2004 / GAME BOY ADVANCE" y `c02` "2026 / NATIVE ON PC".
+  Destello -> entrada a combate (el corazón que estalla, `03_...`) ->
+  título del juego de fondo con `c03` "ReKHCoM / KINGDOM HEARTS CHAIN OF
+  MEMORIES". La música (tema del título) entra al pasar a 16:9 y llega
+  hasta el logo.
+- **B — El mundo, más ancho.** `c04` "THE WORLD, WIDER". Salas de cada mundo
+  (`05_sala_mundo_N`) encadenadas a media escalera (cortes en el mismo
+  momento del paso), Monstruo saltando el barril. Luego `c05` "EVERY ARENA
+  IN 16:9": ráfagas de combate de 1,5-1,9 s en distintas arenas, unidas con
+  destellos blancos (`FL`). Música: tema de combate desde aquí.
+- **D — Ultrawide.** Negro con `c08` "UP TO / 32:9" (apertura circular) ->
+  2 pantallas 32:9 apiladas: Agrabah arriba, Halloween Town abajo, combate
+  con Sora pegando (`07_widescreen_2x32x9`, línea separadora).
+- **E — Detalles.** Película ampliada (`08a`), barrido texto ORIGINAL TEXT /
+  HD TEXT con zoom a la caja (`09c_texto_barrido`), mosaico de 6 idiomas con
+  nombres (`10_mosaico_idiomas`), menú de opciones interno con `c12` "EVERY
+  SETTING, IN GAME" (`15_menu_opciones`, sin efectos de sonido), launcher
+  flotando sobre su propio fondo desenfocado (`14b_launcher`) con `c09`
+  "HD TEXT / 6 LANGUAGES / RE:COM MODE".
+- **F — Cierre.** Título de fondo con `c10` "ReKHCoM / AVAILABLE NOW - FREE /
+  github.com/MatyMeatBoy/ReKHCom"; negro con `c11` (disclaimer: fan project,
+  no afiliado, ROM propia); la música se apaga ahí. Post-créditos en
+  silencio: Sincorazón (`16_postcreditos_android`).
+
+Textos de las tarjetas en `cards.py` (inglés, Palatino con brillo y línea
+dorada, tercio inferior con degradado oscuro).
+
+## Lo que ya se hizo y lo que el usuario dijo (historial)
+
+- v1: corte completo 1:22 (`ReKHCoM_trailer_v1.mp4`). Pedidos: Sora debía
+  pegar en las arenas (-> `KHCOM_MONKEY`), quitar comparativas 4:3 vs 16:9,
+  intro más pro, mejor escena abajo en el 32:9, barrido de texto con
+  rótulos, final menos cortado, más movimiento en las tomas.
+- v2 (1:15): aplicado todo lo anterior. Pedido: la intro debía pasar de
+  4:3 a 16:9 con Sora en el mundo (no la pantalla de idiomas) y mostrar el
+  menú de opciones interno.
+- v3 = `ReKHCoM_trailer_final.mp4` (1:11): intro en Ciudad de Paso con
+  slider, menú de opciones, sin World Warp ni congelado final. El usuario
+  dijo "casi perfecto".
+- Pedidos para la v4 (este documento, sección de mejoras): Castillo del
+  Olvido, de resolución GBA a 16:9 SIN consola, música al pasar a 16:9,
+  salas encadenadas, post-créditos Android, grabar con la última versión.
+- Extras listos: miniatura `Trailer/ReKHCoM_thumbnail.png` y descripción
+  de YouTube `Trailer/YouTube_descripcion.txt` (actualizar capítulos/tiempos
+  al terminar la v4).
+- Cuidado: la música es del juego; YouTube puede reclamarla. Está en una
+  pista aparte en `final.py` para poder cambiarla.
