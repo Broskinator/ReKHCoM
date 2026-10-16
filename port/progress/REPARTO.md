@@ -10,7 +10,7 @@ Codex integra y publica por pedido del usuario. Claude sin créditos.
 - [x] Relleno de mapa exterior en ranuras 1/3: imagen original idéntica, 16:9 y 32:9.
 - [x] Mensajes sin BG: márgenes según fondo renderizado y sus fades.
 - [x] Matriz de 32 configuraciones y 3 avisos EXP; HD activado/desactivado idéntico, EU/US/JP y estados nuevos pasan.
-- [ ] Publicar v1.8 y preparar carpeta/acceso local.
+- [x] v1.8 pública, assets/digests y latest verificados; carpeta y acceso local preparados.
 
 ---
 

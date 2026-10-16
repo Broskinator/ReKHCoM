@@ -92,3 +92,11 @@ build/ppu-conformance/20261016_005012_896889/report.json.
 - Carpeta local y Probar ReKHCoM v1.8.bat preparados. Guardados normales y
   configuración copiados sin sobrescribir los originales. Estados antiguos
   permanecen en v1.7.1. ZIP público sin ROM, .sav, .khst ni configuración local.
+
+## Publicación confirmada
+
+https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v1.8
+Release 414522263, pública y latest, 16/10/2026 03:58:46 UTC.
+Tag sobre 7efad75d5. Digest y tamaños de ambos assets calculados por GitHub
+coinciden con los archivos locales. main y codex/v1.5-fixes pusheados.
+No se publicó v1.7.2 ni se modificaron tags anteriores.
