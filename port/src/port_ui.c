@@ -83,7 +83,7 @@ static int PageEnd(void) {
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
     switch (item) {
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
         case ITEM_HDTEXT:
         case ITEM_FULLSCREEN:
         case ITEM_FS_RES: return 0;

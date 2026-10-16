@@ -4,6 +4,14 @@
 #include "port/port_android.h"
 #include "port/port_ui.h"
 #include "touch_icons.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+static int touchEnabled;
+EMSCRIPTEN_KEEPALIVE void PortWebTouchEnable(int enabled) {
+    touchEnabled=enabled;
+    PortAndroidTouchClear();
+}
+#endif
 
 typedef struct Finger { SDL_FingerID id; float x,y; int active; } Finger;
 typedef struct Button { float x,y; uint16_t bits; const char* text; int icon; } Button;
@@ -43,6 +51,9 @@ static void TouchUi(void) {
     }
 }
 void PortAndroidTouchEvent(const void* event) {
+#ifdef __EMSCRIPTEN__
+    if(!touchEnabled)return;
+#endif
     const SDL_Event* e=event;
     int i, freeSlot=-1;
     if(e->type==SDL_EVENT_RENDER_DEVICE_RESET) {
@@ -68,6 +79,9 @@ void PortAndroidTouchEvent(const void* event) {
     }
 }
 uint16_t PortAndroidTouchKeys(void) {
+#ifdef __EMSCRIPTEN__
+    if(!touchEnabled)return 0;
+#endif
     uint16_t keys=0;
     int i,b;
     for(i=0;i<10;i++) if(fingers[i].active) {
@@ -114,6 +128,9 @@ static void DrawButton(SDL_Renderer* r,int w,int h,float x,float y,float radius,
     }
 }
 void PortAndroidTouchDraw(SDL_Renderer* r) {
+#ifdef __EMSCRIPTEN__
+    if(!touchEnabled)return;
+#endif
     int w,h,b; uint16_t keys=PortAndroidTouchKeys();
     SDL_GetCurrentRenderOutputSize(r,&w,&h); if(w<=0 || h<=0)return;
     aspect=(float)w/h;

@@ -2061,7 +2061,7 @@ void PortCanvasAlloc(void) {
 void PortPpuBeginFrame(void) {
     uint16_t dispcnt = IO16(0x00);
     int b, any = 0;
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
     /* Alpha keeps original pixel text until its portable font backend exists. */
     gPortConfig.hdText = 0;
 #endif

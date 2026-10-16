@@ -28,6 +28,9 @@
 #include "sprites_card.h"
 #include "gba/io_reg.h"
 #include "card_ids.h"
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "songs.h"
 #include "battle_actor_types.h"
 #include "battle_work.h"

@@ -26,6 +26,9 @@
 #include "card_label_data.h"
 #include "map_types.h"
 #include "card_ids.h"
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 
 static s16 sBossCardValue;
 

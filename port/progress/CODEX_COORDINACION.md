@@ -1,3 +1,31 @@
+## Navegador: alpha y seguimiento (16/10/2026)
+
+- Prioridad del usuario: publicar el juego real en GitHub Pages. EU probado por
+  usuario en Chrome hasta diálogos iniciales; SD correcto. No afirmar test de
+  combate Web, sesiones largas ni rendimiento móvil todavía.
+- Emsdk 6.0.12 en D:/ReKHCoM-build/toolchain/emsdk; SDL3 3.4.18 estático en
+  D:/ReKHCoM-build/web-sdl. build_all.py --platform web compila EU/US/JP.
+- build_web.py transforma imports fijos LLVM a constantes; conserva ABI wasm32,
+  relocaciones de funciones reales y Asyncify para bucles de juego/películas.
+- test_web_abi.py PASS: constantes, hardware fijo, globales nativos, espera
+  Asyncify y callback de retorno convertido. build/web-abi/report.json.
+- Se corrigieron prototipos faltantes (Wasm atrapaba firmas void/int) y el export
+  HEAPU8 del loader. La pantalla vacía al elegir HD era configuración activada
+  después del arranque por Re:Chain: Web fuerza SD por frame, como Android.
+- Port web: ROM local SHA-1, SRAM/config IndexedDB, importar/exportar .sav,
+  controles teclado/mando/táctiles opcionales, pausa hidden y canvas sin DPR.
+  Persistencia y mobile están implementados pero pendientes de pruebas completas.
+- PC EU/US/JP recompilado; oracle PPU 206/206 PASS:
+  build/ppu-conformance/20261016_130024_063894/report.json.
+- Lista específica y prioridades futuras: [WEB_PENDIENTES.md](WEB_PENDIENTES.md).
+  Consultarla antes de retomar HD, guardados, móviles y rendimiento.
+- Publicación en preparación con publish_web.py: allowlist de archivos, hashes y
+  árbol gh-pages aislado. No ROMs/SRAM/config. La estable PC sigue v1.8.3.
+- Limpieza autorizada: 1.155.677.212 bytes de duplicados de transition-review;
+  7.142.395 bytes de temporales Windows >7 días. Logs build/cleanup-20261016-*.
+  Capturas BMP antiguas se convierten a PNG con verificación píxel a píxel;
+  conservar fuentes, releases, ROMs, estados y partidas.
+
 ## Android: combate regional y nuevo objetivo Web (16/10/2026)
 
 - Batalla Android EU/US/JP: los tres llegan a frame600, producen imagen real

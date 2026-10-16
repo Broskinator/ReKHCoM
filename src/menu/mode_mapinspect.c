@@ -27,6 +27,9 @@
 #include "card_ui_types.h"
 #include "display.h"
 #include "engine_math.h"
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "game_state.h"
 #include "gba/defines.h"
 #include "key.h"
