@@ -46,7 +46,8 @@ uint32_t PortFrameCount(void) {
 }
 static float sFitScale; /* see PortFitScreen */
 static int sInIrq;
-static uint32_t* sComposite; /* PORT_MAX_W x PORT_MAX_H, heap */
+static uint32_t* sComposite; /* Current presentation source. */
+static uint32_t* sCompositeStorage; /* Writable copy for overlays, on the heap. */
 static int HarnessListHas(const char* list, uint32_t frame);
 static FILE* sLog;
 static int sPacedByVsync;
@@ -1194,14 +1195,19 @@ static void Present(void) {
 
     EnsureTexture();
     PortHdHudPrepare(sRenderer);
-    /* Overlays go on a copy so the game picture survives while paused. */
-    memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
-    JoinHeaderLine();
     /* movies shown cropped: the skip prompt is drawn after the movie, on its
        own, so it neither grows with the video nor shifts the crop */
     moviePrompt = sSideStyle == 10 && sFitScale <= 0 && !PortUiActive() && !gPortScreen.wide
                   && gPortConfig.narrowFit && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H);
     PortUiSkipOwnLayer(moviePrompt);
+    /* The usual wide gameplay frame needs no writable overlay copy. Keep
+       the original picture intact whenever menus, hints or fades draw. */
+    sComposite = sCompositeStorage;
+    if (gPortScreen.wide && !PortUiNeedsFrameCopy())
+        sComposite = gPortFrame;
+    else
+        memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
+    JoinHeaderLine();
     PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
     SDL_UpdateTexture(sTexture, NULL, sComposite, gPortScreen.width * 4);
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
@@ -1815,8 +1821,6 @@ static void PumpEvents(void) {
    every refresh shows exactly one frame (audio is resampled to match). */
 static void Pace(void) {
     uint64_t now = SDL_GetPerformanceCounter();
-    SDL_DisplayID display = SDL_GetDisplayForWindow(sWindow);
-    const SDL_DisplayMode* dm = display ? SDL_GetCurrentDisplayMode(display) : NULL;
     double hz = GBA_FPS;
     uint64_t period;
 
@@ -1824,7 +1828,6 @@ static void Pace(void) {
         sNextFrame = 0;
         return;
     }
-    (void)dm;
     sPacedByVsync = 0;
     period = (uint64_t)(sPerfFreq / hz);
 
@@ -1835,8 +1838,9 @@ static void Pace(void) {
     sNextFrame += period;
     while ((now = SDL_GetPerformanceCounter()) < sNextFrame) {
         uint64_t leftNs = (sNextFrame - now) * 1000000000ull / sPerfFreq;
-        if (leftNs > 1500000)
-            SDL_DelayPrecise(leftNs - 1000000);
+        /* SDL already implements the platform's precise wait. Reserving a
+           second explicit millisecond of busy-spin wasted CPU every frame. */
+        SDL_DelayPrecise(leftNs);
     }
 
     sFpsFrames++;
@@ -2081,7 +2085,8 @@ int main(int argc, char** argv) {
         PortFatal("Could not create the window: %s", SDL_GetError());
     SDL_SetWindowMinimumSize(sWindow, GBA_SCREEN_W, GBA_SCREEN_H);
     PortCanvasAlloc();
-    sComposite = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
+    sCompositeStorage = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
+    sComposite = sCompositeStorage;
     sHudBuf = (uint32_t*)SDL_calloc((size_t)PORT_MAX_W * PORT_MAX_H, sizeof(uint32_t));
     if (!sComposite || !sHudBuf)
         PortFatal("Out of memory for the picture buffers");

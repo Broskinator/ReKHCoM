@@ -1647,6 +1647,10 @@ static void HarnessOptionsShot(uint32_t* frame, int width, int height) {
     SDL_DestroySurface(surface);
 }
 
+int PortUiNeedsFrameCopy(void) {
+    return sOpen || sReturn > 0 || sTitleHintFrames > 0 || (sSkipPrompt && !sSkipOwnLayer);
+}
+
 void PortUiDraw(uint32_t* frame, int width, int height) {
     int l = Lang();
     int harnessShot = 0;
