@@ -54,4 +54,9 @@ una subcadena presente incluso en el aviso «no mode». Ahora usa Mode_Deck,
 rechaza ese aviso y verifica la entrada real. Matriz repetida: PASS.
 Las dos pantallas inalteradas de selección de nueva partida siguen de referencia.
 
-Pendiente publicación y verificación remota.
+Publicada: https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v1.8.3
+Release id 414677687; GitHub confirma el digest del ZIP y latest=v1.8.3.
+Única release pública estable. La anterior v1.8.2 se retiró después de verificar
+la nueva; conserva su tag d7b95a8cd y copia local. Metadatos previos archivados
+en build/releases/v1.8.2-release-before-removal.json.
+Commit de juego cfc5b6392; tag v1.8.3 incluye la documentación d462f08cc.

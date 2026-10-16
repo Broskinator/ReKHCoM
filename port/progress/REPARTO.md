@@ -10,8 +10,8 @@ Mapinspect y Deck; Codex verifica e integra ese cambio.
   resoluciones y zoom x3/x4/x6; regresión de Estado.
 - [x] Compilación EU/US/JP.
 - [x] ZIP verificado; copia local v1.8.3 con partidas normales conservadas.
-- [ ] Publicar v1.8.3 como única stable; retirar release anterior conservando tags.
-- [ ] Renovar README y capturas con información útil para jugadores.
+- [x] v1.8.3 publicada como única stable; release v1.8.2 retirada, tag conservado.
+- [x] README actualizado para jugadores; 23 capturas de v1.8.3 revisadas.
 
 El texto HD por encima del submenú de Ver barajas sigue siendo otro pendiente.
 
