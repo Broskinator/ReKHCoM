@@ -24,6 +24,7 @@ typedef struct Ps5GuestHeader {
     uint32_t heapEnd;
     uint32_t stackTop;
     uint32_t regionEnd;  /* the host maps [PS5G_BASE, regionEnd) */
+    uint32_t biosArea;   /* the stand-in for the BIOS (gPortBiosArea) that stray pointers are redirected to */
 } Ps5GuestHeader;
 
 enum {

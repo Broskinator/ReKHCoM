@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/stat.h>
 #include <ucontext.h>
 #include <unistd.h>
@@ -30,6 +31,7 @@ int ps5_klog_capture_stderr(const char *prefix); /* the platform layer: stderr l
 /* ---- log ------------------------------------------------------------------ */
 
 static FILE *sLog;
+static FILE *sCrashFile;      /* only the report of a crash, a file of its own: crash-07_17pm-16.10.2026.log */
 
 static void Log(const char *fmt, ...)
 {
@@ -46,6 +48,11 @@ static void Log(const char *fmt, ...)
     {
         fprintf(sLog, "%s\n", line);
         fflush(sLog);
+    }
+    if (sCrashFile)
+    {
+        fprintf(sCrashFile, "%s\n", line);
+        fflush(sCrashFile);
     }
 }
 
@@ -254,13 +261,351 @@ static bool MapAt(uintptr_t address, size_t bytes, const char *what)
     return true;
 }
 
-/* An integer division by zero returns 0 on the cartridge and traps on x86: the
- * handler zeroes the quotient and remainder and skips the instruction. */
+/* ---- what the GBA does with stray pointers and divisions by zero ----------------------------------------------
+ * On the cartridge a read through a null pointer lands in the BIOS and returns the open-bus value (the game does it in
+ * places, marked "@bug ... NULL read"), sometimes the value is used as a pointer in turn, and the bus ignores the top
+ * address bits. The desktop port handles it in a fault handler: the faulting instruction's address register is moved so
+ * the access lands where the bus would send it, the instruction runs one step, and the register is put back. Integer
+ * divisions by zero give 0 on the cartridge and trap on x86: quotient and remainder are zeroed and the instruction is
+ * skipped. Only the ModRM / SIB bytes are decoded, to find the register. Where the registers sit in the signal context
+ * is found at start with a probe, since the SDK's structure does not match the console's. */
+#define GBA_LOW 0x02000000u
+#define GBA_HIGH 0x0E010000u
+
+static int sGpr[16]; /* slot of each register in the context, by x86 number: rax rcx rdx rbx rsp rbp rsi rdi r8-r15 */
+static int sRip = -1, sFlags = -1;
+static bool sContext;
+static uint32_t sBiosArea, sGuestEnd;
+static struct sigaction sOldSegv, sOldFpe, sOldTrap;
+static struct
+{
+    bool active;
+    int reg;
+    uint64_t old, now;
+} sPending;
+static uint32_t sSeen[128];
+static int sSeenCount;
+
+#define SLOT(ctx, i) (((uint64_t *)(ctx))[i])
+#define SENTINEL(n) (0xC0DE000000000000ull + 0x1010ull * (unsigned)((n) + 1))
+
+static volatile uint64_t sProbeRip, sProbeRsp, sProbeRbp;
+
+static void OnProbe(int sig, siginfo_t *info, void *context)
+{
+    const uint64_t *w = (const uint64_t *)context;
+    (void)sig, (void)info;
+    for (int r = 0; r < 16; ++r)
+    {
+        if (r == 4 || r == 5)
+            continue;
+        for (int i = 0; i < 160; ++i)
+            if (w[i] == SENTINEL(r))
+            {
+                sGpr[r] = i;
+                break;
+            }
+    }
+    for (int i = 0; i < 160; ++i)
+    {
+        if (w[i] == sProbeRip && sRip < 0)
+            sRip = i;
+        if (w[i] == sProbeRsp && sGpr[4] < 0)
+            sGpr[4] = i;
+        if (w[i] == sProbeRbp && sGpr[5] < 0)
+            sGpr[5] = i;
+    }
+    if (sRip >= 0)
+        SLOT(context, sRip) += 2; /* past the ud2 */
+}
+
+static bool ProbeContext(void)
+{
+    struct sigaction sa, old;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_sigaction = OnProbe;
+    sa.sa_flags = SA_SIGINFO;
+    sigemptyset(&sa.sa_mask);
+    for (int i = 0; i < 16; ++i)
+        sGpr[i] = -1;
+    sRip = -1;
+    sigaction(SIGILL, &sa, &old);
+    __asm__ volatile(
+        "movq %%rsp, %[rsp]\n\t"
+        "movq %%rbp, %[rbp]\n\t"
+        "leaq 1f(%%rip), %%rax\n\t"
+        "movq %%rax, %[rip]\n\t"
+        "movabsq $0xC0DE000000001010, %%rax\n\t"
+        "movabsq $0xC0DE000000002020, %%rcx\n\t"
+        "movabsq $0xC0DE000000003030, %%rdx\n\t"
+        "movabsq $0xC0DE000000004040, %%rbx\n\t"
+        "movabsq $0xC0DE000000007070, %%rsi\n\t"
+        "movabsq $0xC0DE000000008080, %%rdi\n\t"
+        "movabsq $0xC0DE000000009090, %%r8\n\t"
+        "movabsq $0xC0DE00000000A0A0, %%r9\n\t"
+        "movabsq $0xC0DE00000000B0B0, %%r10\n\t"
+        "movabsq $0xC0DE00000000C0C0, %%r11\n\t"
+        "movabsq $0xC0DE00000000D0D0, %%r12\n\t"
+        "movabsq $0xC0DE00000000E0E0, %%r13\n\t"
+        "movabsq $0xC0DE00000000F0F0, %%r14\n\t"
+        "movabsq $0xC0DE000000010100, %%r15\n\t"
+        "1: ud2\n\t"
+        : [rsp] "=m"(sProbeRsp), [rbp] "=m"(sProbeRbp), [rip] "=m"(sProbeRip)
+        :
+        : "rax", "rcx", "rdx", "rbx", "rsi", "rdi", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "memory", "cc");
+    sigaction(SIGILL, &old, NULL);
+    if (sRip < 0 || sGpr[4] < 1)
+        return false;
+    sFlags = sGpr[4] - 1; /* rip, cs, rflags, rsp, ss */
+    for (int r = 0; r < 16; ++r)
+        if (sGpr[r] < 0)
+            return false;
+    return true;
+}
+
+/* Where the GBA bus sends address `a`: its region's mirror, or the BIOS stand-in for the BIOS and open-bus regions (and
+   for writes to the ROM, which the cartridge ignores). */
+static uint32_t BusTarget(uint32_t a, int write)
+{
+    uint32_t low = a & 0xFFFFu;
+    uint32_t bios = sBiosArea + (low > 0xFFE0u ? low - 0x100u : low);
+    uint32_t o;
+
+    switch ((a >> 24) & 0xF)
+    {
+    case 0x2: return 0x02000000u | (a & 0x3FFFFu);
+    case 0x3: return 0x03000000u | (a & 0x7FFFu);
+    case 0x4: return (a & 0xFFFFFFu) < 0x400u ? 0x04000000u | (a & 0x3FFu) : bios;
+    case 0x5: return 0x05000000u | (a & 0x3FFu);
+    case 0x6:
+        o = a & 0x1FFFFu;
+        return 0x06000000u | (o >= 0x18000u ? o - 0x8000u : o);
+    case 0x7: return 0x07000000u | (a & 0x3FFu);
+    case 0x8: case 0x9: case 0xA: case 0xB: case 0xC: case 0xD: return write ? bios : 0x08000000u | (a & 0x1FFFFFFu);
+    case 0xE: case 0xF: return 0x0E000000u | (a & 0xFFFFu);
+    default: return bios;
+    }
+}
+
+static int HasModRm1(uint8_t op)
+{
+    if (op < 0x40)
+        return (op & 7) < 4;
+    switch (op)
+    {
+    case 0x62: case 0x63: case 0x69: case 0x6B: case 0xC0: case 0xC1: case 0xC4: case 0xC5:
+    case 0xC6: case 0xC7: case 0xD0: case 0xD1: case 0xD2: case 0xD3: case 0xF6: case 0xF7:
+    case 0xFE: case 0xFF:
+        return 1;
+    }
+    return (op >= 0x80 && op <= 0x8F) || (op >= 0xD8 && op <= 0xDF);
+}
+
+static int NoModRm2(uint8_t op)
+{
+    return (op >= 0x05 && op <= 0x0B) || op == 0x0E || (op >= 0x30 && op <= 0x37) || op == 0x77 || (op >= 0x80 && op <= 0x8F) ||
+           (op >= 0xA0 && op <= 0xA2) || (op >= 0xA8 && op <= 0xAA) || op >= 0xC8;
+}
+
+/* The register to move (x86 number) and by how much, so the instruction's address shifts by `shift`. */
+static int StrayRegister(const uint8_t *p, int64_t shift, int *reg, int64_t *delta, int *write)
+{
+    int rex = 0;
+    uint8_t op;
+
+    *write = 0;
+    for (int i = 0; i < 15; ++i, ++p)
+        if (*p != 0x66 && *p != 0x67 && *p != 0xF2 && *p != 0xF3 && *p != 0xF0 && *p != 0x2E && *p != 0x3E && *p != 0x26 &&
+            *p != 0x36 && *p != 0x64 && *p != 0x65)
+            break;
+    if ((*p & 0xF0) == 0x40)
+        rex = *p++;
+    op = *p++;
+    if ((op >= 0xA4 && op <= 0xA7) || (op >= 0xAA && op <= 0xAF))
+    {
+        *reg = (op == 0xAA || op == 0xAB || op == 0xAE || op == 0xAF) ? 7 : 6;
+        *delta = shift;
+        *write = op == 0xA4 || op == 0xA5 || op == 0xAA || op == 0xAB;
+        return 1;
+    }
+    if (op == 0x0F)
+    {
+        op = *p++;
+        if (op == 0x38 || op == 0x3A)
+            ++p;
+        else if (NoModRm2(op))
+            return 0;
+    }
+    else
+    {
+        if (!HasModRm1(op))
+            return 0;
+        *write = op == 0x88 || op == 0x89 || op == 0xC6 || op == 0xC7 || (op < 0x40 && !(op & 2));
+    }
+    {
+        uint8_t modrm = *p++;
+        int mod = modrm >> 6, rm = modrm & 7, base = -1, index = -1, scale = 1;
+
+        if (mod == 3)
+            return 0;
+        if (rm == 4)
+        {
+            uint8_t sib = *p++;
+            scale = 1 << (sib >> 6);
+            index = ((sib >> 3) & 7) | ((rex & 2) ? 8 : 0);
+            base = (sib & 7) | ((rex & 1) ? 8 : 0);
+            if (index == 4)
+                index = -1;
+            if ((sib & 7) == 5 && mod == 0)
+                base = -1;
+        }
+        else if (rm == 5 && mod == 0)
+        {
+            return 0; /* relative to rip: never a stray pointer */
+        }
+        else
+        {
+            base = rm | ((rex & 1) ? 8 : 0);
+        }
+        if (base >= 0 && base != index)
+        {
+            *reg = base;
+            *delta = shift;
+            return 1;
+        }
+        if (index >= 0 && base < 0 && shift % scale == 0)
+        {
+            *reg = index;
+            *delta = shift / scale;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* The crash report: where the game was, with the registers read from the slots found by the probe and the game's own call
+ * chain (its frames use rbp; each return address is a function the map file of that build names). */
+static void ReportCrash(int sig, siginfo_t *info, void *context)
+{
+    static const char *const names[16] = {"rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+                                           "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15"};
+    char regs[400];
+    int n = 0;
+    uint64_t rip = SLOT(context, sRip), frame = SLOT(context, sGpr[5]);
+
+    {
+        time_t now = time(NULL);
+        struct tm tm;
+        if (local_time((long long)now, &tm))
+        {
+            char path[256];
+            int hour = tm.tm_hour % 12;
+            snprintf(path, sizeof(path), DATA_ROOT "/logs/crash-%02d_%02d%s-%02d.%02d.%04d.log", hour ? hour : 12, tm.tm_min,
+                     tm.tm_hour >= 12 ? "pm" : "am", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+            sCrashFile = fopen(path, "a");
+            if (sCrashFile)
+                fprintf(sCrashFile, "Crash on %02d.%02d.%04d at %02d:%02d:%02d %s\n", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,
+                        hour ? hour : 12, tm.tm_min, tm.tm_sec, tm.tm_hour >= 12 ? "pm" : "am");
+        }
+    }
+    Log("CRASH: signal %d at address 0x%llx, rip 0x%llx, eflags 0x%llx", sig, (unsigned long long)(uintptr_t)info->si_addr,
+        (unsigned long long)rip, (unsigned long long)SLOT(context, sFlags));
+    for (int r = 0; r < 16; ++r)
+        n += snprintf(regs + n, sizeof(regs) - (size_t)n, "%s %llx ", names[r], (unsigned long long)SLOT(context, sGpr[r]));
+    Log("  %s", regs);
+    for (int depth = 0; depth < 24 && frame >= PS5G_BASE && frame + 16 < sGuestEnd && (frame & 7) == 0; ++depth)
+    {
+        Log("  frame %d: return 0x%llx", depth, (unsigned long long)((uint64_t *)(uintptr_t)frame)[1]);
+        uint64_t next = ((uint64_t *)(uintptr_t)frame)[0];
+        if (next <= frame)
+            break;
+        frame = next;
+    }
+    if (sLog)
+        fflush(sLog);
+    if (sCrashFile)
+    {
+        fclose(sCrashFile);
+        sCrashFile = NULL;
+    }
+}
+
+static void Pass(const struct sigaction *old, int sig, siginfo_t *info, void *context)
+{
+    ReportCrash(sig, info, context);
+    if ((old->sa_flags & SA_SIGINFO) && old->sa_sigaction)
+        old->sa_sigaction(sig, info, context);
+    else
+    {
+        signal(sig, SIG_DFL);
+        raise(sig);
+    }
+}
+
+static void OnSegv(int sig, siginfo_t *info, void *context)
+{
+    uint64_t fault = (uint64_t)(uintptr_t)info->si_addr, rip = SLOT(context, sRip);
+    int reg, write;
+    int64_t delta;
+
+    /* Only code of the game, and only addresses the bus decodes: anything else is a real fault. */
+    if (sPending.active || rip < PS5G_BASE || rip >= sGuestEnd || fault >= 0x100000000ull ||
+        (fault >= GBA_LOW && fault < GBA_HIGH) || (fault >= PS5G_BASE && fault < sGuestEnd) ||
+        (fault >= 0x10000 && fault < GBA_LOW))
+    {
+        Pass(&sOldSegv, sig, info, context);
+        return;
+    }
+    {
+        uint32_t target = BusTarget((uint32_t)fault, 0);
+        const uint8_t *code = (const uint8_t *)(uintptr_t)rip;
+        bool seen = false;
+
+        if (!StrayRegister(code, (int64_t)target - (int64_t)fault, &reg, &delta, &write))
+        {
+            Pass(&sOldSegv, sig, info, context);
+            return;
+        }
+        if (write)
+            target = BusTarget((uint32_t)fault, 1);
+        delta = (int64_t)target - (int64_t)fault;
+        for (int i = 0; i < sSeenCount; ++i)
+            seen |= sSeen[i] == (uint32_t)rip;
+        if (!seen && sSeenCount < 128)
+        {
+            sSeen[sSeenCount++] = (uint32_t)rip;
+            Log("bios: %s %08x at %08x", write ? "write" : "read", (unsigned)fault, (unsigned)rip);
+        }
+        sPending.active = true;
+        sPending.reg = reg;
+        sPending.old = SLOT(context, sGpr[reg]);
+        sPending.now = sPending.old + (uint64_t)delta;
+        SLOT(context, sGpr[reg]) = sPending.now;
+        SLOT(context, sFlags) |= 0x100; /* trap after this one instruction */
+    }
+}
+
+static void OnTrap(int sig, siginfo_t *info, void *context)
+{
+    if (!sPending.active)
+    {
+        Pass(&sOldTrap, sig, info, context);
+        return;
+    }
+    /* Put the register back unless the instruction loaded something new into it. */
+    if (SLOT(context, sGpr[sPending.reg]) == sPending.now)
+        SLOT(context, sGpr[sPending.reg]) = sPending.old;
+    SLOT(context, sFlags) &= ~(uint64_t)0x100;
+    sPending.active = false;
+}
+
+/* Length of a DIV / IDIV (F6 / F7 /6, /7) instruction, 0 if it is not one. */
 static int DivLength(const uint8_t *p, int *bytes)
 {
     const uint8_t *start = p;
     int size16 = 0;
-    while (*p == 0x66 || *p == 0x2E || *p == 0x3E || *p == 0x26 || *p == 0x36 || *p == 0x64 || *p == 0x65 || (*p & 0xF0) == 0x40)
+    while (*p == 0x66 || *p == 0x67 || *p == 0x2E || *p == 0x3E || *p == 0x26 || *p == 0x36 || *p == 0x64 || *p == 0x65 ||
+           (*p & 0xF0) == 0x40)
     {
         size16 |= *p == 0x66;
         ++p;
@@ -290,28 +635,55 @@ static int DivLength(const uint8_t *p, int *bytes)
 
 static void OnFpe(int sig, siginfo_t *info, void *context)
 {
-    ucontext_t *uc = (ucontext_t *)context;
-    int bytes = 0, len = DivLength((const uint8_t *)uc->uc_mcontext.mc_rip, &bytes);
-    (void)info;
+    uint64_t rip = SLOT(context, sRip);
+    int bytes = 0, len = 0;
+
+    if (rip >= PS5G_BASE && rip < sGuestEnd)
+        len = DivLength((const uint8_t *)(uintptr_t)rip, &bytes);
     if (len == 0)
     {
-        signal(sig, SIG_DFL);
-        raise(sig);
+        Pass(&sOldFpe, sig, info, context);
         return;
     }
     if (bytes == 1)
-        uc->uc_mcontext.mc_rax &= ~0xFFFFull;
+        SLOT(context, sGpr[0]) &= ~0xFFFFull; /* AL quotient, AH remainder */
     else if (bytes == 2)
     {
-        uc->uc_mcontext.mc_rax &= ~0xFFFFull;
-        uc->uc_mcontext.mc_rdx &= ~0xFFFFull;
+        SLOT(context, sGpr[0]) &= ~0xFFFFull;
+        SLOT(context, sGpr[2]) &= ~0xFFFFull;
     }
     else
     {
-        uc->uc_mcontext.mc_rax = 0;
-        uc->uc_mcontext.mc_rdx = 0;
+        SLOT(context, sGpr[0]) = 0;
+        SLOT(context, sGpr[2]) = 0;
     }
-    uc->uc_mcontext.mc_rip += (unsigned long)len;
+    SLOT(context, sRip) = rip + (uint64_t)len;
+}
+
+static void InstallFaultHandlers(const Ps5GuestHeader *h)
+{
+    struct sigaction sa;
+
+    sBiosArea = h->biosArea;
+    sGuestEnd = h->regionEnd;
+    sContext = ProbeContext();
+    if (!sContext)
+    {
+        Log("faults: the signal context could not be probed; stray pointers and divisions by zero are not covered");
+        return;
+    }
+    Log("faults: context slots rip %d rsp %d rbp %d rax %d rbx %d rcx %d rdx %d rsi %d rdi %d", sRip, sGpr[4], sGpr[5], sGpr[0], sGpr[3],
+        sGpr[1], sGpr[2], sGpr[6], sGpr[7]);
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_sigaction = OnSegv;
+    sigaction(SIGSEGV, &sa, &sOldSegv);
+    sigaction(SIGBUS, &sa, NULL);
+    sa.sa_sigaction = OnFpe;
+    sigaction(SIGFPE, &sa, &sOldFpe);
+    sa.sa_sigaction = OnTrap;
+    sigaction(SIGTRAP, &sa, &sOldTrap);
 }
 
 /* Notices drawn when there is nothing to play (assets/<name>.rgba: w, h, then RGBA). */
@@ -526,18 +898,12 @@ int main(void)
     mkdir(DATA_ROOT, 0777);
     mkdir(DATA_ROOT "/logs", 0777);
     char log_path[256] = DATA_ROOT "/logs/ReKHCoM.log";
+    rename(log_path, DATA_ROOT "/logs/ReKHCoM.old.log"); /* the log of the run before: a crash is still there after a restart */
     sLog = fopen(log_path, "w");
     ps5_crash_install(log_path);
     ps5_klog_capture_stderr("");
     Log("ReKHCoM starting; /data %s (%s)", unlocked ? "unlocked" : "sandboxed", error);
     Log("screen: %s", plat_screen_info());
-
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(sa));
-    sa.sa_sigaction = OnFpe;
-    sa.sa_flags = SA_SIGINFO;
-    sigemptyset(&sa.sa_mask);
-    sigaction(SIGFPE, &sa, NULL);
 
     /* Without a cartridge the app stays open and says what is needed; it starts once the file is there. */
     const char *region = FindRegion();
@@ -556,6 +922,7 @@ int main(void)
             ShowNotice(&failed, 600);
     }
 
+    InstallFaultHandlers(&header);
     Log("image loaded; filling the bridge table at 0x%08x", header.hostTable);
     ps5_crash_step("bridge table");
     uint64_t *table = (uint64_t *)(uintptr_t)header.hostTable;

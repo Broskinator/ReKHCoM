@@ -65,13 +65,38 @@ static void on_crash(int sig, siginfo_t *info, void *context)
                      (unsigned long long)uc->uc_mcontext.mc_rdi);
             put(regs);
         }
+        {
+            char more[300];
+            snprintf(more, sizeof(more), "  r8 0x%llx r9 0x%llx r10 0x%llx r11 0x%llx r12 0x%llx r13 0x%llx r14 0x%llx r15 0x%llx eflags 0x%llx\n",
+                     (unsigned long long)uc->uc_mcontext.mc_r8, (unsigned long long)uc->uc_mcontext.mc_r9,
+                     (unsigned long long)uc->uc_mcontext.mc_r10, (unsigned long long)uc->uc_mcontext.mc_r11,
+                     (unsigned long long)uc->uc_mcontext.mc_r12, (unsigned long long)uc->uc_mcontext.mc_r13,
+                     (unsigned long long)uc->uc_mcontext.mc_r14, (unsigned long long)uc->uc_mcontext.mc_r15,
+                     (unsigned long long)uc->uc_mcontext.mc_rflags);
+            put(more);
+        }
         if (rsp < ((uintptr_t)1 << 32))
         {
-            /* a stack below 4 GiB is the game's: its top may be the end of the mapping, so it is not scanned */
-            char top[120];
-            snprintf(top, sizeof(top), "  guest stack: [rsp] 0x%llx, [rsp+8] 0x%llx\n", (unsigned long long)((uintptr_t *)rsp)[0],
-                     (unsigned long long)((uintptr_t *)rsp)[1]);
-            put(top);
+            /* a stack below 4 GiB is the game's: it is read only inside its mapping, and its frames
+               (rbp chain, the game is built with frame pointers) are listed from there */
+            const uintptr_t lo = 0x10000000u, hi = 0x1ce40000u;
+            char line[100];
+            if (rsp >= lo && rsp + 32 < hi)
+            {
+                snprintf(line, sizeof(line), "  guest stack: [rsp] 0x%llx, [rsp+8] 0x%llx\n", (unsigned long long)((uintptr_t *)rsp)[0],
+                         (unsigned long long)((uintptr_t *)rsp)[1]);
+                put(line);
+            }
+            uintptr_t frame = rbp;
+            for (int depth = 0; depth < 24 && frame >= lo && frame + 16 < hi && (frame & 7) == 0; ++depth)
+            {
+                snprintf(line, sizeof(line), "  guest frame %d: return 0x%llx\n", depth, (unsigned long long)((uintptr_t *)frame)[1]);
+                put(line);
+                uintptr_t next = ((uintptr_t *)frame)[0];
+                if (next <= frame)
+                    break;
+                frame = next;
+            }
             put("END CRASH\n");
             if (log_fd >= 0)
                 fsync(log_fd);

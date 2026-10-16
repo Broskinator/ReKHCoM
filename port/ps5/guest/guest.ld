@@ -11,6 +11,7 @@ SECTIONS {
         LONG(__heap_end)
         LONG(__stack_top)
         LONG(__region_end)
+        LONG(gPortBiosArea)
     }
     .text : { *(.text .text.*) }
     .rodata : ALIGN(64) { *(.rodata .rodata.*) }

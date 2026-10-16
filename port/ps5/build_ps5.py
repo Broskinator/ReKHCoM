@@ -82,7 +82,7 @@ def game_includes(region):
 def common_flags():
     return [TARGET, '-ffreestanding', '-nostdinc', '-isystem', resource_dir(), f'-I{HERE / "guest/include"}',
             f'-I{HERE / "shared"}', '-O2', '-funsigned-char', '-fno-strict-aliasing', '-fwrapv', '-fno-pic', '-fno-pie',
-            '-fno-stack-protector', '-fno-asynchronous-unwind-tables', '-fno-common', '-msse4.1', '-fno-builtin-printf',
+            '-fno-stack-protector', '-fno-asynchronous-unwind-tables', '-fno-common', '-fno-omit-frame-pointer', '-msse4.1', '-fno-builtin-printf',
             '-fno-math-errno']
 
 
