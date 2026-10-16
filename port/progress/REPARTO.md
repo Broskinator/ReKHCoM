@@ -11,8 +11,8 @@ Referencia actual: CODEX_COORDINACION.md. Los bloques anteriores son históricos
 - [x] Reducir espera activa; descartar omisión de copia tras detectar regresión ultrawide.
 - [x] Recuperar numeración de píxeles v1.4, predeterminado x4 a 1080p y filtro real de enteras/intermedias.
 - [x] Verificación regional, estados y capturas contra paquete público v1.7; seis casos Auto y 116 pruebas de zoom.
-- [ ] Publicar v1.7.1 unificada; comprobar ZIP/sha256 y acceso local.
-- [ ] Retirar releases anteriores del lote solicitado; conservar todos los tags.
+- [x] Publicada v1.7.1 unificada; ZIP/SHA-256 verificados y acceso local preparado.
+- [x] Retiradas 14 releases del lote solicitado; todos los tags remotos intactos.
 
 ---
 

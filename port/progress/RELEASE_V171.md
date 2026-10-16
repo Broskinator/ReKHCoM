@@ -82,3 +82,19 @@ vacío inferior. EU/US/JP y guardar/cargar estado nuevo pasan.
 
 Último ajuste solicitado: no mostrar la procedencia v1.4 en opciones/ayuda.
 Las etiquetas visibles son xN o xN-xM (intermedia); la equivalencia es interna.
+
+## Resultado publicado
+
+- Release: https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v1.7.1
+- Commit del tag: b2d32d78bb10c19d282221f2469ab6860b8d2620.
+- ZIP: 21.064.754 bytes; SHA-256
+  4e188874ef3ffc3624d234230659e6dc7e1f8baeabf73b2f927dd9b65eb37306.
+  El digest calculado por GitHub coincide con el local.
+- main y codex/v1.5-fixes pusheados. Solo v1.7.1 queda pública.
+- 14 releases anteriores eliminadas según el plan autorizado; todos los refs
+  de tags remotos verificados idénticos antes/después. Las más antiguas siguen
+  ocultas como drafts. Informe: build/v171-review/release-cleanup-result.json.
+- Acceso local: ../Probar ReKHCoM v1.7.1.bat. Carpeta nueva preparada con ROMs
+  locales y copias de partidas normales; archivos originales conservados.
+  El ZIP público no contiene ROM, .sav, .khst ni configuración del usuario.
+- Opciones y ayuda no muestran procedencia de otra versión, por pedido final.
