@@ -416,6 +416,24 @@ static uint32_t StripPixel(int sx, int sy, int x, int y) {
 
 static float PixelEdge(float origin, int r, float scale);
 
+/* The GBA picture is one flat colour (every sampled pixel within a few
+   levels of the first): the end of a fade, or a blank frame between modes. */
+static int UniformPicture(const SDL_FRect* src, uint32_t* color) {
+    int x, y;
+    uint32_t c0 = sComposite[(int)src->y * gPortScreen.width + (int)src->x];
+    for (y = 0; y < (int)src->h; y += 4)
+        for (x = 0; x < (int)src->w; x += 4) {
+            uint32_t c = sComposite[((int)src->y + y) * gPortScreen.width + (int)src->x + x];
+            int dr = (int)((c >> 16) & 255) - (int)((c0 >> 16) & 255);
+            int dg = (int)((c >> 8) & 255) - (int)((c0 >> 8) & 255);
+            int db = (int)(c & 255) - (int)(c0 & 255);
+            if (dr * dr + dg * dg + db * db > 3 * 10 * 10)
+                return 0;
+        }
+    *color = c0;
+    return 1;
+}
+
 /* A margin texture (column 0 = the outermost) drawn column by column, each
    GBA column in the exact window pixels the picture's own sampling would
    give it: at a scale like 6.75 the scaler alone breaks ties between two
@@ -697,9 +715,13 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
         /* texture: 8-line bands; a band with drawing in it (an emblem)
            takes the nearest clean band above (or below) instead. Sampled
            like the picture, so each 16-column tile sits on its pixel grid */
-        int clean[GBA_SCREEN_H / 8], n = GBA_SCREEN_H / 8, b;
+        /* thresholds relative to the strip's own contrast, so a fade (which
+           lowers every contrast together) never turns an emblem band into
+           a "clean" one that the margin would repeat */
+        int clean[GBA_SCREEN_H / 8], n = GBA_SCREEN_H / 8, b, glo = 255, ghi = 0;
+        int blo[GBA_SCREEN_H / 8], bhi[GBA_SCREEN_H / 8], bchroma[GBA_SCREEN_H / 8];
         for (b = 0; b < n; b++) {
-            int x, yy, lo = 255, hi = 0, colorful = 0;
+            int x, yy, lo = 255, hi = 0, chroma = 0;
             for (yy = b * 8; yy < b * 8 + 8; yy++) {
                 for (x = 0; x < SIDE_STRIP; x++) {
                     uint32_t c = StripPixel(sx, sy, x, yy);
@@ -707,10 +729,18 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                     int l = (r * 3 + g * 6 + bl) / 10;
                     lo = SDL_min(lo, l);
                     hi = SDL_max(hi, l);
-                    colorful |= SDL_max(r, SDL_max(g, bl)) - SDL_min(r, SDL_min(g, bl)) > 40;
+                    chroma = SDL_max(chroma, SDL_max(r, SDL_max(g, bl)) - SDL_min(r, SDL_min(g, bl)));
                 }
             }
-            clean[b] = !colorful && hi - lo <= 64;
+            blo[b] = lo; bhi[b] = hi; bchroma[b] = chroma;
+            glo = SDL_min(glo, lo); ghi = SDL_max(ghi, hi);
+        }
+        {
+            /* the bright screen's thresholds (64 and 40 of 255), scaled by
+               how far the fade has dimmed the strip's range */
+            float k = SDL_max(ghi, 1) / 255.0f;
+            for (b = 0; b < n; b++)
+                clean[b] = bchroma[b] <= 40 * k && bhi[b] - blo[b] <= 64 * k;
         }
         for (band = 0; band < n; band++) {
             int srcBand = band, k;
@@ -1185,6 +1215,7 @@ static void CloseRecordPipe(FILE* f) { pclose(f); }
 static void Present(void) {
     int outW, outH;
     SDL_FRect dst, normal;
+    uint32_t uniform = 0;
     float worldX, worldY, worldScale;
     int moviePrompt;
     void PortHdHudPrepare(SDL_Renderer* renderer);
@@ -1315,7 +1346,16 @@ static void Present(void) {
             }
             DrawHeaderLeft(&src, &dst);
         }
-        if (!PortUiActive() && sSideStyle != 3 && sSideStyle != 8 && sSideStyle != 9 && sSideStyle != 10 && sFitScale <= 0) {
+        if (SDL_getenv("KHCOM_DBGSIDE")) PortLog("side f%u style %d fit %.2f wide %d src %.0f,%.0f %.0fx%.0f", (unsigned)PortFrameCount(), sSideStyle, sFitScale, gPortScreen.wide, src.x, src.y, src.w, src.h);
+        if (!PortUiActive() && sSideStyle != 10 && sFitScale <= 0 && UniformPicture(&src, &uniform)) {
+            /* a fade has reached one flat colour (or the screen is blank
+               between modes): the margins are that colour too, so the
+               transition stays one smooth fade */
+            SDL_FRect a = { 0, dst.y, dst.x, dst.h }, b2 = { dst.x + dst.w, dst.y, outW - dst.x - dst.w, dst.h };
+            SDL_SetRenderDrawColor(sRenderer, (Uint8)(uniform >> 16), (Uint8)(uniform >> 8), (Uint8)uniform, 255);
+            SDL_RenderFillRect(sRenderer, &a);
+            SDL_RenderFillRect(sRenderer, &b2);
+        } else if (!PortUiActive() && sSideStyle != 3 && sSideStyle != 8 && sSideStyle != 9 && sSideStyle != 10 && sFitScale <= 0) {
             SideBar((int)src.x, (int)src.y, -1, dst.y, scale, 0.0f, dst.x, (int)src.x);
             SideBar((int)(src.x + src.w) - SIDE_STRIP, (int)src.y, 1, dst.y, scale, dst.x + dst.w, (float)outW,
                     (int)(src.x + src.w) - 1);

@@ -23,6 +23,16 @@
    pide además que esa transición sea suave. Prioridad para v1.8.2 junto con
    2 y 3; el punto 1 (números HD) puede quedar para el futuro.
 
+   Estado del intento (Claude, sin publicar): en el presentador (port_main.c)
+   UniformPicture rellena los márgenes con el color plano al final de un
+   fundido, y el estilo TEXTURE usa umbrales relativos al contraste. NO cambia
+   las capturas del arnés: KHCOM_DBGSIDE=1 muestra frame 251 = style 1
+   (copyright1), fit 0, src 72,28 240x160, o sea el lienzo es 384x216 y los
+   márgenes de las capturas salen del lienzo del PPU (fuera de 72..312), no
+   de SideBar. Siguiente paso: ver qué pinta el PPU fuera de la columna GBA en
+   escenas no-wide (RenderLine con sInWorld/sLeft) en el primer frame de un
+   modo, y verificar con KHCOM_RECORD (lectura de la ventana), no KHCOM_SHOTS.
+
 Regla: quien trabaje (Claude o Codex) documenta aquí los pendientes al
 avanzar; si a uno se le acaban los tokens, el otro continúa desde esta lista.
 Solo Claude publica releases; Codex deja commits locales para integrar.
