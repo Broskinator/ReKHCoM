@@ -9,7 +9,7 @@ p = argparse.ArgumentParser()
 p.add_argument('--build', type=Path, default=ROOT/'build/rel-eu')
 p.add_argument('--rom', type=Path, default=ROOT/'roms/B8CP.gba')
 args = p.parse_args()
-out = ROOT/'build/v172-review/exp'; out.mkdir(parents=True, exist_ok=True)
+out = ROOT/'build/v18-review/exp'; out.mkdir(parents=True, exist_ok=True)
 cases = [(W,H,z,0,1) for W,H in [(1920,1080),(5120,1440)]
          for z in range(2*(H//160),2*max((W+2559)//2560,(H+1439)//1440)-1,-1)]
 cases += [(W,H,8,hd,hud) for W,H in [(1920,1080),(5120,1440)] for hd,hud in [(1,0),(1,1),(1,2)]]
@@ -36,5 +36,15 @@ def run(case):
    im=Image.open(file);im.resize((1280,round(1280*H/W))).save(d/f'notice_{f}.png');im.close();file.unlink()
  row=dict(case=name,exp_x=exp,passed=True);print(json.dumps(row),flush=True);return row
 with ThreadPoolExecutor(max_workers=2) as pool: results=list(pool.map(run,cases))
-(out/'report.json').write_text(json.dumps(results,indent=2))
+# With identical gameplay/zoom, the notice must be pixel-identical with HD
+# text off/on. Compare all three original label/number states at x4.
+from PIL import Image
+for W,H in [(1920,1080),(5120,1440)]:
+ for f in [160,220,280]:
+  a=Image.open(out/f'{W}x{H}-z8-hd0-hud1/notice_{f}.png')
+  b=Image.open(out/f'{W}x{H}-z8-hd1-hud1/notice_{f}.png')
+  ratio=1280/W;ox=(W-240*4)/2;oy=(H-160*4)/2+40*4
+  box=tuple(round(v*ratio) for v in [ox,oy,ox+88*4,oy+16*4])
+  assert a.crop(box).tobytes()==b.crop(box).tobytes(),('HD changed EXP pixels',W,f)
+(out/'report.json').write_text(json.dumps(dict(configurations=results,native_exp_hd_equivalence=True),indent=2))
 print(f'PASS: {len(results)} configurations, 3 notice states each')

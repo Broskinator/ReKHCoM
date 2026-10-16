@@ -17,23 +17,9 @@
 #include "sprite_palettes.h"
 
 #ifdef PLATFORM_PC
-/* Numeric HUD cells are eight pixels, unlike the 16-pixel message cells.
-   The PPU keeps this tag with the queued sprite; style 2 uses that grid. */
+/* Battle EXP notices retain their original pixel-art numbers even with HD
+ * text enabled for dialogue, subtitles and menus. Restore any caller tag. */
 extern int gPortTextChar;
-extern int gPortTextStyle;
-
-static int PortExpDigitCode(void* gfx) {
-    int digit;
-    for (digit = 0; digit < 10; digit++) {
-#ifdef VERSION_JP
-        if (gfx == gBtlExpNextFrames[digit + 4])
-#else
-        if (gfx == gBtlExpNextLvFrames[digit + 4])
-#endif
-            return '0' + digit;
-    }
-    return 0; /* suffix/ornament sprites retain their cartridge artwork */
-}
 #endif
 
 void* GetExpDigitGfx(s32 digit, u8 leading) {
@@ -387,14 +373,12 @@ void task_btl_exp_2(BtlExpWork* work) {
         for (i = 0; i <= 5; i++) {
             if (work->gfx2[i] != NULL) {
 #ifdef PLATFORM_PC
-                int previousChar = gPortTextChar, previousStyle = gPortTextStyle;
-                gPortTextChar = PortExpDigitCode(work->gfx2[i]);
-                gPortTextStyle = 2;
+                int previousChar = gPortTextChar;
+                gPortTextChar = 0;
 #endif
                 DrawSprite(x, y, work->gfx2[i], work->tiles2[i], work->palette, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 0);
 #ifdef PLATFORM_PC
                 gPortTextChar = previousChar;
-                gPortTextStyle = previousStyle;
 #endif
                 x += 8;
             }
