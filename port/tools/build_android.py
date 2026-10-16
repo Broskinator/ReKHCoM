@@ -52,16 +52,19 @@ def main():
     p.add_argument('--jobs',type=int,default=3)
     p.add_argument('--abi',choices=['armeabi-v7a','x86'],default='armeabi-v7a')
     p.add_argument('--native-only',action='store_true')
+    p.add_argument('--smoke',action='store_true',help='Separate test app: starts a debug battle, captures frame 600 and exits at 900')
     args=p.parse_args()
     if args.jobs<1:p.error('--jobs must be positive')
     tools=ROOT.parent/'toolchain/android';sdk=tools/'sdk'
     ndk=next((tools/'native').glob('android-ndk-*'))
+    ndk_version=next(line.split('=',1)[1].strip() for line in (ndk/'source.properties').read_text().splitlines() if line.startswith('Pkg.Revision'))
     java=next((tools/'java').glob('jdk-*'))
     sdl=tools/'SDL3-3.4.18';skeleton=sdl/'android-project'
     cmake=sdk/'cmake/3.22.1/bin/cmake.exe'
     ninja=ROOT.parent/'toolchain/bin/ninja.exe'
-    suffix='' if args.abi=='armeabi-v7a' else '-'+args.abi
-    native=ROOT/('build/android-native'+suffix)
+    native_suffix='' if args.abi=='armeabi-v7a' else '-'+args.abi
+    suffix=native_suffix+('-smoke' if args.smoke else '')
+    native=ROOT/('build/android-native'+native_suffix)
     env=dict(os.environ,JAVA_HOME=str(java),ANDROID_HOME=str(sdk),ANDROID_SDK_ROOT=str(sdk),
              GRADLE_USER_HOME=str(tools/'gradle-cache'),CMAKE_BUILD_PARALLEL_LEVEL=str(args.jobs))
     def run(cmd,cwd=ROOT):subprocess.run([str(x) for x in cmd],cwd=cwd,env=env,check=True)
@@ -79,6 +82,16 @@ def main():
     if args.native_only:return
     stage=ROOT/('build/android-app'+suffix);stage.mkdir(exist_ok=True)
     shutil.copytree(ROOT/'port/android/app',stage/'app',dirs_exist_ok=True)
+    manifest=stage/'app/src/main/AndroidManifest.xml'
+    if args.smoke:
+        text=manifest.read_text(encoding='utf-8')
+        settings={'KHCOM_BATTLE':'10:4:0','KHCOM_KEYS':'60-63:A','KHCOM_OUTPUT_SHOT':'600',
+                  'KHCOM_QUIT':'900','KHCOM_TRACE_MODES':'1'}
+        metadata=''.join(f'<meta-data android:name="SDL_ENV.{k}" android:value="{v}"/>\n' for k,v in settings.items())
+        manifest.write_text(text.replace('  <activity',metadata+'  <activity',1),encoding='utf-8')
+    else:
+        assert 'SDL_ENV.' not in manifest.read_text(encoding='utf-8')
+
     shutil.copytree(skeleton/'app/src/main/java/org',stage/'app/src/main/java/org',dirs_exist_ok=True)
     shutil.copytree(skeleton/'gradle',stage/'gradle',dirs_exist_ok=True)
     shutil.copy2(skeleton/'gradlew.bat',stage/'gradlew.bat')
@@ -96,13 +109,17 @@ def main():
 android {
  namespace 'com.rekhcom.android'
  compileSdk 35
+ ndkVersion '__NDK_VERSION__'
  defaultConfig { applicationId 'com.rekhcom.android'; minSdk 21; targetSdk 35; versionCode 19001; versionName '1.9-android-alpha1' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
  buildTypes { debug { debuggable true }; release { minifyEnabled false } }
  lint { abortOnError true }
  packaging { jniLibs { useLegacyPackaging true } }
 }
-""")
+""".replace('__NDK_VERSION__',ndk_version))
+    if args.smoke:
+        gradle=stage/'app/build.gradle'
+        gradle.write_text(gradle.read_text().replace("applicationId 'com.rekhcom.android'","applicationId 'com.rekhcom.android.smoke'"))
     libs=stage/'app/src/main/jniLibs'/args.abi;libs.mkdir(parents=True,exist_ok=True)
     desired={'libSDL3.so',*(f'librekhcom_{r}.so' for r in args.regions)}
     # Remove only stale native binaries from this generated staging folder.
@@ -112,23 +129,26 @@ android {
     strip=ndk/'toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-strip.exe'
     for name in desired:
         source=native/('SDL/'+name if name=='libSDL3.so' else name)
-        shutil.copy2(source,libs/name);run([strip,'--strip-debug',libs/name])
+        shutil.copy2(source,libs/name);run([strip,'--strip-unneeded',libs/name])
     notices=stage/'app/src/main/assets/licenses';notices.mkdir(parents=True,exist_ok=True)
     for source,name in [(sdl/'LICENSE.txt','SDL3.txt'),(ROOT/'LICENSE.md','ReKHCoM.md'),(ROOT/'port/android/assets/NOTICE.md','touch.md')]:shutil.copy2(source,notices/name)
-    run([stage/'gradlew.bat','--no-daemon','--max-workers=2','assembleDebug'],cwd=stage)
+    run([stage/'gradlew.bat','--no-daemon','--max-workers=2','clean','assembleDebug'],cwd=stage)
     apk=stage/'app/build/outputs/apk/debug/app-debug.apk'
     import zipfile
     with zipfile.ZipFile(apk) as z:
         assert z.testzip() is None
         assert not any(Path(n).suffix.lower() in ['.gba','.sav','.khst','.ini'] for n in z.namelist())
-        for name in desired:assert f'lib/{args.abi}/{name}' in z.namelist()
+        for name in desired:
+            member=f'lib/{args.abi}/{name}'
+            assert member in z.namelist()
+            assert hashlib.sha256(z.read(member)).digest()==hashlib.sha256((libs/name).read_bytes()).digest(), ('stale APK library',name)
     out=ROOT/'build/releases';out.mkdir(exist_ok=True)
-    target=out/f'ReKHCoM-v1.9-android-alpha1-{args.abi}-debug.apk'
+    target=out/f"ReKHCoM-v1.9-android-alpha1-{args.abi}{'-smoke' if args.smoke else ''}-debug.apk"
     shutil.copy2(apk,target)
     digest=hashlib.sha256(target.read_bytes()).hexdigest()
     target.with_suffix('.apk.sha256').write_text(f'{digest}  {target.name}\n')
     (out/('android-build-manifest'+suffix+'.json')).write_text(json.dumps({'apk':target.name,'sha256':digest,'regions':args.regions,
-        'abi':args.abi,'version':'1.9-android-alpha1','debug_signed':True,'runtime_tested':False},indent=2))
+        'abi':args.abi,'version':'1.9-android-alpha1','debug_signed':True,'test_only':args.smoke,'runtime_tested':False},indent=2))
     print('Built (runtime verification still required):',target,digest)
 
 

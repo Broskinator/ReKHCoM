@@ -1,3 +1,34 @@
+## Android: combate regional y nuevo objetivo Web (16/10/2026)
+
+- Batalla Android EU/US/JP: los tres llegan a frame600, producen imagen real
+  960x540 y salen en frame900 sin crash tras la corrección de stock. Informe
+  build/android-runtime-battles/report.json; capturas eu/us/jp.png.
+- US fallaba en IsKindPairThenNonSummonOfCategory (NULL+0x48, stockCount<3).
+  Las dos funciones IsKindPairThen{NonSummonOfCategory,Summon} ahora usan también
+  en PLATFORM_PC la comprobación count==3 que ya tenía EU. Se aplica a Android
+  y Windows, conserva combos válidos y evita depender de SEH en US/JP.
+  test_stock_count.py pasa EU/US/JP con stocks incompletos y combos válidos.
+- Bibliotecas Android exportan solo SDL_main (exports.map). Dynsym EU x86
+  75.383 -> 168 entradas; las restantes son imports. Globales/secciones siguen
+  resolviéndose internamente y el juego arranca. Símbolos de debug conservados
+  en build/android-native*, los staged .so usan --strip-unneeded.
+- build_android.py --smoke crea otra app com.rekhcom.android.smoke y artefacto
+  marcado test_only, con batalla/captura/salida automáticas via SDL_ENV. No subir
+  ese APK. El APK normal no contiene SDL_ENV. test_android_runtime.py exige
+  serial explícito y usa solo el almacenamiento de la app de pruebas.
+- Los binarios empaquetados se cotejan por SHA con los staged, y Gradle clean
+  evita huecos de empaquetado incremental. NDK fijado también en Gradle.
+- APK ARM actual (tras stock/export/strip/launcher) compilada, NO publicada:
+  SHA256 898c19a5bd862d27844ff6d0d80a49f7ceaa7aa5d91afbdd23dc694850260a0f.
+  ARM físico no probado. x86 smoke probado; normal debe reconstruirse también.
+- Usuario aclaró HD: Ver barajas, pantalla de añadir/quitar naipes. Capturando
+  ahora AddGrid / AddValueSelect, no solo el popup de comandos.
+- NUEVO pedido autorizado: port navegador con ROM desde Archivos, hospedado
+  en GitHub Pages. Comenzó análisis SDL3/Emscripten/Asyncify y memoria GBA.
+  Pages aún no existe (API404); no publicar launcher vacío como port jugable.
+  Resolver ABI/símbolos de Wasm y bucle antes de desplegar; misma prioridad de
+  no regresiones PC/Android. Documentar en reparto a cada avance.
+
 ## Regresión regional y opciones táctiles (16/10/2026)
 
 - EU/US/JP: 18/18 imágenes SDL idénticas a los EXEs publicados en v1.8.3:

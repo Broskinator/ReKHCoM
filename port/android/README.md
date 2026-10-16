@@ -177,3 +177,19 @@ comprobación tanto para ARMv7 como para x86 de pruebas.
 Prueba local: importar B8CP.gba desde SAF, iniciar Jugar, selección de idioma,
 confirmar con A, START para alcanzar título. x86 solo prueba el backend común;
 no ofrece datos de rendimiento ARM ni garantiza compatibilidad en móviles.
+
+## Pruebas de ejecución
+
+`python port/tools/build_android.py --abi x86 --smoke` genera una app aislada
+com.rekhcom.android.smoke. Instalar ese APK en el emulador y ejecutar
+`python port/tools/test_android_runtime.py --serial emulator-5554` con las
+ROMs privadas en roms/. Verifica SHA de cada copia, batalla y frame600/900 en
+EU/US/JP; no toca la app del jugador. El APK smoke no se publica.
+
+Las tres regiones pasan en API24 x86. Launcher SAF, SRAM, movimiento, menú,
+opciones táctiles y background/foreground se verificaron aparte en la app
+normal. Falta hardware ARM; estas pruebas no miden rendimiento de móviles.
+
+El cargador stock US/JP también necesitó comprobar tres cartas antes de leer
+sus definiciones: el acceso NULL original dependía de SEH en Windows. Las
+combinaciones válidas mantienen sus resultados en las tres regiones.

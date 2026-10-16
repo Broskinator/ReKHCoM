@@ -60,5 +60,7 @@ foreach(region IN LISTS REGIONS)
     # Cartridge symbols are SHN_ABS (hardware addresses and integer constants).
     # Bind locally: older Android loaders otherwise add the shared-object bias
     # to GLOB_DAT absolute symbols, e.g. the music-player count 26.
-    target_link_options(rekhcom_${region} PRIVATE -Wl,-z,nostart-stop-gc -Wl,-Bsymbolic)
+    set_property(TARGET rekhcom_${region} APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/native/exports.map")
+    target_link_options(rekhcom_${region} PRIVATE -Wl,-z,nostart-stop-gc -Wl,-Bsymbolic
+        "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/native/exports.map")
 endforeach()

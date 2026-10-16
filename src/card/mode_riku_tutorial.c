@@ -1580,7 +1580,7 @@ s32 IsAttackDonaldGoofyAnyOrder(CardDisplayWork** cards, u8 count) {
 s32 IsKindPairThenNonSummonOfCategory(CardDisplayWork** cards, u8 count, u16 firstKind, u16 secondKind, u8 category) {
     // @bug Outside EU, reads three cards even when fewer are stocked (NULL read).
     if (
-#ifdef VERSION_EU
+#if defined(VERSION_EU) || defined(PLATFORM_PC)
         count == 3 &&
 #endif
         cards[0]->cardDef->kind == firstKind && cards[1]->cardDef->kind == secondKind &&
@@ -1594,7 +1594,7 @@ s32 IsKindPairThenNonSummonOfCategory(CardDisplayWork** cards, u8 count, u16 fir
 s32 IsKindPairThenSummon(CardDisplayWork** cards, u8 count, u16 firstKind, u16 secondKind) {
     // @bug Outside EU, reads three cards even when fewer are stocked (NULL read).
     if (
-#ifdef VERSION_EU
+#if defined(VERSION_EU) || defined(PLATFORM_PC)
         count == 3 &&
 #endif
         cards[0]->cardDef->kind == firstKind && cards[1]->cardDef->kind == secondKind &&
