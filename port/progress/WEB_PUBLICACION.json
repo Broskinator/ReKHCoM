@@ -1,0 +1,131 @@
+{
+  "url": "https://matymeatboy.github.io/ReKHCom/",
+  "source_commit": "5c39af98b516f657572829359166690e6e52f4d3",
+  "verified": [
+    {
+      "file": "index.html",
+      "passed": true,
+      "bytes": 2162,
+      "content_type": "text/html; charset=utf-8"
+    },
+    {
+      "file": "web.css",
+      "passed": true,
+      "bytes": 1681,
+      "content_type": "text/css; charset=utf-8"
+    },
+    {
+      "file": "web.js",
+      "passed": true,
+      "bytes": 5368,
+      "content_type": "application/javascript; charset=utf-8"
+    },
+    {
+      "file": ".nojekyll",
+      "passed": true,
+      "bytes": 0,
+      "content_type": "application/octet-stream"
+    },
+    {
+      "file": "LICENSE.md",
+      "passed": true,
+      "bytes": 7167,
+      "content_type": "text/markdown; charset=utf-8"
+    },
+    {
+      "file": "SDL-LICENSE.txt",
+      "passed": true,
+      "bytes": 884,
+      "content_type": "text/plain; charset=utf-8"
+    },
+    {
+      "file": "rekhcom-eu.js",
+      "passed": true,
+      "bytes": 202867,
+      "content_type": "application/javascript; charset=utf-8"
+    },
+    {
+      "file": "rekhcom-eu.wasm",
+      "passed": true,
+      "bytes": 4338286,
+      "content_type": "application/wasm"
+    },
+    {
+      "file": "rekhcom-us.js",
+      "passed": true,
+      "bytes": 202867,
+      "content_type": "application/javascript; charset=utf-8"
+    },
+    {
+      "file": "rekhcom-us.wasm",
+      "passed": true,
+      "bytes": 4488053,
+      "content_type": "application/wasm"
+    },
+    {
+      "file": "rekhcom-jp.js",
+      "passed": true,
+      "bytes": 202867,
+      "content_type": "application/javascript; charset=utf-8"
+    },
+    {
+      "file": "rekhcom-jp.wasm",
+      "passed": true,
+      "bytes": 4368730,
+      "content_type": "application/wasm"
+    }
+  ],
+  "passed": true,
+  "pages_commit": "4a7495e45451bf0c3ef8aa9d62c4d7e6ca65dd23",
+  "files": {
+    "index.html": {
+      "bytes": 2162,
+      "sha256": "355988c140d14b9b54ff619b64ad9fb3d08d4823460afec87154c5cbcad0c83a"
+    },
+    "web.css": {
+      "bytes": 1681,
+      "sha256": "bfe9aae2070f9ab9e584362a19713d32186b4b3262a5c80f967a171007b9a09c"
+    },
+    "web.js": {
+      "bytes": 5368,
+      "sha256": "af6c8b64d1444d7917d0fb7dfbec7b05422dfb87a88537e8630cdc96a1a77bd4"
+    },
+    ".nojekyll": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "LICENSE.md": {
+      "bytes": 7167,
+      "sha256": "a19d58aaab15c4d0019e569d1c073d1b5286fdd37dbeee7a58a7d1ae76045ae1"
+    },
+    "SDL-LICENSE.txt": {
+      "bytes": 884,
+      "sha256": "1c040b8271b37e5076359f8fd54240e371114112924d2df81ef87c7d6a1dfdfd"
+    },
+    "rekhcom-eu.js": {
+      "bytes": 202867,
+      "sha256": "f02b7f2fbeefa778e787faa1fcbbf8a76272c738583f1df5c85b9ac453871db6"
+    },
+    "rekhcom-eu.wasm": {
+      "bytes": 4338286,
+      "sha256": "345cf5a88804156c1e8b4c077f91d467807048acd447d09de6f0e9909abd276b"
+    },
+    "rekhcom-us.js": {
+      "bytes": 202867,
+      "sha256": "9af7fb69fe4a6c7abf6e6d9331edac26eb2d3601dbc11c5618cba606373d1248"
+    },
+    "rekhcom-us.wasm": {
+      "bytes": 4488053,
+      "sha256": "18f112f3a16fc507e0d00d4bc58d159feb0f0a5771c22df6835a31eb81fa896f"
+    },
+    "rekhcom-jp.js": {
+      "bytes": 202867,
+      "sha256": "8398f193f11f1577907b13cdc1e1252c2ae58543718df5f4c08fde1c7ff2d10f"
+    },
+    "rekhcom-jp.wasm": {
+      "bytes": 4368730,
+      "sha256": "821cd5ab43da95482ad5e6a5747cd806ea51dafab3a2cb06ffb3f1128228bbf5"
+    }
+  },
+  "runtime_evidence": "User tested EU locally in Chrome through opening dialogue. Public launcher and artifact integrity verified; US/JP browser gameplay remains pending."
+}

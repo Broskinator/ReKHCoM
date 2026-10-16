@@ -132,6 +132,8 @@ press **Play**. Your ROM stays on your device. The web alpha supports keyboard,
 gamepad and optional touch controls, original pixel text, and normal save import
 and export. Export a backup before clearing browser data.
 
+<p align="center"><img src="docs/screenshots/web-player.jpg" width="90%"></p>
+
 ## Running (Windows)
 
 1. Download the [stable v1.8.3 ZIP](https://github.com/MatyMeatBoy/ReKHCom/releases/tag/v1.8.3)

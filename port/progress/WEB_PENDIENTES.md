@@ -25,8 +25,11 @@ estable ni publicar la futura PC v1.9 sin cerrar sus verificaciones.
 - [x] Recompilar los tres módulos con la protección SD final; cero avisos de firma.
 - [x] Prueba ejecutable ABI Wasm/Asyncify con memoria fija y callback convertido.
 - [x] Publicar rama gh-pages con allowlist; conservar ROM/SRAM/config privados.
-- [ ] Verificar URL pública y añadir enlace al README y al About del repositorio.
-- [ ] Registrar commit, hashes, tamaño y evidencia exacta del despliegue.
+- [x] Verificar URL pública y añadir enlace al README y al About del repositorio.
+- [x] Registrar commit, hashes, tamaño y evidencia exacta del despliegue.
+
+Publicación verificada: https://matymeatboy.github.io/ReKHCom/ .
+Evidencia: WEB_PUBLICACION.json (12/12 hashes y tipos MIME correctos).
 
 ## Prioridad alta: compatibilidad y partidas
 

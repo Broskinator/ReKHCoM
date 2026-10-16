@@ -1,3 +1,17 @@
+## GitHub Pages verificado (16/10/2026)
+
+- URL pública operativa: https://matymeatboy.github.io/ReKHCom/ .
+- Pages commit 4a7495e45451bf0c3ef8aa9d62c4d7e6ca65dd23, source 5c39af98b.
+  Build GitHub: built. Los 12 archivos públicos coinciden por SHA256/tamaño;
+  los tres Wasm se sirven como application/wasm. WEB_PUBLICACION.json.
+- README/About enlazan Web; captura pública docs/screenshots/web-player.jpg.
+  La portada conserva créditos, requisitos de ROM y foco en funciones del player.
+- Prueba de gameplay sigue siendo EU local realizada por el usuario; la captura
+  pública es del launcher. No confundir integridad/publicación con partida larga.
+- Pendientes completos en WEB_PENDIENTES.md. HD Web NO está implementado; SD
+  forzado evita diálogos vacíos. Próximo: guardar/recargar/exportar, US/JP reales,
+  audio/pausa y móviles antes de asumir compatibilidad completa.
+
 ## Web publicado en rama y limpieza final (16/10/2026)
 
 - Source d7f16c549 pusheado main/codex/v1.5-fixes. gh-pages e57d1e0ae con
