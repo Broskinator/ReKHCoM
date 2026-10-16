@@ -21,6 +21,8 @@
 
 static SDL_AudioStream* sStream;
 static int sStreamRate;
+static int sStreamPriming = 1;
+static float sQueuedAvg = -1.0f;
 static float sOut[FRAME_SAMPLES_MAX * 2];
 static float sPsgL[FRAME_SAMPLES_MAX], sPsgR[FRAME_SAMPLES_MAX];
 static float sDsAR[FRAME_SAMPLES_MAX];
@@ -65,17 +67,20 @@ static const uint8_t sNrx4[4] = { 0x65, 0x6D, 0x75, 0x7D };
    phase p and p + inc, in eighths: the box-filtered waveform, so the
    output does not alias the way point samples do. */
 static double DutyIntegral(int duty, double p) {
-    double periods = SDL_floor(p / 8.0), r = p - periods * 8.0, sum = 0;
-    int k, highs = 0;
-
-    for (k = 0; k < 8; k++)
-        highs += sDuty[duty][k];
-    for (k = 0; k < 8 && r > 0; k++) {
-        double part = r >= 1.0 ? 1.0 : r;
-        sum += (sDuty[duty][k] ? part : -part);
-        r -= part;
-    }
-    return periods * (double)(2 * highs - 8) + sum;
+    static const int8_t prefix[4][9] = {
+        {0,-1,-2,-3,-4,-5,-6,-7,-6},
+        {0, 1, 0,-1,-2,-3,-4,-5,-4},
+        {0, 1, 0,-1,-2,-3,-2,-1, 0},
+        {0,-1, 0, 1, 2, 3, 4, 5, 4},
+    };
+    /* Oscillator phases are small and non-negative. A prefix sum avoids
+       scanning all eight duty steps twice for every output sample. */
+    double periods = p >= 0 ? (double)(int)(p * 0.125) : SDL_floor(p * 0.125);
+    double r = p - periods * 8.0;
+    int k = (int)r;
+    if (k > 7) k = 7;
+    return periods * prefix[duty][8] + prefix[duty][k] +
+           (sDuty[duty][k] ? r - k : k - r);
 }
 
 static uint16_t RegFreq(int ch) {
@@ -405,8 +410,13 @@ void PortAudioVisitState(PortStateVisitor visit) {
 }
 
 void PortAudioReset(void) {
-    if (sStream != NULL)
+    if (sStream != NULL) {
+        SDL_PauseAudioStreamDevice(sStream);
         SDL_ClearAudioStream(sStream);
+        SDL_SetAudioStreamFrequencyRatio(sStream, 1.0f);
+    }
+    sStreamPriming = 1;
+    sQueuedAvg = -1.0f;
 }
 
 int PortAudioInit(void) {
@@ -420,7 +430,10 @@ int PortAudioInit(void) {
         PortLog("Audio: could not open the output device: %s", SDL_GetError());
         return 0;
     }
-    SDL_ResumeAudioStreamDevice(sStream);
+    /* The convenience API opens paused. Fill the intended safety buffer
+       before starting playback, rather than racing the first audio callback. */
+    sStreamPriming = 1;
+    sQueuedAvg = -1.0f;
     return 1;
 }
 
@@ -444,15 +457,21 @@ static void Queue(int n, int rate) {
        corrected by at most 0.3% (about 5 cents), which is inaudible; only a
        large backlog (e.g. after a pause) is dropped outright. */
     {
-        static float sQueuedAvg = -1.0f;
         float queued = (float)(SDL_GetAudioStreamQueued(sStream) / (2 * (int)sizeof(float)));
         float target = rate / (float)GBA_FPS * 4.0f;
         float ratio;
 
         if (queued > target * 6) {
-            SDL_ClearAudioStream(sStream);
+            PortAudioReset();
             queued = 0;
-            sQueuedAvg = -1.0f;
+        }
+        if (sStreamPriming) {
+            if (queued + 1.0f < target) /* allow fractional samples/frame */
+                return;
+            SDL_ResumeAudioStreamDevice(sStream);
+            sStreamPriming = 0;
+            if (SDL_getenv("KHCOM_AUDIOLOG"))
+                PortLog("audio: playback primed with %.0f samples at %d Hz", queued, rate);
         }
         if (sQueuedAvg < 0)
             sQueuedAvg = queued;
