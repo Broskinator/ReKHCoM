@@ -9,7 +9,7 @@
 
 PortConfig gPortConfig = {
     PORT_VIEW_AUTO,     /* viewMode */
-    PORT_ZOOM_CLASSIC,   /* zoom: classic v1.4 x4 at 1080p */
+    PORT_ZOOM_DEFAULT,   /* zoom: x4 */
     PORT_SCALE_INTEGER, /* scaleMode */
     PORT_FILTER_NEAREST, /* filter */
     0,                  /* fullscreen */
@@ -43,7 +43,7 @@ PortConfig gPortConfig = {
     0,                  /* ps2FastText (experimental) */
     0,                  /* hdHud: pending, forced off (see PortConfigLoad) */
     0,                  /* aspect: fill the window */
-    1,                  /* integerZoom: whole pixel scales */
+    0,                  /* integerZoom: legacy key, all zooms are available */
     {
         { SDLK_X, SDLK_K },             /* A */
         { SDLK_Z, SDLK_J },             /* B */
@@ -173,10 +173,10 @@ void PortConfigView(int mode, int* w, int* h) {
 static int sZoomOutW = 1920, sZoomOutH = 1080;
 #define ZOOM_PIXEL_BUDGET (640 * 360 * 5 / 4)
 int PortConfigZoomId(int level) {
-    return PortZoomNormalize(level, gPortConfig.integerZoom, sZoomOutW, sZoomOutH);
+    return PortZoomNormalize(level, 0, sZoomOutW, sZoomOutH);
 }
 int PortConfigZoomNext(int level, int dir) {
-    return PortZoomStep(level, dir, gPortConfig.integerZoom, sZoomOutW, sZoomOutH);
+    return PortZoomStep(level, dir, 0, sZoomOutW, sZoomOutH);
 }
 float PortConfigZoomScaleF(int level) {
     return PortConfigZoomId(level) * 0.5f;
@@ -257,10 +257,15 @@ void PortConfigLoad(void) {
         gPortConfig.integerZoom = 1;
     }
     /* Replace the ambiguous v1.7 zoom/pixel-rounding combination once. */
-    if (sConfigVersion < PORT_ZOOM_CONFIG_VERSION) {
-        gPortConfig.zoom = PORT_ZOOM_CLASSIC;
+    if (sConfigVersion < 9) {
+        gPortConfig.zoom = PORT_ZOOM_DEFAULT;
         gPortConfig.integerZoom = 1;
     }
+    /* Remove the filter without moving the picture of an old rounded choice. */
+    if (sConfigVersion < 10 && gPortConfig.integerZoom && (gPortConfig.zoom & 1))
+        gPortConfig.zoom++;
+    if (gPortConfig.zoom == PORT_ZOOM_CLASSIC) gPortConfig.zoom = PORT_ZOOM_DEFAULT;
+    gPortConfig.integerZoom = 0;
     if (sConfigVersion < 4 && gPortConfig.fullscreenWidth == 1920 && gPortConfig.fullscreenHeight == 1080) {
         gPortConfig.fullscreenWidth = 0;
         gPortConfig.fullscreenHeight = 0;

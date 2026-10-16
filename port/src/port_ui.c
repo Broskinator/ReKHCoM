@@ -83,6 +83,8 @@ static int PageEnd(void) {
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
     switch (item) {
+        case ITEM_INTZOOM:
+        case ITEM_SCALE: return 0;
         /* the version and its difficulty are chosen at New Game and stay
            with the save, as in the original: no switch for them here */
         case ITEM_PS2_MODE:
@@ -292,6 +294,7 @@ static const char* const sAspect[5][LANG_COUNT] = {
 };
 static const char* const sPressA[LANG_COUNT] = { "A: apply", "A : appliquer", "A: übernehmen", "A: applica",
     "A: aplicar", "A: 決定" };
+static const char* const sIntegralReference[LANG_COUNT] = { "integer", "entière", "ganzzahlig", "intera", "íntegra", "整数" };
 static const char* const sIntermediate[LANG_COUNT] = { " (intermediate)", " (intermédiaire)", " (Zwischenstufe)", " (intermedio)", " (intermedia)", " (中間)" };
 static const char* const sNarrow[2][LANG_COUNT] = {
     { "Exact pixels", "Pixels exacts", "Exakte Pixel", "Pixel esatti", "Píxel exacto", "等倍ピクセル" },
@@ -560,7 +563,9 @@ static void ValueText(int item, char* out, size_t size) {
                     SDL_snprintf(out, size, "x%d-x%d%s", z / 2, z / 2 + 1, sIntermediate[l]);
                 else
                     SDL_snprintf(out, size, "x%d", z / 2);
-                if (PortConfigZoomHeavy(gPortConfig.zoom))
+                if (PortZoomReference(z))
+                    SDL_snprintf(out, size, "x%d (%s x%d)", z / 2, sIntegralReference[l], PortZoomReference(z));
+                if (PortConfigZoomHeavy(gPortConfig.zoom) || z == 12)
                     SDL_strlcat(out, "  !", size);
             }
             else

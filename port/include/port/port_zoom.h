@@ -5,7 +5,10 @@
  * Even IDs are whole pixel scales, odd IDs are halfway between them. */
 #define PORT_ZOOM_LEVELS 128
 #define PORT_ZOOM_CLASSIC 0
-#define PORT_ZOOM_CONFIG_VERSION 9
+#define PORT_ZOOM_DEFAULT 8 /* x4, independent of monitor size */
+#define PORT_ZOOM_CONFIG_VERSION 10
+/* User-facing reference annotations; these do not alter rendering geometry. */
+static inline int PortZoomReference(int id) { return id == 12 ? 1 : id == 6 ? 2 : 0; }
 static inline int PortZoomMin(int width, int height) {
     int x = (width + 2559) / 2560, y = (height + 1439) / 1440;
     return x > y ? x : y > 0 ? y : 1;

@@ -47,7 +47,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.7.1"
+#define REKHCOM_VERSION "v1.7.2"
 #endif
 
 static bool sSpanish;
@@ -223,14 +223,14 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
-    { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_CLASSIC },         { "scale_mode", 0 },
+    { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
     { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 },
-    { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 1 },
+    { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
     { "kb_l", SDLK_A },         { "kb_l_2", 0 },            { "pad_l", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER },
@@ -299,11 +299,16 @@ static void LoadIni() {
         sIni["integer_zoom"] = 1;
         sIni["config_version"] = 8;
     }
-    if (sIni["config_version"] < PORT_ZOOM_CONFIG_VERSION) {
-        sIni["zoom"] = PORT_ZOOM_CLASSIC;
+    if (sIni["config_version"] < 9) {
+        sIni["zoom"] = PORT_ZOOM_DEFAULT;
         sIni["integer_zoom"] = 1;
-        sIni["config_version"] = PORT_ZOOM_CONFIG_VERSION;
+        sIni["config_version"] = 9;
     }
+    if (sIni["config_version"] < 10 && sIni["integer_zoom"] && (sIni["zoom"] & 1))
+        sIni["zoom"]++;
+    if (sIni["zoom"] == PORT_ZOOM_CLASSIC) sIni["zoom"] = PORT_ZOOM_DEFAULT;
+    sIni["integer_zoom"] = 0;
+    sIni["config_version"] = PORT_ZOOM_CONFIG_VERSION;
 
 }
 
@@ -1057,17 +1062,19 @@ static void PageGraphics() {
             H = baseH * std::clamp(Ini("window_scale"), 1, 8);
         }
     }
-    int zoomCount = PortZoomCount(Ini("integer_zoom"), W, H);
+    int zoomCount = PortZoomCount(0, W, H);
     for (int i = 0; i < zoomCount; i++) {
-        int z = PortZoomAt(i, Ini("integer_zoom"), W, H);
+        int z = PortZoomAt(i, 0, W, H);
         float f = z * 0.5f;
         bool heavy = (W / f) * (H / f) > 640 * 360 * 5 / 4;
         zoomLabels[i] = "x" + std::to_string(z / 2) +
             ((z & 1) ? "-x" + std::to_string(z / 2 + 1) + T("  (intermedia)", "  (intermediate)") : "") +
             (heavy ? T("  (exigente)", "  (demanding)") : "");
+        if (PortZoomReference(z))
+            zoomLabels[i] += std::string(T("  (íntegra x", "  (integer x")) + std::to_string(PortZoomReference(z)) + ")";
+        if (z == 12) zoomLabels[i] += "  !";
         zooms[i] = zoomLabels[i].c_str();
     }
-    const char* scales[] = { T("Entero", "Integer"), T("Ajustar", "Fit"), T("Estirar", "Stretch") };
     const char* filters[] = { T("Nítido", "Sharp"), "Pixel art", T("Suave", "Smooth") };
     const char* huds[] = { T("Original", "Original"), T("Grande", "Large"), T("Más grande", "Larger") };
     const char* narrow[] = { T("Píxel exacto", "Exact pixels"), T("Llenar altura", "Fill height") };
@@ -1090,23 +1097,15 @@ static void PageGraphics() {
                             Ini("aspect"), 5, aspects);
     }
     {
-        int sel = PortZoomIndex(Ini("zoom"), Ini("integer_zoom"), W, H);
+        int sel = PortZoomIndex(Ini("zoom"), 0, W, H);
         if (CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"),
                      T("Escala de píxeles: x4 amplía cada píxel cuatro veces. Menos aumento muestra más mundo y exige más al PC.",
                        "Pixel scale: x4 enlarges each pixel four times. Lower scales show more world and cost more CPU."),
                      sel, zoomCount, zooms)) {
-            Ini("zoom") = PortZoomAt(sel, Ini("integer_zoom"), W, H);
+            Ini("zoom") = PortZoomAt(sel, 0, W, H);
             changed = true;
         }
     }
-    if (CycleRow(T("Solo escalas enteras", "Integer scales only"),
-                 T("Solo ampliaciones enteras de píxel. Desactiva para mostrar también los pasos intermedios.",
-                   "Whole pixel magnifications only. Turn off to also show the intermediate steps."),
-                 Ini("integer_zoom"), 2, onoff)) {
-        Ini("zoom") = PortZoomNormalize(Ini("zoom"), Ini("integer_zoom"), W, H);
-        changed = true;
-    }
-    changed |= CycleRow(T("Escalado", "Scaling"), nullptr, Ini("scale_mode"), 3, scales);
 #ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* filter: an internal setting */
     changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);
 #endif
