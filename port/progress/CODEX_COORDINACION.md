@@ -1,3 +1,23 @@
+# Reparto tras v1.6.7 — 16/10/2026 (Claude)
+
+Publicada v1.6.7 (única release pública). Zoom = escala de píxel entera
+(gPortConfig.zoom: 0 Mejorado = x4 a 1080p; N = xN), buffers del lienzo en el
+heap (PORT_MAX 2560x1440). Arnés: KHCOM_RESIZE=frame:WxH, KHCOM_PROFILE=1.
+
+**Codex**
+1. Rendimiento del PPU por software (~40 ns/píxel): x1/x2 a 1080p no llegan a
+   60 fps (86 y 21 ms). Optimizar ComposeLine/DrawTextBg o hilos por franjas.
+2. Guardar partida: el usuario vio paneles cortados en v1.6.5/6 (captura con el
+   castillo de fondo). No se reproduce en v1.6.7 a 1920x1080 ni 1536x864 con
+   zoom 0/1/2/5; confirmar con su partida real y otras salas.
+3. HD HUD y HD-2D siguen ocultos y forzados a 0 (KHCOM_HD_HUD_DEV / KHCOM_HD2D_DEV).
+
+**Claude**
+1. Tráiler v4 (pausado por el usuario): intro de consola en el Castillo del
+   Olvido, salas encadenadas a media escalera, post-créditos Sincorazón ya hecho
+   (Trailer/clips/16_postcreditos_android.mov). Regrabar clips con v1.6.7.
+2. Revisión de bugs que reporte el usuario.
+
 # HD HUD: pendiente — 15/10/2026 (Claude)
 
 El HD HUD queda **desactivado para los jugadores hasta estar completo**: la
