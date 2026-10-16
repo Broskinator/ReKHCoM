@@ -1,3 +1,66 @@
+# CODEX: TAREA ACTUAL — 3 bugs para v1.8.2 (16/10/2026, Claude)
+
+Haz SOLO estos 3 bugs, en este orden. No toques zoom, márgenes de menús,
+HD HUD, HD-2D, audio ni tráiler. Commits locales en `khcom-claude`
+(rama claude/windows-5); Claude integra, publica v1.8.2 y la sube encima
+de la release v1.8.2 actual. Al terminar cada bug, anota aquí resultado y
+evidencia. El 4º (números HD sobre el submenú de Ver barajas) queda para
+el futuro: NO lo hagas ahora.
+
+Verificación obligatoria: lo que ve el jugador es la ventana. KHCOM_SHOTS
+guarda el lienzo/ventana del arnés, pero en escenas GBA-size los márgenes
+pueden venir del lienzo del PPU (fuera de la columna GBA) y no del
+presentador; confírmalo con KHCOM_RECORD=desde-hasta:ruta.mov (lee la
+ventana) o comparando con capturas del usuario. Ventana de prueba 1536x864
+(la del usuario) y 1920x1080. No publiques nada sin ver el frame exacto.
+
+## Bug A — Transición tras elegir idioma (parpadeo + fondo antiguo)
+Reproducir: arnés sin KHCOM_MODE, lang=None, KHCOM_KEYS=200-203:A,
+KHCOM_SHOTS=236..260 (cada frame), KHCOM_WINDOW=1536x864.
+- Frame 251 (primer frame de mode_copyright1, PortSideStyle COLOR=1):
+  centro negro y márgenes BLANCOS -> parpadeo. Frames 250 y 252: todo
+  negro / todo blanco (correctos).
+- Frames 246-247 (fundido de mode_lang, estilo TEXTURE=2): los márgenes
+  repiten los iconos de Sora/corazones de la fila inferior ("fondo antiguo"
+  que el usuario ve 2 frames). Causa probable: al oscurecerse, las bandas
+  con emblema pasan el umbral "clean" (hi-lo<=64, croma<=40) y se copian.
+- KHCOM_DBGSIDE=1 (ya en el código) loguea por frame: style, fit, wide,
+  src. En 251: style 1, fit 0, wide 0, src 72,28 240x160 (lienzo 384x216).
+- Intento de Claude ya en el código, en port_main.c (presentador):
+  UniformPicture() pinta los márgenes con el color plano cuando la imagen
+  GBA es uniforme, y SideBar TEXTURE usa umbrales relativos al contraste.
+  NO cambió las capturas -> los márgenes vistos salen de otra parte
+  (lienzo PPU fuera de 72..312 o del primer frame del modo nuevo con
+  estilo/datos del anterior). Encuentra quién pinta esos píxeles y arréglalo
+  ahí.
+- Objetivo: fundido suave, sin ningún frame con márgenes de distinto color
+  que el centro ni iconos repetidos.
+
+## Bug B — Margen derecho oscuro al entrar a Cargar desde el título
+Captura del usuario: tras elegir CARGAR en el título, durante el fundido a
+negro el margen derecho queda casi negro mientras el izquierdo sigue gris
+(igual que el centro). Ventana 1536x864, partida existente (save=True).
+Reproducir: KHCOM_KEYS con A 200..800 cada 60, START 1120, luego DOWN y A
+sobre CARGAR cuando aparezca el menú (~frame 1400-1430) y capturar cada
+frame del fundido siguiente. Probablemente el mismo mecanismo que el Bug A
+(margen que no sigue el brillo del centro). Objetivo: ambos márgenes con
+el mismo color/brillo que el borde de la imagen en cada frame.
+
+## Bug C — Destello del cuarto anterior al cambiar de sala
+Usuario: puerta arriba-derecha (isométrico) en su partida; state en
+ReKHCoM-v1.8.1/ReKHCoM-v1.8.1-windows-x86/states/slot1.khst (SOLO carga
+con build/v181/khcom.exe = exe de la release v1.8.1, por BuildId).
+Con ese exe y KHCOM_LOADSTATE: el fundido a blanco termina ~frame 36-38;
+frame 39 muestra pilares/objetos del castillo en BLANCO sobre NEGRO.
+KHCOM_PPULOG en ese frame: "latch 0110" (BG3 pierde el latch del mundo un
+frame antes que BG1/BG2), siguiente frame dispcnt 0040 (BGs apagados).
+Intento de Claude (en v1.8.2, NO verificado): gracia de 1 frame en
+PortPpuBeginFrame que mantiene el latch del BG que lo pierde. Verificar
+con un state nuevo: el usuario puede guardar uno con v1.8.2 frente a la
+puerta, o reproducir saliendo del castillo por una puerta con el arnés.
+Objetivo: ningún frame con siluetas del cuarto anterior; el fundido pasa
+de blanco a la sala nueva sin destellos.
+
 # Abiertos tras v1.8.2 — 16/10/2026 (Claude). El usuario confirma que NO están corregidos en v1.8.2.
 
 1. Ver barajas: al abrir el submenú, los números/textos HD siguen encima del
