@@ -77,7 +77,21 @@ del jugador. No publicar APK como probada en telefono por pasar emulador x86.
   sin cambios de bytes. Touch C: multitouch/diagonal/cancel/foco PASS.
 - APK x86 smoke alpha2: EU/US/JP llegan a combate frame600 y terminan frame900
   sin crash. Reporte local build/android-runtime-battles/report.json. Esta prueba
-  precede a la incorporacion de 4:3; repetir con el binario final.
+  se repitio despues de incorporar 4:3 (core nuevo), con los mismos hashes de
+  imagen de los tres casos. Falta ejercicio SAF en dispositivo y ARM fisico.
 - 4:3 y 3:2: ejecucion Windows EU a 1280x800 en x1/x4 sin crash, capturas reales
   revisadas de combate y Estado con fuentes HD cargadas. build/aspect-runtime/.
   No equivale a probar Android/ARM, todos los zooms o todas las cinematicas.
+
+- Resolucion RG34XX: pruebas Windows EU en 720x480, 3:2, x1/x2/x3, sin bandas
+  ni deformacion del rectangulo; reporte build/aspect-runtime/rg34-resolution-report.json.
+- Auditoria ABI reproducible: `python port/tools/audit_pointer_layout.py`.
+  CardDef de ROM ocupa 52 bytes con punteros de 32 bits y 80 con punteros de
+  64; el campo kind pasa de offset28 a56. No basta quitar el assert de Android
+  ni cambiar sizeof(void*) al compilar: leeria otros bytes de la ROM.
+  SaveBlockLarge sigue midiendo 0xF14 y data offset28: guardar SRAM normal
+  puede seguir siendo interoperable aunque cambie el backend.
+- Para ARM64/Linux real hay que separar los registros GBA (referencias u32)
+  de estructuras nativas, revisar memoria DMA/allocaciones/tablas/funciones,
+  o demostrar un nucleo wasm32 AOT con host SDL de 64 bits. Ninguna de esas
+  rutas esta implementada; no etiquetar un ejecutable ARMv7 como ARM64.

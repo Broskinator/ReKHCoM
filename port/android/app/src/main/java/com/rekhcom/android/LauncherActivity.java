@@ -22,8 +22,12 @@ public class LauncherActivity extends Activity {
     private Button play;
     private int saveRegion,saveBank=1,zoomFirst;
     private boolean pickerPending;
-    private boolean busy;
-    private String message="";
+    private static volatile boolean busy;
+    private static volatile String message="";
+    private final android.os.Handler refreshHandler=new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable refreshOperation=new Runnable(){public void run(){refresh();if(busy)refreshHandler.postDelayed(this,200);}};
+    @Override protected void onResume(){super.onResume();refreshHandler.post(refreshOperation);}
+    @Override protected void onPause(){refreshHandler.removeCallbacks(refreshOperation);super.onPause();}
     private int dp(int n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -89,7 +93,7 @@ public class LauncherActivity extends Activity {
                 else if(request==30){exportSave(uri,selectedSaveRegion,selectedBank);msg="Partida exportada.";}
                 else msg="Operación desconocida.";
             }catch(Exception e){msg="No se pudo completar: "+e.getMessage();}
-            final String end=msg;runOnUiThread(()->{busy=false;message=end;refresh();});
+            message=msg;busy=false;runOnUiThread(()->{if(!isDestroyed())refresh();});
         },"ROM-import").start();
     }
     private static void copy(InputStream in,OutputStream out,long limit)throws Exception{
