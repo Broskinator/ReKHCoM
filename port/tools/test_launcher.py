@@ -50,7 +50,7 @@ def main():
     ap.add_argument("--roms", default=str(ROOT / "roms"))
     ap.add_argument("--out", default=str(ROOT / "build" / "launchertest"))
     args = ap.parse_args()
-    build, ROMS, work = Path(args.build), Path(args.roms), Path(args.out)
+    build, ROMS, work = Path(args.build).resolve(), Path(args.roms).resolve(), Path(args.out).resolve()
 
     def copy_rom(code, mutate=None):
         def prep(d):

@@ -2,8 +2,10 @@
 
 ## Regla del usuario
 
-Windows conserva la estable. Android, web, Linux y Steam Deck se publican como
-**alpha**, sin prometer compatibilidad ni rendimiento de dispositivos no probados.
+Actualizacion del usuario 17/10/2026: v1.9 es candidata; v1.9.1 sera la primera
+publica estable con TODAS las plataformas. Sustituye la regla anterior no-PC alpha.
+Las alpha ya publicadas siguen siendo alpha hasta completar su validacion;
+no afirmar compatibilidad ni rendimiento de dispositivos no probados.
 La nueva escala relativa de menus no entra en stable. No subir ROMs, saves ni
 estados a Git. Conservar historial y trabajo de Claude; no integrar a ciegas.
 

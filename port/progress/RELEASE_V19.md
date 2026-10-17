@@ -1,3 +1,30 @@
+## Pedido actualizado y candidata PC v1.9 (17/10/2026)
+
+- Usuario pide publicar v1.9, revisar paquetes publicados y corregir, y luego
+  v1.9.1 publica estable UNIFICADA para todas las plataformas. Esto sustituye
+  el criterio anterior de no-PC siempre alpha. No marcar v1.9.1 cerrada solo
+  por acabar PC: Linux ARM64 RG34XX y Steam Deck aun carecen de build.
+- Rama release/v1.9 integra feature/aspect-43-zoom + fix/web-mobile-files-controls.
+  La escala relativa nueva de menus sigue EXCLUIDA por instruccion del usuario.
+- PC EU/US/JP construidos. PPU206, audio24 +800000 integrales, zoom41, padding810,
+  stock3regiones, teclado/mando/touch y frontend Web PASS.
+- Regresion regional: 18 imagenes SDL exactas vs stable v1.8.3 (campo/combate/deck,
+  1920x1080 y2560x720). EXP:20 configuraciones,3 estados; HD no altera los pixels.
+- Menu HD:4 ciclos reales de barajas/editar y vuelta campo PASS. Estado: NEW no
+  invade margenes x1/x4 en1920x1080 y5120x1440. No equivale a resolver el antiguo
+  solapamiento HD de Barajas sin reproduccion clara.
+- Bugs nuevos corregidos en launcher: conversion borraba flags en0x1c en vez de
+  idioma en0x1e; import ignoraba fallo del backup y truncaba destino directamente.
+  Ahora parser limitado y validado, eleccion de base SRAM por bloques completos,
+  backup obligatorio y reemplazo atomico con flush. 96 checks C++ PASS; launcher
+  real con bancos/backup fallido/destino bloqueado/cabecera rota/.srm envuelto PASS.
+- El fallo inicial de test_launcher con --out relativo era del fixture (ruta
+  DECOMPUI_INSTALL relativa al cwd hijo); normalizado resolve(),11/11 PASS.
+- El primer test_menu_cycles uso una SRAM de importacion sin ranura jugable:
+  NO era una regresion del motor. Repetido con copia jugable banktest1,4/4 PASS.
+- Pendientes: empaquetar/publicar candidata, descargar/revisar; cheats/editor,
+  Linux64/Deck, comprobar Android fisico y web real movil; 1.9.1 aun no cerrada.
+
 ## Web Alpha 2: cierre F11 y artefactos finales (16/10/2026)
 
 - F11 ahora pide fullscreen del canvas (igual Alt+Enter), previene repetición y
