@@ -78,10 +78,6 @@ $('rom').addEventListener('change',async()=>{
     };
     try{await ReKHWeb.fonts(core);core.hdReady=true;core._PortWebSetHdReady(1);}
     catch(error){log(error);core.hdReady=false;core._PortWebSetHdReady(0);warning('fonts');}
-    const allowed=region.id==='eu'?['en','fr','de','es','it']:region.id==='jp'?['ja']:['en'];
-    if(region.id==='jp'&&!Array.from($('language').options).some(option=>option.value==='ja'))$('language').add(new Option('日本語','ja'));
-    Array.from($('language').options).forEach(option=>option.disabled=!allowed.includes(option.value));
-    if(!allowed.includes($('language').value))$('language').value=allowed[0];
     $('touch').checked=matchMedia('(pointer:coarse)').matches;
     core._PortWebTouchEnable($('touch').checked?1:0);
     $('play').disabled=false;$('save').disabled=false;status('ready');
@@ -106,7 +102,7 @@ $('save').addEventListener('change',async()=>{
 $('play').addEventListener('click',()=>{
   if(!core||started)return;
   $('setup').hidden=true;$('game').hidden=false;canvasSize();started=true;$('canvas').focus();status('');
-  try{core.callMain(['--data-dir','/saves','--rom',':browser:','--language',$('language').value]);scheduleResize();}catch(error){fail(error);}
+  try{core.callMain(['--data-dir','/saves','--rom',':browser:']);scheduleResize();}catch(error){fail(error);}
 });
 $('touch').addEventListener('change',()=>{core?._PortWebTouchEnable($('touch').checked?1:0);$('canvas').focus();});
 async function toggleFullscreen(){

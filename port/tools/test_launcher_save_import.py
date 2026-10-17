@@ -1,4 +1,5 @@
 """Import into a copied bank through the real launcher, never a player folder."""
+import argparse
 import ctypes
 from ctypes import wintypes
 import datetime
@@ -9,6 +10,10 @@ import shutil
 import subprocess
 
 ROOT=Path(__file__).resolve().parents[2]
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--build",type=Path,default=ROOT/"build/rel-eu")
+args=parser.parse_args()
+build=args.build.resolve()
 OUT=ROOT/'build/launcher-save-import'/datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f')
 OUT.mkdir(parents=True)
 source=(ROOT/'build/banktest1/kh_com.sav').read_bytes()
@@ -21,8 +26,8 @@ kernel.CloseHandle.argtypes=[wintypes.HANDLE]
 for case in ['valid','invalid','backup_failure','locked_destination','damaged_primary_header','wrapped_srm']:
     work=OUT/case;work.mkdir()
     for name in ['ReKHCoM.exe','SDL3.dll']:
-        shutil.copy2(ROOT/'build/rel-eu'/name,work/name)
-    shutil.copytree(ROOT/'port/decompui/assets',work/'assets')
+        shutil.copy2(build/name,work/name)
+    shutil.copytree(build/'assets',work/'assets')
     (work/'kh_com.ini').write_text('config_version=11\nsave_bank=3\naspect=6\n')
     sentinel=b'original bank three'+b'\xff'*(65536-19)
     assert len(sentinel)==65536

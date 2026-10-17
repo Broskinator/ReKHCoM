@@ -95,7 +95,14 @@ async function main(){
   context.navigator.share=async()=>{throw Object.assign(Error('no activation'),{name:'NotAllowedError'});};
   await element('save-share').listeners.click();assert.equal(element('status').textContent,vm.runInContext("t('shareFallback')",context));
   URL.revokeObjectURL(element('save-download').href);
+  let gameArguments;
+  context.recordGameArguments=args=>{gameArguments=Array.from(args);};
+  vm.runInContext('started=false;core.callMain=args=>recordGameArguments(args);',context);
+  element('play').listeners.click();
+  assert.deepEqual(gameArguments,['--data-dir','/saves','--rom',':browser:']);
   const html=fs.readFileSync(path.join(web,'index.html'),'utf8');
+  assert(!html.includes('id="language"'));
+  assert(html.includes('id="interface-language"'));
   for(const id of ['rom','save'])assert(!html.match(new RegExp(`<input[^>]*id="${id}"[^>]*>`))[0].includes('accept='));
   console.log('Web: sizing, focus/cancel release, iOS-compatible pickers, exact bank SRAM import/export, fresh-click share and download fallback PASS');
 }

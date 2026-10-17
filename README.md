@@ -30,7 +30,7 @@ The current stable download remains v1.8.3 while the next unified release is tes
 - Choose one of five save banks directly in the launcher.
 - Release keyboard and one-button actions correctly when the window loses focus.
 
-Android is available separately as [Alpha 2](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/android-alpha2).
+The same release includes the Android [Alpha 2 APK](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9).
 Linux ARM64 for RG34XX and Steam Deck are under development; there are no working
 packages for those targets yet. The new relative menu scaling is not part of this candidate.
 

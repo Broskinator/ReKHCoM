@@ -1,3 +1,24 @@
+## v1.9 unificada y BAT local (17/10/2026)
+
+- Usuario corrigio la organizacion: Windows y Android v1.9 en UNA release.
+  Canonica: https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9
+- Android APK/sha/manifiesto adjuntos y digest verificado ANTES de borrar la
+  release duplicada android-alpha2. Tag android-alpha2 conservado; no borrado.
+- ZIP Windows publicado cd1df8f1d4d0f20b76bf965d88e819d809eaab6c9d0a931b805ed122b5a7d45d.
+  Descargado desde GitHub: 11/11 launcher ROM,6/6 saves reales y6/6 ejecuciones
+  motores EU/US/JP en4:3/3:2 PASS. v1.9-postpublish.json adjunto en release.
+- BAT creado en carpeta madre: Probar ReKHCoM v1.9.bat. Script reproducible
+  port/tools/prepare_local_release.ps1 verificaZIP, instala en carpeta propia,
+  copia ROMs verificadas y migra SRAM/config de versiones anteriores sin pisar
+  archivos existentes. Probado tambien con powershell.exe (Windows PS5).
+- Web compilando EU/US/JP para actualizar Pages y adjuntar ZIP a MISMA release
+  v1.9. No crear otra publicacion duplicada por plataforma.
+- Usuario pidio quitar Game language de la web: eliminado selector y argumento
+  --language. El juego elige idioma; selector English/Espanol del sitio permanece.
+  Test frontend verifica arranque sin idioma forzado y ausencia de selector redundante.
+- v1.9.1 sigue siendo objetivo final estable CON TODAS las plataformas. No esta
+  lista: Linux64 RG34XX/Deck, cheats/editor y validacion fisica siguen pendientes.
+
 ## Pedido actualizado y candidata PC v1.9 (17/10/2026)
 
 - Usuario pide publicar v1.9, revisar paquetes publicados y corregir, y luego
