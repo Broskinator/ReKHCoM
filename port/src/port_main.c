@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "port/port_aspect.h"
 #include "port/port_hd2d.h"
 #include "port/port_ui.h"
 #include "port/port_state.h"
@@ -274,21 +275,8 @@ int gPortStartupLanguage = -1;
 /* The part of the window the picture uses: all of it, or the widest 16:9 or
    21:9 rectangle (Aspect ratio option), centred with black bars at the sides. */
 static SDL_Rect AspectRect(int outW, int outH) {
-    SDL_Rect r = { 0, 0, outW, outH };
-    float limit = gPortConfig.aspect == 1 ? 16.0f / 9.0f : gPortConfig.aspect == 2 ? 21.0f / 9.0f : 0.0f;
-    if (limit > 0 && outH > 0 && outW > (int)(outH * limit + 0.5f)) {
-        r.w = (int)(outH * limit + 0.5f);
-        r.x = (outW - r.w) / 2;
-    }
-    /* Force 21:9 / 32:9: an ultrawide picture in any window (bands above
-       and below when the window is narrower) */
-    if (gPortConfig.aspect >= 3 && outW > 0) {
-        float force = gPortConfig.aspect == 3 ? 21.0f / 9.0f : 32.0f / 9.0f;
-        if (outW < (int)(outH * force + 0.5f)) {
-            r.h = (int)(outW / force + 0.5f);
-            r.y = (outH - r.h) / 2;
-        }
-    }
+    PortAspectBounds fit = PortAspectFit(outW, outH, gPortConfig.aspect);
+    SDL_Rect r = { fit.x, fit.y, fit.w, fit.h };
     return r;
 }
 

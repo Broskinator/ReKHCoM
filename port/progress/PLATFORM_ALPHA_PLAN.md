@@ -43,7 +43,9 @@ estados a Git. Conservar historial y trabajo de Claude; no integrar a ciegas.
    **Sin build Linux ni prueba Deck por ahora.**
 4. 4:3 con todos los zooms y texto HD, sin deformar. Conservar tambien el modo
    original GBA 3:2. El usuario pidio conservar forma original; 4:3 es otra opcion.
-   **Pendiente de implementacion y regresion de todos los ratios.**
+   Rama `feature/aspect-43-zoom`: opciones 4:3 y GBA 3:2 implementadas,
+   geometria 49 combinaciones PASS y build EU Windows correcto. Regresion visual
+   en todos los zooms y texto HD aun pendiente. No integrado en main/stable.
 5. Web: rama `fix/web-mobile-files-controls`, commit 7956d77f6, subida pero NO
    integrada ni desplegada. Contiene correcciones de teclado/foco/fullscreen,
    import/export y compartir a Archivos. JS y C pasan tests; teclado real de

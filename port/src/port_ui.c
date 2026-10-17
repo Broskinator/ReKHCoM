@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "port/port_aspect.h"
 #include "port/port_ui.h"
 
 extern void* gMsgLatinFontFrames[];
@@ -292,12 +293,14 @@ static const char* const sHudSizes[3][LANG_COUNT] = {
     { "Large", "Grand", "Groß", "Grande", "Grande", "大きい" },
     { "Larger", "Plus grand", "Größer", "Più grande", "Más grande", "もっと大きい" },
 };
-static const char* const sAspect[5][LANG_COUNT] = {
+static const char* const sAspect[PORT_ASPECT_COUNT][LANG_COUNT] = {
     { "Fill window", "Remplir la fenêtre", "Fenster füllen", "Riempi finestra", "Llenar ventana", "ウィンドウに合わせる" },
     { "16:9", "16:9", "16:9", "16:9", "16:9", "16:9" },
     { "21:9", "21:9", "21:9", "21:9", "21:9", "21:9" },
     { "Force 21:9", "Forcer 21:9", "21:9 erzwingen", "Forza 21:9", "Forzar 21:9", "21:9に固定" },
     { "Force 32:9", "Forcer 32:9", "32:9 erzwingen", "Forza 32:9", "Forzar 32:9", "32:9に固定" },
+    { "4:3", "4:3", "4:3", "4:3", "4:3", "4:3" },
+    { "GBA 3:2", "GBA 3:2", "GBA 3:2", "GBA 3:2", "GBA 3:2", "GBA 3:2" },
 };
 static const char* const sPressA[LANG_COUNT] = { "A: apply", "A : appliquer", "A: übernehmen", "A: applica",
     "A: aplicar", "A: 決定" };
@@ -581,7 +584,7 @@ static void ValueText(int item, char* out, size_t size) {
             SDL_strlcpy(out, sHudSizes[SDL_clamp(gPortConfig.hudSize, 0, 2)][l], size);
             break;
         case ITEM_ASPECT:
-            SDL_strlcpy(out, sAspect[SDL_clamp(gPortConfig.aspect, 0, 4)][l], size);
+            SDL_strlcpy(out, sAspect[SDL_clamp(gPortConfig.aspect, 0, PORT_ASPECT_COUNT - 1)][l], size);
             break;
         case ITEM_NARROW:
             SDL_strlcpy(out, sNarrow[gPortConfig.narrowFit != 0][l], size);
@@ -717,7 +720,7 @@ static void Change(int item, int dir) {
             gPortConfig.hudSize = Wrap(gPortConfig.hudSize + dir, 3);
             break;
         case ITEM_ASPECT:
-            gPortConfig.aspect = Wrap(gPortConfig.aspect + dir, 5);
+            gPortConfig.aspect = Wrap(gPortConfig.aspect + dir, PORT_ASPECT_COUNT);
             break;
         case ITEM_NARROW:
             gPortConfig.narrowFit = !gPortConfig.narrowFit;
