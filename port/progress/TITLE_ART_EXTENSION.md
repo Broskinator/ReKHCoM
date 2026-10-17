@@ -1,9 +1,26 @@
+## Titulo — correccion de enfoque del usuario (17/10/2026)
+
+- Usuario rechazo el cristal/guante imaginado de ec2493eb7. Eliminados del
+  arbol actual el parche y la receta anteriores; NO integrar esa propuesta.
+- Nueva referencia entregada solo como guia del difuminado, NO para
+  convertirla a pixel art ni pegarla en el juego. Se hizo un ensayo privado
+  de alineacion, descartado; NO es el asset actual ni entra en el motor.
+- Propuesta vigente: difuminar el ORIGINAL hacia blanco en los ultimos seis
+  pixeles derechos/inferiores, usando su propia paleta y cuadricula nativa.
+  Receta fade_title_edges.py, asset solo mascara gris en assets/title-study.
+- Verificado: rectangulo234x154 identico, posiciones intactas,654 pixeles
+  modificados en los bordes, colores de paleta original, bordes finales blancos.
+- Preview privado build/title-widescreen-review/fade-study/
+  title-original-faded-preview.png. MAQUETA, NO integrado, sin release nueva.
+- Revisar resultado visual antes de integrar; luego paleta viva/fades y BG
+  exclusivamente, sin modificar texto/menu/sprites. v1.9 publica intacta.
+
 # Ampliacion del arte del titulo — 17/10/2026
 
-Estado: PROPUESTA MANUAL DIBUJADA. No hay arreglo integrado en el render.
+Estado: DIFUMINADO DEL ORIGINAL EN REVISION. No integrado en el render.
 Rama feature/title-art-16x9. v1.9 publica permanece intacta.
 
-## Avance manual solicitado por el usuario
+## Historico: propuesta manual RECHAZADA por el usuario
 
 El usuario autoriza imaginar y dibujar la continuacion tras los rechazos de
 ImageGen. Instalada pixel-art-fundamentals desde ProkStudio/skills mediante

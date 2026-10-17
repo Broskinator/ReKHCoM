@@ -1,29 +1,29 @@
-# Title extension — art study
+# Original title edge fade — visual study
 
-Hand-drawn native-grid proposal for the missing Sora title-screen crystals.
-Not loaded by the game and not included in a published release.
+The user rejected the imagined long crystal/glove. That proposal has been
+removed. Do not integrate or restore it as a finished asset.
 
-`title-extension-study.png` is a 320x240 RGBA **patch only**. The entire
-original 240x160 rectangle is transparent. All 2,373 opaque pixels are new;
-there are no extracted ROM pixels, partially transparent edges, upscaled
-pixels or mirrored pieces. Colors match the private decoded reference.
+The current study fades only the ORIGINAL native title toward white at its
+right and bottom cutoffs, inspired by the existing left edge. It changes
+neither positions nor proportions, and reads no external illustration.
+The user's new illustration is a visual guide only.
 
-The original artwork/characters belong to Disney/Square Enix. This study is
-a fan-made imagined continuation, not recovered official art. Its recipe is
-`port/tools/draw_title_extension.py`. No image generator produced this patch.
-
-To reproduce privately (requires Pillow and a local decoded title reference):
+- `title-edge-fade-mask.png`: grayscale strength, 240x160. Contains no ROM art.
+- `title-edge-fade-report.json`: checks from a private local preview.
+- Recipe: `port/tools/fade_title_edges.py` (Pillow only).
 
 ```powershell
-python port/tools/draw_title_extension.py build/title-widescreen-review/native-full.png --out build/title-widescreen-review/study
+python port/tools/fade_title_edges.py build/title-widescreen-review/native-full.png --out build/title-widescreen-review/fade-study
 ```
 
-Optional `--mockup <local title screenshot>` produces a **static composition**
-using the current full-height menu scale. It is not an in-engine screenshot
-of the extension. The original screenshot's center remains unchanged.
-Full previews contain original art and must remain under ignored `build/`.
+The six-pixel transition quantizes to colors already in the original title.
+Pixels outside the right/bottom strips remain byte-for-byte identical.
+No external image sampling, mirrored fragments, extrapolated glove, image
+replacement, Gaussian blur, geometry changes or fractional-grid drawing.
+Private previews include original artwork and must remain in ignored build/.
+Characters/original art belong to Disney/Square Enix.
 
-Before integration: review the imagined glove/facets and seams; map colors to
-the live ROM palette; honor title intro/fades/brightness; preserve every core
-pixel and menu position; test different ratios and leaving/reopening title.
-Do not stretch, mirror or rescale the core to make the patch fit.
+This is a STATIC STUDY, not loaded by the game. Before integration, review
+the transition width, then implement it on the title background only using
+the live palette and fade state. Do not fade menu text, sprites or the UI.
+Validate the intro, brightness, mode exit and each supported aspect ratio.

@@ -1,0 +1,17 @@
+{
+  "status": "native-fade-study-only",
+  "width_native_pixels": 6,
+  "source": "original native title only",
+  "external_art_sampled": false,
+  "protected_rect": [
+    0,
+    0,
+    234,
+    154
+  ],
+  "protected_pixels_identical": true,
+  "geometry_changed": false,
+  "palette_preserved": true,
+  "right_and_bottom_end_in_white": true,
+  "changed_pixels": 654
+}
