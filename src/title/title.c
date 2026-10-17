@@ -579,7 +579,41 @@ void TitleMenuMoveOrdered(s16* choice, s16 count) {
     *choice = sTitleMenuChoiceOrder[i];
 }
 
+#ifdef PLATFORM_PC
+/* The options overlay pauses this task. Reconcile access when it resumes,
+   preserving Continue and never turning a story flag into a cheat flag. */
+static void RefreshTitleMenuAccess(TitleMenuWork* work) {
+    int before = work->layout;
+    if (TitleRikuAvailable()) {
+        if (work->layout == TITLE_MENU_LAYOUT_BASIC) {
+            work->layout = TITLE_MENU_LAYOUT_FULL;
+            if (*work->choice == TITLE_MENU_NEW_GAME) *work->choice = TITLE_MENU_NEW_GAME_SORA;
+        } else if (work->layout == TITLE_MENU_LAYOUT_SINGLE_NEW_GAME) {
+            work->layout = TITLE_MENU_LAYOUT_NEW_GAME;
+            *work->choice = TITLE_MENU_NEW_GAME_SORA;
+        }
+    } else {
+        if (work->layout == TITLE_MENU_LAYOUT_FULL) {
+            work->layout = TITLE_MENU_LAYOUT_BASIC;
+            if (*work->choice == TITLE_MENU_NEW_GAME_SORA || *work->choice == TITLE_MENU_NEW_GAME_RIKU)
+                *work->choice = TITLE_MENU_NEW_GAME;
+        } else if (work->layout == TITLE_MENU_LAYOUT_NEW_GAME) {
+            work->layout = TITLE_MENU_LAYOUT_SINGLE_NEW_GAME;
+            *work->choice = TITLE_MENU_NEW_GAME;
+        }
+    }
+    if (before != work->layout) {
+        extern void PortLog(const char*, ...);
+        PortLog("title-access: refreshed layout=%d choice=%d flags=%u riku=%d", work->layout,
+                *work->choice, (unsigned)gGameState.flags, TitleRikuAvailable());
+    }
+}
+#endif
+
 u8 task_title_menu_1(TitleMenuWork* work) {
+#ifdef PLATFORM_PC
+    RefreshTitleMenuAccess(work);
+#endif
     if (work->layout == TITLE_MENU_LAYOUT_BASIC) {
         TitleMenuMoveBasic(work->choice);
     } else if (work->layout == TITLE_MENU_LAYOUT_FULL) {

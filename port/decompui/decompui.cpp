@@ -227,6 +227,7 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
+    { "cheat_unlock_riku", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
@@ -1605,6 +1606,7 @@ int main(int, char**) {
     ImGui_ImplSDL3_InitForOpenGL(window, gl);
     ImGui_ImplOpenGL3_Init("#version 130");
     LoadBoxArt();
+    if (shotDir && SDL_getenv("DECOMPUI_REWRITE_SETTINGS")) SaveIni();
     if (const char* rom = SDL_getenv("DECOMPUI_INSTALL")) {
         InstallRom(fs::u8path(rom));
     }

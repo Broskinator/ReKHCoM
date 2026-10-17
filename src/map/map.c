@@ -4503,6 +4503,9 @@ void LoadGameMenuInput(LoadGameMenuWork* work) {
                 break;
             }
 
+#ifdef PLATFORM_PC
+            PortLog("load-menu: loaded slot=%d flags=%u", work->selectedSlot, (unsigned)gGameState.flags);
+#endif
             m4aSongNumStart(SONG_SYS_SAVELOAD);
             work->loaded = TRUE;
             work->timer = 16;
@@ -4573,9 +4576,21 @@ void Mode_MenuLoad_0(s32 arg) {
     if (sLoadGameMenuWork->forSioBattle) {
         sLoadGameMenuWork->showRikuSlots = 0;
     } else {
+#ifdef PLATFORM_PC
+        /* Access and existing saves are independent of story completion.
+           Keep the original four slots in the same SRAM image; do not copy,
+           convert or fabricate Sora-clear flags to expose Riku's two slots. */
+        sLoadGameMenuWork->showRikuSlots = PortRikuAvailable(gGameState.flags & GAME_FLAG_SORA_CLEAR) ||
+            SaveRepairFileSmall(0) == SAVE_OK || SaveRepairFileSmall(1) == SAVE_OK;
+#else
         sLoadGameMenuWork->showRikuSlots = (gGameState.flags >> 5) & 1;
+#endif
     }
 
+#ifdef PLATFORM_PC
+    PortLog("load-menu: riku=%d sio=%d flags=%u", sLoadGameMenuWork->showRikuSlots,
+            sLoadGameMenuWork->forSioBattle, (unsigned)gGameState.flags);
+#endif
     sLoadGameMenuWork->loaded = FALSE;
     sLoadGameMenuWork->selectedSlot = 0;
 

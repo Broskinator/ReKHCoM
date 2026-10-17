@@ -166,12 +166,12 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
 };
 static const char* const sCheatsTitle[LANG_COUNT] = { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" };
 static const char* const sCheatsHelp[LANG_COUNT] = {
-    "Apply at the title screen before pressing START; otherwise restart the game.",
-    "Activer au titre avant START ; sinon relancer le jeu.",
-    "Im Titel vor START aktivieren; sonst das Spiel neu starten.",
-    "Attiva nel titolo prima di START; altrimenti riavvia il gioco.",
-    "Actívalo en el título antes de START; si no, reinicia el juego.",
-    "タイトルでSTART前に有効化。それ以外はゲームを再起動。",
+    "Title: New Game: Riku starts Reverse/Rebirth.",
+    "Titre : Nouvelle partie : Riku lance Reverse/Rebirth.",
+    "Titel: Neues Spiel: Riku startet Reverse/Rebirth.",
+    "Titolo: Nuova partita: Riku avvia Reverse/Rebirth.",
+    "Título: Nueva partida: Riku inicia Reverse/Rebirth.",
+    "タイトルのリクで新しいゲームを開始。",
 };
 static const char* const sNgTitle[LANG_COUNT] = { "New game", "Nouvelle partie", "Neues Spiel", "Nuova partita",
     "Nueva partida", "ニューゲーム" };
