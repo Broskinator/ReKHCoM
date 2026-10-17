@@ -1,3 +1,25 @@
+## v1.9 PUBLICADA — 17/10/2026
+
+- Release publica estable Windows: https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9
+- Android Alpha3 ARMv7 actualizado adjunto a la misma release. Build EU/US/JP,
+  parser48 y touch PASS; NO se comprobo en ARM fisico. Mantener etiqueta alpha.
+- Web Alpha3: motores EU/US/JP nuevos; Wasm validado/compilado en Node, JS sin
+  errores de sintaxis. Pages desplegado; verificacion HTTP/SHA en reporte adjunto.
+  https://matymeatboy.github.io/ReKHCoM/
+- Windows: PPU206, Riku7, launcher11/import6, fondos circular/rectangular, input
+  opt-in/hold/foco/overlay y guardado aislado PASS. Paquetes sin ROM/save/config.
+- Devolver acumuladas: runtime OFF inerte; ON devuelve1 y3 cartas asentadas y
+  recupera mano21. Fixture3: KHCOM_BATTLE=0:1:0, modo200:hudhp:100, STOCK300/450/600,
+  UNSTOCK760-800. Intento con300/360/420 solo acumulo2 por combate/animacion:
+  no asumir que cada input del harness logra acumular una carta.
+- Instalacion local del BAT actualizada; hashes de saves, INI y estados intactos.
+  Copia del savestate anterior + EXE exacto guardada PRIVADA para diagnostico.
+- Git main y tagv1.9 actualizados al cierre; snapshot previo preservado como tag
+  v1.9-preview-20261017. Nunca subir fixtures privados de build/ ni arte extraido.
+- Linux/Steam Deck/RG34XX siguen SIN binario nativo: ABI32/64 pendiente.
+  Otros cheats/editor, menus relativos experimentales y zoomx3 reportado pendientes.
+  No anunciar esas tareas como terminadas ni compatibilidad de dispositivos no probados.
+
 # Navegador — pendientes y evidencia
 
 Actualizado: 16/10/2026. Prioridad actual del usuario: navegador en GitHub Pages.
