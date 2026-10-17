@@ -133,6 +133,8 @@ void PortInputHandleEvent(const void* p) {
             break;
         case SDL_EVENT_WINDOW_FOCUS_LOST:
             sKeyboard = 0;
+            sDodgeHeld = sDodgePending = 0;
+            sUnstockHeld = sUnstockPending = 0;
             break;
     }
 }

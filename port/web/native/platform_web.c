@@ -31,10 +31,13 @@ EMSCRIPTEN_KEEPALIVE void PortWebResize(int w,int h) {
     if(w>=240 && h>=160 && w<=2560 && h<=1440){pendingW=w;pendingH=h;}
 }
 EMSCRIPTEN_KEEPALIVE void PortWebFlushSave(void) {PortSramSyncIfDirty();PortConfigSave();}
-EMSCRIPTEN_KEEPALIVE void PortWebSetVisible(int on) {
-    hidden=!on;
+EMSCRIPTEN_KEEPALIVE void PortWebClearInput(void) {
     SDL_Event event={0};event.type=SDL_EVENT_WINDOW_FOCUS_LOST;
     PortInputHandleEvent(&event);
+}
+EMSCRIPTEN_KEEPALIVE void PortWebSetVisible(int on) {
+    hidden=!on;
+    PortWebClearInput();
     PortAudioReset();
     if(hidden)PortWebFlushSave();
 }

@@ -1,3 +1,20 @@
+## Controles Web y archivos moviles: rama aislada (16/10/2026)
+
+- `fix/web-mobile-files-controls`: teclado SDL limitado a #canvas, limpiar teclas,
+  touch y acciones pendientes al perder foco/cancelar/rotar; selectores sin filtro
+  de extension para Archivos iOS; exportar con Descargar .sav y Compartir/Archivos
+  por clic nuevo. Fallback de viewport para Safari sin fullscreen de elemento.
+- Node + touch + input/SDL virtualpad PASS; Chrome/Wasm real sin ROM observa
+  las 13 teclas (8191), libera held=0 y escribir fuera no aumenta presses=13.
+- EU/US/JP Web compilan. No publicar aun: pendiente gameplay con ROM elegida
+  manualmente y dispositivos fisicos. Permiso de extension sigue bloqueando
+  seleccion automatica de archivos; no eludir con un servidor de ROMs.
+- Ver WEB_CONTROLS_REVIEW.md. No confundir prueba de backend sin ROM con partida.
+- NUEVA POLITICA: mejoras grandes de menus SOLO feature/relative-menu-scale;
+  usuario confirma expresamente que no entran en stable. No push a main ni Pages
+  de esa funcionalidad. Publicacion de correcciones independientes requiere
+  registrar su alcance y validacion, sin arrastrar el experimento de menus.
+
 ## Android Alpha 2 publicada; objetivo RG34XX confirmado (17/10/2026)
 
 - Release prerelease: https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/android-alpha2

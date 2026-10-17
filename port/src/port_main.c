@@ -50,6 +50,8 @@ static SDL_Window* sWindow;
 #ifdef __EMSCRIPTEN__
 void PortWebApplyResize(int w,int h) {
     if(sWindow) {
+        extern void PortWebClearInput(void);
+        PortWebClearInput(); /* no held finger may jump to a new button after rotation */
         emscripten_set_canvas_element_size("#canvas",w,h);
         SDL_SetWindowSize(sWindow,w,h);
     }
@@ -2212,6 +2214,7 @@ int main(int argc, char** argv) {
 #ifdef __EMSCRIPTEN__
     /* Pace owns browser yields; don't add another timer in RenderPresent. */
     SDL_SetHint(SDL_HINT_EMSCRIPTEN_ASYNCIFY, "0");
+    SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
 #endif
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS))
         PortFatal("SDL_Init failed: %s", SDL_GetError());

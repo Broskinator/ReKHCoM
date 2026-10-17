@@ -127,7 +127,7 @@ def main():
                '-sINITIAL_MEMORY=268435456', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=536870912',
                '-sSTACK_SIZE=1048576', '-sMODULARIZE=1', '-sEXPORT_NAME=createReKHCoM',
                '-sENVIRONMENT=web', '-sFORCE_FILESYSTEM=1', '-lidbfs.js',
-               '-sEXPORTED_FUNCTIONS=["_main","_PortWebRomReady","_PortWebSetVisible","_PortWebTouchEnable","_PortWebResize","_PortWebFlushSave","_PortWebActiveBank","_PortWebSetHdReady"]',
+               '-sEXPORTED_FUNCTIONS=["_main","_PortWebRomReady","_PortWebSetVisible","_PortWebClearInput","_PortWebTouchEnable","_PortWebResize","_PortWebFlushSave","_PortWebActiveBank","_PortWebSetHdReady"]',
                '-sEXPORTED_RUNTIME_METHODS=["FS","IDBFS","HEAPU8","callMain"]', '-o', str(output)]
     # A response file avoids Windows' command-line length limit.
     response = work / 'link.rsp'
