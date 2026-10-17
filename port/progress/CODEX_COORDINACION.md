@@ -1,3 +1,15 @@
+## Android Alpha 2 publicada; objetivo RG34XX confirmado (17/10/2026)
+
+- Release prerelease: https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/android-alpha2
+- Tag en 4610b08ef8567d38b31c0173694724d63d026f18, no main. Stable v1.8.3 intacta.
+- APK final ARMv7 debug SHA256 34b1e4a1879ffdf4bb91133a43e1eb61fc098222b7d5b5efb2736db7396cdeee.
+- .sav/.srm, bancos 1..5, backup y comprobaciones de formato implementados.
+- 4:3 / GBA 3:2 con zoom implementados. Resolucion 720x480 x1/x2/x3 probada en PC.
+- Android EU/US/JP combate en emulador x86 PASS; no equivale a ARM fisico/SAF.
+- Objetivo Linux confirmado RG34XX: ARM64, 720x480, 3:2; Steam Deck x86-64 aparte.
+- NO hay build Linux/ARM64 todavia. Cheats/editor de cartas y menus relativos pendientes.
+- Reparto detallado: [PLATFORM_ALPHA_PLAN.md](PLATFORM_ALPHA_PLAN.md).
+
 ## Android, Linux / Steam Deck y nuevos pedidos (17/10/2026)
 
 Reparto vigente: [PLATFORM_ALPHA_PLAN.md](PLATFORM_ALPHA_PLAN.md).
