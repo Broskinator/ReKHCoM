@@ -92,8 +92,9 @@ const char* PortHarnessModeName(void) {
 }
 
 int PortHarnessMode(const char* name, int arg) {
+    extern Mode gModeTitle;
     static Mode* const modes[] = {
-        &gModeDeck, &gModeStatus, &gModeJiminy, &gModeAllmap, &gModeMapinspect, &gModeWorldinspect,
+        &gModeTitle, &gModeDeck, &gModeStatus, &gModeJiminy, &gModeAllmap, &gModeMapinspect, &gModeWorldinspect,
         &gModeWorldselect, &gModeWORLDSELECT, &gModeWorldwarp, &gModeMsTop, &gModePremire,
         &gModeSioBtlOption, &gModeDebug, &gModePooh,
     };

@@ -137,7 +137,7 @@ and export. The website starts in English and also offers Spanish; game language
 is selected separately. Fullscreen and embedded views readjust automatically.
 Export a backup before clearing browser data.
 
-[Web alpha downloads and release notes](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/web-alpha2).
+[Development version tags](https://github.com/MatyMeatBoy/ReKHCoM/tags).
 
 <p align="center"><img src="docs/screenshots/web-player.jpg" width="90%"></p>
 

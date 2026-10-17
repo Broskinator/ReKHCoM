@@ -1,3 +1,22 @@
+## Cheats / Riku: implementacion PC comprobada (17/10/2026)
+
+- Trucos > Desbloquear a Riku, OFF por defecto; persiste cheat_unlock_riku.
+  Abrir F1 en titulo ANTES de START; si ya se abrio el selector, reiniciar.
+- Permiso separado del progreso: no escribe GAME_FLAG_SORA_CLEAR ni SRAM.
+  Menus FULL con cheat y Sora no completado omiten Link Battle tanto en dibujo
+  como en navegacion. Partidas Riku validas pueden continuarse sin cheat activo.
+- PC EU/US/JP: 6/6 arranques reales con ROM privada. OFF mantiene menu original,
+  ON permite seleccionar Riku. Tras seleccion flags=264 (Riku+dark lock),
+  sin bit32 de Sora completado. Informe build/riku-access-report.json.
+- Menu real EU: abrir Trucos, alternar No->Si, volver y pulsar START muestra
+  selector Sora/Riku; INI guardada. Capturas revisadas visualmente.
+- Zoom: 41 casos PASS, default=8 (x4), persistencia del cheat ON/OFF PASS.
+  Controles: 12 acciones + rechazo de V/right-stick antiguos PASS.
+- NO publicado; solo rama release/v1.9. Android/Web necesitan recompilacion
+  y validacion del cambio antes de distribuirse. No usar APK/ZIP viejos como prueba.
+- Usuario aclara x3 en BAT v1.9 Windows. INI de ESA instalacion indica zoom=8,
+  fullscreen=1, escritorio nativo. No se reprodujo cambio a x3; sigue investigacion.
+
 ## Publicacion: solo estables publicas (17/10/2026)
 
 - Nueva instruccion expresa: v1.8.3 es la UNICA release publica estable.

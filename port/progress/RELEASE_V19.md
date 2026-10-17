@@ -1,3 +1,10 @@
+## Politica vigente (17/10/2026)
+
+Solo v1.8.3 publica estable. v1.9/web-alpha2 se ocultaron como borradores,
+con tags conservados. No publicar candidatas ni actualizar Pages con cambios
+sin validacion. Completar pendientes antes de siguientes versiones publicas.
+Los apartados siguientes describen publicaciones historicas ya retiradas.
+
 ## v1.9 unificada y BAT local (17/10/2026)
 
 - Usuario corrigio la organizacion: Windows y Android v1.9 en UNA release.

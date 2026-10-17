@@ -3,6 +3,9 @@
  * Title Screen Logo and Menu
  */
 
+#ifdef PLATFORM_PC
+#include "engine.h"
+#endif
 #include "registration_data.h"
 #include "system_state.h"
 #include "title_api.h"
@@ -379,6 +382,14 @@ enum TitleMenuLayout {
     TITLE_MENU_LAYOUT_NEW_GAME
 };
 
+static int TitleRikuAvailable(void) {
+#ifdef PLATFORM_PC
+    return PortRikuAvailable(gGameState.flags & GAME_FLAG_SORA_CLEAR);
+#else
+    return (gGameState.flags & GAME_FLAG_SORA_CLEAR) != 0;
+#endif
+}
+
 void task_title_menu_0(TitleMenuWork* work, s16* choice) {
     s32 paletteOffset;
     u8* objPal;
@@ -388,7 +399,7 @@ void task_title_menu_0(TitleMenuWork* work, s16* choice) {
     work->choice = choice;
 
     if (choice[0] == TITLE_MENU_NEW_GAME) {
-        if (gGameState.flags & GAME_FLAG_SORA_CLEAR) {
+        if (TitleRikuAvailable()) {
             work->layout = TITLE_MENU_LAYOUT_NEW_GAME;
             choice[0] = TITLE_MENU_NEW_GAME_SORA;
         } else {
@@ -396,11 +407,17 @@ void task_title_menu_0(TitleMenuWork* work, s16* choice) {
         }
     } else if (choice[0] == TITLE_MENU_RESUME) {
         work->layout = TITLE_MENU_LAYOUT_SINGLE_RESUME;
-    } else if (gGameState.flags & GAME_FLAG_SORA_CLEAR) {
+    } else if (TitleRikuAvailable()) {
         work->layout = TITLE_MENU_LAYOUT_FULL;
     } else {
         work->layout = TITLE_MENU_LAYOUT_BASIC;
     }
+
+#ifdef PLATFORM_PC
+    { extern void PortLog(const char*, ...);
+      PortLog("title-access: layout=%d choice=%d flags=%u riku=%d", work->layout, choice[0],
+              (unsigned)gGameState.flags, TitleRikuAvailable()); }
+#endif
 
 #ifdef VERSION_EU
     switch (gLanguage) {
@@ -566,7 +583,7 @@ u8 task_title_menu_1(TitleMenuWork* work) {
     if (work->layout == TITLE_MENU_LAYOUT_BASIC) {
         TitleMenuMoveBasic(work->choice);
     } else if (work->layout == TITLE_MENU_LAYOUT_FULL) {
-        TitleMenuMoveOrdered(work->choice, 3);
+        TitleMenuMoveOrdered(work->choice, (gGameState.flags & GAME_FLAG_SORA_CLEAR) ? 3 : 2);
     } else if (work->layout == TITLE_MENU_LAYOUT_NEW_GAME) {
         TitleMenuMoveOrdered(work->choice, 1);
     }
@@ -618,7 +635,7 @@ void TitleMenuDrawFull(TitleMenuWork* work) {
 
     y = 16;
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < ((gGameState.flags & GAME_FLAG_SORA_CLEAR) ? 4 : 3); i++) {
 #ifdef VERSION_EU
         void** spr = sTitleMenuEntrySpritesEu[gLanguage];
 

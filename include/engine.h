@@ -33,6 +33,7 @@ typedef struct BgEntry {
 } BgEntry;
 
 #ifdef PLATFORM_PC
+int PortRikuAvailable(int soraCleared);
 void PortLatchBgMaps(const BgEntry* entries);
 void PortOamSetPosition(int index, int x, int y);
 /* Wide view: how far the picture extends left/right of the GBA screen. */

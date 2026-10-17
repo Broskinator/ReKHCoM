@@ -4,7 +4,9 @@
 
 Actualizacion del usuario 17/10/2026: v1.9 es candidata; v1.9.1 sera la primera
 publica estable con TODAS las plataformas. Sustituye la regla anterior no-PC alpha.
-Las alpha ya publicadas siguen siendo alpha hasta completar su validacion;
+Solo estables se muestran como releases publicas. v1.9/web-alpha2 ocultas como
+borradores privados; tags conservados. No publicar candidatas visibles.
+Las compilaciones alpha siguen siendo alpha hasta completar su validacion;
 no afirmar compatibilidad ni rendimiento de dispositivos no probados.
 La nueva escala relativa de menus no entra en stable. No subir ROMs, saves ni
 estados a Git. Conservar historial y trabajo de Claude; no integrar a ciegas.

@@ -6,7 +6,8 @@ parser SRAM y controles tactiles C verificados. ARM fisico, rendimiento real y
 picker SAF en dispositivos siguen pendientes. No cubre telefonos ARM64-only.
 Windows v1.8.3 sigue siendo la unica estable.
 
-Descarga: https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9
+Desarrollo: https://github.com/MatyMeatBoy/ReKHCoM/tree/android-alpha2
+Las compilaciones de prueba no son releases publicas; estable vigente: v1.8.3.
 
 Importa `.sav`/`.srm` por contenido: SRAM 32/64KiB y 128KiB solo si repite la
 misma mitad. Verifica firma/checksum, region compatible y destino de banco 1..5.

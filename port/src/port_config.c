@@ -92,6 +92,7 @@ static const Key sKeys[] = {
     { "config_version", &sConfigVersion, 0, 1000 },
     { "view_mode", &gPortConfig.viewMode, 0, PORT_VIEW_COUNT - 1 },
     { "zoom", &gPortConfig.zoom, 0, PORT_ZOOM_LEVELS },
+    { "cheat_unlock_riku", &gPortConfig.cheatUnlockRiku, 0, 1 },
     { "integer_zoom", &gPortConfig.integerZoom, 0, 1 },
     { "scale_mode", &gPortConfig.scaleMode, 0, PORT_SCALE_COUNT - 1 },
     { "filter", &gPortConfig.filter, 0, PORT_FILTER_COUNT - 1 },
@@ -127,6 +128,11 @@ static const Key sKeys[] = {
     BIND("stock", PORT_ACT_STOCK), BIND("dodge", PORT_ACT_DODGE),
 #undef BIND
 };
+
+/* This is a title permission, not a fabricated story-completion flag. */
+int PortRikuAvailable(int soraCleared) {
+    return soraCleared != 0 || gPortConfig.cheatUnlockRiku != 0;
+}
 
 static char* Trim(char* s) {
     char* e;

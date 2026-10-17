@@ -122,6 +122,7 @@ typedef struct PortConfig {
     int integerZoom;     /* 1: select only whole pixel scales (v1.4 numbering) */
     int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
     int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
+    int cheatUnlockRiku;         /* opt-in title access; never marks Sora cleared */
 } PortConfig;
 
 extern PortConfig gPortConfig;
@@ -144,6 +145,7 @@ extern PortConfig gPortConfig;
 /* ROM given on the command line (--rom), tried before the usual names. */
 extern const char* gPortRomPath;
 
+int PortRikuAvailable(int soraCleared);
 void PortConfigLoad(void);
 void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);
