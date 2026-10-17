@@ -18,21 +18,8 @@ included), in all five European languages, English (US) and Japanese.
 
 <p align="center"><img src="docs/screenshots/battle.png" width="49%"> <img src="docs/screenshots/field.png" width="49%"></p>
 
-## v1.9 Windows candidate
-
-[Try the v1.9 Windows candidate](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9).
-The current stable download remains v1.8.3 while the next unified release is tested.
-
-- Lower renderer memory use and less CPU work when zooming out.
-- 4:3 and original GBA 3:2 picture shapes, both with the zoom selector and optional HD text.
-- Safer emulator-save imports: preserve completion progress when changing regions,
-  recover a valid backup header, and keep the current save when backup or writing fails.
-- Choose one of five save banks directly in the launcher.
-- Release keyboard and one-button actions correctly when the window loses focus.
-
-The same release includes the Android [Alpha 2 APK](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9).
-Linux ARM64 for RG34XX and Steam Deck are under development; there are no working
-packages for those targets yet. The new relative menu scaling is not part of this candidate.
+Development versions are tracked in [Git tags](https://github.com/MatyMeatBoy/ReKHCoM/tags).
+Only stable versions appear as public releases. The current stable is **v1.8.3**.
 
 ## What's new in v1.8.3
 

@@ -41,7 +41,6 @@ enum {
     ITEM_FPS,
     ITEM_DODGE,
     ITEM_STOCK,
-    ITEM_UNSTOCK,
     ITEM_SAVEBANK,
     ITEM_MUSIC,
     ITEM_SFX,
@@ -134,8 +133,6 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
-    { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
-      "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
     { "Save bank", "Banque de sauvegarde", "Speicherbank", "Banco di salvataggio", "Banco de partidas",
       "セーブバンク" },
     { "Music volume", "Volume musique", "Musiklautstärke", "Volume musica", "Volumen música", "音楽の音量" },
@@ -205,12 +202,12 @@ static const char* const sNgDescHd[LANG_COUNT] = {
     "会話をウィンドウ解像度のくっきりしたフォントで表示。",
 };
 static const char* const sNgDescQol[LANG_COUNT] = {
-    "One button for the dodge roll and for stocking cards (L+R); hold it to return stocked cards.",
-    "Un bouton pour la roulade et pour la réserve (L+R) ; maintenu, il rend les cartes en réserve.",
-    "Eine Taste für die Ausweichrolle und den Vorrat (L+R); gehalten nimmt sie Vorratskarten zurück.",
-    "Un tasto per la capriola e per l'accumulo (L+R); tenuto premuto riprende le carte accumulate.",
-    "Un botón para rodar y para acumular cartas (L+R); mantenido devuelve las cartas acumuladas.",
-    "回避とストック (L+R) をワンボタンで。長押しでストックを手札に戻す。",
+    "One button for the dodge roll and for stocking cards (L+R).",
+    "Un bouton pour la roulade et pour la réserve (L+R).",
+    "Eine Taste für Ausweichen und Vorrat (L+R).",
+    "Un tasto per la capriola e per l'accumulo (L+R).",
+    "Un botón para rodar y para acumular cartas (L+R).",
+    "ドッジロールとカードストック（L+R）を専用ボタンで操作。",
 };
 static const char* const sNgDescStart[LANG_COUNT] = {
     "Everything here can be changed later with START + SELECT.",
@@ -641,9 +638,6 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_STOCK:
             SDL_strlcpy(out, sOnOff[gPortConfig.stockButton != 0][l], size);
             break;
-        case ITEM_UNSTOCK:
-            SDL_strlcpy(out, sOnOff[gPortConfig.unstockButton != 0][l], size);
-            break;
         case ITEM_SAVEBANK:
             SDL_snprintf(out, size, "%d / %d", gPortConfig.saveBank, PORT_SAVE_BANKS);
             break;
@@ -758,9 +752,6 @@ static void Change(int item, int dir) {
             break;
         case ITEM_STOCK:
             gPortConfig.stockButton = !gPortConfig.stockButton;
-            break;
-        case ITEM_UNSTOCK:
-            gPortConfig.unstockButton = !gPortConfig.unstockButton;
             break;
         case ITEM_SAVEBANK:
             gPortConfig.saveBank = Wrap(gPortConfig.saveBank - 1 + dir, PORT_SAVE_BANKS) + 1;

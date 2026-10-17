@@ -20,12 +20,10 @@
 #define KEY_L 0x200
 #define KEY_STOCK PORT_KEY_STOCK
 #define KEY_DODGE PORT_KEY_DODGE
-#define KEY_UNSTOCK PORT_KEY_UNSTOCK
 
 /* Frames a dodge press waits for the battle code to take it. */
 #define DODGE_PENDING_FRAMES 6
-/* Frames the return-stocked-cards button is held before it acts (0.5 s). */
-#define UNSTOCK_HOLD_FRAMES 30
+
 
 #define STICK_DEADZONE 12000
 #define TRIGGER_THRESHOLD 16000
@@ -33,15 +31,13 @@
 /* GBA key bit of each remappable action (port.h PORT_ACT_*). */
 static const uint16_t sActionBits[PORT_ACT_COUNT] = {
     KEY_A,   KEY_B,    KEY_L,    KEY_R,     KEY_START, KEY_SELECT,
-    KEY_UP,  KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_STOCK, KEY_DODGE, KEY_UNSTOCK,
+    KEY_UP,  KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_STOCK, KEY_DODGE, 0, /* retired action slot */
 };
 
 static uint16_t sKeyboard;
 static int sSuppress;
 static int sDodgeHeld;
 static int sDodgePending;
-static int sUnstockHeld;
-static int sUnstockPending;
 
 /* After closing an overlay, ignore buttons still held until released so the
    confirming press does not reach the game. */
@@ -134,7 +130,6 @@ void PortInputHandleEvent(const void* p) {
         case SDL_EVENT_WINDOW_FOCUS_LOST:
             sKeyboard = 0;
             sDodgeHeld = sDodgePending = 0;
-            sUnstockHeld = sUnstockPending = 0;
             break;
     }
 }
@@ -179,9 +174,6 @@ static uint16_t GamepadKeys(SDL_Gamepad* pad) {
         keys |= KEY_R;
     if (ly < -STICK_DEADZONE * 2)
         keys |= KEY_L | KEY_R;
-    /* down held returns the stocked cards */
-    if (ly > STICK_DEADZONE * 2)
-        keys |= KEY_UNSTOCK;
     return keys;
 }
 
@@ -230,15 +222,6 @@ uint16_t PortInputResolve(uint16_t keys) {
     else if (sDodgePending > 0)
         sDodgePending--;
     sDodgeHeld = dodge;
-    /* Return-stocked-cards button: acts once when held long enough. */
-    if ((keys & KEY_UNSTOCK) && gPortConfig.unstockButton) {
-        if (++sUnstockHeld == UNSTOCK_HOLD_FRAMES)
-            sUnstockPending = DODGE_PENDING_FRAMES;
-    } else {
-        sUnstockHeld = 0;
-    }
-    if (sUnstockPending > 0 && sUnstockHeld != UNSTOCK_HOLD_FRAMES)
-        sUnstockPending--;
     return keys & 0x3FF;
 }
 
@@ -254,12 +237,4 @@ int PortTakeDodge(int held, int facingLeft) {
     if (held & KEY_RIGHT)
         return KEY_RIGHT;
     return facingLeft ? KEY_LEFT : KEY_RIGHT;
-}
-
-/* Battle code: 1 once after the return-stocked-cards button was held. */
-int PortTakeUnstock(void) {
-    int pending = sUnstockPending > 0;
-
-    sUnstockPending = 0;
-    return pending;
 }

@@ -167,7 +167,6 @@ void TickSoraHcEffectOnAttackEnd();
 
 #ifdef PLATFORM_PC
 /* Port option: return Sora's stocked cards to the hand. */
-void RequestSoraUnstock(void);
 #endif
 
 #endif

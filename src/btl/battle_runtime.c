@@ -238,11 +238,7 @@ void HandleSoraCardInput() {
         return;
     }
 
-#ifdef PLATFORM_PC
-    if (PortTakeUnstock()) {
-        RequestSoraUnstock();
-    }
-#endif
+
     chord = ReadKeyChord(L_BUTTON, R_BUTTON);
 
     switch (chord) {
@@ -456,12 +452,7 @@ void HandleTutorialCardInput() {
         return;
     }
 
-#ifdef PLATFORM_PC
-    /* No returning stocked cards in the tutorials: Leon's waits for the
-       three stocked cards to be used as a sleight. Taken so it does not
-       fire later. */
-    PortTakeUnstock();
-#endif
+
     chord = ReadKeyChord(L_BUTTON, R_BUTTON);
     pressed = GetKeysPressed();
     held = GetKeysHeld();

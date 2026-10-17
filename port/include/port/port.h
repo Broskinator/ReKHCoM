@@ -110,7 +110,7 @@ typedef struct PortConfig {
     int stockButton;      /* one button for L + R (stock a card / sleight) */
     int hdText;           /* dialogue text drawn with an outline font at output resolution */
     int cardHudRaise;     /* battle: card hand lifted by this many GBA pixels (0..16) */
-    int unstockButton;    /* held button / right stick down returns the stocked cards (Sora) */
+    int unstockButton;    /* retired; retained only for structure compatibility, always disabled */
     int saveBank;         /* 1..PORT_SAVE_BANKS: which save file holds the game's two slots */
     int hd2d;             /* experimental HD-2D look (on by default in --hd2d builds) */
     int smoothAudio;      /* experimental: cubic sample interpolation and a gentle low-pass */

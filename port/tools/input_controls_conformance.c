@@ -26,20 +26,21 @@ int main(void){
         SDLK_BACKSPACE,SDLK_UP,SDLK_DOWN,SDLK_LEFT,SDLK_RIGHT,SDLK_D,SDLK_C,SDLK_V};
     const uint16_t bits[]={1,2,0x200,0x100,8,4,0x40,0x80,0x20,0x10,
         PORT_KEY_STOCK,PORT_KEY_DODGE,PORT_KEY_UNSTOCK};
-    for(int i=0;i<13;i++){
+    for(int i=0;i<12;i++){
         key(codes[i],1);assert(PortInputKeys()==bits[i]);
         key(codes[i],0);assert(!PortInputKeys());
     }
+    key(SDLK_V,1);assert(!PortInputKeys());key(SDLK_V,0); /* legacy binding ignored */
     key(SDLK_LEFT,1);key(SDLK_RIGHT,1);assert(!PortInputKeys());
     key(SDLK_RIGHT,0);assert(PortInputKeys()==0x20);key(SDLK_LEFT,0);
     assert((PortInputResolve(PORT_KEY_STOCK)&0x300)==0x300);
     PortInputResolve(PORT_KEY_DODGE);
     assert(PortTakeDodge(KEY_LEFT,0)==KEY_LEFT);
     PortInputResolve(0);PortInputResolve(PORT_KEY_DODGE);
-    for(int i=0;i<30;i++)PortInputResolve(PORT_KEY_UNSTOCK);
+    for(int i=0;i<30;i++)assert(!PortInputResolve(PORT_KEY_UNSTOCK));
     key(SDLK_X,1);
     SDL_Event lost={0};lost.type=SDL_EVENT_WINDOW_FOCUS_LOST;PortInputHandleEvent(&lost);
-    assert(!PortInputKeys() && !PortTakeDodge(0,0) && !PortTakeUnstock());
+    assert(!PortInputKeys() && !PortTakeDodge(0,0));
     SDL_VirtualJoystickDesc desc;SDL_INIT_INTERFACE(&desc);
     desc.type=SDL_JOYSTICK_TYPE_GAMEPAD;desc.naxes=SDL_GAMEPAD_AXIS_COUNT;
     desc.nbuttons=SDL_GAMEPAD_BUTTON_COUNT;desc.name="ReKHCoM controls test";
@@ -50,7 +51,10 @@ int main(void){
     SDL_UpdateJoysticks();key(SDLK_LEFT,1);assert(PortInputKeys()==(1|0x20));
     assert(SDL_SetJoystickVirtualButton(joystick,SDL_GAMEPAD_BUTTON_SOUTH,false));
     SDL_UpdateJoysticks();key(SDLK_LEFT,0);assert(!PortInputKeys());
+    assert(SDL_SetJoystickVirtualButton(joystick,SDL_GAMEPAD_BUTTON_RIGHT_STICK,true));
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_RIGHTY,32767));
+    SDL_UpdateJoysticks();assert(!PortInputKeys()); /* retired button and stick direction */
     SDL_CloseGamepad(pad);SDL_CloseJoystick(joystick);SDL_DetachVirtualJoystick(id);
-    SDL_Quit();puts("Input: 13 keys, opposite directions, stock, dodge, focus reset, SDL virtual gamepad PASS");
+    SDL_Quit();puts("Input: 12 keys, retired action ignored, opposite directions, stock, dodge, focus reset, SDL virtual gamepad PASS");
     return 0;
 }

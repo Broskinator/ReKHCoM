@@ -1719,7 +1719,7 @@ static uint16_t HarnessKeys(uint32_t frame) {
     static const struct { const char* name; uint16_t bit; } names[] = {
         { "A", 1 }, { "B", 2 }, { "SELECT", 4 }, { "START", 8 }, { "RIGHT", 16 },
         { "LEFT", 32 }, { "UP", 64 }, { "DOWN", 128 }, { "R", 256 }, { "L", 512 },
-        { "STOCK", PORT_KEY_STOCK }, { "DODGE", PORT_KEY_DODGE }, { "UNSTOCK", PORT_KEY_UNSTOCK },
+        { "STOCK", PORT_KEY_STOCK }, { "DODGE", PORT_KEY_DODGE },
     };
     const char* p = SDL_getenv("KHCOM_KEYS");
     uint16_t keys = MovieKeys(frame) | MonkeyKeys(frame);

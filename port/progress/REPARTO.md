@@ -1,3 +1,26 @@
+## Publicacion: solo estables publicas (17/10/2026)
+
+- Nueva instruccion expresa: v1.8.3 es la UNICA release publica estable.
+- v1.9 y web-alpha2 pasadas a borrador privado, conservando assets y tags.
+  Verificado con gh release list: ambas isDraft=true; v1.8.3 latest=true.
+- Ninguna nueva candidata debe publicarse como prerelease visible. Solo tags
+  publicos para desarrollo; archivos de trabajo locales o borradores privados.
+- v1.9.1 NO autorizada a salir hasta terminar/revisar los pendientes acordados.
+
+## Pedidos vigentes: controles, zoom y Riku (17/10/2026)
+
+- Retirar totalmente devolver cartas acumuladas: eliminados comportamiento,
+  solicitud de combate, controles y opciones. Configuracion/metadatos antiguos
+  no pueden reactivarlo. Considerar SOLO en Cheats en el futuro; no implementado.
+- x4 sigue como default (ID interno 8) en motor y launcher. La instalacion local
+  v1.9 tiene zoom=8. No convertir selecciones explicitas del usuario a otro zoom.
+  Pendiente revisar limite de altura: una ventana de 540px limita x4 a x3
+  para conservar el lienzo minimo GBA; no confundir este limite con un default x3.
+- Desbloqueo anticipado de Riku sigue pendiente: aun NO existe Cheats en paquete
+  publicado. Implementar sin marcar Sora completado ni desbloquear Link Battle.
+- Usuario indica completar pendientes ANTES de generar siguientes versiones.
+  Assets v1.9 publicados aun son anteriores a esta retirada; reconstruir y validar.
+
 ## v1.9 unificada y BAT local (17/10/2026)
 
 - Usuario corrigio la organizacion: Windows y Android v1.9 en UNA release.

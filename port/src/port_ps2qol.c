@@ -62,12 +62,11 @@ int PortFastText(void) {
 /* key: bank and file (-1: the quick save) -> 0 when never recorded (a save
    from before: the current settings stay), else bit 0 set, bit 1 Re:CoM,
    bits 2-3 its difficulty, bit 4 HD text, bit 5 the legacy QoL bundle.
-   Bit 6 marks individual controls: bits 7-9 dodge/stock/unstock,
+   Bit 6 marks individual controls: bits 7-8 dodge/stock, bit 9 retired,
    bit 10 fast dialogue. Old records retain their original interpretation. */
 #define RECOM_INDIVIDUAL (1 << 6)
 #define RECOM_DODGE (1 << 7)
 #define RECOM_STOCK (1 << 8)
-#define RECOM_UNSTOCK (1 << 9)
 #define RECOM_FAST_TEXT (1 << 10)
 static int sTable[RECOM_KEYS];
 static int sLoaded;
@@ -102,7 +101,7 @@ static void Store(void) {
         return;
     fprintf(f, "; ReKHCoM: how each save file's game was started (never inside the save itself)\n");
     fprintf(f, "; slot = (bank - 1) * 8 + file + 1; bits: 1 set, 2 Re:CoM, 4-8 difficulty, 16 HD text, 32 QoL buttons\n");
-    fprintf(f, "; 64 individual options recorded, 128 dodge, 256 stock, 512 unstock, 1024 fast dialogue\n");
+    fprintf(f, "; 64 individual options recorded, 128 dodge, 256 stock, 512 reserved, 1024 fast dialogue\n");
     for (k = 0; k < RECOM_KEYS; k++)
         if (sTable[k])
             fprintf(f, "slot%d=%d\n", k, sTable[k]);
@@ -110,11 +109,12 @@ static void Store(void) {
 }
 
 int PortQolButtons(void) {
-    return gPortConfig.dodgeButton && gPortConfig.stockButton && gPortConfig.unstockButton;
+    return gPortConfig.dodgeButton && gPortConfig.stockButton;
 }
 
 void PortSetQolButtons(int on) {
-    gPortConfig.dodgeButton = gPortConfig.stockButton = gPortConfig.unstockButton = on != 0;
+    gPortConfig.dodgeButton = gPortConfig.stockButton = on != 0;
+    gPortConfig.unstockButton = 0;
 }
 
 /* save.c: the game wrote save file `file` (-1: the quick save). */
@@ -125,7 +125,6 @@ void PortRecomSaved(int file) {
         | (PortQolButtons() ? 32 : 0) | RECOM_INDIVIDUAL
         | (gPortConfig.dodgeButton ? RECOM_DODGE : 0)
         | (gPortConfig.stockButton ? RECOM_STOCK : 0)
-        | (gPortConfig.unstockButton ? RECOM_UNSTOCK : 0)
         | (gPortConfig.ps2FastText ? RECOM_FAST_TEXT : 0);
     if (sTable[Key(file)] != v) {
         sTable[Key(file)] = v;
@@ -137,6 +136,7 @@ void PortRecomSaved(int file) {
    was started with come back; files never recorded keep today's settings. */
 void PortRecomLoaded(int file) {
     int v;
+    gPortConfig.unstockButton = 0;
     Load();
     v = sTable[Key(file)];
     PortLog("recom: loaded file %d (bank %d): %s", file, gPortConfig.saveBank,
@@ -151,7 +151,7 @@ void PortRecomLoaded(int file) {
     if (v & RECOM_INDIVIDUAL) {
         gPortConfig.dodgeButton = (v & RECOM_DODGE) != 0;
         gPortConfig.stockButton = (v & RECOM_STOCK) != 0;
-        gPortConfig.unstockButton = (v & RECOM_UNSTOCK) != 0;
+        gPortConfig.unstockButton = 0; /* ignore legacy metadata */
         gPortConfig.ps2FastText = (v & RECOM_FAST_TEXT) != 0;
     } else {
         PortSetQolButtons((v & 32) != 0);
