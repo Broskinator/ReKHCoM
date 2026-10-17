@@ -146,6 +146,7 @@ extern PortConfig gPortConfig;
 extern const char* gPortRomPath;
 
 int PortRikuAvailable(int soraCleared);
+int PortEventBackdropPanel(void); /* single authored backdrop panel, or -1 */
 void PortConfigLoad(void);
 void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);

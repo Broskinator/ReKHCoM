@@ -43,6 +43,14 @@ static u8 sEventPaused;
 static u32 sEventId;
 static u8 sEventEndStep;
 
+#ifdef PLATFORM_PC
+/* The opening's first 256x256 panel contains Riku's one circle. The
+   adjacent panels are other artwork/empty space, not a repeating room. */
+int PortEventBackdropPanel(void) {
+    return gEventState != NULL && gEventState->eventId == EVENT_149_RIKU_B12F_OPNING ? 3 : -1;
+}
+#endif
+
 enum EventEndStep {
     EVENT_END_STEP_SHOW_MESSAGE,
     EVENT_END_STEP_WAIT_MESSAGE

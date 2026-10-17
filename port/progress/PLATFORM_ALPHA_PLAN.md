@@ -36,11 +36,13 @@ estados a Git. Conservar historial y trabajo de Claude; no integrar a ciegas.
 1. Android: repetir ejecucion EU/US/JP con APK nueva; probar picker SAF real,
    restauracion de Activity, import/export y multitouch. HD y quickstates siguen
    desactivados. ARM64 requiere adaptar punteros de 32 bits; no esta resuelto.
-2. Cheats: submenu, todo OFF por defecto; Riku disponible sin falsear la bandera
+2. Cheats: submenu y desbloqueo de Riku implementados y probados en PC;
+   persistencia y carga/guardado de partidas previas corregidos (RIKU_BUGS_V19.md).
+   Todo OFF por defecto; Riku disponible sin falsear la bandera
    de Sora completado. Cheats conocidos implementados por estructuras/funciones
    del juego, no codigos de direcciones de otra region. Editor de cartas con
    region + banco + ranura explicitos, checksum nativo, backup y limites.
-   **Todavia no implementado.**
+   **Resto de cheats y editor de cartas pendientes.**
 3. Linux: backend ELF32, SDL3, memoria GBA y fuentes portables. Steam Deck es
    objetivo especifico: SteamOS, mando, 1280x800, modo juego, selector de archivos
    utilizable y persistencia de saves. No anunciar Deck Verified sin certificacion.

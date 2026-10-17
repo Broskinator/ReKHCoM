@@ -1,3 +1,17 @@
+## Riku: persistencia, carga y textura corregidas (17/10/2026)
+
+- Detalle y reproduccion: [RIKU_BUGS_V19.md](RIKU_BUGS_V19.md).
+- Launcher conserva el truco; carga ve Riku existente incluso con truco OFF.
+  Titulo actualiza acceso al cerrar opciones. No fabrica Sora completado.
+- Copia del save del usuario: carga y guardado nativo de Riku comprobados;
+  dos Sora y otra ranura Riku intactos. Archivo original no modificado.
+- Fondo inicial: un solo circulo reconstruido con indices de paleta/tramado
+  nativos; pantalla GBA exacta, sin negro ni segundo circulo. PPU206 + tests
+  dedicados de panel/paleta/fade y EXP768 PASS. EU/US/JP PC compilan.
+- Unicamente desarrollo/local v1.9. No publicar ni crear otras versiones aun;
+  v1.8.3 sigue siendo la unica release publica. Otros cheats y zoom reportado
+  siguen pendientes; no incluir menus relativos experimentales en stable.
+
 ## Cheats / Riku: implementacion PC comprobada (17/10/2026)
 
 - Trucos > Desbloquear a Riku, OFF por defecto; persiste cheat_unlock_riku.

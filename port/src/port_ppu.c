@@ -50,6 +50,7 @@ typedef struct BgLatch {
     int valid;
 } BgLatch;
 static BgLatch sBgLatch[4];
+static int sSinglePanelBg = -1;
 
 /* Display offsets requested by the game for docking UI (see engine.h). */
 int gPortSpriteShiftX;
@@ -703,6 +704,8 @@ void PortSetBattleView(int on) {
 /* Screen entry of the world map at world pixel (wx, wy); -1 outside it. */
 static int WorldEntry(const BgLatch* l, int wx, int wy) {
     const uint16_t* block;
+    if (sSinglePanelBg >= 0 && l == &sBgLatch[sSinglePanelBg] &&
+        (wx < 0 || wy < 0 || wx >= 256 || wy >= 256)) return -1;
 
     /* battle stages continue sideways instead of ending in the void */
     if (sBattleView && l->width > 0 && (wx < 0 || wx >= l->width * 256))
@@ -793,6 +796,44 @@ static int ValidateBgWorld(int bg, uint16_t dispcnt) {
     return match >= 7;
 }
 
+/* Extend the missing arcs from the panel's own edge samples. Work in
+   palette-index space, preserving each native 4x4 dither phase. No image
+   filtering or generated RGB shades: palette animation/fades remain exact. */
+static int SinglePanelIndex(const BgLatch* l, uint16_t cnt, int x, int y) {
+    int entry = WorldEntry(l, x, y), xx, yy, off, value;
+    if (entry < 0) return -1;
+    xx = (entry & 1024) ? 7 - (x & 7) : x & 7;
+    yy = (entry & 2048) ? 7 - (y & 7) : y & 7;
+    off = ((cnt >> 2) & 3) * 0x4000 + (entry & 1023) * 32 + yy * 4 + xx / 2;
+    if (off >= 0x10000) return -1;
+    value = (VRAM8[off] >> ((xx & 1) * 4)) & 15;
+    return (entry >> 12) * 16 + value;
+}
+static uint16_t SinglePanelColor(const BgLatch* l, uint16_t cnt, int wx, int wy) {
+    int edge, inward, distance, a, b, c, slope, shade, bank;
+    int white = SinglePanelIndex(l, cnt, 0, 0);
+    if (white < 0) return TRANSPARENT;
+    if (wy < 0 || wy >= 256 || wx < -64 || wx >= 320 || (cnt & 128))
+        return PLTT16[white] & 0x7FFF;
+    edge = wx < 0 ? wx & 3 : 252 + (wx & 3);
+    inward = wx < 0 ? 16 : -16;
+    distance = wx < 0 ? edge - wx : wx - edge;
+    a = SinglePanelIndex(l, cnt, edge, wy);
+    b = SinglePanelIndex(l, cnt, edge + inward, wy);
+    c = SinglePanelIndex(l, cnt, edge + inward * 2, wy);
+    if (a < 0 || b < 0 || c < 0 || (a >> 4) != (white >> 4) ||
+        (a >> 4) != (b >> 4) || (a >> 4) != (c >> 4)) return PLTT16[white] & 0x7FFF;
+    bank = a & ~15;
+    /* The native panel's indices run from white (1) to the dark centre (15).
+       A non-increasing outward slope prevents reflected/repeated centres. */
+    slope = (a - b) * 16;
+    if ((a - c) * 8 < slope) slope = (a - c) * 8;
+    if (slope >= 0) slope = -16;
+    shade = (a & 15) * 256 + slope * distance;
+    shade = shade < 256 ? 1 : shade >> 8;
+    return PLTT16[bank + shade] & 0x7FFF;
+}
+
 /* ---- backgrounds --------------------------------------------------------- */
 
 static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
@@ -841,6 +882,16 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             gx = (gx < 0 ? 0 : gx >= GBA_SCREEN_W ? GBA_SCREEN_W - 1 : gx);
         if (mosH > 1)
             gx -= ((gx % mosH) + mosH) % mosH;
+        if (bg == sSinglePanelBg && sBgLatch[bg].valid &&
+            (outside || gx < 0 || gx >= GBA_SCREEN_W)) {
+            const BgLatch* l = &sBgLatch[bg];
+            int wx = l->x + gx + (hofs - l->hofs), wy = l->y + gy + (vofs - l->vofs);
+            if (wx < 0 || wy < 0 || wx >= 256 || wy >= 256) {
+                sInWorld[x] = 1;
+                out[x] = SinglePanelColor(l, cnt, wx, wy);
+                continue;
+            }
+        }
         if ((outside || gx < 0 || gx >= GBA_SCREEN_W) && mosH == 1 &&
             !sScreenBg[bg] && !sBgDockedLatched[bg] &&
             (sBgLatch[bg].valid || sBgWorldLatched[bg].valid)) {
@@ -2070,6 +2121,7 @@ void PortPpuBeginFrame(void) {
     gPortConfig.hdText = 0;
 #endif
     sBgTextCount = 0;
+    sSinglePanelBg = PortEventBackdropPanel();
 
     BuildLut();
     UpdateSceneNarrow(dispcnt);

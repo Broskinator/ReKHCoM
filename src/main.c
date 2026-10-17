@@ -57,6 +57,7 @@
 #include "btl4.h"
 #include "sprites_btl_hud.h"
 #ifdef PLATFORM_PC
+#include "event_ids.h"
 #include "mode_mapchk.h"
 #include "map_runtime.h"
 #include "card_api.h"
@@ -195,6 +196,14 @@ int PortHarnessMode(const char* name, int arg) {
             SetCurrentMapRoom(arg, sides[arg]);
             RequestMapMode();
         }
+        return 1;
+    }
+
+    if (strcmp(name, "rikuopening") == 0) {
+        extern void RequestEventMode(u16 eventId);
+        ResetGameState();
+        SetupRikuNewGame();
+        RequestEventMode(EVENT_149_RIKU_B12F_OPNING);
         return 1;
     }
 
