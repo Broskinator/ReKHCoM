@@ -41,10 +41,15 @@ estados a Git. Conservar historial y trabajo de Claude; no integrar a ciegas.
    objetivo especifico: SteamOS, mando, 1280x800, modo juego, selector de archivos
    utilizable y persistencia de saves. No anunciar Deck Verified sin certificacion.
    **Sin build Linux ni prueba Deck por ahora.**
+   Objetivo confirmado por usuario: Anbernic RG34XX, H700 Cortex-A53, 1 GiB,
+   Linux ARM64, 720x480 3:2. Mantener paquete distinto de Steam Deck x86-64.
+   Firmware no concretado: estudiar PortMaster en muOS/ROCKNIX, no afirmar
+   soporte para stock sin prueba. Referencias oficiales:
+   https://anbernic.com/products/rg34xx y https://rocknix.org/devices/anbernic/rg34xx/.
 4. 4:3 con todos los zooms y texto HD, sin deformar. Conservar tambien el modo
    original GBA 3:2. El usuario pidio conservar forma original; 4:3 es otra opcion.
    Rama `feature/aspect-43-zoom`: opciones 4:3 y GBA 3:2 implementadas,
-   geometria 49 combinaciones PASS y build EU Windows correcto. Regresion visual
+   geometria 56 combinaciones PASS (incluye 720x480) y build EU Windows correcto. Regresion visual
    en todos los zooms y texto HD aun pendiente. No integrado en main/stable.
 5. Web: rama `fix/web-mobile-files-controls`, commit 7956d77f6, subida pero NO
    integrada ni desplegada. Contiene correcciones de teclado/foco/fullscreen,
@@ -65,3 +70,14 @@ Usuario autorizo instalar SDK/NDK y acepto licencias necesarias. AVD local
 `D:/ReKHCoM-build/android-avd/ReKHCoMTest.avd`; definir ANDROID_AVD_HOME al lanzarlo.
 Usar app separada `com.rekhcom.android.smoke` para pruebas; nunca limpiar la app
 del jugador. No publicar APK como probada en telefono por pasar emulador x86.
+
+## Evidencia de esta iteracion
+
+- Parser SRAM: 54 comprobaciones PASS incluyendo dos partidas privadas locales,
+  sin cambios de bytes. Touch C: multitouch/diagonal/cancel/foco PASS.
+- APK x86 smoke alpha2: EU/US/JP llegan a combate frame600 y terminan frame900
+  sin crash. Reporte local build/android-runtime-battles/report.json. Esta prueba
+  precede a la incorporacion de 4:3; repetir con el binario final.
+- 4:3 y 3:2: ejecucion Windows EU a 1280x800 en x1/x4 sin crash, capturas reales
+  revisadas de combate y Estado con fuentes HD cargadas. build/aspect-runtime/.
+  No equivale a probar Android/ARM, todos los zooms o todas las cinematicas.

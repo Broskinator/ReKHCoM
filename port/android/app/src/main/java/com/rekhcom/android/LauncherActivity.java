@@ -36,6 +36,13 @@ public class LauncherActivity extends Activity {
         TextView info=new TextView(this);info.setText("Pruebas Android · Texto original · Sin ROM incluida\nInstala tu volcado europeo, americano o japonés.");info.setTextColor(Color.LTGRAY);info.setPadding(0,dp(12),0,dp(24));layout.addView(info);
         region=spinner(layout,"Versión",new String[]{"Europa","América","Japón"});
         bank=spinner(layout,"Banco de partidas",new String[]{"1","2","3","4","5"});
+        try {
+            java.util.Properties saved=new java.util.Properties();
+            File config=new File(getFilesDir(),"kh_com.ini");
+            if(config.isFile())try(FileInputStream in=new FileInputStream(config)){saved.load(in);}
+            bank.setSelection(Math.max(0,Math.min(4,Integer.parseInt(saved.getProperty("save_bank","1"))-1)));
+        }catch(IOException|NumberFormatException ignored){}
+
         language=spinner(layout,"Idioma (Europa)",new String[]{"English","Français","Deutsch","Italiano","Español"});
         language.setSelection(4);
         // The game runs landscape and must retain at least 160 source lines.
