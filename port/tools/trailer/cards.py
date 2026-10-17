@@ -40,7 +40,7 @@ C={
  'c08':[("UP TO",64,GD,24),("32:9",200,WH,20)],
  'c09':[("HD TEXT",96,WH,12),("6 LANGUAGES",96,WH,12),("RE:COM MODE",96,WH,12)],
  'c12':[("EVERY SETTING, IN GAME",100,WH,12)],
- 'c10':[("ReKHCoM",180,WH,10),("AVAILABLE NOW  -  FREE",60,GD,14),("github.com/MatyMeatBoy/ReKHCom",48,WH,4)],
+ 'c10':[("ReKHCoM",180,WH,10),("AVAILABLE NOW  -  FREE",60,GD,14),("github.com/MatyMeatBoy/ReKHCoM",48,WH,4)],
  'c11':[("Fan project, not affiliated with Square Enix, Disney or Nintendo.",42,(205,205,205),2),("Your own cartridge is required; no ROM is included.",42,(205,205,205),2)],
 }
 import sys
