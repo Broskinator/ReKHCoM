@@ -1,3 +1,11 @@
+## Arte del titulo — pendiente (17/10/2026)
+
+- Solicitud nueva: completar Donald/cristales en toda la zona vacia, sin
+  cambiar el pixel art original ni tamano. Rama feature/title-art-16x9.
+- ImageGen rechazo dos intentos (edicion y referencia HD); no genero arte.
+  Analisis y continuacion en TITLE_ART_EXTENSION.md. No hay cambio de render
+  ni release nueva por esta solicitud. v1.9 publica permanece intacta.
+
 ## v1.9 PUBLICADA — 17/10/2026
 
 - Release publica estable Windows: https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9
