@@ -1,10 +1,15 @@
-## Arte del titulo — pendiente (17/10/2026)
+## Arte del titulo — propuesta manual dibujada (17/10/2026)
 
 - Solicitud nueva: completar Donald/cristales en toda la zona vacia, sin
   cambiar el pixel art original ni tamano. Rama feature/title-art-16x9.
 - ImageGen rechazo dos intentos (edicion y referencia HD); no genero arte.
-  Analisis y continuacion en TITLE_ART_EXTENSION.md. No hay cambio de render
-  ni release nueva por esta solicitud. v1.9 publica permanece intacta.
+- Usuario pide continuar imaginando el dibujo e instalar skill de pixel art.
+  Instalada pixel-art-fundamentals (ProkStudio); dibujado parche manual320x240,
+  2373 pixeles nuevos. Centro38400 intacto, paleta original y alpha binario
+  comprobados. Asset/receta en port/assets/title-study y draw_title_extension.py.
+- Vista completa y maqueta16:9 privadas en build/title-widescreen-review/study.
+  NO integrado en el render; revisar arte/costuras y despues paleta viva/fades/
+  ratios. Analisis en TITLE_ART_EXTENSION.md. v1.9 publica permanece intacta.
 
 ## v1.9 PUBLICADA — 17/10/2026
 

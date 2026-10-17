@@ -1,7 +1,34 @@
 # Ampliacion del arte del titulo — 17/10/2026
 
-Estado: PENDIENTE DE ARTE. No hay imagen generada ni arreglo integrado.
+Estado: PROPUESTA MANUAL DIBUJADA. No hay arreglo integrado en el render.
 Rama feature/title-art-16x9. v1.9 publica permanece intacta.
+
+## Avance manual solicitado por el usuario
+
+El usuario autoriza imaginar y dibujar la continuacion tras los rechazos de
+ImageGen. Instalada pixel-art-fundamentals desde ProkStudio/skills mediante
+skill-installer, en ~/.codex/skills; consultadas pautas de bordes, valores y
+revision. Resolucion, paleta y contexto ya estaban definidos por el usuario
+y la inspeccion; no es necesario volver a preguntarlos.
+
+- Receta manual: port/tools/draw_title_extension.py; poligonos/facetas y
+  trazos a un pixel nativo, sin IA generativa ni procesamiento de otra API.
+- Parche: port/assets/title-study/title-extension-study.png,320x240 RGBA.
+  Completa contorno derecho, guante, planos inferiores y puntas del cristal.
+  Es una continuacion imaginada, NO arte oficial recuperado.
+- Comprobaciones ejecutadas: 38400 pixeles originales identicos, rectangulo
+  original transparente en el parche, alpha exclusivamente0/255, todos los
+  colores pertenecen a la referencia original.2373 pixeles nuevos.
+- Previews privados: build/title-widescreen-review/study/. Vista completa
+  title-extension-preview-4x.png y composicion16:9
+  title-extension-16x9-mockup.png. Esta ultima es una MAQUETA ESTATICA sobre
+  una captura real; NO demuestra que el juego cargue el parche.
+- Script de captura ejecuto mode_title, entrada/menu,1536x864 sin saves del
+  usuario. No se cambiaron render, menus, zoom, configuraciones ni release.
+
+Pendiente: pulir/revisar arte y costuras antes de integrar; indexar paleta
+viva; validar intro/fades/brillo y ratios/contexto de salida. No publicar
+como funcional una propuesta que todavia no carga el motor.
 
 ## Peticion del usuario
 

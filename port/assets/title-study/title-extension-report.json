@@ -1,0 +1,12 @@
+{
+  "status": "art-study-only",
+  "canvas": [
+    320,
+    240
+  ],
+  "original_pixels_preserved": 38400,
+  "core_patch_transparent": true,
+  "alpha": "binary",
+  "colors": "original reference palette only",
+  "new_pixels": 2373
+}
