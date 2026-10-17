@@ -7,8 +7,8 @@ The decompiled game runs as a real Windows program, with its own renderer, audio
 and launcher, with widescreen and ultrawide support at the cartridge's original speed.
 
 <p align="center">
-  <a href="https://github.com/MatyMeatBoy/ReKHCoM/releases/latest"><b>⬇ Download ReKHCoM v1.8.3 for Windows</b></a>
-  &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCoM/"><b>▶ Play in your browser · Alpha 2</b></a>
+  <a href="https://github.com/MatyMeatBoy/ReKHCoM/releases/latest"><b>⬇ Download ReKHCoM v1.9 for Windows</b></a>
+  &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCoM/"><b>▶ Play in your browser · Alpha 3</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCoM/tags">Previous version tags</a>
 </p>
@@ -19,19 +19,25 @@ included), in all five European languages, English (US) and Japanese.
 <p align="center"><img src="docs/screenshots/battle.png" width="49%"> <img src="docs/screenshots/field.png" width="49%"></p>
 
 Development versions are tracked in [Git tags](https://github.com/MatyMeatBoy/ReKHCoM/tags).
-Only stable versions appear as public releases. The current stable is **v1.8.3**.
+Only stable versions appear as public releases. The current Windows stable is **v1.9**. Android and browser builds are alpha.
 
-## What's new in v1.8.3
+## What's new in v1.9
 
-- **Cleaner menu animations.** The pointing glove no longer turns into a white
-  stripe when opening or closing Map Cards. Status screens keep their corrected
-  transitions too, including on ultrawide monitors.
-- **All recent fixes included.** Smoother audio without the reported buzz, cleaner
-  room changes and title fades, and correctly filled cinematic borders.
-- **x4 zoom by default.** Choose your preferred numbered scale in the launcher or
-  in-game options. No intermediate steps clutter the selector.
-- **Crisp text where it helps.** Optional HD dialogue, subtitles and menus;
-  experience and level-up numbers keep their original pixel art.
+- **Cleaner Riku cinematics.** The opening keeps one shaded circle; scenery
+  fills added borders using native tiles, with the original picture preserved.
+- **Safer save handling.** Riku's unlock setting survives relaunches. His save
+  slots appear when the cheat is enabled or Sora's story has been completed.
+  Existing saves stay intact when the option is switched off.
+- **More display choices.** x4 remains the default; 4:3 and the original GBA
+  3:2 aspect ratios can also use the numbered zoom levels.
+- **Lower rendering cost.** Reused buffers and tile-row processing reduce CPU
+  work, especially at the widest zooms.
+- **Optional return-stock control.** Under Experimental, off by default: hold V
+  or the right stick for half a second to return Sora's stocked cards to his hand.
+- **Android and browser alpha updates.** Touch controls, local ROM/save file
+  selection and browser resizing improvements. Android currently uses ARMv7;
+  some 64-bit-only devices are not supported. Native Linux/Steam Deck and RG34XX
+  packages are still in development.
 
 The gameplay, menu, language and launcher screenshots below were captured from
 v1.8.3. The unchanged new-game selection screens remain reference images.
@@ -143,8 +149,8 @@ Export a backup before clearing browser data.
 
 ## Running (Windows)
 
-1. Download the [stable v1.8.3 ZIP](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.8.3)
-   and extract `ReKHCoM-v1.8.3-windows-x86.zip` into a writable folder.
+1. Download the [stable v1.9 ZIP](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9)
+   and extract `ReKHCoM-v1.9-windows-x86.zip` into a writable folder.
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
 3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`

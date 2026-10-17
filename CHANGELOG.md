@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-## v1.9 — 2026-10-17 (Windows candidate)
+## v1.9 — 2026-10-17
+
+- Riku: single-circle opening, native tile borders in eligible cutscenes,
+  persistent optional unlock and access-gated Riku save slots without deleting saves.
+- Return stocked cards is available under Experimental, disabled by default.
+- Updated Android alpha 3 and browser alpha 3; native Linux builds remain pending.
 
 - Reduce renderer allocation at ordinary zooms and speed up opaque world scanlines
   and straight affine backgrounds. Gameplay speed and original effects are preserved.
