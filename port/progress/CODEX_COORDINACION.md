@@ -1,3 +1,10 @@
+## Android, Linux / Steam Deck y nuevos pedidos (17/10/2026)
+
+Reparto vigente: [PLATFORM_ALPHA_PLAN.md](PLATFORM_ALPHA_PLAN.md).
+Android primero; Linux y Steam Deck despues. Todo salvo Windows marcado alpha.
+Importacion .sav/.srm por contenido, region y banco; cheats OFF, modo Riku,
+editor de cartas y 4:3 con zoom/HD pendientes. Menus relativos fuera de stable.
+
 ## Quiver enviado por el usuario; nombre oficial ReKHCoM (16/10/2026)
 
 - Usuario confirma que ya envio la propuesta a Quiver. No reenviar ni crear PR
