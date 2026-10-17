@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "port/port_aspect.h"
 #include "port/port_ui.h"
 
 extern void* gMsgLatinFontFrames[];
@@ -40,18 +41,19 @@ enum {
     ITEM_FPS,
     ITEM_DODGE,
     ITEM_STOCK,
-    ITEM_UNSTOCK,
     ITEM_SAVEBANK,
     ITEM_MUSIC,
     ITEM_SFX,
     ITEM_MASTER,
     ITEM_EXPERIMENTAL, /* section heading, not selectable */
+    ITEM_UNSTOCK,
     ITEM_HDTEXT,
     ITEM_HDHUD,
     ITEM_HD2D,
     ITEM_SMOOTHAUDIO,
     ITEM_PS2_MODE,
     ITEM_PS2_MENU,     /* opens the Re:CoM page */
+    ITEM_CHEATS_MENU,
     ITEM_CLOSE,
     /* the Re:Chain of Memories page */
     ITEM_PS2_DIFFICULTY,
@@ -63,11 +65,13 @@ enum {
     ITEM_NG_HDTEXT,
     ITEM_NG_QOL,
     ITEM_NG_START,
+    ITEM_CHEAT_RIKU,
+    ITEM_CHEATS_BACK,
     ITEM_COUNT
 };
 
 /* Two pages, each a run of items: the options and the Re:CoM settings. */
-enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME };
+enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS };
 static int sPage;
 static int sNgRecom; /* new game page: the Re:CoM version chosen */
 static int sNgQol;   /* the one-button controls as set before the new game page */
@@ -75,10 +79,10 @@ enum { WIZ_VERSION, WIZ_DIFFICULTY, WIZ_OPTIONS };
 static int sWizStep, sWizCursor; /* the new game window's step and row */
 static void WizKey(int key);
 static int PageFirst(void) {
-    return sPage == PAGE_PS2 ? ITEM_PS2_DIFFICULTY : sPage == PAGE_NEWGAME ? ITEM_NG_VERSION : 0;
+    return sPage == PAGE_CHEATS ? ITEM_CHEAT_RIKU : sPage == PAGE_PS2 ? ITEM_PS2_DIFFICULTY : sPage == PAGE_NEWGAME ? ITEM_NG_VERSION : 0;
 }
 static int PageEnd(void) {
-    return sPage == PAGE_PS2 ? ITEM_PS2_BACK + 1 : sPage == PAGE_NEWGAME ? ITEM_COUNT : ITEM_CLOSE + 1;
+    return sPage == PAGE_CHEATS ? ITEM_CHEATS_BACK + 1 : sPage == PAGE_PS2 ? ITEM_PS2_BACK + 1 : sPage == PAGE_NEWGAME ? ITEM_NG_START + 1 : ITEM_CLOSE + 1;
 }
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
@@ -133,14 +137,14 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
-    { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
-      "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
     { "Save bank", "Banque de sauvegarde", "Speicherbank", "Banco di salvataggio", "Banco de partidas",
       "セーブバンク" },
     { "Music volume", "Volume musique", "Musiklautstärke", "Volume musica", "Volumen música", "音楽の音量" },
     { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos", "効果音の音量" },
     { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general", "全体の音量" },
     { "Experimental", "Expérimental", "Experimentell", "Sperimentale", "Experimentales", "実験的機能" },
+    { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
+      "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "HD HUD (pilot)", "HUD HD (pilote)", "HD-HUD (Pilot)", "HUD HD (pilota)", "HUD HD (piloto)", "HD HUD (試験)" },
     { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
@@ -148,6 +152,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Re:CoM mode", "Mode Re:CoM", "Re:CoM-Modus", "Modalità Re:CoM", "Modo Re:CoM", "Re:CoMモード" },
     { "Re:CoM settings", "Réglages Re:CoM", "Re:CoM-Einstellungen", "Impostazioni Re:CoM", "Ajustes Re:CoM",
       "Re:CoM設定" },
+    { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
     { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
     { "Fast dialogue", "Dialogues rapides", "Schnelle Dialoge", "Dialoghi veloci", "Diálogos rápidos",
@@ -159,6 +164,17 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "One-button dodge and stock", "Roulade et réserve en un bouton", "Ausweichen und Vorrat mit einer Taste",
       "Capriola e accumulo con un tasto", "Rodar y acumular con un botón", "ワンボタン操作" },
     { "Start", "Commencer", "Beginnen", "Inizia", "Comenzar", "はじめる" },
+    { "Unlock Riku", "Débloquer Riku", "Riku freischalten", "Sblocca Riku", "Desbloquear a Riku", "リクを解放" },
+    { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
+};
+static const char* const sCheatsTitle[LANG_COUNT] = { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" };
+static const char* const sCheatsHelp[LANG_COUNT] = {
+    "Title: New Game: Riku starts Reverse/Rebirth.",
+    "Titre : Nouvelle partie : Riku lance Reverse/Rebirth.",
+    "Titel: Neues Spiel: Riku startet Reverse/Rebirth.",
+    "Titolo: Nuova partita: Riku avvia Reverse/Rebirth.",
+    "Título: Nueva partida: Riku inicia Reverse/Rebirth.",
+    "タイトルのリクで新しいゲームを開始。",
 };
 static const char* const sNgTitle[LANG_COUNT] = { "New game", "Nouvelle partie", "Neues Spiel", "Nuova partita",
     "Nueva partida", "ニューゲーム" };
@@ -204,12 +220,12 @@ static const char* const sNgDescHd[LANG_COUNT] = {
     "会話をウィンドウ解像度のくっきりしたフォントで表示。",
 };
 static const char* const sNgDescQol[LANG_COUNT] = {
-    "One button for the dodge roll and for stocking cards (L+R); hold it to return stocked cards.",
-    "Un bouton pour la roulade et pour la réserve (L+R) ; maintenu, il rend les cartes en réserve.",
-    "Eine Taste für die Ausweichrolle und den Vorrat (L+R); gehalten nimmt sie Vorratskarten zurück.",
-    "Un tasto per la capriola e per l'accumulo (L+R); tenuto premuto riprende le carte accumulate.",
-    "Un botón para rodar y para acumular cartas (L+R); mantenido devuelve las cartas acumuladas.",
-    "回避とストック (L+R) をワンボタンで。長押しでストックを手札に戻す。",
+    "One button for the dodge roll and for stocking cards (L+R).",
+    "Un bouton pour la roulade et pour la réserve (L+R).",
+    "Eine Taste für Ausweichen und Vorrat (L+R).",
+    "Un tasto per la capriola e per l'accumulo (L+R).",
+    "Un botón para rodar y para acumular cartas (L+R).",
+    "ドッジロールとカードストック（L+R）を専用ボタンで操作。",
 };
 static const char* const sNgDescStart[LANG_COUNT] = {
     "Everything here can be changed later with START + SELECT.",
@@ -292,12 +308,14 @@ static const char* const sHudSizes[3][LANG_COUNT] = {
     { "Large", "Grand", "Groß", "Grande", "Grande", "大きい" },
     { "Larger", "Plus grand", "Größer", "Più grande", "Más grande", "もっと大きい" },
 };
-static const char* const sAspect[5][LANG_COUNT] = {
+static const char* const sAspect[PORT_ASPECT_COUNT][LANG_COUNT] = {
     { "Fill window", "Remplir la fenêtre", "Fenster füllen", "Riempi finestra", "Llenar ventana", "ウィンドウに合わせる" },
     { "16:9", "16:9", "16:9", "16:9", "16:9", "16:9" },
     { "21:9", "21:9", "21:9", "21:9", "21:9", "21:9" },
     { "Force 21:9", "Forcer 21:9", "21:9 erzwingen", "Forza 21:9", "Forzar 21:9", "21:9に固定" },
     { "Force 32:9", "Forcer 32:9", "32:9 erzwingen", "Forza 32:9", "Forzar 32:9", "32:9に固定" },
+    { "4:3", "4:3", "4:3", "4:3", "4:3", "4:3" },
+    { "GBA 3:2", "GBA 3:2", "GBA 3:2", "GBA 3:2", "GBA 3:2", "GBA 3:2" },
 };
 static const char* const sPressA[LANG_COUNT] = { "A: apply", "A : appliquer", "A: übernehmen", "A: applica",
     "A: aplicar", "A: 決定" };
@@ -581,7 +599,7 @@ static void ValueText(int item, char* out, size_t size) {
             SDL_strlcpy(out, sHudSizes[SDL_clamp(gPortConfig.hudSize, 0, 2)][l], size);
             break;
         case ITEM_ASPECT:
-            SDL_strlcpy(out, sAspect[SDL_clamp(gPortConfig.aspect, 0, 4)][l], size);
+            SDL_strlcpy(out, sAspect[SDL_clamp(gPortConfig.aspect, 0, PORT_ASPECT_COUNT - 1)][l], size);
             break;
         case ITEM_NARROW:
             SDL_strlcpy(out, sNarrow[gPortConfig.narrowFit != 0][l], size);
@@ -656,8 +674,12 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_PS2_MODE:
             SDL_strlcpy(out, sOnOff[gPortConfig.ps2Mode != 0][l], size);
             break;
+        case ITEM_CHEAT_RIKU:
+            SDL_strlcpy(out, sOnOff[gPortConfig.cheatUnlockRiku != 0][l], size);
+            break;
+        case ITEM_CHEATS_MENU:
         case ITEM_PS2_MENU:
-            SDL_strlcpy(out, "â", size);
+            SDL_strlcpy(out, "\xE2\x86\x92", size);
             break;
         case ITEM_PS2_DIFFICULTY:
         case ITEM_NG_DIFFICULTY:
@@ -717,7 +739,7 @@ static void Change(int item, int dir) {
             gPortConfig.hudSize = Wrap(gPortConfig.hudSize + dir, 3);
             break;
         case ITEM_ASPECT:
-            gPortConfig.aspect = Wrap(gPortConfig.aspect + dir, 5);
+            gPortConfig.aspect = Wrap(gPortConfig.aspect + dir, PORT_ASPECT_COUNT);
             break;
         case ITEM_NARROW:
             gPortConfig.narrowFit = !gPortConfig.narrowFit;
@@ -774,6 +796,15 @@ static void Change(int item, int dir) {
             break;
         case ITEM_PS2_MODE:
             gPortConfig.ps2Mode = !gPortConfig.ps2Mode;
+            break;
+        case ITEM_CHEATS_MENU:
+            if (dir > 0) { sPage = PAGE_CHEATS; sCursor = sScroll = ITEM_CHEAT_RIKU; }
+            break;
+        case ITEM_CHEAT_RIKU:
+            gPortConfig.cheatUnlockRiku = !gPortConfig.cheatUnlockRiku;
+            break;
+        case ITEM_CHEATS_BACK:
+            sPage = PAGE_MAIN; sCursor = ITEM_CHEATS_MENU; sScroll = 0;
             break;
         case ITEM_PS2_MENU:
             if (dir > 0 && gPortConfig.ps2Mode) {
@@ -1058,6 +1089,8 @@ int PortUiHandleEvent(const void* p) {
                 if (!ev->key.repeat) {
                     if (sPage == PAGE_NEWGAME)
                         Change(ITEM_NG_START, 1);
+                    else if (sPage == PAGE_CHEATS)
+                        Change(ITEM_CHEATS_BACK, 1);
                     else if (sPage == PAGE_PS2)
                         Change(ITEM_PS2_BACK, 1);
                     else
@@ -1094,6 +1127,7 @@ int PortUiHandleEvent(const void* p) {
                     Change(ITEM_NG_START, 1);
                     break;
                 }
+                if (sPage == PAGE_CHEATS) { Change(ITEM_CHEATS_BACK, 1); break; }
                 if (sPage == PAGE_PS2) {
                     Change(ITEM_PS2_BACK, 1);
                     break;
@@ -1518,7 +1552,7 @@ static void DrawMenu(int l, int width, int height) {
     if (barX + barW - 24 > artX + MENU_ART_X)
         Shade(artX + MENU_ART_X, 0, barX + barW - 24 - (artX + MENU_ART_X), top + rows * 16, 0xFFFFFFFFu, 230);
 
-    DrawText(sPage == PAGE_PS2 ? sPs2Title[l] : sPage == PAGE_NEWGAME ? sNgTitle[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
+    DrawText(sPage == PAGE_CHEATS ? sCheatsTitle[l] : sPage == PAGE_PS2 ? sPs2Title[l] : sPage == PAGE_NEWGAME ? sNgTitle[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
     if (sScroll > PageFirst())
         DrawText("\xE2\x86\x91", barX + barW - 8, 2, MENU_INK, 0xFFD8D8D8u);
     for (i = sScroll, y = top; i < sScroll + rows && i < PageEnd(); i++, y += 16) {
@@ -1537,7 +1571,7 @@ static void DrawMenu(int l, int width, int height) {
         }
         MenuBar(barX, y, barW, sel);
         DrawText(sLabels[i][l], barX + 16, y - 2, face, 0xFFD8D8D8u);
-        if (i == ITEM_CLOSE || i == ITEM_PS2_BACK || i == ITEM_NG_START)
+        if (i == ITEM_CLOSE || i == ITEM_PS2_BACK || i == ITEM_CHEATS_BACK || i == ITEM_NG_START)
             continue;
         ShortValue(i, value, sizeof(value));
         x = barX + barW - 4 - TextWidth(value);
@@ -1554,7 +1588,7 @@ static void DrawMenu(int l, int width, int height) {
         /* a demanding zoom: say so where the help line is */
         MenuButton(barX, height - 15, sZoomHeavy[l], '!');
     else
-        DrawText(sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
+        DrawText(sPage == PAGE_CHEATS ? sCheatsHelp[l] : sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
 }
 
 /* Test harness: KHCOM_OPTIONS_HOLD=n closes the menu n frames after it has

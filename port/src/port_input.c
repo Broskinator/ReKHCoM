@@ -47,6 +47,8 @@ static int sUnstockPending;
    confirming press does not reach the game. */
 void PortInputSuppressUntilRelease(void) {
     sSuppress = 1;
+    sDodgeHeld = sDodgePending = 0;
+    sUnstockHeld = sUnstockPending = 0;
 }
 
 /* Test harness: KHCOM_VPAD="from-to:BUTTON,..." plugs in a virtual gamepad
@@ -133,6 +135,8 @@ void PortInputHandleEvent(const void* p) {
             break;
         case SDL_EVENT_WINDOW_FOCUS_LOST:
             sKeyboard = 0;
+            sDodgeHeld = sDodgePending = 0;
+            sUnstockHeld = sUnstockPending = 0;
             break;
     }
 }
@@ -203,6 +207,8 @@ uint16_t PortInputKeys(void) {
         }
         SDL_free(ids);
     }
+    if (!gPortConfig.unstockButton)
+        keys &= ~KEY_UNSTOCK;
     /* The hardware cannot report opposite directions at once. */
     if ((keys & (KEY_LEFT | KEY_RIGHT)) == (KEY_LEFT | KEY_RIGHT))
         keys &= ~(KEY_LEFT | KEY_RIGHT);
@@ -230,10 +236,12 @@ uint16_t PortInputResolve(uint16_t keys) {
     sDodgeHeld = dodge;
     /* Return-stocked-cards button: acts once when held long enough. */
     if ((keys & KEY_UNSTOCK) && gPortConfig.unstockButton) {
-        if (++sUnstockHeld == UNSTOCK_HOLD_FRAMES)
+        if (sUnstockHeld <= UNSTOCK_HOLD_FRAMES && ++sUnstockHeld == UNSTOCK_HOLD_FRAMES)
             sUnstockPending = DODGE_PENDING_FRAMES;
     } else {
         sUnstockHeld = 0;
+        if (!gPortConfig.unstockButton)
+            sUnstockPending = 0;
     }
     if (sUnstockPending > 0 && sUnstockHeld != UNSTOCK_HOLD_FRAMES)
         sUnstockPending--;
@@ -256,7 +264,7 @@ int PortTakeDodge(int held, int facingLeft) {
 
 /* Battle code: 1 once after the return-stocked-cards button was held. */
 int PortTakeUnstock(void) {
-    int pending = sUnstockPending > 0;
+    int pending = gPortConfig.unstockButton && sUnstockPending > 0;
 
     sUnstockPending = 0;
     return pending;

@@ -27,18 +27,23 @@ int main(int argc, char** argv) {
         PortRecomLoaded(0);
         assert(PortRecomActive());
         assert(gPortConfig.ps2Difficulty == 2);
-        assert(gPortConfig.dodgeButton && !gPortConfig.stockButton && gPortConfig.unstockButton);
+        assert(gPortConfig.dodgeButton && !gPortConfig.stockButton && !gPortConfig.unstockButton);
         assert(PortFastText());
         return 0;
     }
     /* Legacy records: bundled controls and invalid difficulty are handled. */
     { FILE* f = fopen("kh_com_recom.ini", "w");
-      assert(f); fprintf(f, "slot1=63\nslot2=3\n"); fclose(f); }
+      assert(f); fprintf(f, "slot1=63\nslot2=3\nslot3=579\n"); fclose(f); }
     PortRecomLoaded(0);
     assert(PortRecomActive() && PortQolButtons());
     assert(gPortConfig.ps2Difficulty == 2);
     PortRecomLoaded(1);
     assert(!PortQolButtons());
+    gPortConfig.unstockButton = 0;
+    PortRecomLoaded(2); /* legacy bit 512 cannot enable the experiment */
+    assert(!gPortConfig.unstockButton);
+    gPortConfig.unstockButton = 1;PortRecomLoaded(2);
+    assert(gPortConfig.unstockButton); /* loading also preserves explicit opt-in */
     for (bank = 1; bank <= PORT_SAVE_BANKS; bank++) {
         gPortConfig.saveBank = bank;
         for (mask = 0; mask < 8; mask++) for (fast = 0; fast < 2; fast++) {
@@ -68,7 +73,8 @@ int main(int argc, char** argv) {
     gPortConfig.ps2Difficulty = 1;
     assert(PortScaleDamage(1, 1) == 1);
     assert(PortScaleDamage(10, 1) == 5);
-    gPortConfig.ps2Mode = 0;
+    /* Version follows the loaded save, not the retired global mode switch. */
+    PortRecomSetActive(0);
     assert(PortScaleDamage(10, 1) == 10 && !PortFastText());
     gPortConfig.ps2Mode = 1;
     PortRecomSetActive(0);

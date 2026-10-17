@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## v1.9 — 2026-10-17
+
+- Riku: single-circle opening, native tile borders in eligible cutscenes,
+  persistent optional unlock and access-gated Riku save slots without deleting saves.
+- Return stocked cards is available under Experimental, disabled by default.
+- Updated Android alpha 3 and browser alpha 3; native Linux builds remain pending.
+
+- Reduce renderer allocation at ordinary zooms and speed up opaque world scanlines
+  and straight affine backgrounds. Gameplay speed and original effects are preserved.
+- Add 4:3 and GBA 3:2 aspect options alongside widescreen, with zoom and HD text.
+- Save imports preserve completion flags when changing region. A damaged first
+  header no longer shifts the entire save; a valid backup header can be used.
+- Reject ambiguous or invalid save containers. Backups must succeed before an
+  existing save is replaced, and failed writes leave the original intact.
+- Show the five save banks in the launcher and keep imported saves in the selected bank.
+- Clear keyboard, dodge and stock input when focus is lost.
+
+
 ## v1.8.3 — 2026-10-16
 
 - Map Cards: the pointing glove no longer stretches into a white stripe when

@@ -39,7 +39,6 @@ OPTIONS = [
     ("sfx_volume", [0], False),
     ("dodge_button", [0], False),
     ("stock_button", [0], False),
-    ("unstock_button", [0], False),
 ]
 LANGUAGES = ["English", "Italiano", "Francais", "Espanol", "Deutsch"]
 

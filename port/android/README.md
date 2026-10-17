@@ -1,9 +1,20 @@
 # Android — estudio del port (16/10/2026)
 
-Estado real: **los tres núcleos ARMv7 y la primera APK compilan; arranque y controles comprobados
-en emulador API24 x86; gameplay y ARM físico pendientes**. Windows v1.8.3 sigue siendo la única estable. El HTML
-es una maqueta; `native/touch_android.c` conecta los controles reales con SDL.
-No anunciar una alpha jugable hasta completar las pruebas de ejecución.
+Estado real: **Android Alpha 2 publicada**, con APK ARMv7 de tres regiones.
+Combate EU/US/JP comprobado en emulador API24 x86 (frame600 y salida frame900),
+parser SRAM y controles tactiles C verificados. ARM fisico, rendimiento real y
+picker SAF en dispositivos siguen pendientes. No cubre telefonos ARM64-only.
+Windows v1.8.3 sigue siendo la unica estable.
+
+Desarrollo: https://github.com/MatyMeatBoy/ReKHCoM/tree/android-alpha2
+Las compilaciones de prueba no son releases publicas; estable vigente: v1.8.3.
+
+Importa `.sav`/`.srm` por contenido: SRAM 32/64KiB y 128KiB solo si repite la
+misma mitad. Verifica firma/checksum, region compatible y destino de banco 1..5.
+Crea copia previa al reemplazar. Exporta SRAM normal de 64KiB. No importa
+savestates ni convierte partidas entre regiones. EU usa VER13; US/JP VER12 y
+requieren elegir la region correcta. Las opciones 4:3 y GBA 3:2 admiten zoom.
+HD y quickstates permanecen desactivados en Android.
 
 ## Compilar y retomar
 
@@ -26,6 +37,7 @@ Cada biblioteca regional se carga por separado en el proceso :game.
 La app no pide permisos de Internet ni acceso global a archivos.
 Pausa/reanudación y liberación de toques implementadas; pendientes de prueba.
 Manifiesto y hashes de cada APK bajo build/releases/android-build-manifest.json.
+Build actual: 1.9-android-alpha2, versionCode 19002; APK de pruebas firmada debug.
 
 ## Herramientas y motor recomendados
 

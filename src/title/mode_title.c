@@ -347,7 +347,13 @@ void mode_title_1() {
             sTitleMenuChoice = TITLE_MENU_RESUME;
         } else if (SaveRepairFileLarge(0) == SAVE_OK || SaveRepairFileLarge(1) == SAVE_OK) {
             sTitleMenuChoice = TITLE_MENU_CONTINUE;
-        } else if ((gGameState.flags & GAME_FLAG_SORA_CLEAR) &&
+        } else if (
+#ifdef PLATFORM_PC
+                   PortRikuAvailable(gGameState.flags & GAME_FLAG_SORA_CLEAR) &&
+#else
+                   (gGameState.flags & GAME_FLAG_SORA_CLEAR) &&
+#endif
+                   /* Existing Riku saves stay stored, but require access. */
                    (SaveRepairFileSmall(0) == SAVE_OK || SaveRepairFileSmall(1) == SAVE_OK)) {
             sTitleMenuChoice = TITLE_MENU_CONTINUE;
         } else {

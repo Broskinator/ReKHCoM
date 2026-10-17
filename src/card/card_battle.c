@@ -6,6 +6,7 @@
 #include "macros.h"
 #ifdef PLATFORM_PC
 #include "port/port.h"
+#include <stdlib.h>
 #endif
 #include "registration_data.h"
 #include "card_api.h"
@@ -138,7 +139,8 @@ void RequestSoraStockUse() {
 static void UnstockSoraCards(CardBattleWork* work);
 
 void RequestSoraUnstock(void) {
-    sSoraCardRequest = CARD_REQUEST_PORT_UNSTOCK;
+    if (gPortConfig.unstockButton)
+        sSoraCardRequest = CARD_REQUEST_PORT_UNSTOCK;
 }
 #endif
 
@@ -5709,7 +5711,7 @@ static void UnstockSoraCards(CardBattleWork* work) {
     u8 count = work->stockCount;
     u8 i;
 
-    if (count == 0) {
+    if (!gPortConfig.unstockButton || count == 0) {
         return;
     }
     if (count > 3 || work->listIndex != CARD_LIST_MAIN || (gGameState.flags & GAME_FLAG_RIKU) ||
@@ -5753,6 +5755,8 @@ static void UnstockSoraCards(CardBattleWork* work) {
         gCardBattleState->soraStockedCards[i] = NULL;
     }
     work->cardsLeft[CARD_LIST_MAIN] += count;
+    if (getenv("KHCOM_CARDLOG"))
+        PortLog("unstock: returned=%u hand=%u", (unsigned)count, (unsigned)work->cardsLeft[CARD_LIST_MAIN]);
     work->stockCount = 0;
     work->stockValue = 0;
     work->xSteps = 0;

@@ -1,3 +1,165 @@
+## Cierre v1.9 autorizado (17/10/2026)
+
+- Usuario autoriza publicar v1.9 tras corregir los bordes de Riku; sustituye
+  la restriccion anterior de mantenerla privada. Windows estable; Android/Web alpha.
+- Audio: usuario confirma que suena; prueba WASAPI con mezcla no silenciosa.
+- Cargar: Riku SOLO con truco ON o Sora completado. 7 pruebas reales pasan,
+  incluidos checksum de cabecera de fixture completado, OFF oculta sin borrar,
+  ON carga/guarda Riku con las otras ranuras intactas. Original privado intacto.
+- Devolver cartas acumuladas vuelve SOLO en Experimental, default OFF.
+  Nueva clave experimental_unstock; ignora unstock_button antiguo y bit512 de
+  metadatos. No incluido en paquete QoL de nueva partida. Mantener V / stick
+  derecho pulsado o hacia abajo 0.5s, solo Sora; no cancela tecnica en curso.
+  Procedencia: ggdrn/KH_COM_VITA (MIT), no una mecanica GBA/PS2 nativa.
+- Riku: primer circulo corregido + base rectangular opaca de cinematicas:
+  extiende bandas de tiles nativos; rechaza tiles parcialmente transparentes,
+  menus, batalla y foreground. Original 240x160 exacto. Pruebas x1/x4, fade,
+  paleta y rechazo de geometria PASS. Savestate usuario respaldado con su EXE
+  exacto en build/riku-hollow-user-review (PRIVADO, no subir).
+- Linux/Steam Deck/RG34XX siguen BLOQUEADOS por ABI punteros32/64; no hay
+  binario nativo probado. No etiquetar ARMv7 como ARM64 ni inventar soporte.
+- Menus relativos experimentales excluidos. Otros cheats/editor siguen pendientes.
+
+## Riku: persistencia, carga y textura corregidas (17/10/2026)
+
+- Detalle y reproduccion: [RIKU_BUGS_V19.md](RIKU_BUGS_V19.md).
+- Launcher conserva el truco; carga muestra Riku solo con truco ON o Sora completado.
+  Titulo actualiza acceso al cerrar opciones. No fabrica Sora completado.
+- Copia del save del usuario: carga y guardado nativo de Riku comprobados;
+  dos Sora y otra ranura Riku intactos. Archivo original no modificado.
+- Fondo inicial: un solo circulo reconstruido con indices de paleta/tramado
+  nativos; pantalla GBA exacta, sin negro ni segundo circulo. PPU206 + tests
+  dedicados de panel/paleta/fade y EXP768 PASS. EU/US/JP PC compilan.
+- Unicamente desarrollo/local v1.9. No publicar ni crear otras versiones aun;
+  v1.8.3 sigue siendo la unica release publica. Otros cheats y zoom reportado
+  siguen pendientes; no incluir menus relativos experimentales en stable.
+
+## Cheats / Riku: implementacion PC comprobada (17/10/2026)
+
+- Trucos > Desbloquear a Riku, OFF por defecto; persiste cheat_unlock_riku.
+  Abrir F1 en titulo ANTES de START; si ya se abrio el selector, reiniciar.
+- Permiso separado del progreso: no escribe GAME_FLAG_SORA_CLEAR ni SRAM.
+  Menus FULL con cheat y Sora no completado omiten Link Battle tanto en dibujo
+  como en navegacion. Partidas Riku validas pueden continuarse sin cheat activo.
+- PC EU/US/JP: 6/6 arranques reales con ROM privada. OFF mantiene menu original,
+  ON permite seleccionar Riku. Tras seleccion flags=264 (Riku+dark lock),
+  sin bit32 de Sora completado. Informe build/riku-access-report.json.
+- Menu real EU: abrir Trucos, alternar No->Si, volver y pulsar START muestra
+  selector Sora/Riku; INI guardada. Capturas revisadas visualmente.
+- Zoom: 41 casos PASS, default=8 (x4), persistencia del cheat ON/OFF PASS.
+  Controles: 12 acciones + rechazo de V/right-stick antiguos PASS.
+- NO publicado; solo rama release/v1.9. Android/Web necesitan recompilacion
+  y validacion del cambio antes de distribuirse. No usar APK/ZIP viejos como prueba.
+- Usuario aclara x3 en BAT v1.9 Windows. INI de ESA instalacion indica zoom=8,
+  fullscreen=1, escritorio nativo. No se reprodujo cambio a x3; sigue investigacion.
+
+## Publicacion: solo estables publicas (17/10/2026)
+
+- Nueva instruccion expresa: v1.8.3 es la UNICA release publica estable.
+- v1.9 y web-alpha2 pasadas a borrador privado, conservando assets y tags.
+  Verificado con gh release list: ambas isDraft=true; v1.8.3 latest=true.
+- Ninguna nueva candidata debe publicarse como prerelease visible. Solo tags
+  publicos para desarrollo; archivos de trabajo locales o borradores privados.
+- v1.9.1 NO autorizada a salir hasta terminar/revisar los pendientes acordados.
+
+## Pedidos vigentes: controles, zoom y Riku (17/10/2026)
+
+- Retirar totalmente devolver cartas acumuladas: eliminados comportamiento,
+  solicitud de combate, controles y opciones. Configuracion/metadatos antiguos
+  no pueden reactivarlo. Considerar SOLO en Cheats en el futuro; no implementado.
+- x4 sigue como default (ID interno 8) en motor y launcher. La instalacion local
+  v1.9 tiene zoom=8. No convertir selecciones explicitas del usuario a otro zoom.
+  Pendiente revisar limite de altura: una ventana de 540px limita x4 a x3
+  para conservar el lienzo minimo GBA; no confundir este limite con un default x3.
+- Desbloqueo anticipado de Riku sigue pendiente: aun NO existe Cheats en paquete
+  publicado. Implementar sin marcar Sora completado ni desbloquear Link Battle.
+- Usuario indica completar pendientes ANTES de generar siguientes versiones.
+  Assets v1.9 publicados aun son anteriores a esta retirada; reconstruir y validar.
+
+## v1.9 unificada y BAT local (17/10/2026)
+
+- Usuario corrigio la organizacion: Windows y Android v1.9 en UNA release.
+  Canonica: https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9
+- Android APK/sha/manifiesto adjuntos y digest verificado ANTES de borrar la
+  release duplicada android-alpha2. Tag android-alpha2 conservado; no borrado.
+- ZIP Windows publicado cd1df8f1d4d0f20b76bf965d88e819d809eaab6c9d0a931b805ed122b5a7d45d.
+  Descargado desde GitHub: 11/11 launcher ROM,6/6 saves reales y6/6 ejecuciones
+  motores EU/US/JP en4:3/3:2 PASS. v1.9-postpublish.json adjunto en release.
+- BAT creado en carpeta madre: Probar ReKHCoM v1.9.bat. Script reproducible
+  port/tools/prepare_local_release.ps1 verificaZIP, instala en carpeta propia,
+  copia ROMs verificadas y migra SRAM/config de versiones anteriores sin pisar
+  archivos existentes. Probado tambien con powershell.exe (Windows PS5).
+- Web compilando EU/US/JP para actualizar Pages y adjuntar ZIP a MISMA release
+  v1.9. No crear otra publicacion duplicada por plataforma.
+- Usuario pidio quitar Game language de la web: eliminado selector y argumento
+  --language. El juego elige idioma; selector English/Espanol del sitio permanece.
+  Test frontend verifica arranque sin idioma forzado y ausencia de selector redundante.
+- v1.9.1 sigue siendo objetivo final estable CON TODAS las plataformas. No esta
+  lista: Linux64 RG34XX/Deck, cheats/editor y validacion fisica siguen pendientes.
+
+## Pedido actualizado y candidata PC v1.9 (17/10/2026)
+
+- Usuario pide publicar v1.9, revisar paquetes publicados y corregir, y luego
+  v1.9.1 publica estable UNIFICADA para todas las plataformas. Esto sustituye
+  el criterio anterior de no-PC siempre alpha. No marcar v1.9.1 cerrada solo
+  por acabar PC: Linux ARM64 RG34XX y Steam Deck aun carecen de build.
+- Rama release/v1.9 integra feature/aspect-43-zoom + fix/web-mobile-files-controls.
+  La escala relativa nueva de menus sigue EXCLUIDA por instruccion del usuario.
+- PC EU/US/JP construidos. PPU206, audio24 +800000 integrales, zoom41, padding810,
+  stock3regiones, teclado/mando/touch y frontend Web PASS.
+- Regresion regional: 18 imagenes SDL exactas vs stable v1.8.3 (campo/combate/deck,
+  1920x1080 y2560x720). EXP:20 configuraciones,3 estados; HD no altera los pixels.
+- Menu HD:4 ciclos reales de barajas/editar y vuelta campo PASS. Estado: NEW no
+  invade margenes x1/x4 en1920x1080 y5120x1440. No equivale a resolver el antiguo
+  solapamiento HD de Barajas sin reproduccion clara.
+- Bugs nuevos corregidos en launcher: conversion borraba flags en0x1c en vez de
+  idioma en0x1e; import ignoraba fallo del backup y truncaba destino directamente.
+  Ahora parser limitado y validado, eleccion de base SRAM por bloques completos,
+  backup obligatorio y reemplazo atomico con flush. 96 checks C++ PASS; launcher
+  real con bancos/backup fallido/destino bloqueado/cabecera rota/.srm envuelto PASS.
+- El fallo inicial de test_launcher con --out relativo era del fixture (ruta
+  DECOMPUI_INSTALL relativa al cwd hijo); normalizado resolve(),11/11 PASS.
+- El primer test_menu_cycles uso una SRAM de importacion sin ranura jugable:
+  NO era una regresion del motor. Repetido con copia jugable banktest1,4/4 PASS.
+- Pendientes: empaquetar/publicar candidata, descargar/revisar; cheats/editor,
+  Linux64/Deck, comprobar Android fisico y web real movil; 1.9.1 aun no cerrada.
+
+## Controles Web y archivos moviles: rama aislada (16/10/2026)
+
+- `fix/web-mobile-files-controls`: teclado SDL limitado a #canvas, limpiar teclas,
+  touch y acciones pendientes al perder foco/cancelar/rotar; selectores sin filtro
+  de extension para Archivos iOS; exportar con Descargar .sav y Compartir/Archivos
+  por clic nuevo. Fallback de viewport para Safari sin fullscreen de elemento.
+- Node + touch + input/SDL virtualpad PASS; Chrome/Wasm real sin ROM observa
+  las 13 teclas (8191), libera held=0 y escribir fuera no aumenta presses=13.
+- EU/US/JP Web compilan. No publicar aun: pendiente gameplay con ROM elegida
+  manualmente y dispositivos fisicos. Permiso de extension sigue bloqueando
+  seleccion automatica de archivos; no eludir con un servidor de ROMs.
+- Ver WEB_CONTROLS_REVIEW.md. No confundir prueba de backend sin ROM con partida.
+- NUEVA POLITICA: mejoras grandes de menus SOLO feature/relative-menu-scale;
+  usuario confirma expresamente que no entran en stable. No push a main ni Pages
+  de esa funcionalidad. Publicacion de correcciones independientes requiere
+  registrar su alcance y validacion, sin arrastrar el experimento de menus.
+
+## Android Alpha 2 publicada; objetivo RG34XX confirmado (17/10/2026)
+
+- Release prerelease: https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/android-alpha2
+- Tag en 4610b08ef8567d38b31c0173694724d63d026f18, no main. Stable v1.8.3 intacta.
+- APK final ARMv7 debug SHA256 34b1e4a1879ffdf4bb91133a43e1eb61fc098222b7d5b5efb2736db7396cdeee.
+- .sav/.srm, bancos 1..5, backup y comprobaciones de formato implementados.
+- 4:3 / GBA 3:2 con zoom implementados. Resolucion 720x480 x1/x2/x3 probada en PC.
+- Android EU/US/JP combate en emulador x86 PASS; no equivale a ARM fisico/SAF.
+- Objetivo Linux confirmado RG34XX: ARM64, 720x480, 3:2; Steam Deck x86-64 aparte.
+- NO hay build Linux/ARM64 todavia. Cheats/editor de cartas y menus relativos pendientes.
+- Reparto detallado: [PLATFORM_ALPHA_PLAN.md](PLATFORM_ALPHA_PLAN.md).
+
+## Android, Linux / Steam Deck y nuevos pedidos (17/10/2026)
+
+Reparto vigente: [PLATFORM_ALPHA_PLAN.md](PLATFORM_ALPHA_PLAN.md).
+Android primero; Linux y Steam Deck despues. Todo salvo Windows marcado alpha.
+Importacion .sav/.srm por contenido, region y banco; cheats OFF, modo Riku,
+editor de cartas y 4:3 con zoom/HD pendientes. Menus relativos fuera de stable.
+
 ## Quiver enviado por el usuario; nombre oficial ReKHCoM (16/10/2026)
 
 - Usuario confirma que ya envio la propuesta a Quiver. No reenviar ni crear PR

@@ -6,6 +6,7 @@ const regions = {
   B8CJ: {id:'jp', sha:'59ec0a0a4ccd1e6acb3bbd7bfb21d63988958cfa', save:'kh_com_jp.sav'}
 };
 let core,region,store,started=false,loading=false,paused=false,resizeFrame=0,pendingSave=false;
+let backupFile,backupUrl,expanded=false;
 const lines=[];
 const warningKeys=new Set();
 function log(message){console.log(message);lines.push(String(message));if(lines.length>60)lines.shift();$('log').textContent=lines.join('\n');}
@@ -14,12 +15,12 @@ function warning(key){warningKeys.add(key);$('storage-status').textContent=Array
 function fail(error){log(error.stack||error);$('status').textContent=t('error')+error.message;}
 function sync(populate=false){return new Promise((resolve,reject)=>core.FS.syncfs(populate,error=>error?reject(error):resolve()));}
 function canvasSize(){
-  const canvas=$('canvas'),full=document.fullscreenElement===canvas;
-  const width=full?innerWidth:canvas.getBoundingClientRect().width||Math.min(innerWidth-28,1052);
-  const size=ReKHWeb.fitSize(width,full?innerHeight:width*9/16);
+  const canvas=$('canvas'),full=document.fullscreenElement===canvas,rect=canvas.getBoundingClientRect();
+  const width=full?innerWidth:rect.width||Math.min(innerWidth-28,1052);
+  const size=ReKHWeb.fitSize(width,full?innerHeight:expanded?rect.height:width*9/16);
   if(started)core._PortWebResize(size.width,size.height);
   else{canvas.width=size.width;canvas.height=size.height;}
-  $('fullscreen').textContent=t(full?'exitFullscreen':'fullscreen');
+  $('fullscreen').textContent=t(full||expanded?'exitFullscreen':'fullscreen');
 }
 function scheduleResize(){
   cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(canvasSize);
@@ -28,6 +29,11 @@ function visibility(){
   if(!started)return;
   core._PortWebSetVisible(!document.hidden&&!paused?1:0);
   if(document.hidden||paused)store.flush();
+}
+function clearInput(){if(started)core._PortWebClearInput();}
+function canShareFile(file){
+  try{return !!(navigator.share&&navigator.canShare?.({files:[file]}));}
+  catch{return false;}
 }
 async function flushSave(){
   pendingSave=true;
@@ -72,10 +78,6 @@ $('rom').addEventListener('change',async()=>{
     };
     try{await ReKHWeb.fonts(core);core.hdReady=true;core._PortWebSetHdReady(1);}
     catch(error){log(error);core.hdReady=false;core._PortWebSetHdReady(0);warning('fonts');}
-    const allowed=region.id==='eu'?['en','fr','de','es','it']:region.id==='jp'?['ja']:['en'];
-    if(region.id==='jp'&&!Array.from($('language').options).some(option=>option.value==='ja'))$('language').add(new Option('日本語','ja'));
-    Array.from($('language').options).forEach(option=>option.disabled=!allowed.includes(option.value));
-    if(!allowed.includes($('language').value))$('language').value=allowed[0];
     $('touch').checked=matchMedia('(pointer:coarse)').matches;
     core._PortWebTouchEnable($('touch').checked?1:0);
     $('play').disabled=false;$('save').disabled=false;status('ready');
@@ -92,31 +94,60 @@ $('save').addEventListener('change',async()=>{
     try{const ini=core.FS.readFile('/saves/kh_com.ini',{encoding:'utf8'});bank=Number(ini.match(/^save_bank=(\d+)$/m)?.[1]||1);}catch{}
     bank=Math.max(1,Math.min(5,bank));
     core.FS.writeFile('/saves/'+ReKHWeb.saveName(region.save,bank),new Uint8Array(await file.arrayBuffer()));
-    await store.flush();status('imported');
+    if(await store.flush())status('imported');
+    else warning('storage');
   }catch(error){fail(error);}
+  finally{$('save').value='';}
 });
 $('play').addEventListener('click',()=>{
   if(!core||started)return;
   $('setup').hidden=true;$('game').hidden=false;canvasSize();started=true;$('canvas').focus();status('');
-  try{core.callMain(['--data-dir','/saves','--rom',':browser:','--language',$('language').value]);scheduleResize();}catch(error){fail(error);}
+  try{core.callMain(['--data-dir','/saves','--rom',':browser:']);scheduleResize();}catch(error){fail(error);}
 });
 $('touch').addEventListener('change',()=>{core?._PortWebTouchEnable($('touch').checked?1:0);$('canvas').focus();});
 async function toggleFullscreen(){
-  try{if(document.fullscreenElement)await document.exitFullscreen();else await $('canvas').requestFullscreen();}
-  catch(error){fail(error);}
+  try{
+    if(document.fullscreenElement)await document.exitFullscreen();
+    else if(expanded)setExpanded(false);
+    else if($('canvas').requestFullscreen)await $('canvas').requestFullscreen();
+    else setExpanded(true); // iPhone Safari: use the available viewport, keeping an exit button.
+  }
+  catch(error){
+    if(error.name==='NotSupportedError')setExpanded(true);
+    else fail(error);
+  }
+}
+function setExpanded(on){
+  expanded=on;$('game').classList.toggle('expanded',on);
+  document.documentElement.classList.toggle('game-expanded',on);
+  clearInput();scheduleResize();$('canvas').focus();
 }
 $('fullscreen').addEventListener('click',toggleFullscreen);
 $('pause').addEventListener('click',()=>{paused=!paused;$('pause').textContent=t(paused?'resume':'pause');visibility();if(!paused)$('canvas').focus();});
 $('export').addEventListener('click',async()=>{
+  $('export').disabled=true;
   try{
     await flushSave();const name=ReKHWeb.saveName(region.save,core._PortWebActiveBank());
     const bytes=core.FS.readFile('/saves/'+name);
-    const url=URL.createObjectURL(new Blob([bytes],{type:'application/octet-stream'}));
-    const link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    backupFile=new File([bytes],name,{type:'application/octet-stream'});
+    if(backupUrl)URL.revokeObjectURL(backupUrl);
+    backupUrl=URL.createObjectURL(backupFile);
+    const link=$('save-download');link.href=backupUrl;link.download=name;
+    $('save-share').hidden=!canShareFile(backupFile);
+    $('save-export').hidden=false;link.focus();
   }catch(error){status('noSave');log(error);}
+  finally{$('export').disabled=false;}
+});
+$('save-share').addEventListener('click',async()=>{
+  // A fresh click preserves Safari's transient user activation. Preparing the
+  // backup (including async SRAM/IDBFS sync) happens in the Export handler.
+  if(!backupFile)return;
+  try{await navigator.share({files:[backupFile]});}
+  catch(error){if(error.name!=='AbortError'){log(error);status('shareFallback');}}
 });
 $('interface-language').addEventListener('change',()=>{translateWeb($('interface-language').value);$('pause').textContent=t(paused?'resume':'pause');if(warningKeys.size)warning(Array.from(warningKeys)[0]);scheduleResize();if(!core)status('choose');});
-document.addEventListener('fullscreenchange',()=>{scheduleResize();if(started)$('canvas').focus();});
+document.addEventListener('fullscreenchange',()=>{clearInput();scheduleResize();if(started)$('canvas').focus();});
+window.addEventListener('blur',clearInput);
 window.addEventListener('resize',scheduleResize);
 window.visualViewport?.addEventListener('resize',scheduleResize);
 new ResizeObserver(scheduleResize).observe($('canvas'));
@@ -124,10 +155,16 @@ document.addEventListener('visibilitychange',visibility);
 window.addEventListener('pagehide',()=>{if(started){core._PortWebFlushSave();store.flush();}});
 window.addEventListener('beforeunload',event=>{if(pendingSave||store?.pending){event.preventDefault();event.returnValue=t('leave');}});
 $('canvas').addEventListener('keydown',event=>{
+  if(expanded&&event.key==='Escape'){
+    event.preventDefault();event.stopImmediatePropagation();setExpanded(false);return;
+  }
   if(event.key==='F11'||(event.key==='Enter'&&event.altKey)){
-    event.preventDefault();event.stopPropagation();if(!event.repeat)toggleFullscreen();return;
+    event.preventDefault();event.stopImmediatePropagation();if(!event.repeat)toggleFullscreen();return;
   }
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Backspace'].includes(event.key))event.preventDefault();
 });
+$('canvas').addEventListener('blur',clearInput);
+$('canvas').addEventListener('pointercancel',clearInput);
+$('canvas').addEventListener('pointerdown',()=>$('canvas').focus());
 $('canvas').addEventListener('contextmenu',event=>event.preventDefault());
 translateWeb('en');status('choose');

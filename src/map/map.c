@@ -4503,6 +4503,9 @@ void LoadGameMenuInput(LoadGameMenuWork* work) {
                 break;
             }
 
+#ifdef PLATFORM_PC
+            PortLog("load-menu: loaded slot=%d flags=%u", work->selectedSlot, (unsigned)gGameState.flags);
+#endif
             m4aSongNumStart(SONG_SYS_SAVELOAD);
             work->loaded = TRUE;
             work->timer = 16;
@@ -4573,9 +4576,20 @@ void Mode_MenuLoad_0(s32 arg) {
     if (sLoadGameMenuWork->forSioBattle) {
         sLoadGameMenuWork->showRikuSlots = 0;
     } else {
+#ifdef PLATFORM_PC
+        /* Keep Riku saves intact but hidden until access is unlocked through
+           Sora's completion or the optional cheat. Existing Riku data alone
+           must not bypass this gate. */
+        sLoadGameMenuWork->showRikuSlots = PortRikuAvailable(gGameState.flags & GAME_FLAG_SORA_CLEAR);
+#else
         sLoadGameMenuWork->showRikuSlots = (gGameState.flags >> 5) & 1;
+#endif
     }
 
+#ifdef PLATFORM_PC
+    PortLog("load-menu: riku=%d sio=%d flags=%u", sLoadGameMenuWork->showRikuSlots,
+            sLoadGameMenuWork->forSioBattle, (unsigned)gGameState.flags);
+#endif
     sLoadGameMenuWork->loaded = FALSE;
     sLoadGameMenuWork->selectedSlot = 0;
 

@@ -46,8 +46,12 @@ namespace fs = std::filesystem;
 
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
+#include "../include/port/port_aspect.h"
+#include "save_import.h"
+#include "save_file.h"
+
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.8.3"
+#define REKHCOM_VERSION "v1.9"
 #endif
 
 static bool sSpanish;
@@ -115,13 +119,13 @@ static std::string Sha1Hex(const std::vector<unsigned char>& data) {
     return hex;
 }
 
-static bool ReadFile(const fs::path& path, std::vector<unsigned char>& out) {
+static bool ReadFile(const fs::path& path, std::vector<unsigned char>& out, size_t limit = 64u << 20) {
     std::ifstream f(path, std::ios::binary);
     if (!f)
         return false;
     f.seekg(0, std::ios::end);
     std::streamoff size = f.tellg();
-    if (size <= 0 || size > (std::streamoff)(64u << 20))
+    if (size <= 0 || size > (std::streamoff)limit)
         return false;
     out.resize((size_t)size);
     f.seekg(0);
@@ -223,13 +227,14 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
+    { "cheat_unlock_riku", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
-    { "card_hud_raise", 8 }, { "unstock_button", 1 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 },
+    { "card_hud_raise", 8 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 }, { "experimental_unstock", 0 },
     { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
@@ -267,6 +272,8 @@ static void LoadIni() {
             key.pop_back();
         sIni[key] = std::atoi(line.c_str() + eq + 1);
     }
+    for (const char* retired : {"unstock_button"})
+        sIni.erase(retired);
     /* Files from before the auto view switch to it once, as the game does. */
     if (sIni["config_version"] < 2) {
         sIni["view_mode"] = 4;
@@ -387,125 +394,54 @@ static fs::path SavePath(int v) {
 }
 
 /* Copies the version's save to backups/<name>-<date>-<time>.sav. */
-static void BackupSave(int v) {
+static bool BackupSave(int v) {
     std::error_code ec;
     SYSTEMTIME t;
-    char stamp[32];
+    char stamp[64];
 
     GetLocalTime(&t);
-    std::snprintf(stamp, sizeof(stamp), "-%04d%02d%02d-%02d%02d%02d", t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute,
-                  t.wSecond);
+    static unsigned sequence=0;
+    std::snprintf(stamp, sizeof(stamp), "-%04d%02d%02d-%02d%02d%02d-%03d-%u", t.wYear, t.wMonth, t.wDay,
+                  t.wHour, t.wMinute, t.wSecond, t.wMilliseconds, ++sequence);
     fs::path dir = sRoot / "backups";
     fs::create_directories(dir, ec);
     fs::path dst = dir / (SavePath(v).stem().string() + stamp + ".sav");
-    if (fs::copy_file(SavePath(v), dst, fs::copy_options::overwrite_existing, ec))
+    if (fs::copy_file(SavePath(v), dst, fs::copy_options::none, ec)) {
         Notice(std::string(T("Copia guardada en backups/", "Backup saved to backups/")) + dst.filename().string(), false);
-    else
-        Notice(T("No se pudo copiar la partida.", "Could not copy the save."), true);
+        return true;
+    }
+    Notice(T("No se pudo copiar la partida.", "Could not copy the save."), true);
+    return false;
 }
 
 /* ---- importing a save from an emulator or a backup device ------------------- */
 
-/* The game's SRAM is 64 KB of blocks, each starting with a 24-byte signature
-   ("KHCOM_BACKUP_VER00000013" in Europe, "...12" in the USA and Japan), a
-   ones'-complement checksum and the data; the layout is the same in all three
-   versions. Any container (raw .sav/.srm, GameShark, Action Replay, ...) is
-   read by finding the first signature, which the cartridge keeps at 0x10. */
-static const char kSaveSig[] = "KHCOM_BACKUP_VER000000";
-
-static uint16_t SaveSum(const unsigned char* p, size_t size) {
-    uint32_t sum = 0;
-    size_t i;
-    for (i = 0; i + 1 < size; i += 2)
-        sum += (uint32_t)(p[i] | (p[i + 1] << 8));
-    if (size & 1)
-        sum += p[size - 1];
-    sum = (sum & 0xFFFF) + (sum >> 16);
-    return (uint16_t)~(sum + (sum >> 16));
+/* Shared, ROM-free parser; raw SRAM and explicitly validated containers. */
+static int ConvertGbaSave(const std::vector<unsigned char>& in,int v,
+                          std::vector<unsigned char>& out,int& fromVersion) {
+    return RekhcomSave::Convert(in,v,out,fromVersion);
 }
 
-/* Returns the number of blocks converted, -1 when the file holds no save. */
-static int ConvertGbaSave(const std::vector<unsigned char>& in, int v, std::vector<unsigned char>& out,
-                          int& fromVersion) {
-    static const size_t sizes[] = { 0x40, 0xF14, 0x418 };
-    const size_t sigLen = sizeof(kSaveSig) - 1;
-    size_t at = std::string::npos, o;
-    int blocks = 0;
-
-    for (o = 0; o + sigLen + 2 <= in.size(); o++)
-        if (std::memcmp(in.data() + o, kSaveSig, sigLen) == 0) {
-            at = o;
-            break;
-        }
-    if (at == std::string::npos || at < 0x10)
-        return -1;
-    out.assign(0x10000, 0xFF);
-    std::memcpy(out.data(), in.data() + at - 0x10, std::min<size_t>(0x10000, in.size() - (at - 0x10)));
-    fromVersion = in[at + sigLen + 1] == '3' ? 0 : 1; /* 1: USA or Japan, the same signature */
-
-    for (o = 0; o + 0x40 <= out.size(); o++) {
-        size_t k;
-        if (std::memcmp(out.data() + o, kSaveSig, sigLen) != 0)
-            continue;
-        for (k = 0; k < 3; k++) {
-            size_t size = sizes[k];
-            if (o + size > out.size() || SaveSum(out.data() + o, size) != 0)
-                continue;
-            out[o + sigLen] = '1';
-            out[o + sigLen + 1] = v == 0 ? '3' : '2';
-            /* the header's menu language: the USA and Japan have only one */
-            if (size == 0x40 && v != 0)
-                out[o + 0x1C] = out[o + 0x1D] = 0;
-            out[o + 0x18] = out[o + 0x19] = 0;
-            {
-                uint16_t c = SaveSum(out.data() + o, size);
-                out[o + 0x18] = (unsigned char)(c & 0xFF);
-                out[o + 0x19] = (unsigned char)(c >> 8);
-            }
-            blocks++;
-            o += size - 1;
-            break;
-        }
-    }
-    return blocks;
-}
-
-static void ImportSave(SDL_Window* window, int v) {
-    wchar_t file[MAX_PATH] = L"";
-    OPENFILENAMEW ofn = {};
-    SDL_PropertiesID props = SDL_GetWindowProperties(window);
-    std::vector<unsigned char> in, out;
+static bool ImportSavePath(const fs::path& file,int v) {
+    std::vector<unsigned char> in,out;
     std::error_code ec;
-    int from = 0, blocks;
-
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = (HWND)SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-    ofn.lpstrFilter = L"GBA save (*.sav;*.srm;*.sa1;*.sps;*.xps;*.gsv;*.dsv;*.bin)\0"
-                      L"*.sav;*.srm;*.sa1;*.sps;*.xps;*.gsv;*.dsv;*.bin\0*.*\0*.*\0";
-    ofn.lpstrFile = file;
-    ofn.nMaxFile = MAX_PATH;
-    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
-    if (!GetOpenFileNameW(&ofn))
-        return;
-    if (!ReadFile(fs::path(file), in) || in.size() > (4u << 20)) {
+    int from=0,blocks;
+    if (!ReadFile(file, in, 4u << 20)) {
         Notice(T("No se pudo leer el archivo.", "Could not read the file."), true);
-        return;
+        return false;
     }
     blocks = ConvertGbaSave(in, v, out, from);
     if (blocks <= 0) {
         Notice(T("El archivo no contiene una partida de Chain of Memories.",
                  "The file holds no Chain of Memories save."), true);
-        return;
+        return false;
     }
-    if (fs::exists(SavePath(v), ec))
-        BackupSave(v);
-    {
-        std::ofstream f(SavePath(v), std::ios::binary | std::ios::trunc);
-        f.write((const char*)out.data(), (std::streamsize)out.size());
-        if (!f) {
-            Notice(T("No se pudo escribir la partida.", "Could not write the save."), true);
-            return;
-        }
+    bool exists=fs::exists(SavePath(v),ec);
+    if(ec) { Notice(T("No se pudo verificar el destino.","Could not verify the destination."),true);return false; }
+    if(exists&&!BackupSave(v))return false;
+    if(!RekhcomSave::Replace(SavePath(v),out)) {
+        Notice(T("No se pudo escribir la partida. Original conservado.","Could not write the save. Original preserved."),true);
+        return false;
     }
     {
         char msg[200];
@@ -516,7 +452,26 @@ static void ImportSave(SDL_Window* window, int v) {
                       cross ? T(", convertida de otra regi\xC3\xB3n", ", converted from another region") : "");
         Notice(msg, false);
     }
+    return true;
 }
+
+static void ImportSave(SDL_Window* window, int v) {
+    wchar_t file[MAX_PATH] = L"";
+    OPENFILENAMEW ofn = {};
+    SDL_PropertiesID props = SDL_GetWindowProperties(window);
+
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = (HWND)SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+    ofn.lpstrFilter = L"GBA save (*.sav;*.srm;*.sa1;*.sps;*.xps;*.gsv;*.dsv;*.bin)\0"
+                      L"*.sav;*.srm;*.sa1;*.sps;*.xps;*.gsv;*.dsv;*.bin\0*.*\0*.*\0";
+    ofn.lpstrFile = file;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    if (!GetOpenFileNameW(&ofn))
+        return;
+    ImportSavePath(fs::path(file),v);
+}
+
 
 /* ---- theme ------------------------------------------------------------------- */
 
@@ -976,7 +931,6 @@ static void PageHome(SDL_Window* window) {
         if (CycleRow(T("Idioma del juego", "Game language"), nullptr, sGameLanguage, 6, langs))
             SaveLauncherState();
     }
-#ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* save banks: hidden, the game keeps the chosen bank */
     {
         static const char* const banks[] = { "1", "2", "3", "4", "5" };
         int bank = std::clamp(Ini("save_bank"), 1, 5) - 1;
@@ -988,7 +942,7 @@ static void PageHome(SDL_Window* window) {
             SaveIni();
         }
     }
-#endif
+
     {
         std::error_code ec;
         fs::path save = SavePath(sSelected);
@@ -1089,11 +1043,11 @@ static void PageGraphics() {
                         Ini("view_mode"), 5, views);
     {
         const char* aspects[] = { T("Llenar ventana", "Fill window"), "16:9", "21:9", T("Forzar 21:9", "Force 21:9"),
-                                  T("Forzar 32:9", "Force 32:9") };
+                                  T("Forzar 32:9", "Force 32:9"), "4:3", "GBA 3:2" };
         changed |= CycleRow(T("Relación de aspecto", "Aspect ratio"),
                             T("En monitores más anchos, 16:9 o 21:9 dejan bandas negras a los lados.",
                               "On wider monitors, 16:9 or 21:9 leave black bars at the sides."),
-                            Ini("aspect"), 5, aspects);
+                            Ini("aspect"), PORT_ASPECT_COUNT, aspects);
     }
     {
         int sel = PortZoomIndex(Ini("zoom"), 1, W, H);
@@ -1205,16 +1159,15 @@ static void PageExtras() {
                            "Gamepad Y, keyboard D: stock cards or sleights without pressing L and R together."),
                          Ini("stock_button"));
     ImGui::Separator();
-    changed |= ToggleRow(T("Devolver cartas acumuladas", "Return stocked cards"),
-                         T("Mantén V en el teclado, el stick derecho pulsado o hacia abajo medio segundo: las cartas "
-                           "acumuladas de Sora vuelven a la mano, en su sitio de la baraja.",
-                           "Hold V on the keyboard, or click or push down the right stick, for half a second: "
-                           "Sora's stocked cards go back to the hand, in their places in the deck."),
-                         Ini("unstock_button"));
     ImGui::EndChild();
     ImGui::Spacing();
     BeginCard("experimental");
     Eyebrow(T("EXPERIMENTALES", "EXPERIMENTAL"));
+    changed |= ToggleRow(T("Devolver cartas acumuladas", "Return stocked cards"),
+                         T("Solo Sora: mantén V, pulsa el stick derecho o inclínalo hacia abajo durante medio segundo para cancelar la acumulación y devolver esas cartas a la mano. No cancela técnicas en curso. Desactivado por defecto.",
+                           "Sora only: hold V, the right-stick button or right stick down for half a second to cancel the stock and return those cards to the hand. Cannot cancel a sleight in progress. Off by default."),
+                         Ini("experimental_unstock"));
+    ImGui::Separator();
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("En pruebas: pueden tener fallos visuales.", "Being tested: expect visual glitches."));
     ImGui::PopStyleColor();
@@ -1352,17 +1305,17 @@ static void PageControls() {
         { "Derecha", "Right", "right" },
         { "L + R (acumular)", "L + R (stock)", "stock" },
         { "Voltereta", "Dodge roll", "dodge" },
-        { "Devolver acumuladas", "Return stocked", "unstock" },
+        { "Devolver acumuladas (experimental)", "Return stocked (experimental)", "unstock" },
     };
     BeginCard("controls");
     Eyebrow(T("CONTROLES", "CONTROLS"));
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("Haz clic en una casilla y pulsa la tecla o el botón. Supr la deja vacía, Esc cancela. "
                                "Los gatillos y el stick izquierdo funcionan siempre como L/R y cruceta; el stick derecho "
-                               "cambia de carta (izquierda/derecha = L/R), arriba acumula (L+R) y abajo devuelve las acumuladas.",
+                               "cambia de carta (izquierda/derecha = L/R), arriba acumula (L+R).",
                                "Click a cell and press the key or button. Delete clears it, Esc cancels. The "
                                "triggers and the left stick always work as L/R and the d-pad; the right stick "
-                               "changes cards (left/right = L/R), up stocks (L+R) and down returns the stocked cards."));
+                               "changes cards (left/right = L/R), up stocks (L+R)."));
     ImGui::PopStyleColor();
     if (ImGui::BeginTable("binds", 4, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_PadOuterX)) {
         ImGui::TableSetupColumn(T("Acción", "Action"), ImGuiTableColumnFlags_WidthStretch, 1.3f);
@@ -1660,10 +1613,13 @@ int main(int, char**) {
     ImGui_ImplSDL3_InitForOpenGL(window, gl);
     ImGui_ImplOpenGL3_Init("#version 130");
     LoadBoxArt();
+    if (shotDir && SDL_getenv("DECOMPUI_REWRITE_SETTINGS")) SaveIni();
     if (const char* rom = SDL_getenv("DECOMPUI_INSTALL")) {
         InstallRom(fs::u8path(rom));
     }
 
+    if(shotDir)if(const char* save=SDL_getenv("DECOMPUI_IMPORT_SAVE"))
+        ImportSavePath(fs::u8path(save),std::clamp(SDL_atoi(SDL_getenv("DECOMPUI_SAVE_REGION")?SDL_getenv("DECOMPUI_SAVE_REGION"):"0"),0,2));
     bool running = shotDir == nullptr || !ShotFrames(window, shotDir);
     while (running) {
         SDL_Event ev;

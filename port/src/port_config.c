@@ -9,6 +9,7 @@
 #endif
 
 #include "port/port.h"
+#include "port/port_aspect.h"
 
 PortConfig gPortConfig = {
     PORT_VIEW_AUTO,     /* viewMode */
@@ -33,7 +34,7 @@ PortConfig gPortConfig = {
     1,                  /* stockButton */
     0,                  /* hdText */
     8,                  /* cardHudRaise */
-    1,                  /* unstockButton */
+    0,                  /* experimental unstock: off by default */
     1,                  /* saveBank */
 #ifdef PORT_HD2D
     1,                  /* hd2d: on in the alternative HD-2D build */
@@ -60,7 +61,7 @@ PortConfig gPortConfig = {
         { SDLK_RIGHT, 0 },              /* Right */
         { SDLK_D, 0 },                  /* stock (L + R) */
         { SDLK_C, 0 },                  /* dodge roll */
-        { SDLK_V, 0 },                  /* return stocked cards */
+        { SDLK_V, 0 },                  /* experimental return stocked cards */
     },
     {
         SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER,
@@ -91,6 +92,7 @@ static const Key sKeys[] = {
     { "config_version", &sConfigVersion, 0, 1000 },
     { "view_mode", &gPortConfig.viewMode, 0, PORT_VIEW_COUNT - 1 },
     { "zoom", &gPortConfig.zoom, 0, PORT_ZOOM_LEVELS },
+    { "cheat_unlock_riku", &gPortConfig.cheatUnlockRiku, 0, 1 },
     { "integer_zoom", &gPortConfig.integerZoom, 0, 1 },
     { "scale_mode", &gPortConfig.scaleMode, 0, PORT_SCALE_COUNT - 1 },
     { "filter", &gPortConfig.filter, 0, PORT_FILTER_COUNT - 1 },
@@ -109,9 +111,9 @@ static const Key sKeys[] = {
     { "sfx_volume", &gPortConfig.sfxVolume, 0, 100 },
     { "dodge_button", &gPortConfig.dodgeButton, 0, 1 },
     { "stock_button", &gPortConfig.stockButton, 0, 1 },
+    { "experimental_unstock", &gPortConfig.unstockButton, 0, 1 },
     { "hd_text", &gPortConfig.hdText, 0, 1 },
     { "card_hud_raise", &gPortConfig.cardHudRaise, 0, 16 },
-    { "unstock_button", &gPortConfig.unstockButton, 0, 1 },
     { "save_bank", &gPortConfig.saveBank, 1, PORT_SAVE_BANKS },
     { "hd2d", &gPortConfig.hd2d, 0, 1 },
     { "smooth_audio", &gPortConfig.smoothAudio, 0, 1 },
@@ -119,7 +121,7 @@ static const Key sKeys[] = {
     { "ps2_difficulty", &gPortConfig.ps2Difficulty, 0, 2 },
     { "ps2_fast_text", &gPortConfig.ps2FastText, 0, 1 },
     { "hd_hud", &gPortConfig.hdHud, 0, 1 },
-    { "aspect", &gPortConfig.aspect, 0, 4 },
+    { "aspect", &gPortConfig.aspect, 0, PORT_ASPECT_COUNT - 1 },
 #define BIND(name, act)                                                           { "kb_" name, &gPortConfig.keys[act][0], 0, 0x7FFFFFFF },                     { "kb_" name "_2", &gPortConfig.keys[act][1], 0, 0x7FFFFFFF },                { "pad_" name, &gPortConfig.pad[act], -1, SDL_GAMEPAD_BUTTON_COUNT - 1 }
     BIND("a", PORT_ACT_A), BIND("b", PORT_ACT_B), BIND("l", PORT_ACT_L), BIND("r", PORT_ACT_R),
     BIND("start", PORT_ACT_START), BIND("select", PORT_ACT_SELECT), BIND("up", PORT_ACT_UP),
@@ -128,6 +130,11 @@ static const Key sKeys[] = {
     BIND("unstock", PORT_ACT_UNSTOCK),
 #undef BIND
 };
+
+/* This is a title permission, not a fabricated story-completion flag. */
+int PortRikuAvailable(int soraCleared) {
+    return soraCleared != 0 || gPortConfig.cheatUnlockRiku != 0;
+}
 
 static char* Trim(char* s) {
     char* e;

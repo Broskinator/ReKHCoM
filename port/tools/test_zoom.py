@@ -15,6 +15,12 @@ int main(void) {
  int sizes[][2]={{320,180},{960,540},{1280,720},{1920,1080},{3440,1440},{5120,1440},{7680,2160}};
  int i,z,w,h,s,k,only,prev,cases=0;
  assert(gPortConfig.zoom==PORT_ZOOM_DEFAULT && gPortConfig.integerZoom==0);
+ assert(!gPortConfig.cheatUnlockRiku && !PortRikuAvailable(0));
+ assert(PortRikuAvailable(32));
+ gPortConfig.cheatUnlockRiku=1;assert(PortRikuAvailable(0));
+ PortConfigSetDataPath(".");PortConfigSave();
+ gPortConfig.cheatUnlockRiku=0;PortConfigLoad();assert(gPortConfig.cheatUnlockRiku==1);
+ gPortConfig.cheatUnlockRiku=0;PortConfigSave();PortConfigLoad();assert(!PortRikuAvailable(0));
  for(only=1;only<2;only++) {
   gPortConfig.integerZoom=only;
   for(i=0;i<7;i++) {

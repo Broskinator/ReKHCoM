@@ -110,7 +110,7 @@ typedef struct PortConfig {
     int stockButton;      /* one button for L + R (stock a card / sleight) */
     int hdText;           /* dialogue text drawn with an outline font at output resolution */
     int cardHudRaise;     /* battle: card hand lifted by this many GBA pixels (0..16) */
-    int unstockButton;    /* held button / right stick down returns the stocked cards (Sora) */
+    int unstockButton;    /* experimental return-stocked-cards control; opt-in, off by default */
     int saveBank;         /* 1..PORT_SAVE_BANKS: which save file holds the game's two slots */
     int hd2d;             /* experimental HD-2D look (on by default in --hd2d builds) */
     int smoothAudio;      /* experimental: cubic sample interpolation and a gentle low-pass */
@@ -118,10 +118,11 @@ typedef struct PortConfig {
     int ps2Difficulty;    /* Re:CoM mode: 0 standard, 1 beginner, 2 proud */
     int ps2FastText;      /* experimental: event dialogue types one character a frame */
     int hdHud;           /* experimental HD HUD placeholder: enemy HP panel */
-    int aspect;          /* picture shape: 0 fills the window, 1 at most 16:9, 2 at most 21:9, 3 force 21:9, 4 force 32:9 */
+    int aspect;          /* picture shape: 0 fills the window, 1 at most 16:9, 2 at most 21:9, 3 force 21:9, 4 force 32:9, 5 exact 4:3, 6 exact GBA 3:2 */
     int integerZoom;     /* 1: select only whole pixel scales (v1.4 numbering) */
     int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
     int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
+    int cheatUnlockRiku;         /* opt-in title access; never marks Sora cleared */
 } PortConfig;
 
 extern PortConfig gPortConfig;
@@ -144,6 +145,9 @@ extern PortConfig gPortConfig;
 /* ROM given on the command line (--rom), tried before the usual names. */
 extern const char* gPortRomPath;
 
+int PortRikuAvailable(int soraCleared);
+int PortEventBackdropPanel(void); /* single authored backdrop panel, or -1 */
+int PortEventTiledBackdrop(void); /* Riku scenery eligible for verified tile-band extension, or -1 */
 void PortConfigLoad(void);
 void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);
