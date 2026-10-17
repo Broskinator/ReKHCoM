@@ -16,6 +16,7 @@
 
 #include "platform/platform.h"
 #include "platform/ps5_crash.h"
+#include "platform/update.h"
 #include "platform/vk/fg_bridge.h"
 #include "platform/vk/vk_present.h"
 #include <ps5platform/exec.h>
@@ -230,8 +231,43 @@ static void DrawToast(void)
     }
 }
 
+/* Updates from GitHub: found at start, installed by itself a second after the app opened; the new version runs from
+   the next start. /data/ReKHCom/no-update turns it off. */
+static void UpdateTick(void)
+{
+    static uint64_t opened;
+    static bool tried, told, started;
+    int state = update_state();
+    uint64_t now = plat_ticks_us();
+
+    if (!opened)
+        opened = now;
+    /* Not before the game runs: the GBA address space and the image are mapped at fixed addresses at start, and the
+       network libraries' threads and heap must not take them first. */
+    if (!started)
+    {
+        started = true;
+        if (access(DATA_ROOT "/no-update", F_OK) != 0)
+            update_check();
+        else
+            Log("updates are off (" DATA_ROOT "/no-update)");
+    }
+    if (!tried && state == UPDATE_AVAILABLE && now - opened >= 1000000u)
+    {
+        tried = true;
+        H_notify("toast-update-found");
+        update_install();
+    }
+    else if (!told && state == UPDATE_INSTALLED)
+    {
+        told = true;
+        H_notify("toast-update-done");
+    }
+}
+
 static void H_gfx_end(void)
 {
+    UpdateTick();
     DrawToast();
     plat_end_frame();
 }
@@ -940,6 +976,7 @@ int main(void)
     ps5_klog_capture_stderr("");
     Log("ReKHCoM starting; /data %s (%s)", unlocked ? "unlocked" : "sandboxed", error);
     Log("screen: %s", plat_screen_info());
+    update_init(Log);
 
     /* Without a cartridge the app stays open and says what is needed; it starts once the file is there. */
     const char *region = FindRegion();

@@ -182,6 +182,8 @@ MESSAGES = {
 
 TOASTS = {
     'toast-states': ['Touchpad + L3: save state', 'Touchpad + R3: load state'],
+    'toast-update-found': ['A new version is available', 'Downloading it now'],
+    'toast-update-done': ['ReKHCoM was updated', 'Restart the app to use the new version'],
 }
 
 
@@ -218,7 +220,23 @@ def render_messages(out):
         (out / f'{name}.rgba').write_bytes(struct.pack('<II', w, h) + panel.tobytes())
 
 
+def sync_content_version():
+    """ReKHCoM_VERSION (app/ReKHCoM.h) into sce_sys/param.json as contentVersion: 1.0.3 -> 01.000.003."""
+    m = re.search(r'#define\s+ReKHCoM_VERSION\s+"(\d+)\.(\d+)\.(\d+)"', (HERE / 'app/ReKHCoM.h').read_text())
+    if not m:
+        sys.exit('ReKHCoM_VERSION (X.Y.Z) not found in app/ReKHCoM.h')
+    major, minor, patch = (int(g) for g in m.groups())
+    if major > 99 or minor > 999 or patch > 999:
+        sys.exit('ReKHCoM_VERSION does not fit contentVersion (00-99.000-999.000-999)')
+    path = HERE / 'sce_sys/param.json'
+    text = path.read_text()
+    new = re.sub(r'("contentVersion"\s*:\s*)"[^"]*"', lambda mm: f'{mm.group(1)}"{major:02d}.{minor:03d}.{patch:03d}"', text, count=1)
+    if new != text:
+        path.write_text(new)
+
+
 def build_host(regions):
+    sync_content_version()
     assets = BUILD / 'assets'
     if assets.exists():
         shutil.rmtree(assets)
@@ -232,9 +250,9 @@ def build_host(regions):
                APP_VULKAN='1', APP_SOURCE_DIR='app', APP_PARAM='sce_sys/param.json', APP_SCE_SYS='sce_sys',
                APP_ASSETS='build/assets', APP_LAPY_HELPER='1', APP_ROOT_FILES='', APP_RUNTIME_MODULES='',
                APP_STATIC_ARCHIVES='', APP_DEFINITIONS='ReKHCoM_VULKAN=1',
-               APP_INCLUDE_PATHS='app shared .deps/native/radv-release/include',
-               APP_WRAP_SYMBOLS='malloc free calloc realloc reallocf memalign posix_memalign aligned_alloc malloc_usable_size',
-               PACBREW_PACKAGES='sdl2', PACBREW_INCLUDE_PATHS='', PACBREW_STATIC_ARCHIVES='')
+               APP_INCLUDE_PATHS='app app/platform shared .deps/native/radv-release/include',
+               APP_WRAP_SYMBOLS='fcntl malloc free calloc realloc reallocf memalign posix_memalign aligned_alloc malloc_usable_size',
+               PACBREW_PACKAGES='sdl2 libcurl', PACBREW_INCLUDE_PATHS='', PACBREW_STATIC_ARCHIVES='')
     run(['bash', HERE / 'tools/fetch-radv.sh'], env=env)
     run(['bash', HERE / 'tools/build.sh', 'Folder'], cwd=HERE, env=env)
     print('app:', DIST / 'PPSA98511')
@@ -264,8 +282,21 @@ def deploy(host, port):
         for p in files:
             remote = '/data/homebrew/PPSA98511/' + p.relative_to(app).as_posix()
             mkdirs(os.path.dirname(remote))
+            # To a temporary name, then renamed over the old file: a running eboot.bin can't be overwritten
+            # ("Text file busy"), but it can be deleted and replaced by name; the new one runs from the next start.
+            temporary = os.path.dirname(remote) + '/.' + os.path.basename(remote) + '.upload'
+            for stale in (temporary,):
+                try:
+                    ftp.sendcmd('DELE ' + stale)
+                except Exception:
+                    pass
             with open(p, 'rb') as f:
-                ftp.storbinary('STOR ' + remote, f)
+                ftp.storbinary('STOR ' + temporary, f, blocksize=256 * 1024)
+            try:
+                ftp.sendcmd('DELE ' + remote)
+            except Exception:
+                pass
+            ftp.rename(temporary, remote)
             print('uploaded', remote)
         ftp.quit()
 

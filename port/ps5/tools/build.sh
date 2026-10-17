@@ -321,7 +321,7 @@ if [[ ${APP_VULKAN:-0} == 1 ]]; then
     done
     echo "==> [vulkan] linking RADV ($(du -m "$radv_archive" | cut -f1) MB archive)"
 fi
-ninja_edge LINK "$build/llvm-pie.elf" "$sdk_root/bin/prospero-lld" "${linker_options[@]}" --eh-frame-hdr \
+ninja_edge LINK "$build/llvm-pie.elf" "$sdk_root/bin/prospero-lld" "${linker_options[@]}" --gc-sections --eh-frame-hdr \
     "${wrap_options[@]}" --version-script "$native/app-symbols.map" \
     -e _start -o "$build/llvm-pie.elf" -L "$sdk_root/target/lib" --as-needed "${link_inputs[@]}" \
     "$sdk_root"/target/lib/*.so

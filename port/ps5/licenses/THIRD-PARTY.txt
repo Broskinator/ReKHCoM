@@ -17,3 +17,5 @@ Lapy (privilege helper, lapy.elf)
 
 SDL 2 - zlib License - https://www.libsdl.org
 dlmalloc (Doug Lea) - public domain (CC0)
+miniz - MIT License - https://github.com/richgel999/miniz (update download)
+libcurl (curl license), OpenSSL (Apache-2.0), zlib, zstd, libpsl - PacBrew builds, used to check and download updates

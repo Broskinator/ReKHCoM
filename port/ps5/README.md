@@ -41,6 +41,15 @@ Test without a console:
 The touchpad with L3 saves a state, the touchpad with R3 loads it (F5 and F9 on the PC). A notice on the console reminds
 this when the app opens. They are written to `/data/ReKHCom/states/` and only load in the same build of the game.
 
+## Updates
+
+On start the app looks at the releases of `darkxex/ReKHCom-PS5` on GitHub. A release tagged `ps5-vX.Y.Z` newer than the
+installed build (the `contentVersion` of `sce_sys/param.json`) is downloaded one second after the game opens, from its
+`PPSA98511.zip`, and written over the folder the app runs from (`/data/homebrew`, or an extended or USB drive). The
+notice on screen says when it is done; the new version runs from the next start. Create `/data/ReKHCom/no-update` to
+turn it off. To publish one: raise `contentVersion`, build, and attach `dist/PPSA98511.zip` to a release tagged
+`ps5-v<version>`.
+
 ## Not available yet
 
 HD text and Shift-JIS text input (Japanese names) are off in the Japanese version (no CJK font is included).
