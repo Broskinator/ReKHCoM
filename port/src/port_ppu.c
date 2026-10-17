@@ -557,6 +557,10 @@ static uint8_t sWinMask[PORT_MAX_W];
    the backdrop shows black elsewhere, i.e. beyond the edge of the world. */
 static uint8_t sInWorld[PORT_MAX_W];
 static uint16_t sWorldPadding[4]; /* Opaque, uniform map-corner padding; never scenery repeated. */
+/* Ephemeral bounds of an entirely opaque rectangular scenery plane. Empty
+ * authoring margins may surround it; partial tiles / foreground art reject it. */
+static int sTiledBackdropBg = -1;
+static int sTiledBackdropBounds[4];
 
 /* Affine background reference points (internal registers). */
 static int32_t sAffX[2], sAffY[2];
@@ -742,6 +746,62 @@ static uint16_t WorldPadding(int bg, const BgLatch* l) {
     return TRANSPARENT;
 }
 
+static void FindTiledBackdrop(int bg) {
+    const BgLatch* l;
+    signed char opacity[1024];
+    int x, y, count = 0, left, top, right = 0, bottom = 0;
+    int bpp8, bytes;
+    unsigned base;
+    sTiledBackdropBg = -1;
+    if (bg < 0 || bg > 3 || sSinglePanelBg >= 0 || sBattleView || sOverlay ||
+        sScreenBg[bg] || sBgDockedLatched[bg] || sWorldPadding[bg] != TRANSPARENT) return;
+    l = &sBgLatch[bg];
+    if (!l->valid || l->width > 4 || l->height > 4) return;
+    left = l->width * 32; top = l->height * 32;
+    bpp8 = (IO16(8 + bg * 2) & 0x80) != 0; bytes = bpp8 ? 64 : 32;
+    base = ((IO16(8 + bg * 2) >> 2) & 3) * 0x4000;
+    memset(opacity, -1, sizeof(opacity));
+    for (y = 0; y < l->height * 32; y++) for (x = 0; x < l->width * 32; x++) {
+        int entry = WorldEntry(l, x * 8, y * 8), tile, kind, i;
+        const uint8_t* pixels;
+        int zero = 0, solid = 0;
+        if (entry < 0) return;
+        tile = entry & 1023; kind = opacity[tile];
+        if (kind < 0) {
+            if (base + tile * bytes + bytes > 0x10000) return;
+            pixels = VRAM8 + base + tile * bytes;
+            for (i = 0; i < bytes; i++) {
+                zero += bpp8 ? pixels[i] == 0 : ((pixels[i] & 15) == 0) + ((pixels[i] >> 4) == 0);
+                solid += bpp8 ? pixels[i] != 0 : ((pixels[i] & 15) != 0) + ((pixels[i] >> 4) != 0);
+            }
+            kind = zero ? (solid ? 2 : 0) : 1; opacity[tile] = kind;
+        }
+        if (kind == 2) return; /* Never extend silhouettes or scenery edges. */
+        if (kind == 1) {
+            count++; if (x < left) left = x; if (y < top) top = y;
+            if (x + 1 > right) right = x + 1; if (y + 1 > bottom) bottom = y + 1;
+        }
+    }
+    if (right - left < 30 || bottom - top < 20 ||
+        count != (right - left) * (bottom - top) || count == l->width * l->height * 1024) return;
+    sTiledBackdropBg = bg;
+    sTiledBackdropBounds[0] = left * 8; sTiledBackdropBounds[1] = top * 8;
+    sTiledBackdropBounds[2] = right * 8; sTiledBackdropBounds[3] = bottom * 8;
+}
+
+/* Repeat whole native tile bands, with reflected phase at the seam. Only
+ * added view pixels use this; the original 240x160 picture is never changed. */
+static void TiledBackdropCoordinates(int bg, int* wx, int* wy) {
+    if (bg == sTiledBackdropBg) {
+        int left = sTiledBackdropBounds[0], top = sTiledBackdropBounds[1];
+        int right = sTiledBackdropBounds[2], bottom = sTiledBackdropBounds[3];
+        if (*wx < left) *wx = ArenaBandPixel(left - 1 - *wx, left, 64, 0);
+        else if (*wx >= right) *wx = ArenaBandPixel(*wx - right, right - 64, 64, 1);
+        if (*wy < top) *wy = ArenaBandPixel(top - 1 - *wy, top, 32, 0);
+        else if (*wy >= bottom) *wy = ArenaBandPixel(*wy - bottom, bottom - 32, 32, 1);
+    }
+}
+
 static int VramEntry(int bg, int gx, int gy) {
     uint16_t cnt = IO16(0x08 + bg * 2);
     const uint16_t* screen = (const uint16_t*)(VRAM8 + ((cnt >> 8) & 31) * 0x800);
@@ -899,6 +959,9 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             const BgWorld* wd = &sBgWorldLatched[bg];
             int wx = l->valid ? l->x + gx + (hofs - l->hofs) : wd->x + gx + (hofs - wd->hofs);
             int wy = l->valid ? l->y + gy + (vofs - l->vofs) : wd->y + gy + (vofs - wd->vofs);
+            /* Reflected bands can change direction within a tile: retain the
+               scalar sampler there rather than assuming a forward tile run. */
+            if (bg == sTiledBackdropBg) goto scalar_world;
             int run = 8 - (wx & 7), we, j;
             if (run > w - x) run = w - x;
             if (run > sRight - (x - gPortScreen.originX)) run = sRight - (x - gPortScreen.originX);
@@ -944,6 +1007,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
                 }
             }
         }
+scalar_world:
         if (outside || gx < 0 || gx >= GBA_SCREEN_W) {
             /* Beyond the hardware picture: only map-block layers continue. */
             const BgLatch* l = &sBgLatch[bg];
@@ -980,6 +1044,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             }
             {
                 int wx = l->x + gx + (hofs - l->hofs), wy = l->y + gy + (vofs - l->vofs);
+                TiledBackdropCoordinates(bg, &wx, &wy);
                 if (!cachedValid || cachedTx != (wx >> 3) || cachedTy != (wy >> 3)) {
                     cachedTx = wx >> 3; cachedTy = wy >> 3;
                     cachedEntry = WorldEntry(l, wx, wy);
@@ -993,8 +1058,11 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             }
             sInWorld[x] = 1;
             entry = we;
-            px = (l->x + gx + (hofs - l->hofs)) & 7;
-            fy = (l->y + gy + (vofs - l->vofs)) & 7;
+            {
+                int wx = l->x + gx + (hofs - l->hofs), wy = l->y + gy + (vofs - l->vofs);
+                TiledBackdropCoordinates(bg, &wx, &wy);
+                px = wx & 7; fy = wy & 7;
+            }
             tile = entry & 0x3FF;
             fx = (entry & 0x400) ? 7 - px : px;
             fyy = (entry & 0x800) ? 7 - fy : fy;
@@ -2167,6 +2235,7 @@ void PortPpuBeginFrame(void) {
     if (sOverlay)
         memset(gPortOverlay, 0, (size_t)gPortOverlayW * GBA_SCREEN_H * 4);
     for (b = 0; b < 4; b++) sWorldPadding[b] = WorldPadding(b, &sBgLatch[b]);
+    FindTiledBackdrop(PortEventTiledBackdrop());
     if (gPortScreen.wide) {
         sLeft = -gPortScreen.originX;
         sRight = gPortScreen.width - gPortScreen.originX;

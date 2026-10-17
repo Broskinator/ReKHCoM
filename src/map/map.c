@@ -4577,11 +4577,10 @@ void Mode_MenuLoad_0(s32 arg) {
         sLoadGameMenuWork->showRikuSlots = 0;
     } else {
 #ifdef PLATFORM_PC
-        /* Access and existing saves are independent of story completion.
-           Keep the original four slots in the same SRAM image; do not copy,
-           convert or fabricate Sora-clear flags to expose Riku's two slots. */
-        sLoadGameMenuWork->showRikuSlots = PortRikuAvailable(gGameState.flags & GAME_FLAG_SORA_CLEAR) ||
-            SaveRepairFileSmall(0) == SAVE_OK || SaveRepairFileSmall(1) == SAVE_OK;
+        /* Keep Riku saves intact but hidden until access is unlocked through
+           Sora's completion or the optional cheat. Existing Riku data alone
+           must not bypass this gate. */
+        sLoadGameMenuWork->showRikuSlots = PortRikuAvailable(gGameState.flags & GAME_FLAG_SORA_CLEAR);
 #else
         sLoadGameMenuWork->showRikuSlots = (gGameState.flags >> 5) & 1;
 #endif

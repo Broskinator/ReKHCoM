@@ -348,11 +348,12 @@ void mode_title_1() {
         } else if (SaveRepairFileLarge(0) == SAVE_OK || SaveRepairFileLarge(1) == SAVE_OK) {
             sTitleMenuChoice = TITLE_MENU_CONTINUE;
         } else if (
-#ifndef PLATFORM_PC
+#ifdef PLATFORM_PC
+                   PortRikuAvailable(gGameState.flags & GAME_FLAG_SORA_CLEAR) &&
+#else
                    (gGameState.flags & GAME_FLAG_SORA_CLEAR) &&
 #endif
-                   /* Imported / cheat-started Riku saves remain continuable
-                      even when the optional new-game unlock is switched off. */
+                   /* Existing Riku saves stay stored, but require access. */
                    (SaveRepairFileSmall(0) == SAVE_OK || SaveRepairFileSmall(1) == SAVE_OK)) {
             sTitleMenuChoice = TITLE_MENU_CONTINUE;
         } else {

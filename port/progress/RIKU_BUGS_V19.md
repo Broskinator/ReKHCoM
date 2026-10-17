@@ -1,6 +1,6 @@
 # Riku: correcciones locales v1.9 — 17/10/2026
 
-No publicar release: v1.8.3 sigue siendo la unica estable publica.
+Actualizacion: usuario autoriza publicar v1.9; ver cierre en REPARTO.md.
 Trabajo en release/v1.9, sin integrar la escala experimental de menus.
 
 ## Persistencia y partidas existentes
@@ -9,8 +9,9 @@ Trabajo en release/v1.9, sin integrar la escala experimental de menus.
   serializa kSettings. Al lanzar de nuevo descartaba la clave desconocida.
   Anadida a kSettings con default 0. El submenu sigue OFF en instalaciones nuevas.
 - Causa de partidas ocultas: Mode_MenuLoad_0 usaba exclusivamente el bit 5
-  (Sora completado). Ahora muestra Riku por acceso opcional O partida pequena
-  valida, sin escribir banderas de historia. La pantalla SIO conserva solo Sora.
+  (Sora completado). Por instruccion posterior del usuario, muestra Riku SOLO con truco ON o
+  Sora completado, aunque ya exista una partida Riku. Ocultar no borra nada.
+  No escribe banderas de historia. La pantalla SIO conserva solo Sora.
 - Una SRAM mantiene sus 4 ranuras originales: Sora1/Sora2 y Riku1/Riku2.
   No se crean archivos alternativos, ni se convierte formato o region.
 - El selector del titulo se actualiza al cerrar Trucos: no requiere reiniciar.
@@ -18,8 +19,8 @@ Trabajo en release/v1.9, sin integrar la escala experimental de menus.
 - Snapshot privado en build/riku-user-review/20261017-092407. No subirlo.
   Dos Sora y Riku1 validos, sin Sora completado; Riku2 vacio.
 - Launcher real: ON y OFF sobreviven 2 aperturas/escrituras cada uno (4 PASS).
-  Carga real del snapshot con ON y OFF: ranura 2 -> flags264, Mode_MapFld,
-  SRAM completa identica antes/despues (2 PASS).
+  Prueba actualizada: OFF oculta Riku, ON permite cargar ranura 2 -> flags264.
+  La copia SRAM permanece identica salvo el guardado nativo solicitado.
 - Guardado nativo, usando la copia y el menu del punto de guardado: Riku1
   se actualiza; Sora1/Sora2 (ambas copias) y Riku2 permanecen byte por byte.
   Sigue una sola SRAM y la cabecera no marca Sora completado.
@@ -58,3 +59,19 @@ Trabajo en release/v1.9, sin integrar la escala experimental de menus.
   pending-pc-before/after-padding se hicieron con carga concurrente y NO prueban
   una mejora incorporada. El renderer general no cambia por ese experimento.
 - Recompilar y validar las otras plataformas despues de cerrar los pendientes PC.
+
+## Audio reportado (17/10/2026)
+
+El usuario confirmo que vuelve a sonar. Configuracion local volumen100; prueba
+WASAPI del titulo con filtro ON: stream abierto/primado, mezcla finita, pico
+0.2538 y RMS0.03142. No se modifico el audio por este reporte transitorio.
+
+## Bordes de otras cinematicas de Riku
+
+FindTiledBackdrop reconoce una base rectangular totalmente opaca rodeada de
+tiles transparentes. Solo BG3 de eventos Riku fuera de la apertura circular;
+no menus/batallas. Bandas nativas reflejadas de 64px horizontal y32px vertical,
+solo en el encuadre anadido. Sin extender el foreground ni alterar 240x160.
+Caso real del savestate B12F E0: dibujo privado reproducido sin cargar punteros
+de gameplay de otro ejecutable, crop38400 exacto; margenes blanco/negro resueltos.
+Prueba sintetica 480x270 y1920x1080, paletas/fade y rechazo de tiles parciales PASS.

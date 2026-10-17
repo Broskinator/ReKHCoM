@@ -34,7 +34,7 @@ PortConfig gPortConfig = {
     1,                  /* stockButton */
     0,                  /* hdText */
     8,                  /* cardHudRaise */
-    0,                  /* retired unstock field; retained for layout compatibility */
+    0,                  /* experimental unstock: off by default */
     1,                  /* saveBank */
 #ifdef PORT_HD2D
     1,                  /* hd2d: on in the alternative HD-2D build */
@@ -61,14 +61,14 @@ PortConfig gPortConfig = {
         { SDLK_RIGHT, 0 },              /* Right */
         { SDLK_D, 0 },                  /* stock (L + R) */
         { SDLK_C, 0 },                  /* dodge roll */
-        { 0, 0 },                       /* retired action slot */
+        { SDLK_V, 0 },                  /* experimental return stocked cards */
     },
     {
         SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER,
         SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER, SDL_GAMEPAD_BUTTON_START, SDL_GAMEPAD_BUTTON_BACK,
         SDL_GAMEPAD_BUTTON_DPAD_UP, SDL_GAMEPAD_BUTTON_DPAD_DOWN, SDL_GAMEPAD_BUTTON_DPAD_LEFT,
         SDL_GAMEPAD_BUTTON_DPAD_RIGHT, SDL_GAMEPAD_BUTTON_NORTH, SDL_GAMEPAD_BUTTON_WEST,
-        -1, /* retired action slot */
+        SDL_GAMEPAD_BUTTON_RIGHT_STICK,
     },
 };
 
@@ -111,6 +111,7 @@ static const Key sKeys[] = {
     { "sfx_volume", &gPortConfig.sfxVolume, 0, 100 },
     { "dodge_button", &gPortConfig.dodgeButton, 0, 1 },
     { "stock_button", &gPortConfig.stockButton, 0, 1 },
+    { "experimental_unstock", &gPortConfig.unstockButton, 0, 1 },
     { "hd_text", &gPortConfig.hdText, 0, 1 },
     { "card_hud_raise", &gPortConfig.cardHudRaise, 0, 16 },
     { "save_bank", &gPortConfig.saveBank, 1, PORT_SAVE_BANKS },
@@ -126,6 +127,7 @@ static const Key sKeys[] = {
     BIND("start", PORT_ACT_START), BIND("select", PORT_ACT_SELECT), BIND("up", PORT_ACT_UP),
     BIND("down", PORT_ACT_DOWN), BIND("left", PORT_ACT_LEFT), BIND("right", PORT_ACT_RIGHT),
     BIND("stock", PORT_ACT_STOCK), BIND("dodge", PORT_ACT_DODGE),
+    BIND("unstock", PORT_ACT_UNSTOCK),
 #undef BIND
 };
 
@@ -283,7 +285,6 @@ void PortConfigLoad(void) {
        KHCOM_HD_HUD_DEV=1 (then kh_com.ini's hd_hud applies). */
     if (!SDL_getenv("KHCOM_HD_HUD_DEV"))
         gPortConfig.hdHud = 0;
-    gPortConfig.unstockButton = 0; /* retired: old INI/state cannot enable it */
 #ifndef PORT_HD2D
     /* HD-2D look: pending as well (too many scenes still wrong); forced off
        outside its own build unless KHCOM_HD2D_DEV=1. */

@@ -13,6 +13,8 @@
 PortConfig gPortConfig;
 static int sFixtureBackdropPanel = -1;
 int PortEventBackdropPanel(void) { return sFixtureBackdropPanel; }
+static int sFixtureTiledBackdrop = -1;
+int PortEventTiledBackdrop(void) { return sFixtureTiledBackdrop; }
 const void* gMsgwinMapBlocks[4];
 static int hblank;
 /* Optional HD artwork is disabled in this pixel-renderer oracle. */

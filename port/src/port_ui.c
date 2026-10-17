@@ -46,6 +46,7 @@ enum {
     ITEM_SFX,
     ITEM_MASTER,
     ITEM_EXPERIMENTAL, /* section heading, not selectable */
+    ITEM_UNSTOCK,
     ITEM_HDTEXT,
     ITEM_HDHUD,
     ITEM_HD2D,
@@ -142,6 +143,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos", "効果音の音量" },
     { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general", "全体の音量" },
     { "Experimental", "Expérimental", "Experimentell", "Sperimentale", "Experimentales", "実験的機能" },
+    { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
+      "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "HD HUD (pilot)", "HUD HD (pilote)", "HD-HUD (Pilot)", "HUD HD (pilota)", "HUD HD (piloto)", "HD HUD (試験)" },
     { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
@@ -653,6 +656,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_STOCK:
             SDL_strlcpy(out, sOnOff[gPortConfig.stockButton != 0][l], size);
             break;
+        case ITEM_UNSTOCK:
+            SDL_strlcpy(out, sOnOff[gPortConfig.unstockButton != 0][l], size);
+            break;
         case ITEM_SAVEBANK:
             SDL_snprintf(out, size, "%d / %d", gPortConfig.saveBank, PORT_SAVE_BANKS);
             break;
@@ -771,6 +777,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_STOCK:
             gPortConfig.stockButton = !gPortConfig.stockButton;
+            break;
+        case ITEM_UNSTOCK:
+            gPortConfig.unstockButton = !gPortConfig.unstockButton;
             break;
         case ITEM_SAVEBANK:
             gPortConfig.saveBank = Wrap(gPortConfig.saveBank - 1 + dir, PORT_SAVE_BANKS) + 1;

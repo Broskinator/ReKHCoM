@@ -110,7 +110,7 @@ typedef struct PortConfig {
     int stockButton;      /* one button for L + R (stock a card / sleight) */
     int hdText;           /* dialogue text drawn with an outline font at output resolution */
     int cardHudRaise;     /* battle: card hand lifted by this many GBA pixels (0..16) */
-    int unstockButton;    /* retired; retained only for structure compatibility, always disabled */
+    int unstockButton;    /* experimental return-stocked-cards control; opt-in, off by default */
     int saveBank;         /* 1..PORT_SAVE_BANKS: which save file holds the game's two slots */
     int hd2d;             /* experimental HD-2D look (on by default in --hd2d builds) */
     int smoothAudio;      /* experimental: cubic sample interpolation and a gentle low-pass */
@@ -147,6 +147,7 @@ extern const char* gPortRomPath;
 
 int PortRikuAvailable(int soraCleared);
 int PortEventBackdropPanel(void); /* single authored backdrop panel, or -1 */
+int PortEventTiledBackdrop(void); /* Riku scenery eligible for verified tile-band extension, or -1 */
 void PortConfigLoad(void);
 void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);

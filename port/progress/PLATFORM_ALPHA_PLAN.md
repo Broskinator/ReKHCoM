@@ -1,3 +1,25 @@
+## Cierre v1.9 autorizado (17/10/2026)
+
+- Usuario autoriza publicar v1.9 tras corregir los bordes de Riku; sustituye
+  la restriccion anterior de mantenerla privada. Windows estable; Android/Web alpha.
+- Audio: usuario confirma que suena; prueba WASAPI con mezcla no silenciosa.
+- Cargar: Riku SOLO con truco ON o Sora completado. 7 pruebas reales pasan,
+  incluidos checksum de cabecera de fixture completado, OFF oculta sin borrar,
+  ON carga/guarda Riku con las otras ranuras intactas. Original privado intacto.
+- Devolver cartas acumuladas vuelve SOLO en Experimental, default OFF.
+  Nueva clave experimental_unstock; ignora unstock_button antiguo y bit512 de
+  metadatos. No incluido en paquete QoL de nueva partida. Mantener V / stick
+  derecho pulsado o hacia abajo 0.5s, solo Sora; no cancela tecnica en curso.
+  Procedencia: ggdrn/KH_COM_VITA (MIT), no una mecanica GBA/PS2 nativa.
+- Riku: primer circulo corregido + base rectangular opaca de cinematicas:
+  extiende bandas de tiles nativos; rechaza tiles parcialmente transparentes,
+  menus, batalla y foreground. Original 240x160 exacto. Pruebas x1/x4, fade,
+  paleta y rechazo de geometria PASS. Savestate usuario respaldado con su EXE
+  exacto en build/riku-hollow-user-review (PRIVADO, no subir).
+- Linux/Steam Deck/RG34XX siguen BLOQUEADOS por ABI punteros32/64; no hay
+  binario nativo probado. No etiquetar ARMv7 como ARM64 ni inventar soporte.
+- Menus relativos experimentales excluidos. Otros cheats/editor siguen pendientes.
+
 # Plataforma y reparto — 17/10/2026
 
 ## Regla del usuario

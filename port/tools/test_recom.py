@@ -39,9 +39,11 @@ int main(int argc, char** argv) {
     assert(gPortConfig.ps2Difficulty == 2);
     PortRecomLoaded(1);
     assert(!PortQolButtons());
-    gPortConfig.unstockButton = 1;
-    PortRecomLoaded(2); /* old individual record with retired bit 512 */
+    gPortConfig.unstockButton = 0;
+    PortRecomLoaded(2); /* legacy bit 512 cannot enable the experiment */
     assert(!gPortConfig.unstockButton);
+    gPortConfig.unstockButton = 1;PortRecomLoaded(2);
+    assert(gPortConfig.unstockButton); /* loading also preserves explicit opt-in */
     for (bank = 1; bank <= PORT_SAVE_BANKS; bank++) {
         gPortConfig.saveBank = bank;
         for (mask = 0; mask < 8; mask++) for (fast = 0; fast < 2; fast++) {
@@ -60,7 +62,7 @@ int main(int argc, char** argv) {
             assert(PortRecomActive());
             assert(gPortConfig.dodgeButton == !!(mask & 1));
             assert(gPortConfig.stockButton == !!(mask & 2));
-            assert(!gPortConfig.unstockButton);
+            assert(gPortConfig.unstockButton == !!(mask & 4));
             assert(PortFastText() == fast);
         }
     }

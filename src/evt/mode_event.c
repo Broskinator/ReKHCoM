@@ -49,6 +49,10 @@ static u8 sEventEndStep;
 int PortEventBackdropPanel(void) {
     return gEventState != NULL && gEventState->eventId == EVENT_149_RIKU_B12F_OPNING ? 3 : -1;
 }
+int PortEventTiledBackdrop(void) {
+    return gEventState != NULL && (gGameState.flags & GAME_FLAG_RIKU) &&
+        gEventState->eventId != EVENT_149_RIKU_B12F_OPNING ? 3 : -1;
+}
 #endif
 
 enum EventEndStep {

@@ -234,7 +234,7 @@ static const Setting kSettings[] = {
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "hd_text", 0 },
-    { "card_hud_raise", 8 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 },
+    { "card_hud_raise", 8 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 }, { "experimental_unstock", 0 },
     { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
     { "kb_b", SDLK_Z },         { "kb_b_2", SDLK_J },       { "pad_b", SDL_GAMEPAD_BUTTON_EAST },
@@ -248,6 +248,7 @@ static const Setting kSettings[] = {
     { "kb_right", SDLK_RIGHT }, { "kb_right_2", 0 },        { "pad_right", SDL_GAMEPAD_BUTTON_DPAD_RIGHT },
     { "kb_stock", SDLK_D },     { "kb_stock_2", 0 },        { "pad_stock", SDL_GAMEPAD_BUTTON_NORTH },
     { "kb_dodge", SDLK_C },     { "kb_dodge_2", 0 },        { "pad_dodge", SDL_GAMEPAD_BUTTON_WEST },
+    { "kb_unstock", SDLK_V },   { "kb_unstock_2", 0 },      { "pad_unstock", SDL_GAMEPAD_BUTTON_RIGHT_STICK },
 };
 
 static std::map<std::string, int> sIni;
@@ -271,7 +272,7 @@ static void LoadIni() {
             key.pop_back();
         sIni[key] = std::atoi(line.c_str() + eq + 1);
     }
-    for (const char* retired : {"unstock_button", "kb_unstock", "kb_unstock_2", "pad_unstock"})
+    for (const char* retired : {"unstock_button"})
         sIni.erase(retired);
     /* Files from before the auto view switch to it once, as the game does. */
     if (sIni["config_version"] < 2) {
@@ -1162,6 +1163,11 @@ static void PageExtras() {
     ImGui::Spacing();
     BeginCard("experimental");
     Eyebrow(T("EXPERIMENTALES", "EXPERIMENTAL"));
+    changed |= ToggleRow(T("Devolver cartas acumuladas", "Return stocked cards"),
+                         T("Solo Sora: mantén V, pulsa el stick derecho o inclínalo hacia abajo durante medio segundo para cancelar la acumulación y devolver esas cartas a la mano. No cancela técnicas en curso. Desactivado por defecto.",
+                           "Sora only: hold V, the right-stick button or right stick down for half a second to cancel the stock and return those cards to the hand. Cannot cancel a sleight in progress. Off by default."),
+                         Ini("experimental_unstock"));
+    ImGui::Separator();
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("En pruebas: pueden tener fallos visuales.", "Being tested: expect visual glitches."));
     ImGui::PopStyleColor();
@@ -1299,6 +1305,7 @@ static void PageControls() {
         { "Derecha", "Right", "right" },
         { "L + R (acumular)", "L + R (stock)", "stock" },
         { "Voltereta", "Dodge roll", "dodge" },
+        { "Devolver acumuladas (experimental)", "Return stocked (experimental)", "unstock" },
     };
     BeginCard("controls");
     Eyebrow(T("CONTROLES", "CONTROLS"));
