@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## v1.9.3-nightly.20261018.5 — 2026-10-18 (public test build)
+
+- Riku's rooms: the cut wall at the top of the wide view now closes with the room's
+  own scalloped edge turned upside down, over plain wall (no repeated ornaments or
+  half window frames). On by default; KHCOM_TOPCLOSE=0 turns it off.
+- Local achievements for EU/US/JP: a white Achievements tab and animated notices
+  centred at the top (Windows). Official RetroAchievements is not active yet.
+- Controls screen: a toon controller drawing (selected art, transparent) lights the
+  button bound to the action being remapped; Xbox button names.
+- Opening and closing Options no longer jumps the scene scale; the fade covers every
+  layer and the selector keeps the original debug light.
+- Linux: HD text finds a Japanese font in more places (KHCOM_CJK_FONT, Noto/Takao/IPA,
+  fontconfig).
+- Windows, Linux, Steam Deck, Anbernic alpha, Android alpha and Web alpha updated.
+  The PS5 alpha package is not rebuilt (needs a native Linux host).
+
 ## v1.9.3-nightly.20261018.4 — 2026-10-18 (public test build)
 
 - Options → Cheats: enemies fall in one hit, infinite HP (both off by default and
