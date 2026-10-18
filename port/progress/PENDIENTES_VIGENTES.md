@@ -169,6 +169,12 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     mapa y colección con sprites ×1 del cartucho, lista de cambios, copia en
     backups/ y checksums; test_save_editor.py (el juego carga lo editado).
 
+48. [x] **Claude (traspaso desde Codex inactivo, 18/10 12:20):** diagrama de mando
+    estilo Xbox 360 en Controles del launcher (b3a0f1e7d), según CONTROLADOR_LOGICA.md:
+    rejilla 64x36 a escala entera sin suavizado; A/B/X/Y con letra y color; LB/RB/LT/RT
+    rotulados; contorno sobre la asignación de la acción enfocada y, al capturar, sobre
+    lo que se pulsa. Columna Mando con símbolos Xbox. Mando físico sin probar.
+
 ## Qué bloquea la entrega inmediata
 
 Bug grave si sigue abierto (4), guardados/opciones (5–9), savestates (10–11),
