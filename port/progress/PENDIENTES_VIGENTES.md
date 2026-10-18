@@ -1,7 +1,7 @@
 # Lista única larga y reparto vigente — 18/10/2026
 
-**Resumen 18/10 16:10:** pendientes de hardware real movidos a «Esperan reportes»;
-#17 aprobado mejorable. Relevo de Claude: HANDOFF_CLAUDE_20261018.md.
+**Resumen 18/10 17:10:** 44 puntos: 20 cerrados, 8 en curso, 16 abiertos. Hardware real → «Esperan reportes». Integrado de Codex (EU/US/JP compilan): logros locales, mando en Controles, transición de Opciones.
+Siguiente de Claude: 39 (rutas completas) y 44 (limpieza, con permiso); el resto es de Codex. Lógica aprobada: LOGICA_APROBADOS.md.
 
 Encargo del usuario: TERMINAR EL BLOQUE DE LOS WORKERS, RECOGER SUS CIERRES y
 continuar desde una sola cola larga repartida entre Claude y Codex. No abrir
