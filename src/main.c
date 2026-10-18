@@ -52,6 +52,8 @@ extern const char* GetModeName(void);
 #include "mode_mapchk.h"
 #include "fade.h"
 #include "world_types.h"
+#include "player_progression.h"
+#include "battle_ids.h"
 #include "map_runtime.h"
 #include "card_api.h"
 #include "player_progression_types.h"
@@ -98,6 +100,55 @@ int PortDebugModeAvailable(void) {
 void PortDebugModeEnter(void) {
     if (PortDebugModeAvailable())
         ModeRequest(&gModeDebug, 0);
+}
+
+extern Mode gModeBattle;
+
+/* Boss rematches and the battle tutorials (Options -> Rematches), an idea of
+   the Vita port: a boss of Sora's story, once beaten (its card obtained), or
+   one of the two tutorials, fought again at its original strength. The port
+   layer keeps the field in a state and restores it afterwards. */
+static const struct {
+    u16 battle;
+    u8 world;
+    s8 card; /* OBTAINED_CARD_*, -1 always available */
+} sRematches[] = {
+    { BATTLE_GUARD_ARMOR, WORLD_TRAVERSE_TOWN, OBTAINED_CARD_GUARD_ARMOR },
+    { BATTLE_TRICKMASTER, WORLD_WONDERLAND, OBTAINED_CARD_TRICKMASTER },
+    { BATTLE_JAFAR, WORLD_AGRABAH, OBTAINED_CARD_JAFAR },
+    { BATTLE_HADES, WORLD_OLYMPUS_COLISEUM, OBTAINED_CARD_HADES },
+    { BATTLE_URSULA, WORLD_ATLANTICA, OBTAINED_CARD_URSULA },
+    { BATTLE_PARASITE_CAGE, WORLD_MONSTRO, OBTAINED_CARD_PARASITE_CAGE },
+    { BATTLE_OOGIE_BOOGIE, WORLD_HALLOWEEN_TOWN, OBTAINED_CARD_OOGIE_BOOGIE },
+    { BATTLE_HOOK, WORLD_NEVER_LAND, OBTAINED_CARD_HOOK },
+    { BATTLE_DARKSIDE, WORLD_DESTINY_ISLANDS, OBTAINED_CARD_DARKSIDE },
+    { BATTLE_DRAGON_MALEFICENT, WORLD_HOLLOW_BASTION, OBTAINED_CARD_DRAGON_MALEFICENT },
+    { BATTLE_RIKU_1, WORLD_CASTLE_OBLIVION, OBTAINED_CARD_RIKU },
+    { BATTLE_VEXEN_1, WORLD_CASTLE_OBLIVION, OBTAINED_CARD_VEXEN },
+    { BATTLE_TUTORIAL_0, WORLD_TRAVERSE_TOWN, -1 },
+    { BATTLE_TUTORIAL_1, WORLD_TRAVERSE_TOWN, -1 },
+};
+
+int PortRematchCount(void) {
+    return ARRAY_COUNT(sRematches);
+}
+
+/* walking a room as Sora, and the boss beaten */
+int PortRematchAvailable(int i) {
+    const char* mode = GetModeName();
+    if (i < 0 || i >= (int)ARRAY_COUNT(sRematches) || (gGameState.flags & GAME_FLAG_RIKU))
+        return 0;
+    if (strcmp(mode, "Mode_MapFld") != 0 && strcmp(mode, "Mode_MapFix") != 0)
+        return 0;
+    return sRematches[i].card < 0 || IsCardKindObtained(sRematches[i].card);
+}
+
+/* in the boss's own world and arena; everything is restored afterwards */
+void PortRematchBegin(int i) {
+    extern u8 gWorldBattleStages[];
+    gGameState.world = sRematches[i].world;
+    gGameState.battleStage = gWorldBattleStages[sRematches[i].world];
+    ModeRequest(&gModeBattle, sRematches[i].battle);
 }
 
 const char* PortHarnessModeName(void) {
@@ -227,6 +278,17 @@ int PortHarnessMode(const char* name, int arg) {
             gMapFloorState.rooms[i].enemiesLeft = 0;
         }
         return 1;
+    }
+
+    /* rematches: obtain:N marks OBTAINED_CARD_N; rematch:N starts row N as
+       the options menu does */
+    if (strcmp(name, "obtain") == 0) {
+        SetCardKindObtained(arg);
+        return 1;
+    }
+    if (strcmp(name, "rematch") == 0) {
+        extern int PortRematchStart(int i);
+        return PortRematchStart(arg);
     }
 
     /* moogle points picked up on the field, as map_tasks.c does */

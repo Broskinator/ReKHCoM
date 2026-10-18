@@ -51,6 +51,7 @@ static const Region sRegions[] = {
 int gPortInMainLoop;
 int gPortStateSlot = 1;
 static int sPendingSave, sPendingLoad;
+static int sQuiet, sLastResult; /* PortStateRequestQuiet: no notice; the result kept */
 static char sPendingPath[MAX_PATH];
 static FILE* sFile;
 static int sOk;
@@ -170,6 +171,21 @@ void PortStateRequestLoad(const char* path) {
     sPendingLoad = 1;
 }
 
+/* The same, for the platform's own use (rematches): no notice on screen. */
+void PortStateRequestQuiet(int load, const char* path) {
+    SDL_strlcpy(sPendingPath, path, sizeof(sPendingPath));
+    if (load) sPendingLoad = 1; else sPendingSave = 1;
+    sQuiet = 1;
+}
+
+/* 1 while a request waits; then the last result (> 0 done) */
+int PortStateBusy(void) {
+    return sPendingSave || sPendingLoad;
+}
+int PortStateLastResult(void) {
+    return sLastResult;
+}
+
 /* Called at the top of every frame; acts only at the main loop's wait. */
 void PortStateService(void) {
     char msg[96];
@@ -180,17 +196,22 @@ void PortStateService(void) {
     if (sPendingSave) {
         sPendingSave = 0;
         r = Save(sPendingPath);
+        sLastResult = r;
         PortLog("state: save %s -> %s", sPendingPath, r ? "ok" : "failed");
         SDL_snprintf(msg, sizeof(msg), r ? "State %d saved" : "State %d: save failed", gPortStateSlot);
-        PortUiNotice(msg);
+        if (!sQuiet)
+            PortUiNotice(msg);
     }
     if (sPendingLoad) {
         sPendingLoad = 0;
         r = Load(sPendingPath);
+        sLastResult = r;
         PortLog("state: load %s -> %d", sPendingPath, r);
         SDL_snprintf(msg, sizeof(msg),
                      r > 0 ? "State %d loaded" : (r < 0 ? "State %d: other version" : "State %d: empty"),
                      gPortStateSlot);
-        PortUiNotice(msg);
+        if (!sQuiet)
+            PortUiNotice(msg);
     }
+    sQuiet = 0;
 }

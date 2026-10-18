@@ -2156,6 +2156,10 @@ void PortFrame(void) {
     PortWebWaitVisible();
 #endif
     PortStateService();
+    {
+        extern void PortRematchFrame(void);
+        PortRematchFrame();
+    }
     VBlankCycle();
 }
 

@@ -24,6 +24,8 @@ extern int PortCheatMaxLevel(void);
 extern int PortCheatMapCards(void);
 extern int PortCheatBattleCards(void);
 extern unsigned PortGameFlags(void);
+extern int PortRematchAvailable(int i);
+extern int PortRematchStart(int i);
 extern void PortDebugModeEnter(void);
 #ifdef VERSION_EU
 extern uint32_t gLanguage;
@@ -70,6 +72,7 @@ enum {
     ITEM_PS2_MENU,     /* opens the Re:CoM page */
     ITEM_CONTROLS_MENU,
     ITEM_CHEATS_MENU,
+    ITEM_REMATCH_MENU,
     ITEM_CLOSE,
     /* the Re:Chain of Memories page */
     ITEM_PS2_DIFFICULTY,
@@ -89,6 +92,9 @@ enum {
     ITEM_CHEAT_MAPCARDS,
     ITEM_CHEAT_BATTLECARDS,
     ITEM_CHEATS_BACK,
+    ITEM_REMATCH_0, /* PortRematchCount() rows: the bosses, then the two tutorials */
+    ITEM_REMATCH_LAST = ITEM_REMATCH_0 + 13,
+    ITEM_REMATCH_BACK,
     ITEM_CONTROL_A,
     ITEM_CONTROL_B,
     ITEM_CONTROL_L,
@@ -108,7 +114,7 @@ enum {
 };
 
 /* Two pages, each a run of items: the options and the Re:CoM settings. */
-enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS, PAGE_CONTROLS };
+enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS, PAGE_CONTROLS, PAGE_REMATCH };
 static int sPage;
 static int sControlPad, sControlCapture;
 static int sNgRecom; /* new game page: the Re:CoM version chosen */
@@ -117,10 +123,10 @@ enum { WIZ_VERSION, WIZ_DIFFICULTY, WIZ_OPTIONS };
 static int sWizStep, sWizCursor; /* the new game window's step and row */
 static void WizKey(int key);
 static int PageFirst(void) {
-    return sPage == PAGE_CHEATS ? ITEM_CHEAT_DEBUG : sPage == PAGE_CONTROLS ? ITEM_CONTROL_A : sPage == PAGE_PS2 ? ITEM_PS2_DIFFICULTY : sPage == PAGE_NEWGAME ? ITEM_NG_VERSION : 0;
+    return sPage == PAGE_REMATCH ? ITEM_REMATCH_0 : sPage == PAGE_CHEATS ? ITEM_CHEAT_DEBUG : sPage == PAGE_CONTROLS ? ITEM_CONTROL_A : sPage == PAGE_PS2 ? ITEM_PS2_DIFFICULTY : sPage == PAGE_NEWGAME ? ITEM_NG_VERSION : 0;
 }
 static int PageEnd(void) {
-    return sPage == PAGE_CHEATS ? ITEM_CHEATS_BACK + 1 : sPage == PAGE_CONTROLS ? ITEM_CONTROLS_BACK + 1 : sPage == PAGE_PS2 ? ITEM_PS2_BACK + 1 : sPage == PAGE_NEWGAME ? ITEM_NG_START + 1 : ITEM_CLOSE + 1;
+    return sPage == PAGE_REMATCH ? ITEM_REMATCH_BACK + 1 : sPage == PAGE_CHEATS ? ITEM_CHEATS_BACK + 1 : sPage == PAGE_CONTROLS ? ITEM_CONTROLS_BACK + 1 : sPage == PAGE_PS2 ? ITEM_PS2_BACK + 1 : sPage == PAGE_NEWGAME ? ITEM_NG_START + 1 : ITEM_CLOSE + 1;
 }
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
@@ -201,6 +207,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Re:CoM設定" },
     { "Controls", "Commandes", "Steuerung", "Controlli", "Controles", "操作" },
     { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" },
+    { "Boss rematches", "Revanches de boss", "Boss-Revanchen", "Rivincite coi boss", "Revancha de jefes", "ボス再戦" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
     { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
     { "Fast dialogue", "Dialogues rapides", "Schnelle Dialoge", "Dialoghi veloci", "Diálogos rápidos",
@@ -223,6 +230,21 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Tutte le carte stanza (9)", "Todas las cartas de mapa (9 c/u)", "全マップカード (各9枚)" },
     { "Fill battle card collection", "Remplir la collection de cartes", "Kampfkartensammlung füllen",
       "Riempi la collezione di carte", "Llenar colección de cartas", "バトルカードを満たす" },
+    { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
+    { "Guard Armor", "Guard Armor", "Guard Armor", "Guard Armor", "Guard Armor", "Guard Armor" },
+    { "Trickmaster", "Trickmaster", "Trickmaster", "Trickmaster", "Trickmaster", "Trickmaster" },
+    { "Jafar", "Jafar", "Jafar", "Jafar", "Jafar", "Jafar" },
+    { "Hades", "Hades", "Hades", "Hades", "Hades", "Hades" },
+    { "Ursula", "Ursula", "Ursula", "Ursula", "Ursula", "Ursula" },
+    { "Parasite Cage", "Parasite Cage", "Parasite Cage", "Parasite Cage", "Parasite Cage", "Parasite Cage" },
+    { "Oogie Boogie", "Oogie Boogie", "Oogie Boogie", "Oogie Boogie", "Oogie Boogie", "Oogie Boogie" },
+    { "Hook", "Hook", "Hook", "Hook", "Hook", "Hook" },
+    { "Darkside", "Darkside", "Darkside", "Darkside", "Darkside", "Darkside" },
+    { "Dragon Maleficent", "Dragon Maleficent", "Dragon Maleficent", "Dragon Maleficent", "Dragon Maleficent", "Dragon Maleficent" },
+    { "Riku", "Riku", "Riku", "Riku", "Riku", "Riku" },
+    { "Vexen", "Vexen", "Vexen", "Vexen", "Vexen", "Vexen" },
+    { "Battle tutorial 1", "Tutoriel de combat 1", "Kampf-Tutorial 1", "Tutorial di battaglia 1", "Tutorial de combate 1", "バトルチュートリアル1" },
+    { "Battle tutorial 2", "Tutoriel de combat 2", "Kampf-Tutorial 2", "Tutorial di battaglia 2", "Tutorial de combate 2", "バトルチュートリアル2" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
     { "A", "A", "A", "A", "A", "A" },
     { "B", "B", "B", "B", "B", "B" },
@@ -248,6 +270,16 @@ static const char* const sCheatsHelp[LANG_COUNT] = {
     "Debug: solo dal titolo. Livello e carte: sulla mappa; poi salva.",
     "Debug: solo en el título. Nivel y cartas: en el mapa; guarda para conservarlos.",
     "デバッグはタイトルで。レベルとカードはマップ上で。保存して反映。",
+};
+static const char* const sRematchTitle[LANG_COUNT] = { "Boss rematches", "Revanches de boss", "Boss-Revanchen",
+    "Rivincite coi boss", "Revancha de jefes", "ボス再戦" };
+static const char* const sRematchHelp[LANG_COUNT] = {
+    "Bosses already beaten, from a room. You come back here; nothing from the fight is kept.",
+    "Boss déjà vaincus, depuis une salle. Retour ici ; rien du combat n'est gardé.",
+    "Besiegte Bosse, aus einem Raum. Danach zurück hierher; nichts vom Kampf bleibt.",
+    "Boss già sconfitti, da una stanza. Si torna qui; nulla del combattimento resta.",
+    "Jefes ya vencidos, desde una sala. Vuelves aquí; no se conserva nada del combate.",
+    "倒したボスと再戦（部屋から）。終了後ここへ戻り、戦闘の結果は残りません。",
 };
 static const char* const sCheatDone[LANG_COUNT] = {
     "Cheat applied", "Code appliqué", "Cheat angewendet", "Trucco applicato", "Truco aplicado", "チートを適用",
@@ -635,9 +667,12 @@ static int ModeIndex(void) {
 }
 
 static int ItemEnabled(int item) {
+    if (item >= ITEM_REMATCH_0 && item <= ITEM_REMATCH_LAST)
+        return PortRematchAvailable(item - ITEM_REMATCH_0);
     switch (item) {
         case ITEM_UNDUB: return PortUndubAvailable();
         case ITEM_CHEAT_DEBUG: return PortDebugModeAvailable();
+        case ITEM_REMATCH_MENU: return 1;
         case ITEM_CHEAT_MAXLEVEL:
         case ITEM_CHEAT_MAPCARDS: return PortCheatActionsAvailable();
         case ITEM_CHEAT_BATTLECARDS: return PortCheatActionsAvailable() && !(PortGameFlags() & 8 /* Riku */);
@@ -655,6 +690,11 @@ static int ItemEnabled(int item) {
 
 static void ValueText(int item, char* out, size_t size) {
     int l = Lang();
+
+    if (item >= ITEM_REMATCH_0 && item <= ITEM_REMATCH_LAST) {
+        SDL_strlcpy(out, "→", size);
+        return;
+    }
 
     switch (item) {
         case ITEM_VIEW:
@@ -786,6 +826,7 @@ static void ValueText(int item, char* out, size_t size) {
             SDL_strlcpy(out, "\xE2\x86\x92", size);
             break;
         case ITEM_CHEATS_MENU:
+        case ITEM_REMATCH_MENU:
         case ITEM_CONTROLS_MENU:
         case ITEM_PS2_MENU:
             SDL_strlcpy(out, "\xE2\x86\x92", size);
@@ -868,6 +909,11 @@ static void ResetControlBindings(void) {
 static void Change(int item, int dir) {
     if (!ItemEnabled(item))
         return;
+    if (item >= ITEM_REMATCH_0 && item <= ITEM_REMATCH_LAST) {
+        if (dir > 0 && PortRematchStart(item - ITEM_REMATCH_0))
+            Close();
+        return;
+    }
     switch (item) {
         case ITEM_VIEW:
             gPortConfig.viewMode = sViewOrder[Wrap(ViewIndex() + dir, PORT_VIEW_COUNT)];
@@ -961,6 +1007,12 @@ static void Change(int item, int dir) {
             break;
         case ITEM_CHEATS_MENU:
             if (dir > 0) { sPage = PAGE_CHEATS; sCursor = sScroll = ITEM_CHEAT_DEBUG; }
+            break;
+        case ITEM_REMATCH_MENU:
+            if (dir > 0) { sPage = PAGE_REMATCH; sCursor = sScroll = ITEM_REMATCH_0; }
+            break;
+        case ITEM_REMATCH_BACK:
+            sPage = PAGE_MAIN; sCursor = ITEM_REMATCH_MENU; sScroll = 0;
             break;
         case ITEM_CONTROLS_MENU:
             if (dir > 0) {
@@ -1327,6 +1379,8 @@ int PortUiHandleEvent(const void* p) {
                         Change(ITEM_NG_START, 1);
                     else if (sPage == PAGE_CHEATS)
                         Change(ITEM_CHEATS_BACK, 1);
+                    else if (sPage == PAGE_REMATCH)
+                        Change(ITEM_REMATCH_BACK, 1);
                     else if (sPage == PAGE_PS2)
                         Change(ITEM_PS2_BACK, 1);
                     else if (sPage == PAGE_CONTROLS)
@@ -1368,6 +1422,7 @@ int PortUiHandleEvent(const void* p) {
                     break;
                 }
                 if (sPage == PAGE_CHEATS) { Change(ITEM_CHEATS_BACK, 1); break; }
+                if (sPage == PAGE_REMATCH) { Change(ITEM_REMATCH_BACK, 1); break; }
                 if (sPage == PAGE_PS2) { Change(ITEM_PS2_BACK, 1); break; }
                 if (sPage == PAGE_CONTROLS) { Change(ITEM_CONTROLS_BACK, 1); break; }
                 Close();
@@ -1790,7 +1845,7 @@ static void DrawMenu(int l, int width, int height) {
     if (barX + barW - 24 > artX + MENU_ART_X)
         Shade(artX + MENU_ART_X, 0, barX + barW - 24 - (artX + MENU_ART_X), top + rows * 16, 0xFFFFFFFFu, 230);
 
-    DrawText(sPage == PAGE_CHEATS ? sCheatsTitle[l] : sPage == PAGE_PS2 ? sPs2Title[l] : sPage == PAGE_CONTROLS ? (sControlPad ? "Controls - Gamepad" : "Controls - Keyboard") : sPage == PAGE_NEWGAME ? sNgTitle[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
+    DrawText(sPage == PAGE_REMATCH ? sRematchTitle[l] : sPage == PAGE_CHEATS ? sCheatsTitle[l] : sPage == PAGE_PS2 ? sPs2Title[l] : sPage == PAGE_CONTROLS ? (sControlPad ? "Controls - Gamepad" : "Controls - Keyboard") : sPage == PAGE_NEWGAME ? sNgTitle[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
     if (sScroll > PageFirst())
         DrawText("\xE2\x86\x91", barX + barW - 8, 2, MENU_INK, 0xFFD8D8D8u);
     for (i = sScroll, y = top; i < sScroll + rows && i < PageEnd(); i++, y += 16) {
@@ -1809,7 +1864,8 @@ static void DrawMenu(int l, int width, int height) {
         }
         MenuBar(barX, y, barW, sel);
         DrawText(sLabels[i][l], barX + 16, y - 2, face, 0xFFD8D8D8u);
-        if (i == ITEM_CLOSE || i == ITEM_PS2_BACK || i == ITEM_CHEATS_BACK || i == ITEM_CONTROLS_BACK || i == ITEM_NG_START)
+        if (i == ITEM_CLOSE || i == ITEM_PS2_BACK || i == ITEM_CHEATS_BACK || i == ITEM_REMATCH_BACK ||
+            i == ITEM_CONTROLS_BACK || i == ITEM_NG_START)
             continue;
         ShortValue(i, value, sizeof(value));
         x = barX + barW - 4 - TextWidth(value);
@@ -1826,7 +1882,7 @@ static void DrawMenu(int l, int width, int height) {
         /* a demanding zoom: say so where the help line is */
         MenuButton(barX, height - 15, sZoomHeavy[l], '!');
     else
-        DrawText(sPage == PAGE_CHEATS ? sCheatsHelp[l] : sPage == PAGE_CONTROLS ? "Left/right: keyboard or gamepad; confirm: bind; Delete: clear" : sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
+        DrawText(sPage == PAGE_REMATCH ? sRematchHelp[l] : sPage == PAGE_CHEATS ? sCheatsHelp[l] : sPage == PAGE_CONTROLS ? "Left/right: keyboard or gamepad; confirm: bind; Delete: clear" : sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
 }
 
 /* Test harness: KHCOM_OPTIONS_HOLD=n closes the menu n frames after it has
