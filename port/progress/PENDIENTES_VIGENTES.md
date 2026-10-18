@@ -1,7 +1,7 @@
 # Lista única larga y reparto vigente — 18/10/2026
 
-**Resumen 18/10 15:35:** 48 puntos; 18 cerrados (6 publicados en Nightly 4),
-8 en curso, 22 abiertos. Relevo de Claude y siguiente paso: HANDOFF_CLAUDE_20261018.md.
+**Resumen 18/10 16:10:** pendientes de hardware real movidos a «Esperan reportes»;
+#17 aprobado mejorable. Relevo de Claude: HANDOFF_CLAUDE_20261018.md.
 
 Encargo del usuario: TERMINAR EL BLOQUE DE LOS WORKERS, RECOGER SUS CIERRES y
 continuar desde una sola cola larga repartida entre Claude y Codex. No abrir
@@ -107,10 +107,9 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     de revisar estas tres; antes/después completo y contador. No rellenar vacíos diseñados.
 24. [ ] **Codex:** revisar tira de fondo de arenas GBA; distinguir lo que ya corrige
     Guard Armor de los casos que aún quedan, en especial Maléfica dragón.
-25. [~] **Codex:** remapeo/gatillos implementado; LT/RT comprobados con SDL virtual
-    (reposo, umbral, simultáneos, liberación, cierre de overlay y desconexión).
-    EU/US/JP compilan; test_web_controls.py PASS. Falta mando físico, sin
-    atribuirle a la prueba virtual validación de dispositivos concretos.
+25. [x] **Codex:** remapeo/gatillos implementado y comprobado con SDL virtual;
+    EU/US/JP compilan. Mando físico: llegará como reporte (ver abajo).
+
 26. [~] **Codex:** #3 cerrado por su autor tras confirmar que se corrigió. #2
     sigue abierto: el autor pide una edición definitiva y enlazó Re:CoM; se le
     pidieron una o dos prioridades GBA concretas en el comentario
@@ -124,15 +123,19 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 29. [ ] **Codex:** revisar variantes de planta de Mapamundi y conservación de
     objetos de sala en transiciones, según PENDIENTES.md histórico.
 
-32. [ ] **Claude:** Linux real y Steam Deck: X11/XWayland, sonido, controles y
-    rendimiento. Hay pruebas VM; no repetir la afirmación antigua de «sin binario».
-33. [ ] **Claude:** Anbernic RG34XX real: kernel/32 bits, framebuffer, orientación,
-    mando/PortMaster y rendimiento; la VM ARM no mide rendimiento físico.
-34. [~] **Claude:** fuente CJK de Linux: búsqueda ampliada (KHCOM_CJK_FONT,
-    rutas Noto/Takao/IPA/Droid/WQY y fc-match), compila; falta probarla en
-    Linux real. Launcher gráfico sigue pendiente; ajustes en el menú del juego.
-35. [ ] **Claude:** Android físico: guardados, controles táctiles, audio, memoria,
-    orientación y rendimiento; mantener alpha donde falte validación real.
+32. [x] **Claude:** Linux/Steam Deck: binario y pruebas VM hechos; validación real
+    llegará como reporte.
+
+33. [x] **Claude:** Anbernic: paquete alpha publicado; validación en RG34XX real
+    llegará como reporte.
+
+34. [x] **Claude:** fuente CJK de Linux: búsqueda ampliada (KHCOM_CJK_FONT, rutas
+    Noto/Takao/IPA/Droid/WQY y fc-match), compila; confirmación en Linux real
+    llegará como reporte. Launcher gráfico Linux: fuera de la cola.
+
+35. [x] **Claude:** Android: alpha publicada; validación en dispositivos físicos
+    (p. ej. Odin 2) llegará como reporte.
+
 36. [ ] **Codex:** Web EU/US/JP en navegador real: arranque, diálogos, combate,
     importación/exportación SRAM, persistencia, reset y cierre abrupto.
 37. [ ] **Codex:** Web: texto HD/menús, audio/foco, FPS/memoria, controles y
@@ -166,6 +169,12 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     preferencia persistente, limpieza de pulsaciones y acceso a Opciones.
     6d0f33df1; pruebas de entrada, persistencia y controles Web correctas.
     Odin 2 y otros dispositivos físicos pendientes de validar (35/37).
+
+## Esperan reportes (no cuentan como pendientes)
+
+Validación en hardware real (mando físico, Linux/Steam Deck, Anbernic RG34XX,
+Android/Odin 2, móvil real): el usuario las trae cuando lleguen reportes; solo
+se reabre un punto si un reporte demuestra un fallo.
 
 ## Publicado en Nightly 4 (18/10, v1.9.3-nightly.20261018.4)
 
