@@ -2331,6 +2331,12 @@ u8 BosGaUpdateDefeat(GaWork* work) {
     GaEntryWork* entry;
     u8 result = 1;
 
+#ifdef PLATFORM_PC
+    /* Only Darkside asks for the fade from black (flags = 1); the drift ending
+       is Guard Armor's, so do not leave the choice to stack contents. */
+    param.flags = 0;
+#endif
+
     if (work->flags & GA_FLAG_STATE_REQUESTED) {
         work->statePhase = BOS_GA_PHASE_EXIT;
     }
