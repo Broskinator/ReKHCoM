@@ -9,6 +9,7 @@
 #include "map_runtime.h"
 #include "engine_math.h"
 #include <stdlib.h>
+#include <string.h>
 
 #include "map_fixed_data.h"
 #include "world_types.h"
@@ -129,6 +130,59 @@ static int MapTopEdgeTile(int bg, int x, int y) {
     return e < 0 ? 0 : (e ^ 0x800);
 }
 
+/* The cell of plain wall of column hx: of its bare-wall cells, the one whose
+   tiles are the commonest in the whole room (ornaments, windows and frames
+   are made of rarer tiles). Cached per room. */
+static MapCell* MapPlainWallCell(int hx) {
+    static const MapCell* sCells;
+    static u16 sRoomCols, sRoomRows;
+    static u16 sCount[65536];
+    static MapCell* sPlain[128];
+    static u8 sDone[128];
+    int r, c, x, rows;
+
+    if (hx < 0 || hx >= 128)
+        return MapGetCell(hx, 0);
+    if (sCells != sMapCells || sRoomCols != sMapCols || sRoomRows != sMapRows) {
+        sCells = sMapCells;
+        sRoomCols = sMapCols;
+        sRoomRows = sMapRows;
+        memset(sDone, 0, sizeof(sDone));
+        memset(sCount, 0, sizeof(sCount));
+        for (x = 0; x < sMapCols; x++)
+            for (r = 0; r < sMapRows; r++) {
+                MapCell* m = MapGetCell(x, r);
+                if (m != NULL && m->bg2Map != NULL)
+                    for (c = 0; c < 8; c++) {
+                        u16 e = m->bg2Map[(c >> 2) * 32 + (c & 3)];
+                        if (sCount[e] < 0xFFFF)
+                            sCount[e]++;
+                    }
+            }
+    }
+    if (!sDone[hx]) {
+        long bestScore = -1;
+        rows = sMapRows < 10 ? sMapRows : 10;
+        sPlain[hx] = MapGetCell(hx, 0);
+        for (r = 0; r < rows && MapCellBareWall(MapGetCell(hx, r)); r++) {
+            MapCell* a = MapGetCell(hx, r);
+            long score = 0;
+            /* plain wall is the same in both rows of its cell */
+            for (c = 0; c < 4 && a->bg2Map[c] == a->bg2Map[32 + c]; c++) {}
+            if (c < 4)
+                continue;
+            for (c = 0; c < 8; c++)
+                score += sCount[a->bg2Map[(c >> 2) * 32 + (c & 3)]];
+            if (score > bestScore) {
+                bestScore = score;
+                sPlain[hx] = a;
+            }
+        }
+        sDone[hx] = 1;
+    }
+    return sPlain[hx];
+}
+
 /* Screen entry of world tile (tx, ty) for BG1-3 of a cell-built room: the
    same composition MapBuildBgColumn/Row stream into VRAM, so the wide view
    can show the room beyond the hardware's 32x32-tile window. */
@@ -157,31 +211,8 @@ static int MapWorldTile(int bg, int tx, int ty) {
             return e;
         if (bg == 1)
             return sMapRoomDef->map[0x110];
-        /* behind the edge, plain wall (bare stripes: each tile column the
-           same in both rows of the cell), never a piece of its ornaments;
-           failing that, the first cell that continues unchanged into the next */
-        {
-            int i, r, c;
-            cell = MapGetCell(hx, 0);
-            for (r = 0; r < 40 && MapCellBareWall(MapGetCell(hx, r)); r++) {
-                MapCell* a = MapGetCell(hx, r);
-                for (c = 0; c < 4 && a->bg2Map[c] == a->bg2Map[32 + c]; c++) {}
-                if (c == 4) {
-                    cell = a;
-                    r = -1;
-                    break;
-                }
-            }
-            for (r = r < 0 ? 99 : 0; r < 6 && MapCellBareWall(MapGetCell(hx, r + 1)); r++) {
-                MapCell* a = MapGetCell(hx, r);
-                MapCell* b = MapGetCell(hx, r + 1);
-                for (i = 0; i < 8 && a->bg2Map[(i >> 2) * 32 + (i & 3)] == b->bg2Map[(i >> 2) * 32 + (i & 3)]; i++) {}
-                if (i == 8) {
-                    cell = a;
-                    break;
-                }
-            }
-        }
+        /* behind the edge, the column's plain wall, not a piece of its ornaments */
+        cell = MapPlainWallCell(hx);
         my = y & 1;
     }
     if (cell == NULL) {
