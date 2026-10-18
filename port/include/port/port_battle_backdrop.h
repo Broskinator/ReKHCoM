@@ -8,4 +8,7 @@
 int PortGuardArmorBackdropMatches(const void* const* maps);
 int PortGuardArmorBackdropPixel(int x, int y, uint16_t* color);
 
+int PortDarksideBackdropMatches(const void* const* maps);
+int PortDarksideBackdropPixel(int x, int y, uint16_t* color);
+
 #endif

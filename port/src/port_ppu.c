@@ -72,6 +72,7 @@ static int sBgIso[4];
 static int sBgIsoLatched[4];
 static int sEventBackdropProfile = -1; /* derived at frame start, not saved */
 static int sUseSceneProfiles;
+static int sDarksideBackdrop; /* derived from the active BG0, never saved */
 
 /* Scenes reviewed with the continued floor. Many maps end in an authored
    dark void past their walls, which must stay; only listed scenes extend.
@@ -919,6 +920,11 @@ static int WorldEntry(const BgLatch* l, int wx, int wy) {
  * so apply profiles before testing declared map bounds. */
 static int ExtendedWorldEntry(const BgLatch* l, int wx, int wy) {
     int bg = (int)(l - sBgLatch), tx = wx >> 3, ty = wy >> 3, supported = 0, ok = 0;
+    if (sDarksideBackdrop && bg == 1) {
+        /* Darkside is painted into BG1, not only sprites. Its transparent
+         * padding ends the layer; wrapping it duplicates limbs in ultrawide. */
+        return wx >= 0 && wy >= 0 && tx < l->width * 32 && ty < l->height * 32 ? MapTile(l, tx, ty) : -1;
+    }
     if (!sBattleView && l->map && sUseSceneProfiles) {
         if (sEventBackdropProfile == 57 && (bg == 2 || bg == 3)) {
             supported = 1;
@@ -1165,6 +1171,15 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             int wx = l->x + gx + (hofs - l->hofs);
             int wy = l->y + gy + (vofs - l->vofs);
             if (PortGuardArmorBackdropPixel(wx, wy, &out[x])) {
+                sInWorld[x] = 1;
+                continue;
+            }
+        }
+        if (sDarksideBackdrop && bg == 0 && (outside || gx < 0 || gx >= GBA_SCREEN_W)) {
+            const BgLatch* l = &sBgLatch[bg];
+            int wx = l->x + gx + (hofs - l->hofs);
+            int wy = l->y + gy + (vofs - l->vofs);
+            if (PortDarksideBackdropPixel(wx, wy, &out[x])) {
                 sInWorld[x] = 1;
                 continue;
             }
@@ -2470,6 +2485,9 @@ void PortPpuBeginFrame(void) {
         sBgWorldLatched[b].valid = !sBgLatch[b].valid && ValidateBgWorld(b, dispcnt);
         any |= sBgLatch[b].valid | sBgWorldLatched[b].valid;
     }
+    sDarksideBackdrop = sBattleView && sBgLatch[0].valid &&
+        PortDarksideBackdropMatches((const void* const*)sBgLatch[0].map) &&
+        getenv("KHCOM_NO_DARKSIDE_BACKDROP") == NULL;
     /* Large affine stages (battle arenas) are fully in VRAM and extend as is. */
     for (b = 2; b < 4; b++) {
         int mode = dispcnt & 7;
