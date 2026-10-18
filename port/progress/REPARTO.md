@@ -1,3 +1,12 @@
+## Codex — 18/10/2026
+
+Encargo completo en **port/progress/CODEX_TAREAS.md**: issues #14 (Undub desde
+la ROM JP, prioridad), #13 (reasignar controles, gatillos), #6, respuestas de
+#5/#4/#3, menú de opciones con el selector del debug oficial, truco "modo
+debug", revisar unstock, #12, tira del fondo en arenas GBA y RetroAchievements.
+Codex solo commitea en su rama; Claude integra, publica y cierra issues.
+Claude sigue con los fondos de escenas en lotes de 10 con el usuario.
+
 ## Reparto vigente — 18/10/2026 (sustituye a los anteriores)
 
 Estable pública: **v1.9.2** (Windows + Android alpha + Web alpha, un archivo
