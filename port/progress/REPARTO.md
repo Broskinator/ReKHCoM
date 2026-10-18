@@ -1,3 +1,24 @@
+## CIERRE DE WORKERS Y COLA ÚNICA (vigente)
+
+Abrir [PENDIENTES_VIGENTES.md](PENDIENTES_VIGENTES.md): 44 puntos y responsables.
+Cierres comprobados en [CIERRE_WORKERS.md](CIERRE_WORKERS.md).
+Primero recoger los workers actuales; no abrir otra tanda.
+Los apartados siguientes son historial y no otra cola vigente.
+
+## ENCARGO VIGENTE: CLAUDE + CODEX, CERRAR Y PUBLICAR (18/10/2026)
+
+**Claude:** guardados/persistencia + savestate borde superior + savestate 3
+checkerboard + integración y publicación autorizada. **Codex:** 057/061/074
+en vista amplia. Asignación y checklist: [REPARTIJA_20261018.md](REPARTIJA_20261018.md).
+Esta asignación sustituye repartos previos de estas tareas.
+
+## Repartija actualizada para Claude — 18/10/2026
+
+Ver [REPARTIJA_20261018.md](REPARTIJA_20261018.md): guardados, persistencia,
+savestates y reparto de workers. Estado vigente: **1/44 escena aprobada (León),
+3 mejorables**; revisión con lienzo mucho más amplio antes de continuar.
+Este encabezado sustituye los contadores antiguos de aprobación.
+
 ## Integración Nightly 2 — 18/10/2026
 
 Guard Armor aceptado y perfiles de escenas 057/061/074 conectados al juego,
