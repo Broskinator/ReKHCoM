@@ -1,7 +1,10 @@
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <string.h>
+#if __has_include(<time.h>)
 #include <time.h>
+#define KH_LOCAL_WALL_CLOCK 1
+#endif
 #include "port/port.h"
 #include "port/port_ui.h"
 #include "game_state.h"
@@ -33,7 +36,11 @@ void PortAchievementsInit(void) {
         ".dat"));
     KhLocalLoad(&sLocal, sLocalPath);
     config = fopen(PortConfigPath("achievements_local.ini"), "r");
-    if (config) { int value = 1; if (fscanf(config, "enabled=%d", &value) == 1) sLocalEnabled = value == 1; fclose(config); }
+    if (config) {
+        char line[64]; int value = 1;
+        if (fgets(line, sizeof(line), config) && sscanf(line, "enabled=%d", &value) == 1) sLocalEnabled = value == 1;
+        fclose(config);
+    }
 #ifdef PORT_RETROACHIEVEMENTS
     /* Catalog/account access is integrated. Official frame evaluation stays
      * off until relocated globals and pointer chains are verified against the
@@ -94,7 +101,11 @@ void PortAchievementsFrame(void) {
     snapshot.card_kinds = gGameState.progression.obtainedCardKinds;
     snapshot.friends = gGameState.progression.friendFlags;
     {
-        uint32_t added = KhLocalObserve(&sLocal, &snapshot, (uint64_t)time(NULL));
+        uint64_t now = 0; /* A guest without a wall clock stores an unknown time. */
+#ifdef KH_LOCAL_WALL_CLOCK
+        now = (uint64_t)time(NULL);
+#endif
+        uint32_t added = KhLocalObserve(&sLocal, &snapshot, now);
         if (added) {
             if (!KhLocalSave(&sLocal, sLocalPath)) PortLog("achievements: could not save local progress");
             sPendingNotices |= added;

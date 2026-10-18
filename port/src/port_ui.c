@@ -646,6 +646,7 @@ int PortUiTextWidth(const char* text) { return TextWidth(text); }
 
 int PortUiRenderTextLine(uint32_t* pixels, int width, int height, const char* text, uint32_t color) {
     uint32_t* previous = sFb;
+    uint32_t shadow = Mix(color, 0xFFFCFBFBu, 170);
     int previousW = sFbW, previousH = sFbH, x = 0;
     if (!pixels || width <= 0 || height <= 0) return 0;
     memset(pixels, 0, (size_t)width * height * sizeof(*pixels));
@@ -653,10 +654,10 @@ int PortUiRenderTextLine(uint32_t* pixels, int width, int height, const char* te
     while (*text) {
         int code = NextChar(&text), advance = GlyphWidth(code);
         if (x + advance > width - 10 && *text) {
-            DrawText("...", x, 0, color, color);
+            DrawText("...", x, 0, color, shadow);
             x += 9; break;
         }
-        DrawGlyph(code, x, 0, color, color); x += advance;
+        DrawGlyph(code, x, 0, color, shadow); x += advance;
     }
     sFb = previous; sFbW = previousW; sFbH = previousH;
     return x;

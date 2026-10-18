@@ -29,7 +29,7 @@ achievements_us.dat y achievements_jp.dat mediante reemplazo atómico.
 
 La primera observación válida establece una base: un save previo no concede
 logros retroactivos. Se necesitan transiciones observadas durante el juego. Los
-trucos, revanchas, savestates y modificadores de gameplay deshabilitan nuevos
+trucos, menú debug, revanchas, savestates y modificadores de gameplay deshabilitan nuevos
 premios hasta reiniciar el juego; apagar el truco no restaura integridad en esa
 sesión. Los harness de pruebas tampoco conceden premios. El ajuste local vive
 en achievements_local.ini y se aplica al iniciar el juego.
@@ -47,6 +47,13 @@ Capturas: 1080p con zoom x3, build/ra-toast1080. La variable de harness
 KHCOM_ACHIEVEMENT_PREVIEW=180 muestra un aviso claramente marcado VISTA PREVIA,
 sin escribir progreso. La presentación funciona también en los backends SDL
 portables; cliente de cuenta/HTTPS actual: Windows.
+
+test_achievement_presentation.py también renderiza la salida real a 240x160,
+640x360, 1920x1080 y 2560x1080 y comprueba centrado/márgenes, capturando entrada,
+lectura y salida. Ninguna vista previa concede progreso. Evidencia y clip MP4 en
+build/achievement-presentation. Esa grabación usa reloj de frames únicamente
+para el aviso marcado VISTA PREVIA, evitando que el coste del encoder cambie su
+animación capturada; durante el juego normal se usa tiempo real SDL.
 
 ## Corrección de la primera aproximación
 
@@ -69,7 +76,14 @@ reconexión y logout; hash EU real y carga/evaluación de un catálogo sintétic
 través de rcheevos, sin envíos de premios ni sesión. Fixtures no son un login real.
 El informe reproducible queda en build/achievements-test/report.json.
 
-Builds Windows EU/US/JP y launcher: build/ra-{eu,us,jp}. La ROM EU local coincide
+Builds Windows EU/US/JP y launcher: build/ra-{eu,us,jp}. Copia ejecutable para
+revisión local en build/achievements-review/ReKHCoM.exe, sin modificar la
+instalación ni los guardados del usuario. Las fuentes nuevas del puente local,
+aviso y lector pasan también compilación con el perfil guest x32 de PS5. La
+persistencia evita dependencias de fscanf/strtoull/time en ese guest; no es una
+prueba de ejecución física de PS5 ni un paquete publicado.
+
+La ROM EU local coincide
 con d369f791d86a969778d2c3a5278d544c, admitida por el juego 768. La lista oficial
 solo registra ese archivo y 02c38fb19dab302379ece65724fb4e0f para Level 1; US/JP
 usan los retos locales. No se fuerza el hash EU para otra región o una ROM modificada.

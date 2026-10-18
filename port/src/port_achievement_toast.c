@@ -13,6 +13,7 @@ static SDL_Renderer* sRenderer;
 static int sWidth;
 static int sVisible;
 static int sOutputWidth;
+static Uint64 sPreviewClock;
 
 void PortAchievementToast(const char* title, const char* detail, const char* label) {
     AchievementToast* toast;
@@ -73,6 +74,10 @@ void PortAchievementToastDraw(void* opaqueRenderer, int width, int height) {
     SDL_FRect dst, src, shadow;
     unsigned elapsed;
     if (!sCount || width < 96 || height < 64) return;
+    /* Only the explicitly labelled preview harness may use deterministic
+     * frame time, so video encoding speed cannot change its captured motion. */
+    if (SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW") && SDL_getenv("KHCOM_TOAST_FRAMECLOCK"))
+        now = (++sPreviewClock * 1000) / 60;
     if (sVisible && sOutputWidth != width) {
         if (!Prepare(renderer, width)) return;
     }
@@ -97,4 +102,5 @@ void PortAchievementToastDraw(void* opaqueRenderer, int width, int height) {
 void PortAchievementToastShutdown(void) {
     if (sTexture) SDL_DestroyTexture(sTexture);
     sTexture = NULL; sRenderer = NULL; sCount = sHead = 0; sStart = 0; sVisible = 0;
+    sPreviewClock = 0;
 }

@@ -69,9 +69,29 @@ static FILE* Open(const char* path, const char* mode) {
 #endif
 }
 
+/* Keep the storage parser available on small console guest C libraries too. */
+static int ReadNumber(FILE* file, unsigned base, uint64_t* result) {
+    char line[80];
+    const char* p;
+    uint64_t value = 0;
+    int digits = 0;
+    if (!fgets(line, sizeof(line), file)) return 0;
+    for (p = line; *p && *p != '\r' && *p != '\n'; ++p) {
+        unsigned digit;
+        if (*p >= '0' && *p <= '9') digit = (unsigned)(*p - '0');
+        else if (*p >= 'a' && *p <= 'f') digit = (unsigned)(*p - 'a' + 10);
+        else if (*p >= 'A' && *p <= 'F') digit = (unsigned)(*p - 'A' + 10);
+        else return 0;
+        if (digit >= base || value > (UINT64_MAX - digit) / base) return 0;
+        value = value * base + digit; ++digits;
+    }
+    if (!digits) return 0;
+    *result = value; return 1;
+}
+
 int KhLocalLoad(KhLocalState* state, const char* path) {
     char header[32];
-    unsigned long mask;
+    uint64_t mask = 0;
     KhLocalState loaded;
     FILE* file = Open(path, "r");
     int i, ok = 1;
@@ -79,11 +99,9 @@ int KhLocalLoad(KhLocalState* state, const char* path) {
     if (!file) return 0;
     memset(&loaded, 0, sizeof(loaded));
     if (!fgets(header, sizeof(header), file) || strcmp(header, "KHLOCAL1\n") != 0 ||
-        fscanf(file, "%lx", &mask) != 1 || mask >> KH_LOCAL_COUNT) ok = 0;
+        !ReadNumber(file, 16, &mask) || mask >> KH_LOCAL_COUNT) ok = 0;
     for (i = 0; ok && i < KH_LOCAL_COUNT; ++i) {
-        unsigned long long when;
-        if (fscanf(file, "%llu", &when) != 1) ok = 0;
-        else loaded.when[i] = (uint64_t)when;
+        if (!ReadNumber(file, 10, &loaded.when[i])) ok = 0;
     }
     if (ok) { loaded.unlocked = (uint32_t)mask; *state = loaded; }
     fclose(file);

@@ -40,6 +40,7 @@ extern const char* GetModeName(void);
 #include "gba/macro.h"
 #include "types.h"
 #ifdef PLATFORM_PC
+#include "port/port.h"
 #include "display.h"
 #include "m4a_song.h"
 #include "card_worldselect.h"
@@ -98,8 +99,10 @@ int PortDebugModeAvailable(void) {
 }
 
 void PortDebugModeEnter(void) {
-    if (PortDebugModeAvailable())
+    if (PortDebugModeAvailable()) {
+        PortAchievementsInvalidate("Debug menu entered");
         ModeRequest(&gModeDebug, 0);
+    }
 }
 
 extern Mode gModeBattle;

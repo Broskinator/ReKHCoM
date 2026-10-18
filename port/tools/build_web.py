@@ -84,6 +84,8 @@ def main():
     headers = sorted([*ROOT.joinpath('include').rglob('*.h'),
                       *ROOT.joinpath('port/include').rglob('*.h'), *gen.rglob('*.h'),
                       *ROOT.joinpath('port/include').rglob('*.inc'),
+                      *ROOT.joinpath('port/achievements').glob('*.h'),
+                      ROOT / 'port/achievements/local_achievements.c',
                       *ROOT.joinpath('port/android/native').glob('*.h'), work / 'web_sjis.h'])
     header_hash = hashlib.sha256()
     for path in headers:
