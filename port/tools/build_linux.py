@@ -18,6 +18,11 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools'))
 import ninja_syntax  # noqa: E402
 
+# clang/lld/llvm-readelf from llvm-mingw and ninja from ../toolchain.
+_TC = ROOT.parent / 'toolchain'
+os.environ['PATH'] = os.pathsep.join([str(p / 'bin') for p in sorted(_TC.glob('llvm-mingw-*'))[-1:]]
+                                     + [str(_TC / 'bin'), os.environ.get('PATH', '')])
+
 ARCHES = {
     'i386': {'triple': 'i686-linux-gnu', 'flags': '-march=i686 -msse2 -mfpmath=sse'},
     'armhf': {'triple': 'arm-linux-gnueabihf', 'flags': '-march=armv7-a -mfpu=neon -mfloat-abi=hard -mthumb'},
