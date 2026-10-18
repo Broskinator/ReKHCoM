@@ -43,12 +43,13 @@ this when the app opens. They are written to `/data/ReKHCom/states/` and only lo
 
 ## Updates
 
-On start the app looks at the releases of `darkxex/ReKHCom-PS5` on GitHub. A release tagged `ps5-vX.Y.Z` newer than the
+On start the app looks at the releases of `MatyMeatBoy/ReKHCoM` on GitHub. A release tagged `ps5-vX.Y.Z` newer than the
 installed build (the `contentVersion` of `sce_sys/param.json`) is downloaded one second after the game opens, from its
 `PPSA98511.zip`, and written over the folder the app runs from (`/data/homebrew`, or an extended or USB drive). The
 notice on screen says when it is done; the new version runs from the next start. Create `/data/ReKHCom/no-update` to
-turn it off. To publish one: raise `contentVersion`, build, and attach `dist/PPSA98511.zip` to a release tagged
-`ps5-v<version>`.
+turn it off. To publish one: build with `python3 port/ps5/build_ps5.py all --version X.Y.Z --package`, then attach
+`port/ps5/dist/PPSA98511.zip` to the project's GitHub release using the matching `ps5-vX.Y.Z` tag. The main project
+release can carry this asset alongside the other platform packages.
 
 ## Not available yet
 

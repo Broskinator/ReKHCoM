@@ -16,6 +16,7 @@ import re
 import shutil
 import subprocess
 import sys
+import zipfile
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -258,6 +259,17 @@ def build_host(regions):
     print('app:', DIST / 'PPSA98511')
 
 
+def package_host():
+    app = DIST / 'PPSA98511'
+    archive = DIST / 'PPSA98511.zip'
+    if archive.exists():
+        archive.unlink()
+    with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+        for path in sorted(p for p in app.rglob('*') if p.is_file()):
+            zf.write(path, Path('PPSA98511') / path.relative_to(app))
+    print('package:', archive)
+
+
 def deploy(host, port):
     from ftplib import FTP
     app = DIST / 'PPSA98511'
@@ -309,12 +321,33 @@ def main():
     p.add_argument('--ip', help='console address for deploy (FTP)')
     p.add_argument('--ftp-port', type=int, default=2121)
     p.add_argument('--jobs', type=int, default=os.cpu_count() or 2)
+    p.add_argument('--version', help='set the PS5 app version for this build (X.Y.Z)')
+    p.add_argument('--package', action='store_true', help='write dist/PPSA98511.zip after building the app')
     args = p.parse_args()
+    if args.version and args.step not in ('host', 'all'):
+        p.error('--version can be used with host or all')
+    original_header = None
+    if args.version:
+        if not re.fullmatch(r'\d+\.\d+\.\d+', args.version):
+            p.error('--version must use X.Y.Z')
+        header = HERE / 'app/ReKHCoM.h'
+        original_header = header.read_text()
+        updated = re.sub(r'(#define\s+ReKHCoM_VERSION\s+")\d+\.\d+\.\d+(" )?',
+                         lambda m: m.group(1) + args.version + '"', original_header, count=1)
+        if updated == original_header:
+            p.error('ReKHCoM_VERSION (X.Y.Z) not found in app/ReKHCoM.h')
+        header.write_text(updated)
     if args.step in ('guest', 'all'):
         for region in (args.regions if args.step == 'all' else [args.region]):
             build_guest(region, args.jobs)
     if args.step in ('host', 'all'):
-        build_host(args.regions)
+        try:
+            build_host(args.regions)
+            if args.package:
+                package_host()
+        finally:
+            if original_header is not None:
+                (HERE / 'app/ReKHCoM.h').write_text(original_header)
     if args.step == 'deploy':
         if not args.ip:
             sys.exit('deploy needs --ip')
