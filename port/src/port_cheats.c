@@ -1,0 +1,133 @@
+/*
+ * Cheats page (Options -> Cheats): requested to help players stuck on card
+ * battles. Toggles are off by default; the actions change the game in
+ * progress only while walking on the map, inside the cartridge's own limits.
+ */
+#include <string.h>
+#include "types.h"
+#include "game_state.h"
+#include "player_progression.h"
+#include "card_api.h"
+#include "card_map_anim.h"
+#include "card_def_data.h"
+#include "card_types.h"
+#include "card_ids.h"
+#include <SDL3/SDL.h>
+#include "port/port.h"
+
+extern const char* GetModeName(void);
+extern u8 gMapCardCounts[270];
+extern u16 gCardCollection[999];
+extern u16 gCardCount;
+u16 CountCardsById(u16 cardId);
+
+/* Enemies fall to one hit; the player loses no HP. Applied after the
+   difficulty scaling, to damage only (healing passes untouched). */
+int PortCheatDamage(int damage, int player) {
+    int out = damage;
+    if (damage > 0 && player && gPortConfig.cheatInfiniteHp)
+        out = 0;
+    else if (damage > 0 && !player && gPortConfig.cheatOneHit)
+        out = 9999;
+    if (out != damage && SDL_getenv("KHCOM_DAMAGELOG"))
+        PortLog("cheat: %s damage %d -> %d", player ? "player" : "enemy", damage, out);
+    return out;
+}
+
+/* the actions: only walking a room (world or castle hall), never in a
+   battle, menu or event */
+int PortCheatActionsAvailable(void) {
+    const char* mode = GetModeName();
+    return strcmp(mode, "Mode_MapFld") == 0 || strcmp(mode, "Mode_MapFix") == 0;
+}
+
+/* Level 99 with every level-up bonus at once (normally one per level):
+   HP +15 and CP +25 (Sora) or AP/DP (Riku) for each of the 98 levels, within
+   the game's caps, and every level-up sleight. */
+int PortCheatMaxLevel(void) {
+    PlayerProgression* p = &gGameState.progression;
+    u32 exp = 0;
+    int level;
+
+    if (!PortCheatActionsAvailable())
+        return 0;
+    p->level = 1;
+    p->nextExp = 0x19;
+    for (level = 1; level < 99; level++) {
+        exp = p->nextExp;
+        AdvanceLevelExpThreshold(p);
+        p->level++;
+    }
+    if (p->exp < exp)
+        p->exp = exp;
+    p->maxHp = 560; /* 80 + 98 x 15 is past the cap */
+    gGameState.hp = p->maxHp;
+    if (gGameState.flags & GAME_FLAG_RIKU) {
+        p->ap = 10 + 20; /* one AP at each of the 20 AP levels */
+        p->dp = 8 + 98 * 2;
+        p->levelMilestone = 20;
+    } else {
+        static const u8 kSleights[] = {
+            LEARNED_STOCK_SLIDING_DASH, LEARNED_STOCK_STUN_IMPACT, LEARNED_STOCK_STRIKE_RAID,
+            LEARNED_STOCK_BLITZ, LEARNED_STOCK_SONIC_BLADE, LEARNED_STOCK_ZANTETSUKEN,
+            LEARNED_STOCK_TORNADO, LEARNED_STOCK_ARS_ARCANUM, LEARNED_STOCK_HOLY,
+            LEARNED_STOCK_RAGNAROK, LEARNED_STOCK_MEGA_FLARE,
+        };
+        size_t i;
+        p->cp = 275 + 98 * 25;
+        for (i = 0; i < sizeof(kSleights); i++)
+            LearnStock(kSleights[i]);
+        p->levelMilestone = 11;
+    }
+    return 1;
+}
+
+/* Every regular map card at the most the game holds of one card (9). Past
+   99 in all the game simply stops awarding more; key cards are untouched. */
+int PortCheatMapCards(void) {
+    int i;
+
+    if (!PortCheatActionsAvailable())
+        return 0;
+    for (i = 0; i < 220; i++)
+        gMapCardCounts[i] = 9;
+    return 1;
+}
+
+/* a card Sora can own: attack, magic, summon, item or enemy */
+static int CollectableCard(int id) {
+    const CardDef* def = &gCardDefs[id];
+    return def->kind <= CARD_KIND_ANSEM && !(def->flags & (CARD_DEF_FLAG_FRIEND | CARD_DEF_FLAG_GIMMICK)) &&
+           def->category <= CARD_CATEGORY_ENEMY;
+}
+
+/* Battle cards: the collection holds 999, up to 99 copies of one card. One
+   of every card first, then copies (Keyblades first) in the free slots.
+   Cards already in the collection and in decks stay where they are. */
+int PortCheatBattleCards(void) {
+    int pass, id, added = 1;
+
+    if (!PortCheatActionsAvailable() || (gGameState.flags & GAME_FLAG_RIKU))
+        return 0;
+    gCardCount = 999;
+    for (pass = 0; added && !IsCardCollectionFull(); pass++) {
+        added = 0;
+        for (id = 0; id < 950 && !IsCardCollectionFull(); id++) {
+            if (!CollectableCard(id) || (pass > 0 && pass < 50 && gCardDefs[id].category != CARD_CATEGORY_ATTACK))
+                continue;
+            if (pass == 0 && CountCardsById(id) > 0)
+                continue;
+            if (ObtainCard(id) != CARD_NOT_ADDED)
+                added = 1;
+        }
+        if (!added && pass > 0 && pass < 50) {
+            pass = 49; /* Keyblades full: copies of the rest */
+            added = 1;
+        }
+    }
+    return 1;
+}
+
+unsigned PortGameFlags(void) {
+    return gGameState.flags;
+}

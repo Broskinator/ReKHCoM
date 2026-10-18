@@ -19,6 +19,11 @@
 extern void* gMsgLatinFontFrames[];
 extern const uint8_t gMsgLatinFontTiles[];
 extern int PortDebugModeAvailable(void);
+extern int PortCheatActionsAvailable(void);
+extern int PortCheatMaxLevel(void);
+extern int PortCheatMapCards(void);
+extern int PortCheatBattleCards(void);
+extern unsigned PortGameFlags(void);
 extern void PortDebugModeEnter(void);
 #ifdef VERSION_EU
 extern uint32_t gLanguage;
@@ -77,6 +82,11 @@ enum {
     ITEM_NG_START,
     ITEM_CHEAT_DEBUG,
     ITEM_CHEAT_RIKU,
+    ITEM_CHEAT_ONEHIT,
+    ITEM_CHEAT_INFHP,
+    ITEM_CHEAT_MAXLEVEL,
+    ITEM_CHEAT_MAPCARDS,
+    ITEM_CHEAT_BATTLECARDS,
     ITEM_CHEATS_BACK,
     ITEM_CONTROL_A,
     ITEM_CONTROL_B,
@@ -201,6 +211,15 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Start", "Commencer", "Beginnen", "Inizia", "Comenzar", "はじめる" },
     { "Enter debug mode", "Entrer en mode debug", "Debug-Modus starten", "Entra in modalità debug", "Entrar al modo debug", "デバッグモード" },
     { "Unlock Riku", "Débloquer Riku", "Riku freischalten", "Sblocca Riku", "Desbloquear a Riku", "リクを解放" },
+    { "Enemies fall in one hit", "Ennemis vaincus d'un coup", "Gegner fallen mit einem Treffer",
+      "Nemici sconfitti con un colpo", "Enemigos caen de un golpe", "敵を一撃で倒す" },
+    { "Infinite HP", "PV infinis", "Unendliche KP", "PS infiniti", "Vida infinita", "HP無限" },
+    { "Level 99 with every bonus", "Niveau 99 avec tous les bonus", "Stufe 99 mit allen Boni",
+      "Livello 99 con tutti i bonus", "Nivel 99 con todos los bonos", "全ボーナス付きレベル99" },
+    { "Every map card (9 each)", "Toutes les cartes de salle (9)", "Alle Raumkarten (je 9)",
+      "Tutte le carte stanza (9)", "Todas las cartas de mapa (9 c/u)", "全マップカード (各9枚)" },
+    { "Fill battle card collection", "Remplir la collection de cartes", "Kampfkartensammlung füllen",
+      "Riempi la collezione di carte", "Llenar colección de cartas", "バトルカードを満たす" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
     { "A", "A", "A", "A", "A", "A" },
     { "B", "B", "B", "B", "B", "B" },
@@ -220,12 +239,15 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
 };
 static const char* const sCheatsTitle[LANG_COUNT] = { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" };
 static const char* const sCheatsHelp[LANG_COUNT] = {
-    "The debug menu clears current play data; use only at the title screen.",
-    "Le menu debug efface la partie en cours ; utilisez-le depuis le titre.",
-    "Das Debug-Menü löscht den aktuellen Spielstand; nur im Titelbildschirm.",
-    "Il menu debug cancella i dati di gioco correnti; solo dal titolo.",
-    "El menú debug reinicia la partida en curso; úsalo desde el título.",
-    "デバッグメニューは進行中のデータを初期化します。タイトル画面で使用。",
+    "Debug: title screen only. Level and cards: on the map; save to keep them.",
+    "Debug : écran titre. Niveau et cartes : sur la carte ; sauvegardez.",
+    "Debug: nur im Titel. Stufe und Karten: auf der Karte; dann speichern.",
+    "Debug: solo dal titolo. Livello e carte: sulla mappa; poi salva.",
+    "Debug: solo en el título. Nivel y cartas: en el mapa; guarda para conservarlos.",
+    "デバッグはタイトルで。レベルとカードはマップ上で。保存して反映。",
+};
+static const char* const sCheatDone[LANG_COUNT] = {
+    "Cheat applied", "Code appliqué", "Cheat angewendet", "Trucco applicato", "Truco aplicado", "チートを適用",
 };
 static const char* const sNgTitle[LANG_COUNT] = { "New game", "Nouvelle partie", "Neues Spiel", "Nuova partita",
     "Nueva partida", "ニューゲーム" };
@@ -613,6 +635,9 @@ static int ItemEnabled(int item) {
     switch (item) {
         case ITEM_UNDUB: return PortUndubAvailable();
         case ITEM_CHEAT_DEBUG: return PortDebugModeAvailable();
+        case ITEM_CHEAT_MAXLEVEL:
+        case ITEM_CHEAT_MAPCARDS: return PortCheatActionsAvailable();
+        case ITEM_CHEAT_BATTLECARDS: return PortCheatActionsAvailable() && !(PortGameFlags() & 8 /* Riku */);
         case ITEM_ZOOM:
         case ITEM_INTZOOM:
             return gPortConfig.viewMode == PORT_VIEW_AUTO;
@@ -738,6 +763,17 @@ static void ValueText(int item, char* out, size_t size) {
             break;
         case ITEM_CHEAT_RIKU:
             SDL_strlcpy(out, sOnOff[gPortConfig.cheatUnlockRiku != 0][l], size);
+            break;
+        case ITEM_CHEAT_ONEHIT:
+            SDL_strlcpy(out, sOnOff[gPortConfig.cheatOneHit != 0][l], size);
+            break;
+        case ITEM_CHEAT_INFHP:
+            SDL_strlcpy(out, sOnOff[gPortConfig.cheatInfiniteHp != 0][l], size);
+            break;
+        case ITEM_CHEAT_MAXLEVEL:
+        case ITEM_CHEAT_MAPCARDS:
+        case ITEM_CHEAT_BATTLECARDS:
+            SDL_strlcpy(out, "→", size);
             break;
         case ITEM_CHEAT_DEBUG:
         case ITEM_CONTROL_RESET:
@@ -926,6 +962,21 @@ static void Change(int item, int dir) {
             break;
         case ITEM_CHEAT_RIKU:
             gPortConfig.cheatUnlockRiku = !gPortConfig.cheatUnlockRiku;
+            break;
+        case ITEM_CHEAT_ONEHIT:
+            gPortConfig.cheatOneHit = !gPortConfig.cheatOneHit;
+            break;
+        case ITEM_CHEAT_INFHP:
+            gPortConfig.cheatInfiniteHp = !gPortConfig.cheatInfiniteHp;
+            break;
+        case ITEM_CHEAT_MAXLEVEL:
+        case ITEM_CHEAT_MAPCARDS:
+        case ITEM_CHEAT_BATTLECARDS:
+            if (dir > 0 && (item == ITEM_CHEAT_MAXLEVEL ? PortCheatMaxLevel()
+                            : item == ITEM_CHEAT_MAPCARDS ? PortCheatMapCards() : PortCheatBattleCards())) {
+                Close();
+                PortUiNotice(sCheatDone[Lang()]);
+            }
             break;
         case ITEM_CHEAT_DEBUG:
             if (PortDebugModeAvailable()) {

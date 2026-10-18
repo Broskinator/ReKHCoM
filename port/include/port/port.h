@@ -130,6 +130,8 @@ typedef struct PortConfig {
     int undub;                  /* Japanese voices; applied when loading the ROM */
     int savePointSlotSelect;    /* experimental: choose the save slot at save points */
     int hideTouchControls;      /* hide gameplay panels; keep access to options */
+    int cheatOneHit;            /* cheat: enemies fall to one hit */
+    int cheatInfiniteHp;        /* cheat: the player loses no HP */
 } PortConfig;
 
 extern PortConfig gPortConfig;

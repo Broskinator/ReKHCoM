@@ -37,7 +37,15 @@ static int DamagePercent(int player) {
     }
 }
 
+static int PortScaleDifficulty(int damage, int player);
+
+/* the damage a hit does: the difficulty, then the cheats */
 int PortScaleDamage(int damage, int player) {
+    extern int PortCheatDamage(int damage, int player);
+    return PortCheatDamage(PortScaleDifficulty(damage, player), player);
+}
+
+static int PortScaleDifficulty(int damage, int player) {
     int scaled;
     /* the original version, or Standard: the cartridge's own value, untouched */
     if (!PortRecomActive() || gPortConfig.ps2Difficulty == 0 || damage <= 0)

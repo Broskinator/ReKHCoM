@@ -229,6 +229,25 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
 
+    /* the Cheats page's actions: 1 level 99, 2 map cards, 3 battle cards */
+    if (strcmp(name, "cheat") == 0) {
+        extern int PortCheatMaxLevel(void), PortCheatMapCards(void), PortCheatBattleCards(void);
+        extern void PortLog(const char* format, ...);
+        extern u16 gCardCount;
+        extern u8 gMapCardCounts[270];
+        int ok = arg == 1 ? PortCheatMaxLevel() : arg == 2 ? PortCheatMapCards() : arg == 3 ? PortCheatBattleCards() : 0;
+        int i, cards = 0, maps = 0;
+        for (i = 0; i < 999; i++) cards += i < gCardCount && gCardCollection[i] != 0xFFF;
+        for (i = 0; i < 270; i++) maps += gMapCardCounts[i];
+        PortLog("harness: cheat mode=%s", PortHarnessModeName());
+        PortLog("harness: cheat %d ok=%d level=%u hp=%d cp=%d ap=%d dp=%d stocks=%08x%08x milestone=%u cards=%d/%u maps=%d",
+                arg, ok, (unsigned)gGameState.progression.level, gGameState.progression.maxHp, gGameState.progression.cp,
+                gGameState.progression.ap, gGameState.progression.dp,
+                (unsigned)(gGameState.progression.learnedStocks >> 32), (unsigned)gGameState.progression.learnedStocks,
+                (unsigned)gGameState.progression.levelMilestone, cards, (unsigned)gCardCount, maps);
+        return ok;
+    }
+
     if (strcmp(name, "rikuopening") == 0) {
         extern void RequestEventMode(u16 eventId);
         ResetGameState();

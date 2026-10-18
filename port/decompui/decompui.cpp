@@ -231,6 +231,8 @@ struct Setting {
 static const Setting kSettings[] = {
     { "undub", 0 },
     { "cheat_unlock_riku", 0 },
+    { "cheat_one_hit", 0 },
+    { "cheat_infinite_hp", 0 },
     { "experimental_save_point_slot_select", 0 },
     { "experimental_hide_touch_controls", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
