@@ -90,8 +90,10 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     de revisar estas tres; antes/después completo y contador. No rellenar vacíos diseñados.
 24. [ ] **Codex:** revisar tira de fondo de arenas GBA; distinguir lo que ya corrige
     Guard Armor de los casos que aún quedan, en especial Maléfica dragón.
-25. [ ] **Codex:** remapeo/gatillos, verificación con mando cuando haya dispositivo;
-    comprobar estado real de respuestas #12/#13 antes de duplicar publicaciones.
+25. [~] **Codex:** remapeo/gatillos implementado; LT/RT comprobados con SDL virtual
+    (reposo, umbral, simultáneos, liberación, cierre de overlay y desconexión).
+    EU/US/JP compilan; test_web_controls.py PASS. Falta mando físico, sin
+    atribuirle a la prueba virtual validación de dispositivos concretos.
 26. [ ] **Codex:** issues #2/#3: concretar la función de historia y elemento HUD
     reportados antes de implementar; no prometer un remake completo.
 27. [ ] **Codex:** RetroAchievements: pasar de investigación a implementación y
@@ -145,6 +147,10 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     preferencia persistente, limpieza de pulsaciones y acceso a Opciones.
     6d0f33df1; pruebas de entrada, persistencia y controles Web correctas.
     Odin 2 y otros dispositivos físicos pendientes de validar (35/37).
+
+46. [~] **Codex:** issue #16, pantalla negra al sintetizar puertas fuera de vista
+    Automática. Reproducir con entrada real de puerta y comprobar todas las vistas;
+    prioridad sobre extensiones de arte. Claude mantiene #17/#18 (10–11).
 
 ## Qué bloquea la entrega inmediata
 

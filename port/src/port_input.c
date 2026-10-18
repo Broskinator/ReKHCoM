@@ -53,7 +53,7 @@ void PortInputSuppressUntilRelease(void) {
 
 /* Test harness: KHCOM_VPAD="from-to:BUTTON,..." plugs in a virtual gamepad
    and holds its buttons on those frames (SOUTH, EAST, WEST, NORTH, START,
-   BACK, LB, RB, UP, DOWN, LEFT, RIGHT, RS_LEFT, RS_RIGHT, RS_UP, RS_DOWN). */
+   BACK, LB, RB, LT, RT, UP, DOWN, LEFT, RIGHT, RS_LEFT, RS_RIGHT, RS_UP, RS_DOWN). */
 static SDL_Joystick* sVirtualPad;
 
 static void VirtualPadUpdate(void) {
@@ -62,6 +62,7 @@ static void VirtualPadUpdate(void) {
         { "WEST", SDL_GAMEPAD_BUTTON_WEST, -1, 0 }, { "NORTH", SDL_GAMEPAD_BUTTON_NORTH, -1, 0 },
         { "START", SDL_GAMEPAD_BUTTON_START, -1, 0 }, { "BACK", SDL_GAMEPAD_BUTTON_BACK, -1, 0 },
         { "LB", SDL_GAMEPAD_BUTTON_LEFT_SHOULDER, -1, 0 }, { "RB", SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER, -1, 0 },
+        { "LT", -1, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, 1 }, { "RT", -1, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, 1 },
         { "UP", SDL_GAMEPAD_BUTTON_DPAD_UP, -1, 0 }, { "DOWN", SDL_GAMEPAD_BUTTON_DPAD_DOWN, -1, 0 },
         { "LEFT", SDL_GAMEPAD_BUTTON_DPAD_LEFT, -1, 0 }, { "RIGHT", SDL_GAMEPAD_BUTTON_DPAD_RIGHT, -1, 0 },
         { "RS_LEFT", -1, SDL_GAMEPAD_AXIS_RIGHTX, -1 }, { "RS_RIGHT", -1, SDL_GAMEPAD_AXIS_RIGHTX, 1 },
@@ -72,6 +73,10 @@ static void VirtualPadUpdate(void) {
     unsigned frame = PortFrameCount();
     if (sVirtualPad == NULL || spec == NULL)
         return;
+    /* Joystick trigger axes use the full signed range; SDL maps their rest
+       position to gamepad zero. Raw zero would mean a half-held trigger. */
+    axes[SDL_GAMEPAD_AXIS_LEFT_TRIGGER] = -32768;
+    axes[SDL_GAMEPAD_AXIS_RIGHT_TRIGGER] = -32768;
     while (*spec) {
         unsigned a = 0, b = 0;
         char name[16] = { 0 };

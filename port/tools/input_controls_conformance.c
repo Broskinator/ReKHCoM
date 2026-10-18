@@ -64,7 +64,32 @@ int main(void){
     assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_RIGHTY,32767));
     SDL_UpdateJoysticks();assert(PortInputKeys()==PORT_KEY_UNSTOCK);
     gPortConfig.unstockButton=0;assert(!PortInputKeys());
+    assert(SDL_SetJoystickVirtualButton(joystick,SDL_GAMEPAD_BUTTON_RIGHT_STICK,false));
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_RIGHTY,0));
+    gPortConfig.pad[PORT_ACT_L]=PORT_PAD_AXIS_BASE+SDL_GAMEPAD_AXIS_LEFT_TRIGGER*2;
+    gPortConfig.pad[PORT_ACT_R]=PORT_PAD_AXIS_BASE+SDL_GAMEPAD_AXIS_RIGHT_TRIGGER*2;
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_LEFT_TRIGGER,-32768));
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_RIGHT_TRIGGER,-32768));
+    SDL_UpdateJoysticks();assert(!PortInputKeys());
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_LEFT_TRIGGER,-2000));
+    SDL_UpdateJoysticks();assert(!PortInputKeys()); /* below gamepad threshold */
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_LEFT_TRIGGER,32767));
+    SDL_UpdateJoysticks();assert(PortInputKeys()==KEY_L);
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_RIGHT_TRIGGER,32767));
+    SDL_UpdateJoysticks();assert(PortInputKeys()==(KEY_L|KEY_R));
+    PortInputSuppressUntilRelease();assert(!PortInputKeys());
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_LEFT_TRIGGER,-32768));
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_RIGHT_TRIGGER,-32768));
+    SDL_UpdateJoysticks();assert(!PortInputKeys());
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_RIGHT_TRIGGER,32767));
+    SDL_UpdateJoysticks();assert(PortInputKeys()==KEY_R);
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_RIGHT_TRIGGER,-32768));
+    SDL_UpdateJoysticks();assert(!PortInputKeys());
+    /* A disconnected controller cannot leave a remapped action held. */
+    assert(SDL_SetJoystickVirtualAxis(joystick,SDL_GAMEPAD_AXIS_LEFT_TRIGGER,32767));
+    SDL_UpdateJoysticks();assert(PortInputKeys()==KEY_L);
     SDL_CloseGamepad(pad);SDL_CloseJoystick(joystick);SDL_DetachVirtualJoystick(id);
-    SDL_Quit();puts("Input: 13 keys, experimental unstock OFF inert/ON one-shot hold, opposite directions, stock, dodge, focus/overlay reset, SDL virtual gamepad PASS");
+    SDL_UpdateJoysticks();assert(!PortInputKeys());
+    SDL_Quit();puts("Input: 13 keys, experimental unstock OFF inert/ON one-shot hold, opposite directions, stock, dodge, focus/overlay reset, SDL virtual gamepad, LT/RT remapping/threshold/release/disconnect PASS");
     return 0;
 }
