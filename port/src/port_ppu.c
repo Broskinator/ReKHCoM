@@ -19,6 +19,10 @@
 #include "port/port_hd2d.h"
 #include "engine.h"
 #include "port/port_state.h"
+#include "port/port_battle_backdrop.h"
+#include "port/port_scene057_tiles.h"
+#include "port/port_scene061_tiles.h"
+#include "port/port_scene074_tiles.h"
 
 extern const void* gMsgwinMapBlocks[4];
 
@@ -66,6 +70,8 @@ static BgWorld sBgWorld[4];
 static BgWorld sBgWorldLatched[4];
 static int sBgIso[4];
 static int sBgIsoLatched[4];
+static int sEventBackdropProfile = -1; /* derived at frame start, not saved */
+static int sUseSceneProfiles;
 
 /* Scenes reviewed with the continued floor. Many maps end in an authored
    dark void past their walls, which must stay; only listed scenes extend.
@@ -907,6 +913,29 @@ static int WorldEntry(const BgLatch* l, int wx, int wy) {
     return block[((wy & 255) >> 3) * 32 + ((wx & 255) >> 3)];
 }
 
+/* Accepted per-layer source recipes. Called only for the extra viewport
+ * pixels; native drawing/validation always uses the original map entries.
+ * A declared 64x64 map can have only one occupied 32x32 block (scene 074),
+ * so apply profiles before testing declared map bounds. */
+static int ExtendedWorldEntry(const BgLatch* l, int wx, int wy) {
+    int bg = (int)(l - sBgLatch), tx = wx >> 3, ty = wy >> 3, supported = 0, ok = 0;
+    if (!sBattleView && l->map && sUseSceneProfiles) {
+        if (sEventBackdropProfile == 57 && (bg == 2 || bg == 3)) {
+            supported = 1;
+            ok = PortScene057TileSource(bg, &tx, &ty);
+        } else if (sEventBackdropProfile == 61 && (bg == 2 || bg == 3)) {
+            supported = 1;
+            ok = PortScene061TileSource(bg, l->width * 32, l->height * 32, &tx, &ty);
+        } else if (sEventBackdropProfile == 74 && bg >= 1 && bg <= 3) {
+            supported = 1;
+            ok = PortScene074TileSource(bg, &tx, &ty);
+        }
+    }
+    if (supported)
+        return ok && tx >= 0 && ty >= 0 && tx < l->width * 32 && ty < l->height * 32 ? MapTile(l, tx, ty) : -1;
+    return WorldEntry(l, wx, wy);
+}
+
 /* Only a completely uniform, opaque corner tile is safe exterior padding.
  * Carry its palette colour beyond the map without stretching scenery or UI. */
 static uint16_t WorldPadding(int bg, const BgLatch* l) {
@@ -1099,6 +1128,9 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     int x, py, ty, fy, outside;
     int w = gPortScreen.width;
     int cachedTx = 0, cachedTy = 0, cachedEntry = -1, cachedValid = 0;
+    int guardPatio = sBattleView && bg == 0 && sBgLatch[bg].valid &&
+        PortGuardArmorBackdropMatches((const void* const*)sBgLatch[bg].map) &&
+        !getenv("KHCOM_NO_GUARD_PATIO"); /* isolated before/after harness */
 
     (void)dispcnt;
     if (mosV > 1)
@@ -1128,6 +1160,15 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             gx = (gx < 0 ? 0 : gx >= GBA_SCREEN_W ? GBA_SCREEN_W - 1 : gx);
         if (mosH > 1)
             gx -= ((gx % mosH) + mosH) % mosH;
+        if (guardPatio && (outside || gx < 0 || gx >= GBA_SCREEN_W)) {
+            const BgLatch* l = &sBgLatch[bg];
+            int wx = l->x + gx + (hofs - l->hofs);
+            int wy = l->y + gy + (vofs - l->vofs);
+            if (PortGuardArmorBackdropPixel(wx, wy, &out[x])) {
+                sInWorld[x] = 1;
+                continue;
+            }
+        }
         if (bg == sSinglePanelBg && sBgLatch[bg].valid &&
             (outside || gx < 0 || gx >= GBA_SCREEN_W)) {
             const BgLatch* l = &sBgLatch[bg];
@@ -1152,7 +1193,7 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             if (run > w - x) run = w - x;
             if (run > sRight - (x - gPortScreen.originX)) run = sRight - (x - gPortScreen.originX);
             if (!outside && gx < 0 && run > -gx) run = -gx;
-            we = l->valid ? WorldEntry(l, wx, wy) : wd->fn(bg, wx >> 3, wy >> 3);
+            we = l->valid ? ExtendedWorldEntry(l, wx, wy) : wd->fn(bg, wx >> 3, wy >> 3);
             if (we < 0) {
                 for (j = 0; j < run; j++) out[x + j] = sWorldPadding[bg];
                 x += run - 1;
@@ -1233,7 +1274,7 @@ scalar_world:
                 TiledBackdropCoordinates(bg, &wx, &wy);
                 if (!cachedValid || cachedTx != (wx >> 3) || cachedTy != (wy >> 3)) {
                     cachedTx = wx >> 3; cachedTy = wy >> 3;
-                    cachedEntry = WorldEntry(l, wx, wy);
+                    cachedEntry = ExtendedWorldEntry(l, wx, wy);
                     cachedValid = 1;
                 }
                 we = cachedEntry;
@@ -2418,6 +2459,8 @@ void PortPpuBeginFrame(void) {
     extern int PortPortableHdReady(void);
 #endif
     sBgTextCount = 0;
+    sEventBackdropProfile = PortEventBackdropProfile();
+    sUseSceneProfiles = getenv("KHCOM_NO_SCENE_PROFILES") == NULL;
     sSinglePanelBg = PortEventBackdropPanel();
 
     BuildLut();

@@ -26,8 +26,9 @@ void PortRecomSetActive(int active) {
     sActive = active != 0;
 }
 
-/* Re:Chain of Memories difficulty. Beginner: Sora takes half damage and
-   deals a quarter more; Proud: he takes half again as much and deals less. */
+/* Re:Chain of Memories difficulty changes only damage: Beginner scales damage
+   to Sora by 50% and damage to enemies by 125%; Proud uses 150% and 80%.
+   It does not change HP, card rules, or AI. */
 static int DamagePercent(int player) {
     switch (gPortConfig.ps2Difficulty) {
     case 1: return player ? 50 : 125;

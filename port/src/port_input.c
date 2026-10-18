@@ -147,8 +147,16 @@ static uint16_t GamepadKeys(SDL_Gamepad* pad) {
 
     for (i = 0; i < PORT_ACT_COUNT; i++) {
         uint16_t bit = sActionBits[i];
-        if (gPortConfig.pad[i] < 0 || !SDL_GetGamepadButton(pad, (SDL_GamepadButton)gPortConfig.pad[i]))
-            continue;
+        int binding = gPortConfig.pad[i];
+        if (binding < 0) continue;
+        if (binding >= PORT_PAD_AXIS_BASE) {
+            int encoded = binding - PORT_PAD_AXIS_BASE;
+            int axis = encoded / 2, negative = encoded & 1;
+            int value;
+            if (axis >= SDL_GAMEPAD_AXIS_COUNT) continue;
+            value = SDL_GetGamepadAxis(pad, (SDL_GamepadAxis)axis);
+            if ((!negative && value <= TRIGGER_THRESHOLD) || (negative && value >= -TRIGGER_THRESHOLD)) continue;
+        } else if (!SDL_GetGamepadButton(pad, (SDL_GamepadButton)binding)) continue;
         /* with the one-button options off, their buttons are B and A again */
         if (i == PORT_ACT_DODGE && !gPortConfig.dodgeButton)
             bit = KEY_B;
@@ -156,11 +164,6 @@ static uint16_t GamepadKeys(SDL_Gamepad* pad) {
             bit = KEY_A;
         keys |= bit;
     }
-    if (SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > TRIGGER_THRESHOLD)
-        keys |= KEY_L;
-    if (SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > TRIGGER_THRESHOLD)
-        keys |= KEY_R;
-
     lx = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX);
     ly = SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTY);
     if (lx < -STICK_DEADZONE)

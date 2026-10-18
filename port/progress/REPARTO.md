@@ -1,13 +1,74 @@
+## Integración Nightly 2 — 18/10/2026
+
+Guard Armor aceptado y perfiles de escenas 057/061/074 conectados al juego,
+incluyendo playa mejorada `b651e4b65`. EU/US/JP compilan; escenas 23/23 y
+Guard Armor 13/13 PASS. Detalles: `NIGHTLY2_INTEGRATION.md`. Preparada como
+`v1.9.3-nightly.20261018.2`, sin promover a stable. Siguiente jefe: Darkside.
+
+## Guard Armor aceptado e integrado — 18/10/2026
+
+**1/8 escenarios de jefe terminados.** Continuación de patio por tiles/píxeles
+originales, solo fuera de GBA. EU/US/JP compilan; 13/13 comparaciones, Original
+y rectángulo GBA idénticos; Hook/Monstro sin cambios. Receta reutilizable en
+`BATTLE_SCENERY_TECHNIQUE.md`. Usuario pide integrar además los commits de
+escenas del otro chat en una nueva nightly y después continuar con Darkside.
+
+## Actualización: auditoría de escenarios de combate — 18/10/2026
+
+Inventario y contador en [BATTLE_SCENERY_AUDIT.md](BATTLE_SCENERY_AUDIT.md),
+con estado estructurado en `BATTLE_SCENERY_AUDIT.json`.
+**28/28 escenarios distintos inspeccionados inicialmente; 0/8 mejoras terminadas.**
+56/56 ejecuciones cortas EU/Sora en 16:9 y 32:9 (168 capturas), más 8/8
+largas de Hook/Jafar/Oogie/Marluxia final (24 capturas). No se modificó el juego.
+El usuario considera que Hook y Monstro ya se ven bien: conservarlos.
+Alicia/Trickmaster: solo extender hacia abajo el ajedrez, sin rehacer la sala.
+Otros siete pendientes: Guard Armor, Darkside, Oogie, Jafar, Maléfica dragón,
+Úrsula y Marluxia final. No rellenar por defecto los vacíos de todos los mapas.
+Las capturas no certifican todas las fases, campañas ni regiones.
+
+La nightly `nightly-2026.10.18` ya está publicada como pre-release; la estable
+sigue en v1.9.2. #12 tiene respuesta pública con la limitación de gameplay
+pendiente. RetroAchievements sigue pendiente de implementación; esta auditoría
+no sustituye ese encargo.
+
 ## Codex — 18/10/2026
 
 Encargo completo en **port/progress/CODEX_TAREAS.md**: issues #14 (Undub desde
 la ROM JP, prioridad), #13 (reasignar controles, gatillos), #6, respuestas de
 #5/#4/#3, menú de opciones con el selector del debug oficial, truco "modo
 debug", revisar unstock, #12, tira del fondo en arenas GBA y RetroAchievements.
-Codex solo commitea en su rama; Claude integra, publica y cierra issues.
+Codex puede integrar a `main` y responder issues con pruebas verificadas;
+Claude prepara releases y Pages. No cerrar issues sin autorización del usuario.
 Claude sigue con los fondos de escenas en lotes de 10 con el usuario.
 
 ## Reparto vigente — 18/10/2026 (sustituye a los anteriores)
+
+### Actualización Codex — 18/10/2026
+
+La rama local `codex/issues` contiene el primer bloque de issues y mejoras del
+encargo en [CODEX_TAREAS.md](CODEX_TAREAS.md); el detalle de estado y pruebas
+está al final de ese archivo. Build Windows EU/US/JP PASS; launcher 11/11,
+Re:CoM 80 combinaciones, zoom 56 y aspecto 56 PASS. Undub está implementado;
+`port/tools/test_undub.py` verifica dumps de dos voces en EU/US (OFF conserva
+el audio regional; ON produce el mismo audio entre regiones). #12 queda tras
+Opciones > Experimental y apagado por defecto; el test del menú/config pasa,
+pero falta probar guardar ambas ranuras en gameplay. El nightly no será stable.
+La tira de las arenas y la integración de
+RetroAchievements siguen pendientes. Codex integró este bloque
+en `main` (commit `ae40c79de`), sin
+crear paquete ni release. Próxima versión anotada para preparación: **v1.9.3**;
+la última estable pública sigue siendo v1.9.2.
+
+El usuario autorizó a Codex a responder issues con cambios probados. Ya se
+publicaron respuestas en #4 (56 casos de zoom, incluido 2880×1800), #5 (16:10
+1280×800 → 256×160 a ×5) y #6 (multiplicadores Beginner/Proud). Siguen abiertos;
+no se cerró ninguno ni se creó una release.
+
+El usuario confirmó como referencia el repositorio abierto
+[RaceWave46](https://github.com/DomazinUS/RaceWave46) (GPL-3.0). La
+investigación y límites de los sets están en
+[RETROACHIEVEMENTS.md](RETROACHIEVEMENTS.md); no se debe presentar el diseño
+de popup como una integración funcional hasta que estén conectados los sets.
 
 Estable pública: **v1.9.2** (Windows + Android alpha + Web alpha, un archivo
 por plataforma). Todo lo demás en borrador. Issues #7, #8 y #9 cerradas.

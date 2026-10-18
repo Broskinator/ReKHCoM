@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## v1.9.3-nightly.20261018.2 — 2026-10-18 (public test build)
+
+- Guard Armor: accepted patio continuation using original tiles and palette,
+  extending the facades and paving without wrapping another complete patio.
+  Native 240x160 pixels and Original view stay unchanged.
+- Integrated the accepted per-layer cutscene tile profiles for 057 (beach,
+  including the completed grass), 061 and 074 (including the completed lower
+  ornament). These now run in the game with its live palette and effects.
+- Includes the previous nightly's optional save-slot selector, Off by default
+  under Options → Experimental. Manual save-point validation is still pending.
+
+## v1.9.3-nightly.20261018 — 2026-10-18 (public test build)
+
+- Experimental save-slot selection at save points. It is Off by default and
+  must be enabled under Options → Experimental. This flow has passed build and
+  menu-toggle checks but still needs a manual gameplay test; see
+  `NIGHTLY-TESTING.md` in the package.
+
 ## v1.9.2 — 2026-10-18
 
 - Battle HUD at every aspect ratio (issues #7, #8, #9): Sora's stocked cards
