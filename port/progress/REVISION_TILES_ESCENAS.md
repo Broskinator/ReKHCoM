@@ -1,6 +1,6 @@
 # Revisión acumulativa de escenas con extensión de tiles
 
-Estado 18/10/2026: **2/44 candidatas aceptadas**. Son 44 eventos con cambios
+Estado 18/10/2026: **3/44 candidatas aceptadas (074 preliminar)**. Son 44 eventos con cambios
 potenciales en 33 fondos; los vacíos que forman un marco intencionado se
 descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
 
@@ -9,7 +9,7 @@ descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
 | 004 Leon | Aceptada previamente | Continuar diagonales y período propio, sin duplicar cajas. |
 | 061 Cristal | Mejorada aceptada | Perfiles distintos por capa; rombo entero en la unión; seleccionar tile de panel sin sombra ajena. |
 | 057 Playa | Pendiente | Período del suelo 8×4; pared con huecos requiere revisar capas por separado. |
-| 074 Monstruo | Próxima propuesta | Solo derecha y abajo; conservar vacío diseñado arriba e izquierda. |
+| 074 Monstruo | Preliminar aceptada | Paleta activa y tres capas; pendiente rematar motivo verde inferior derecho con la forma izquierda como referencia. |
 
 ## Lógica que se acumula con cada ejemplo
 
@@ -29,6 +29,30 @@ descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
    destino y comparación. No arreglar capturas como si fueran assets del juego.
 8. Congelar cada versión aceptada en un commit antes de nuevos ensayos. Guardar
    recetas en Git e imágenes y ROM extraídas solo en build/ privado.
+9. Distinguir tamaño declarado y bloques realmente dibujados. Un mapa puede
+   declarar 512×512, pero contener un solo bloque de escenario de 256×256 y tres
+   bloques predeterminados vacíos (074). El borde útil no siempre es el borde
+   exterior de la declaración. Detectar esto antes de buscar períodos.
+10. No omitir capas superiores solo porque parecen decorativas: en 074, BG1
+    cubre tiles que no están diseñados para verse directamente. Extender las tres
+    capas y revisar si aparecen adornos repetidos o cortados antes de aceptar.
+11. Usar la paleta activa del fotograma, con la misma conversión de 5 a 8 bits
+    del PPU. En 074 el juego aclara las entradas de la paleta; dibujar el añadido
+    con la paleta ROM dejaba el fondo negro y tonos más saturados. No era un
+    fallo del layout. `scene_tile_data.active_bg_palette` guarda esta lógica
+    compartida. Para shot100 de esta captura se usa el snapshot99: el snapshot100
+    ya contiene la siguiente actualización de la paleta. BLDCNT/BLDALPHA/BLDY
+    están en cero, por lo que aquí el efecto se debe a la paleta, no a blending.
+    En el motor usar siempre PLTT activa; no fijar un aclarado constante de 49 RGB.
+
+Propuesta 074: `py -3 port/tools/scene074_tile_preview.py`; encuadre frame100,
+cámara (0,0), perfil de derecha/abajo. Salida privada `review074/074-before-after.png`.
+En este encuadre solo el borde derecho sale del bloque activo; abajo no se cruza
+todavía, así que este primer comparativo no valida visualmente el borde inferior.
+Base preliminar aceptada, congelada antes del ensayo del detalle verde en
+`build/scene-review/accepted074/`. Perfil para main:
+`port/include/port/port_scene074_tiles.h` (aún sin conectar aquí al PPU).
+Usar la paleta/effectos del motor y llamar dentro de los bloques default también.
 
 Por revisión: mostrar el mismo encuadre antes/después; conservar cámara, capas,
 bordes, pasos y sustituciones. Actualizar el contador al aceptar o descartar una

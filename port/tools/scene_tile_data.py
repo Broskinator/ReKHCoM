@@ -5,6 +5,21 @@ from pathlib import Path
 
 K = Path(__file__).resolve().parents[2]
 ROM = (K / "roms/B8CP.gba").read_bytes()
+
+
+def active_bg_palette(state_path):
+    """Read a local KHST hardware BG palette, preserving live fades/animation.
+
+    Snapshot must correspond to the rendered frame being compared. A ROM palette
+    is not a substitute for a live palette when the game changes its entries.
+    """
+    state = Path(state_path).read_bytes()
+    offset = 12 + 0x40000 + 0x8000 + 0x400
+    words = struct.unpack_from("<256H", state, offset)
+    def channel(value):
+        value &= 31
+        return (value << 3) | (value >> 2)
+    return [(channel(v), channel(v >> 5), channel(v >> 10)) for v in words]
 def at(a, n):
     return ROM[a - 0x08000000:a - 0x08000000 + n]
 
