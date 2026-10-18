@@ -347,7 +347,7 @@ static void UpdateResolution(void) {
         sOverlayScale = f;
     }
     sFitScale = 0;
-    if (sFit && gPortConfig.viewMode == PORT_VIEW_AUTO) {
+    if (sFit && gPortConfig.viewMode == PORT_VIEW_AUTO && !PortUiMenuCanvas()) {
         float f = MenuScale(outW, outH);
         w = SDL_min((int)SDL_ceilf(outW / f), PORT_MAX_W);
         h = GBA_SCREEN_H;
@@ -1271,6 +1271,10 @@ static void Present(void) {
     uint32_t uniform = 0;
     float worldX, worldY, worldScale;
     int moviePrompt;
+    /* Snapshot the phase before PortUiDraw advances the fade: canvas, game
+     * layers and presentation must all use the same phase for this frame. */
+    int menuCanvas = PortUiMenuCanvas();
+    int sceneFade = PortUiSceneFade();
     void PortHdHudPrepare(SDL_Renderer* renderer);
     void PortHdHudDraw(SDL_Renderer* renderer, int width, int height);
     void PortHdHudDrawLabel(SDL_Renderer* renderer, int width, int height);
@@ -1283,7 +1287,7 @@ static void Present(void) {
     PortHdHudPrepare(sRenderer);
     /* movies shown cropped: the skip prompt is drawn after the movie, on its
        own, so it neither grows with the video nor shifts the crop */
-    moviePrompt = sSideStyle == 10 && sFitScale <= 0 && !PortUiActive() && !gPortScreen.wide
+    moviePrompt = sSideStyle == 10 && sFitScale <= 0 && !menuCanvas && !gPortScreen.wide
                   && gPortConfig.narrowFit && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H);
     PortUiSkipOwnLayer(moviePrompt);
     /* Menus and paused frames require an independent presentation buffer. */
@@ -1302,7 +1306,7 @@ static void Present(void) {
         outW = area.w;
         outH = area.h;
     }
-    if ((sFitScale > 0 || (!gPortScreen.wide && gPortConfig.narrowFit)) && !PortUiActive()
+    if ((sFitScale > 0 || (!gPortScreen.wide && gPortConfig.narrowFit)) && !menuCanvas
         && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H)) {
         /* Scene without a wide view: show the GBA picture at full height
            (bars only at the sides), sampled with the pixel-art filter. */
@@ -1315,7 +1319,7 @@ static void Present(void) {
         dst.x = (float)(int)((outW - dst.w) / 2);
         dst.y = (float)(int)((outH - dst.h) / 2);
         normal = dst;
-        if (sSideStyle == 10 && sFitScale <= 0 && !PortUiActive()) {
+        if (sSideStyle == 10 && sFitScale <= 0 && !menuCanvas) {
             /* movies: only the video, without its letterbox, as large as the
                window allows at the video's own proportions */
             int top, bottom;
@@ -1330,18 +1334,18 @@ static void Present(void) {
                 dst.y = (float)(int)((outH - dst.h) / 2);
             }
         }
-        if ((sSideStyle == 3 || sSideStyle == 8 || sSideStyle == 10 || sFitScale > 0) && !PortUiActive())
+        if ((sSideStyle == 3 || sSideStyle == 8 || sSideStyle == 10 || sFitScale > 0) && !menuCanvas)
             DrawBlurredReflection(&src, outW, outH);
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
         SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
         if (moviePrompt)
             DrawSkipLayer(&normal);
-        if (!PortUiActive() && sSideStyle == 8 && sFitScale <= 0) {
+        if (!menuCanvas && sSideStyle == 8 && sFitScale <= 0) {
             DrawEdgeBands(&src, &dst, outW, 3);
             DrawHeaderLeft(&src, &dst);
         }
-        if (!PortUiActive() && sSideStyle == 9 && sFitScale <= 0) {
+        if (!menuCanvas && sSideStyle == 9 && sFitScale <= 0) {
             /* style 9: the scene's ground (its commonest colour) and its thick
                bars (blocks of six rows or more, so a frame's thin border is
                not one) carried on; nothing mirrored, nothing repeated */
@@ -1401,7 +1405,7 @@ static void Present(void) {
             DrawHeaderLeft(&src, &dst);
         }
         if (SDL_getenv("KHCOM_DBGSIDE")) PortLog("side f%u style %d fit %.2f wide %d src %.0f,%.0f %.0fx%.0f", (unsigned)PortFrameCount(), sSideStyle, sFitScale, gPortScreen.wide, src.x, src.y, src.w, src.h);
-        if (!PortUiActive() && sSideStyle != 10 && sFitScale <= 0 && UniformPicture(&src, &uniform)) {
+        if (!menuCanvas && sSideStyle != 10 && sFitScale <= 0 && UniformPicture(&src, &uniform)) {
             /* a fade has reached one flat colour (or the screen is blank
                between modes): the margins are that colour too, so the
                transition stays one smooth fade */
@@ -1409,7 +1413,7 @@ static void Present(void) {
             SDL_SetRenderDrawColor(sRenderer, (Uint8)(uniform >> 16), (Uint8)(uniform >> 8), (Uint8)uniform, 255);
             SDL_RenderFillRect(sRenderer, &a);
             SDL_RenderFillRect(sRenderer, &b2);
-        } else if (!PortUiActive() && sSideStyle != 3 && sSideStyle != 8 && sSideStyle != 9 && sSideStyle != 10 && sFitScale <= 0) {
+        } else if (!menuCanvas && sSideStyle != 3 && sSideStyle != 8 && sSideStyle != 9 && sSideStyle != 10 && sFitScale <= 0) {
             SideBar((int)src.x, (int)src.y, -1, dst.y, scale, 0.0f, dst.x, (int)src.x);
             SideBar((int)(src.x + src.w) - SIDE_STRIP, (int)src.y, 1, dst.y, scale, dst.x + dst.w, (float)outW,
                     (int)(src.x + src.w) - 1);
@@ -1423,7 +1427,7 @@ static void Present(void) {
         /* Sprite-only cutscene messages have a plain authored backdrop.
            Sample the rendered background (including fades), not a stale
            side style or palette from the preceding scene. */
-        if (!(IO16(0) & 0x0F00) && !PortUiActive()) {
+        if (!(IO16(0) & 0x0F00) && !menuCanvas) {
             uint32_t c = gPortMenuBackground[gPortScreen.originY * gPortScreen.width + gPortScreen.originX];
             SDL_FRect margins[4] = {
                 {0, 0, dst.x, (float)outH},
@@ -1439,7 +1443,7 @@ static void Present(void) {
         worldScale = scale;
         worldX = dst.x - src.x * scale;
         worldY = dst.y - src.y * scale;
-    } else if (PortHd2dActive() && !PortUiActive()) {
+    } else if (PortHd2dActive() && !menuCanvas) {
         /* HD-2D build: the processed, larger picture, filtered to the window */
         static uint8_t* sMask;
         if (!sMask)
@@ -1468,7 +1472,7 @@ static void Present(void) {
         worldY = dst.y;
     } else {
         OutputRect(outW, outH, &dst);
-        if (sFitScale > 0 && !PortUiActive()) {
+        if (sFitScale > 0 && !menuCanvas) {
             /* Battle-entry animation stays at its authored aspect ratio.
                Fill the surrounding window with the same dim blur as movies. */
             SDL_FRect backdrop = { (float)gPortScreen.originX,
@@ -1481,10 +1485,10 @@ static void Present(void) {
         worldX = dst.x;
         worldY = dst.y;
     }
-    if (!PortUiActive())
+    if (!menuCanvas)
         PortHdTextDraw(sRenderer, 0, worldX, worldY, worldScale);
     /* the options menu covers everything: no layer is drawn over it */
-    if (PortPpuOverlayActive() && sOverlayScale > 0 && !PortUiActive()) {
+    if (PortPpuOverlayActive() && sOverlayScale > 0 && !menuCanvas) {
         SDL_FRect od;
         if (sOverlayTex == NULL || sOverlayTexW != gPortOverlayW) {
             if (sOverlayTex != NULL)
@@ -1501,10 +1505,10 @@ static void Present(void) {
         od.x = (float)(int)((outW - od.w) / 2);
         od.y = (float)(int)((outH - od.h) / 2);
         SDL_RenderTexture(sRenderer, sOverlayTex, NULL, &od);
-        if (!PortUiActive())
+        if (!menuCanvas)
             PortHdTextDraw(sRenderer, 2, od.x, od.y, sOverlayScale);
     }
-    if (PortPpuHudActive() && !PortUiActive()) {
+    if (PortPpuHudActive() && !menuCanvas) {
         SDL_FRect hd;
         if (sHudTexture == NULL || sHudTexW != gPortHudW || sHudTexH != gPortHudH) {
             if (sHudTexture != NULL)
@@ -1528,7 +1532,7 @@ static void Present(void) {
         PortHdHudDrawSprites(sRenderer, outW, outH);
         PortHdHudDrawBar(sRenderer, outW, outH);
         PortHdHudDrawLabel(sRenderer, outW, outH);
-        if (!PortUiActive()) PortHdTextHudDigits(sRenderer, hd.x, hd.y, (float)gPortHudScale);
+        if (!menuCanvas) PortHdTextHudDigits(sRenderer, hd.x, hd.y, (float)gPortHudScale);
         PortHdTextDraw(sRenderer, 1, hd.x, hd.y, (float)gPortHudScale);
     }
     DrawScanlines(&dst);
@@ -1564,6 +1568,14 @@ static void Present(void) {
         int fullW = 0, fullH = 0;
         SDL_GetCurrentRenderOutputSize(sRenderer, &fullW, &fullH);
         PortAchievementToastDraw(sRenderer, fullW, fullH);
+    }
+    if (sceneFade > 0) {
+        /* Fade the final scene rather than its world buffer alone. This keeps
+         * GBA-fit scenes, movies, separate HUD and HD text at their real size. */
+        SDL_SetRenderDrawBlendMode(sRenderer, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, (Uint8)sceneFade);
+        SDL_RenderFillRect(sRenderer, NULL);
+        SDL_SetRenderDrawBlendMode(sRenderer, SDL_BLENDMODE_NONE);
     }
     {
         /* KHCOM_RECORD="from-to:file.mov": frames from..to of the window piped

@@ -10,7 +10,7 @@ code = r"""
 #include <stdio.h>
 #include "port/port.h"
 extern float gPortAutoScaleF;
-int PortUiActive(void) { return 0; }
+int PortUiMenuCanvas(void) { return 0; }
 int main(void) {
  int sizes[][2]={{320,180},{960,540},{1280,720},{1280,800},{1920,1080},{2880,1800},{3440,1440},{5120,1440},{7680,2160}};
  int i,z,w,h,s,k,only,prev,cases=0;

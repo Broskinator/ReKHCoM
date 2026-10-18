@@ -1152,6 +1152,16 @@ static int sClosing; /* frames left of the menu fading to black */
 static int sReturn;  /* frames left of the black fading back to the game */
 static int sHarnessTick;
 
+int PortUiMenuCanvas(void) {
+    return sOpen && sFade >= MENU_FADE;
+}
+
+int PortUiSceneFade(void) {
+    if (sOpen && sFade < MENU_FADE) return (sFade + 1) * 255 / MENU_FADE;
+    if (!sOpen && sReturn > 0) return sReturn * 255 / MENU_FADE;
+    return 0;
+}
+
 void PortUiOpenOptions(void) {
     if (sOpen)
         return;
@@ -1601,6 +1611,52 @@ static void Fill(int x0, int y0, int w, int h, uint32_t c) {
             Pixel(x, y, c);
 }
 
+extern const uint16_t gDebugMenuCursorAnim0[];
+extern const uint16_t* gDebugMenuCursorFrames[];
+extern const uint8_t gDebugMenuCursorTiles[];
+extern const uint16_t gDebugMenuCursorPalette[];
+static Uint64 sMenuLightStart, sMenuLightDrawClock;
+static int sMenuLightFocus = -1;
+
+static Uint64 MenuLightNow(void) {
+    return SDL_getenv("KHCOM_MENU_FRAMECLOCK") ? sMenuLightDrawClock : SDL_GetTicks() * 60 / 1000;
+}
+
+/* The cartridge's actual six-step cursor cycle (8 ticks per step), sampled
+ * from its four sprite frames. Only the light's 5x5 face is copied: existing
+ * square/bar/text dimensions stay unchanged. Frames and colours remain in ROM. */
+static void MenuLight(int x, int y) {
+    const uint16_t* anim = gDebugMenuCursorAnim0;
+    int count = anim[2], total = 0, frame = 0;
+    for (int i = 0; i < count; ++i) total += anim[4 + i * 2];
+    int tick = total > 0 ? (int)((MenuLightNow() - sMenuLightStart) % (unsigned)total) : 0;
+    for (int i = 0; i < count; ++i) {
+        frame = anim[3 + i * 2];
+        if (tick < anim[4 + i * 2]) break;
+        tick -= anim[4 + i * 2];
+    }
+    if (frame < 0 || frame > 3) return;
+    const uint16_t* record = gDebugMenuCursorFrames[frame];
+    for (int i = 0; i < record[0]; ++i) {
+        const uint16_t* obj = record + 1 + i * 3;
+        if ((obj[0] & 0xC0FF) != 0 || (obj[1] & 0xC1FF) != 0x4000) continue;
+        int tile = obj[2] & 1023;
+        for (int yy = 0; yy < 5; ++yy)
+            for (int xx = 0; xx < 5; ++xx) {
+                int sx = xx + 4, sy = yy + 3;
+                if (obj[1] & 0x1000) sx = 15 - sx;
+                if (obj[1] & 0x2000) sy = 15 - sy;
+                int address = (tile + (sy / 8) * 2 + sx / 8) * 32 + (sy & 7) * 4 + (sx & 7) / 2;
+                int index = (gDebugMenuCursorTiles[address] >> ((sx & 1) * 4)) & 15;
+                uint16_t c = gDebugMenuCursorPalette[index];
+                unsigned r = c & 31, g = (c >> 5) & 31, b = (c >> 10) & 31;
+                Pixel(x + xx, y + yy, 0xFF000000u | ((r << 3 | r >> 2) << 16) |
+                      ((g << 3 | g >> 2) << 8) | (b << 3 | b >> 2));
+            }
+        return;
+    }
+}
+
 /* One row: t is the top of its square, the bar runs from x to x + w. */
 static void MenuBar(int x, int t, int w, int selected) {
     if (!selected) {
@@ -1610,9 +1666,7 @@ static void MenuBar(int x, int t, int w, int selected) {
     }
     Fill(x, t, 11, 10, MENU_INK);
     Fill(x + 11, t, 1, 10, MENU_SHADE);
-    Fill(x + 3, t + 3, 5, 5, MENU_RED);
-    Fill(x + 3, t + 3, 1, 5, MENU_RED_DARK);
-    Fill(x + 3, t + 3, 5, 1, MENU_RED_DARK);
+    MenuLight(x + 3, t + 3);
     Fill(x, t + 8, w, 2, MENU_INK);
     Fill(x + 1, t + 10, w, 1, MENU_SHADE);
 }
@@ -1820,6 +1874,11 @@ static void DrawMenu(int l, int width, int height) {
     int rows, i, x, y, labelW = 0, valueW = 0, barX = 10, barW, top = MENU_TOP, artX;
     int rowH = sPage == PAGE_CONTROLS && sControlPad ? 14 : 16;
     char value[64];
+    int focus = sPage * 1024 + (sPage == PAGE_NEWGAME ? sWizStep * 16 + sWizCursor : sCursor);
+    if (focus != sMenuLightFocus) {
+        sMenuLightFocus = focus;
+        sMenuLightStart = MenuLightNow();
+    }
 
     if (sPage == PAGE_NEWGAME) {
         DrawWizard(l, width, height);
@@ -2007,13 +2066,14 @@ static void HarnessOptionsShot(uint32_t* frame, int width, int height) {
 void PortUiDraw(uint32_t* frame, int width, int height) {
     int l = Lang();
     int harnessShot = 0;
+    ++sMenuLightDrawClock;
 
     sFb = frame;
     sFbW = width;
     sFbH = height;
 
     if (!sOpen && sReturn > 0) {
-        Shade(0, 0, width, height, MENU_FADE_COLOR, SDL_min(256, sReturn * 256 / MENU_FADE));
+        /* The presenter fades the complete output, including HUD/text layers. */
         sReturn--;
         HarnessFadeShot(width, height);
     }
@@ -2041,7 +2101,7 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
         return;
     }
     if (sFade < MENU_FADE) { /* the game's picture to black */
-        Shade(0, 0, width, height, MENU_FADE_COLOR, SDL_min(256, (sFade + 1) * 256 / MENU_FADE));
+        /* Keep the original scene canvas and presentation until fully black. */
         sFade++;
         HarnessFadeShot(width, height);
         return;

@@ -13,6 +13,10 @@ void PortUiSetFps(float fps, float logic);
 int PortUiHandleEvent(const void* sdlEvent);
 /* Non-zero while an overlay owns the input. */
 int PortUiActive(void);
+/* Switch canvas/presentation only after the scene has faded completely black. */
+int PortUiMenuCanvas(void);
+/* Full-output scene fade, queried before PortUiDraw advances its clocks (0..255). */
+int PortUiSceneFade(void);
 void PortUiOpenOptions(void);
 /* Test harness (KHCOM_OPTIONS_TOGGLE): open, or close as the player would. */
 void PortUiHarnessToggle(void);

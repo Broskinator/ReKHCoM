@@ -186,8 +186,15 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     diagrama Ultimate 2C con acabado toon en Controles del juego, debajo de la
     lista, nombres Xbox y resaltado del binding seleccionado. Builds EU/US/JP;
     capturas nativas 1080p/1016x570/480x320. Aprobación visual pendiente.
-    Continuación: quitar salto de escala durante fundidos y adaptar luz del
-    cursor debug sin cambiar tamaños. Lógica en CONTROLADOR_LOGICA.md.
+    Usuario aporta 8bitdo.webp en la raíz: adaptar esa silueta y acabado toon
+    como siguiente revisión artística. Lógica en CONTROLADOR_LOGICA.md.
+
+50. [x] **Codex:** transición de opciones sin salto de escala: conservar lienzo y
+    presentación del juego hasta negro, luego cambiar al menú; fundido final sobre
+    todas las capas. Luz original del debug, secuencia/colores de ROM y reinicio al
+    mover selección, sin cambiar medidas de cuadros/textos. Builds EU/US/JP y
+    capturas/vídeo 1080p de entrada/salida desde título, idiomas y campo; 56 casos
+    de regresión de zoom pasan. Detalle: MENU_TRANSICIONES_LOGICA.md.
 
 ## Esperan reportes (no cuentan como pendientes)
 

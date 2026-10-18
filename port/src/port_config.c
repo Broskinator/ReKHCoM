@@ -218,13 +218,13 @@ float gPortAutoScaleF; /* the Auto view's exact pixel scale (may be fractional) 
 
 void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale) {
     float f;
-    extern int PortUiActive(void);
+    extern int PortUiMenuCanvas(void);
 
     sZoomOutW = outW;
     sZoomOutH = outH;
     /* the options menu is drawn on the canvas: while it is open the canvas
        keeps the Enhanced size, so its text stays readable at any zoom */
-    f = PortUiActive() ? SDL_max(outH / 320.0f, SDL_max(outW / (float)PORT_MAX_W, outH / (float)PORT_MAX_H))
+    f = PortUiMenuCanvas() ? SDL_max(outH / 320.0f, SDL_max(outW / (float)PORT_MAX_W, outH / (float)PORT_MAX_H))
                        : PortConfigZoomScaleF(gPortConfig.zoom);
     while (SDL_ceilf(outW / f) > PORT_MAX_W || SDL_ceilf(outH / f) > PORT_MAX_H)
         f += 0.25f;
