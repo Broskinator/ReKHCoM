@@ -52,3 +52,12 @@ Commits propios en `feature/ps5`: `aecd9356d` (LF del wrapper), `f29b63486` (eve
 Pruebas: el build de app en VM Debian x86_64 finalizó con `BUILD 0`, creó `eboot.bin` y `PPSA98511.zip` (22 MB); `unzip -t` pasó. Las tres imágenes guest se compilaron: EU 2,982,692 bytes; US 3,121,668; JP 2,985,860. `build_all.py --platform ps5 --dry-run --package --release-version v1.9.3-nightly.20261018.2` produjo el comando esperado con versión `1.9.3`; `py_compile` pasó. El runner `test/linux_host.c` se ejecutó con las tres regiones y segfaultó en IP 0 al arrancar cada juego; esto no valida gameplay y no se ha probado en consola PS5. Una compilación versionada estaba activa en QEMU, pero empleó un checkout persistente anterior a `34f7e0e7a`, por lo que no confirma los últimos ajustes de updater ni la versión final empaquetada.
 
 Pendiente real: completar una compilación versionada desde el snapshot `main` posterior al PR, probar el flujo de actualización del asset principal y validar gameplay en hardware PS5 o resolver el segfault del runner headless. No se publicó un release en este trabajo. Se preservaron los cambios locales no confirmados de `REPARTO.md`/`AVISO_PR_PS5.md` en el checkout original.
+
+### Confirmación del usuario — cierre PS5, 18/10/2026
+
+El usuario confirma que el worker terminó su bloque y solicita incluir PS5 en
+futuras releases. Entrega de implementación cerrada; la lista única marca el
+punto 38 terminado. Compilación versionada de cada paquete, publicación del
+asset PPSA98511.zip y comprobaciones de updater/hardware corresponden al
+ciclo de publicación y conservan sus límites documentados arriba. No se
+atribuyen nuevas pruebas físicas a esta confirmación.

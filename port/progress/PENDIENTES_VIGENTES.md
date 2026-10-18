@@ -114,13 +114,13 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 37. [ ] **Codex:** Web: texto HD/menús, audio/foco, FPS/memoria, controles y
     móvil real. Evaluar Worker/OffscreenCanvas solo si mejora medida; es distinto
     de los workers/agentes cuyo cierre pide ahora el usuario.
-38. [~] **Claude + worker PS5:** PR #15 de darkxex fue fusionado en `main`
-    (`5a068ce82`); integración local de build/release subida en `13fba3337`.
-    El build PS5 y ZIP pasaron en Debian x86_64; tres imágenes guest compilaron.
-    Pendiente: build versionado desde el último main, probar actualización desde
-    `PPSA98511.zip` de la release principal y validar gameplay en PS5 real o
-    reparar el runner headless que falla al arrancar EU/US/JP. No publicar aún.
-    Cierre técnico: `CIERRE_WORKERS.md`, sección Worker PS5 / revisión PR #15.
+38. [x] **Worker PS5:** bloque de implementación entregado e integrado.
+    PR #15 fusionado en main (5a068ce82), integración de build/release en
+    13fba3337 y handoff en 66f4e8c54. Usuario confirma cierre del worker el
+    18/10/2026 y pide incluir PS5 en futuras releases. No reabrir este worker
+    para rehacer el port. Las comprobaciones de cada paquete y la validación
+    física pendiente se conservan como parte de publicación/plataforma, no
+    como implementación aún sin entregar. Detalle: CIERRE_WORKERS.md.
 39. [ ] **Claude:** rutas completas Sora y Reverse/Rebirth, campañas/regiones;
     baterías cortas sin crash no equivalen a partidas completas.
 40. [ ] **Codex:** comparación de audio PSG pendiente frente a referencia de
@@ -130,6 +130,10 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 42. [ ] **Claude:** empaquetar y PUBLICAR la entrega corregida autorizada; registrar
     tag, URL, hashes y plataformas realmente actualizadas. Actualizar Pages/APK
     solo con sus builds correspondientes. No etiquetar WIP como stable.
+    Incluir también PS5 desde el main de esa entrega: compilar en Linux/VM
+    preparada y adjuntar el asset exacto PPSA98511.zip. Mantener su etiqueta
+    alpha y registrar las comprobaciones reales; no reutilizar un ZIP viejo
+    como si correspondiera al tag nuevo.
 43. [ ] **Claude + Codex:** actualizar contadores/status/documentos tras cada
     cierre; conservar solo esta cola como vigente y eliminar contradicciones históricas.
 44. [ ] **Claude:** limpieza de worktrees/builds antiguos después de verificar
