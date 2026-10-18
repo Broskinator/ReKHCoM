@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <cfloat>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -1321,6 +1322,10 @@ static bool BindingConflict(const char* key, bool pad) {
     return false;
 }
 
+#include "pad_diagram.inc"
+
+static std::string sPadFocus = "pad_a"; /* the action whose gamepad binding the drawing lights */
+
 static void BindCell(const char* key, bool pad) {
     bool waiting = sCapture == key;
     bool conflict = !waiting && BindingConflict(key, pad);
@@ -1328,7 +1333,7 @@ static void BindCell(const char* key, bool pad) {
     if (waiting) {
         label = T("Pulsa...", "Press...");
     } else if (pad) {
-        label = PadName(Ini(key));
+        label = PadSymbol(Ini(key));
     } else {
         int k = Ini(key);
         label = k == 0 ? "-" : SDL_GetKeyName((SDL_Keycode)k);
@@ -1376,6 +1381,9 @@ static void PageControls() {
     };
     BeginCard("controls");
     Eyebrow(T("CONTROLES", "CONTROLS"));
+    if (!sCapture.empty() && sCapture.compare(0, 4, "pad_") == 0)
+        sPadFocus = sCapture;
+    PadDiagram(sPadFocus.c_str());
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("Haz clic en una casilla y pulsa la tecla, botón o eje. Supr la deja vacía, Esc cancela. "
                                "Las asignaciones repetidas se marcan en rojo.",
@@ -1393,15 +1401,24 @@ static void PageControls() {
         for (const Row& r : rows) {
             std::string kb = std::string("kb_") + r.name, kb2 = kb + "_2", pad = std::string("pad_") + r.name;
             ImGui::TableNextRow(0, Px(36));
+            bool focus = false;
+            auto seen = [&]() { focus = focus || ImGui::IsItemHovered() || ImGui::IsItemFocused(); };
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
             ImGui::TextUnformatted(T(r.es, r.en));
+            seen();
             ImGui::TableNextColumn();
             BindCell(kb.c_str(), false);
+            seen();
             ImGui::TableNextColumn();
             BindCell(kb2.c_str(), false);
+            seen();
             ImGui::TableNextColumn();
             BindCell(pad.c_str(), true);
+            seen();
+            /* the row under the pointer or with the keyboard/gamepad focus */
+            if (focus)
+                sPadFocus = pad;
         }
         ImGui::EndTable();
     }
@@ -1687,6 +1704,8 @@ int main(int, char**) {
     ImGui_ImplOpenGL3_Init("#version 130");
     LoadBoxArt();
     if (shotDir && SDL_getenv("DECOMPUI_REWRITE_SETTINGS")) SaveIni();
+    if (shotDir && SDL_getenv("DECOMPUI_PADFOCUS")) /* harness: the action the drawing lights */
+        sPadFocus = SDL_getenv("DECOMPUI_PADFOCUS");
     if (shotDir && SDL_getenv("DECOMPUI_EDITOR")) { /* harness: the editor on, this file */
         sEditorOn = true;
         sEdFile = std::clamp(std::atoi(SDL_getenv("DECOMPUI_EDITOR")), 0, 3);
