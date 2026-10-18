@@ -21,6 +21,11 @@ pendientes. Codex integró este bloque en `main` (commit `ae40c79de`), sin
 crear paquete ni release. Próxima versión anotada para preparación: **v1.9.3**;
 la última estable pública sigue siendo v1.9.2.
 
+El usuario autorizó a Codex a responder issues con cambios probados. Ya se
+publicaron respuestas en #4 (56 casos de zoom, incluido 2880×1800), #5 (16:10
+1280×800 → 256×160 a ×5) y #6 (multiplicadores Beginner/Proud). Siguen abiertos;
+no se cerró ninguno ni se creó una release.
+
 El usuario confirmó como referencia el repositorio abierto
 [RaceWave46](https://github.com/DomazinUS/RaceWave46) (GPL-3.0). La
 investigación y límites de los sets están en

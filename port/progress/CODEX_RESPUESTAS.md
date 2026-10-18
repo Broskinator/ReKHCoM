@@ -18,13 +18,19 @@ Save points now let you choose File 1 or File 2 with Up/Down before confirming. 
 
 The difficulty descriptions now state the actual damage multipliers used by this port. Beginner makes Sora take 50% damage and makes enemies take 125%; Proud makes Sora take 150% damage and makes enemies take 80%. Standard retains the original cartridge damage. These are damage multipliers only: this port does not change enemy AI, HP, card values, or card behavior based on difficulty. The text has been updated in all supported in-game languages.
 
+Posted 2026-10-18: https://github.com/MatyMeatBoy/ReKHCoM/issues/6#issuecomment-6246564794
+
 ## #5 — 16:10 view
 
 The Automatic view already adapts the internal canvas to the window's aspect ratio, including 16:10. At 1280×800 it selects 256×160 (a 5× scale). Please try **View → Automatic** and let us know if you were asking for a separate fixed-size preset instead.
 
+Posted 2026-10-18: https://github.com/MatyMeatBoy/ReKHCoM/issues/5#issuecomment-6246564791
+
 ## #4 — Zoom levels
 
-The zoom selector already offers the full range from ×1 to ×6. We also verified the zoom steps and configuration migration. Choose **View → Automatic → Zoom** in Options.
+The zoom selector offers resolution-aware scales. On a 2880×1800 display it reaches ×11, so you can select a larger scale than ×4 or ×5. We verified 56 resolution/zoom combinations, including that display size. Choose **View → Automatic**, then adjust **Zoom** in Options.
+
+Posted 2026-10-18: https://github.com/MatyMeatBoy/ReKHCoM/issues/4#issuecomment-6246564797
 
 ## #3 — Missing larger HUD text
 
