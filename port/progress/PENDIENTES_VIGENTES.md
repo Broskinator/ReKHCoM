@@ -16,8 +16,8 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
-| **Claude (Opus)** | 56 franja negra en la sala del tutorial; 57 menú de Opciones a toda la altura; 58 sonidos del modo debug en Opciones; v1.9.4 y #19; 44 limpieza; 43 cola; 51–54 consolas (otro chat); 39 rutas (al final) | 1) 56, 57 y 58 (cortos), 2) 44 con permiso, 3) 39 |
-| **ChatGPT/Codex** | 59 caras flotando en escenas; 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; 27 RetroAchievements; 16–24 arte de jefes/escenas; 2 cierre del chat sincorazones | 1) 59 (bug grande), 2) 40, 3) 55, 4) 27, 5) 16–24 al final |
+| **Claude (Opus)** | 56/56b fondos sin pintar en el tutorial; 57 menú de Opciones a toda la altura; 58 sonidos del modo debug; 63 colisiones; 64 moguri a Experimental; 65 pausa y saltar escena; v1.9.4 y #19; 44 limpieza; 43 cola; 51–54 consolas (otro chat); 39 rutas (al final) | 1) 64, 56/56b, 57, 58 (cortos), 2) 63, 3) 65, 4) 44 con permiso, 5) 39 |
+| **ChatGPT/Codex** | 59 caras flotando en escenas; 60 barras del título; 61–62 escenas a completar en x3; 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; 27 RetroAchievements; 16–24 arte de jefes/escenas; 2 cierre del chat sincorazones | 1) 59 (bug grande), 2) 60, 3) 61–62, 4) 40, 5) 55, 6) 27, 7) 16–24 al final |
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
@@ -55,6 +55,17 @@ completas al final.
   silueta negra correcta. Hipótesis: en la GBA el retrato espera fuera de
   pantalla (x negativa) mientras entra la ventana, y la vista amplia lo muestra
   en el margen; ocultar retratos fuera de 240x160 mientras su ventana no está.
+- **60 (18/10, mejora visual principal):** pantalla de título: la barra
+  «PULSA START» con su transparencia debe llegar hasta el borde derecho, y el
+  borde del pie «L ◀ BRILLO ▶ R» hasta el izquierdo, en todas las resoluciones.
+- **61 (18/10):** revisar escenas en zoom x3 (integra x2) a 1080p, que muestra
+  más que x4: Ciudad de Paso, plaza con León (dos escenas casi iguales: «Sí, más
+  o menos. Ya iré aprendiendo…» y la anterior): bien a la izquierda, a la derecha
+  falta completar fuera de lo que cubría x4.
+- **62 (18/10):** escena en la casa de Ciudad de Paso (Yuffie, Aerith, León;
+  «¡Sí, exacto! Como si no nos conociéramos…», «¿Cómo es eso?»): faltan las dos
+  puntas de la habitación y hacia arriba. Comprobar si está en la lista de 44
+  candidatas; si no, agregarla.
 - **2:** recoger el cierre del chat del bug de sincorazones.
 
 ## 3. Claude
@@ -69,6 +80,21 @@ completas al final.
   deja espacio para 3–4 filas más y corta la lista (se ve al bajar).
 - **58 (18/10):** añadir los sonidos de las luces del modo debug al menú de
   Opciones, un poco más bajos de volumen.
+- **56b (18/10):** mismo caso que 56 en la escena del tutorial «Ahora están a
+  merced de los naipes» (encapuchado en la sala): a la derecha y abajo queda
+  blanco sin pintar; un poco después, lo mismo en negro. Pintar con el color de
+  fondo que corresponde (mejora rápida). Savestates del usuario respaldados en
+  build/userstates/nightly5/states-1955 (slot1 pisado por la escena del panel).
+- **63 (18/10, colisión):** savestate 2: detrás del cristal, al presionar
+  izquierda Sora queda atascado salvo que se presione arriba. Savestate 3:
+  caminando a la derecha queda atrapado y luego no puede salir a la izquierda.
+  Replicar y comparar con el juego original antes de tocar nada.
+- **64 (18/10):** contador de puntos moguri: pasarlo a Experimental y
+  desactivado por defecto (juego, launcher y kh_com.ini).
+- **65 (18/10, nuevo):** menú de pausa en las escenas habladas («cinemáticas»):
+  centrado, con el estilo de botón del menú (la luz), dos opciones: Volver al
+  juego y Saltar escena; Saltar pide confirmación. Implementar el salto de escena
+  sin romper nada (estado, banderas de historia, música, ruta Sora y Riku).
 
 - **39 (al final):** rutas completas Sora y Reverse/Rebirth. Método aprobado:
   speedrun (.vbm USA en la raíz) como guía por tramos, comparar con el emulador
