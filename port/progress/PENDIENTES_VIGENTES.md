@@ -16,8 +16,8 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
-| **Claude (Opus)** | Publicar v1.9.4 estable y responder #19 (en curso); 44 limpieza; 43 mantener la cola; 51 Vita (por fases); 39 rutas completas (al final) | 1) cerrar v1.9.4, 2) 44 con permiso, 3) 39 |
-| **ChatGPT/Codex** | 16–24 arte de jefes/escenas; 27 RetroAchievements; 29 Mapamundi/objetos de sala; 36–37 Web en navegador real; 40 audio PSG; 2 cierre del chat sincorazones | 1) 29 y 40 (cortos), 2) 36–37, 3) 27, 4) 16–24 al final |
+| **Claude (Opus)** | 56 franja negra en la sala del tutorial; 57 menú de Opciones a toda la altura; 58 sonidos del modo debug en Opciones; v1.9.4 y #19; 44 limpieza; 43 cola; 51–54 consolas (otro chat); 39 rutas (al final) | 1) 56, 57 y 58 (cortos), 2) 44 con permiso, 3) 39 |
+| **ChatGPT/Codex** | 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; 27 RetroAchievements; 16–24 arte de jefes/escenas; 2 cierre del chat sincorazones | 1) 40 (corto), 2) 55, 3) 27, 4) 16–24 al final |
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
@@ -37,13 +37,25 @@ completas al final.
   mod muy específico, fuera de alcance por ahora.
 - **27:** RetroAchievements: hay logros locales y catálogo oficial experimental;
   falta login real y validar memoria/set; Level 1 pendiente.
-- **29:** variantes de planta de Mapamundi y objetos de sala en transiciones.
-- **36–37:** Web en navegador real (arranque, combate, SRAM, texto HD, audio, FPS,
-  controles); Worker/OffscreenCanvas solo si mejora medida.
+- **55 (nuevo, 18/10):** página web: llevar las opciones del launcher a sus
+  pestañas (gráficos, sonido, mejoras, controles, editor) y rehacer la estética
+  general para que calce con el arte del juego (estilo del menú debug ya usado en
+  el launcher y en Opciones). Entrega visual: capturas antes/después y aprobación.
 - **40:** audio PSG frente a la referencia de combate.
 - **2:** recoger el cierre del chat del bug de sincorazones.
 
 ## 3. Claude
+
+- **56 (bug, 18/10):** sala del tutorial de Ciudad de Paso en vista amplia: a la
+  derecha del mapa queda una franja negra que no calza con el fondo café que sí
+  llega abajo. Savestate del usuario: Nightly 5, slot1 (respaldo en
+  khcom-claude-int/build/userstates/nightly5). Causa: la sala va por bloques de
+  mapa (latch) y WorldPadding() solo rellena si una esquina es un tile uniforme;
+  aquí las esquinas tienen el borde con dither.
+- **57 (bug, 18/10):** el menú de Opciones del juego no muestra filas hasta abajo:
+  deja espacio para 3–4 filas más y corta la lista (se ve al bajar).
+- **58 (18/10):** añadir los sonidos de las luces del modo debug al menú de
+  Opciones, un poco más bajos de volumen.
 
 - **39 (al final):** rutas completas Sora y Reverse/Rebirth. Método aprobado:
   speedrun (.vbm USA en la raíz) como guía por tramos, comparar con el emulador
@@ -75,7 +87,7 @@ completas al final.
 
 ## Cerrados hoy (referencia)
 
-Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
+29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
 y 074 Monstro (13–14), remapeo y gatillos (25), submenús (28), fuente CJK Linux
 (34), PS5 (38), táctil (45), transición de Opciones (50), regresión sincorazones (4).
 Publicado en Nightly 5 (18/10, v1.9.3-nightly.20261018.5): #17 borde de Riku, logros locales,
