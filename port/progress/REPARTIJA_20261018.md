@@ -11,7 +11,7 @@ Versión prevista: v1.9.3-nightly.20261018.3. Arte nuevo sigue al final de la co
 ## Corrección vigente: no duplicar responsables
 
 Claude ya terminó guardados en **e9f053595**, checkout khcom-claude-int.
-Claude conserva guardados/savestates e integración/publicación. Codex retiró
+Claude conserva implementación de guardados/savestates. Codex retiró
 su borrador duplicado y toma sus tareas cortas 25–26, 28–29, 36–37 y 40.
 Extensiones de arte 12–24 quedan al final de prioridad.
 Antes de empezar comprobar propietario y commits de su checkout, no solo main.
@@ -21,7 +21,7 @@ Antes de empezar comprobar propietario y commits de su checkout, no solo main.
 **Primero terminar/recoger los workers existentes; después seguir la lista.**
 No abrir nuevos frentes de workers durante el cierre de esta tanda.
 
-La lista larga vigente, con 44 puntos, responsables y estados, es
+La lista larga vigente, con 45 puntos, responsables y estados, es
 [PENDIENTES_VIGENTES.md](PENDIENTES_VIGENTES.md). Sustituye repartos anteriores.
 No mantener otra cola de pendientes aquí.
 

@@ -22,8 +22,9 @@ documentos quedan como evidencia técnica e historial, no como colas paralelas.
 
 ## Orden y propiedad del trabajo (corrección del usuario)
 
-- **Claude conserva guardados 5–9, savestates 10–11 e integración/publicación
-  41–42.** Guardados implementados en e9f053595; no volver a implementarlos.
+- **Claude conserva implementación de guardados 5–9 y savestates 10–11.**
+  Guardados implementados en e9f053595 e integrados como aa8ef4434; no rehacerlos.
+  El usuario transfirió a Codex integración/publicación 41–42 de esta prerelease.
 - **Codex toma primero sus pendientes cortos 25–26, 28–29, 36–37 y 40**, según
   dependencias y evidencia disponible; RetroAchievements queda después.
 - **Extensiones de arte 12–24 al final**, después de bugs y funciones.
@@ -50,9 +51,11 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 4. [ ] **Codex:** verificar el cierre del bug grave de sincorazones pequeños
    que desaparecen sin animación, usando el savestate del usuario y el resultado
    del chat actual; continuar su corrección si el cierre resulta incompleto.
-5. [ ] **Claude:** actualizar el resumen de guardado al cambiar de slot.
-6. [ ] **Claude:** verificar ranuras vacías y ocupadas, guardado real y aislamiento
-   entre ranuras con copias de partidas, sin escribir sobre originales del usuario.
+5. [x] **Claude:** resumen al cambiar de slot, incluida ranura vacía; e9f053595,
+   integrado aa8ef4434. Informe CLAUDE_CIERRE_20261018.md.
+6. [x] **Claude:** harness EU mapsave comprueba guardado en ambas ranuras,
+   aislamiento de resúmenes (00:00:11 / 00:00:22) y reapertura en la segunda.
+   EU/US/JP compilan. Evidencia de Claude en CLAUDE_CIERRE_20261018.md.
 7. [x] **Claude:** persistencia del selector implementada en e9f053595;
    launcher registra la clave y conserva también claves desconocidas.
 8. [ ] **Claude:** auditar persistencia de las otras opciones reportadas y mantener
@@ -139,8 +142,10 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 44. [ ] **Claude:** limpieza de worktrees/builds antiguos después de verificar
     snapshots y condiciones previas; nunca borrar carpetas ReKHCoM-vX del usuario.
 
-45. [~] **Codex:** Ocultar controles táctiles en Experimental, Android/Web;
-    persistir preferencia, limpiar pulsaciones y conservar acceso a Opciones.
+45. [x] **Codex:** Ocultar controles táctiles en Experimental, Android/Web;
+    preferencia persistente, limpieza de pulsaciones y acceso a Opciones.
+    6d0f33df1; pruebas de entrada, persistencia y controles Web correctas.
+    Odin 2 y otros dispositivos físicos pendientes de validar (35/37).
 
 ## Qué bloquea la entrega inmediata
 

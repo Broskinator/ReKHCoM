@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## v1.9.3-nightly.20261018.3 — 2026-10-18 (public test build)
+
+- Android/Web: Options → Experimental → Hide touch controls, remembered across
+  restarts. The options button remains available; opening Options restores touch
+  navigation so the panels can be enabled again, including on handhelds.
+- Integrated Claude's save-crystal fixes: changing slots refreshes the summary,
+  empty slots clear it, writes target the selected slot, and the crystal remembers
+  the last saved slot. The launcher preserves the Experimental preference.
+- Updated Windows, Linux, Steam Deck, Anbernic alpha, Android alpha and Web alpha
+  packages, and included the integrated PS5 port as alpha (PPSA98511.zip).
+- Linux/Web builds now link the portable voice support required by the core.
+- Includes the previous nightly's scene and Guard Armor improvements. Other
+  reported savestate/art issues remain tracked; this is a prerelease, not stable.
+
 ## v1.9.3-nightly.20261018.2 — 2026-10-18 (public test build)
 
 - Guard Armor: accepted patio continuation using original tiles and palette,
