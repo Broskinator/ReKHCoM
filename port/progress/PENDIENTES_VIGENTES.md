@@ -24,7 +24,9 @@ completas al final.
 
 ## 1. Por publicar
 
-- v1.9.4 estable: compilada la fuente; falta Android/Web, reconstruir Linux (ícono) y publicar.
+- **v1.9.6 (pronto):** con los ports de vuelta (Linux, Steam Deck, Anbernic, Android,
+  Web; PS5 por su VM) y lo que se integre hasta entonces (59 retratos de Codex ya en
+  main). v1.9.5 salió el 18/10 como prerelease, solo Windows; la estable sigue v1.9.2.
 
 ## 2. Codex
 
@@ -81,10 +83,11 @@ completas al final.
   khcom-claude-int/build/userstates/nightly5). Causa: la sala va por bloques de
   mapa (latch) y WorldPadding() solo rellena si una esquina es un tile uniforme;
   aquí las esquinas tienen el borde con dither.
-- **57 (bug, 18/10):** el menú de Opciones del juego no muestra filas hasta abajo:
-  deja espacio para 3–4 filas más y corta la lista (se ve al bajar).
 - **58 (18/10):** añadir los sonidos de las luces del modo debug al menú de
-  Opciones, un poco más bajos de volumen.
+  Opciones, un poco más bajos de volumen. Intento en stash
+  `claude-58-menu-click-music-regression`: el clic suena, pero pausar la música con
+  m4aMPlayStop corta las notas largas (al volver suena más baja) y deja un tono
+  sostenido del PSG con el menú abierto. Falta pausar sin soltar notas.
 - **56b (18/10):** mismo caso que 56 en la escena del tutorial «Ahora están a
   merced de los naipes» (encapuchado en la sala): a la derecha y abajo queda
   blanco sin pintar; un poco después, lo mismo en negro. Pintar con el color de
@@ -94,8 +97,6 @@ completas al final.
   izquierda Sora queda atascado salvo que se presione arriba. Savestate 3:
   caminando a la derecha queda atrapado y luego no puede salir a la izquierda.
   Replicar y comparar con el juego original antes de tocar nada.
-- **64 (18/10):** contador de puntos moguri: pasarlo a Experimental y
-  desactivado por defecto (juego, launcher y kh_com.ini).
 - **65 (18/10, nuevo):** menú de pausa en las escenas habladas («cinemáticas»):
   centrado, con el estilo de botón del menú (la luz), dos opciones: Volver al
   juego y Saltar escena; Saltar pide confirmación. Implementar el salto de escena
@@ -131,7 +132,7 @@ completas al final.
 
 ## Cerrados hoy (referencia)
 
-29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
+Menú de Opciones a toda la altura (57) y aviso moguri a Experimental (64), publicados en v1.9.5. 29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
 y 074 Monstro (13–14), remapeo y gatillos (25), submenús (28), fuente CJK Linux
 (34), PS5 (38), táctil (45), transición de Opciones (50), regresión sincorazones (4).
 Publicado en Nightly 5 (18/10, v1.9.3-nightly.20261018.5): #17 borde de Riku, logros locales,
