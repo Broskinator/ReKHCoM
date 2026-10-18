@@ -65,6 +65,13 @@ completas al final.
   capa propia de vídeo/audio/entrada (vitaGL, sceAudioOut, sceCtrl); 3) .vpk alpha
   (EU/US/JP) con aviso de ROM propia; validación en Vita real = reportes. Atribución MIT
   en NOTICE si se adapta algún script. Grande (semanas); va después de lo corto.
+- **52–54 (nuevos, 18/10, largo plazo, sin fecha; estimación sin probar):**
+  52 **PS4** (el más viable): x86-64 como la PS5; reutilizar el guest de 32 bits y el
+  puente host de port/ps5 con otro SDK (OpenOrbis/GoldHEN) y otra salida de vídeo.
+  53 **Switch**: aarch64 de 64 bits; exige o bien la pasada de 64 bits del núcleo o un
+  proceso de 32 bits (a verificar en libnx/Horizon). 54 **PS3**: Cell PowerPC big-endian
+  (el juego asume little-endian en estructuras y datos de ROM), 256 MB: muy improbable.
+  La pasada de 64 bits desbloquearía también macOS (hoy solo Web o Wine). Hardware real = reportes.
 - **43:** mantener esta cola y los contadores tras cada cierre.
 
 ## Cerrados hoy (referencia)
