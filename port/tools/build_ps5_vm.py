@@ -60,6 +60,12 @@ def main():
         'cd /root/rk-release && mkdir -p roms && cp /root/share/roms/B8C?.gba roms/',
         'ln -sfn /root/ps5-deps port/ps5/.deps',
         'export RADV_RELEASE_REPO=darkxex/SwanStationPS5',
+        # ccache keeps compiled objects between runs (dependencies already persist in
+        # /root/ps5-deps), so only changed sources are compiled again.
+        'mkdir -p /root/ccache; export CCACHE_DIR=/root/ccache CCACHE_BASEDIR=/root/rk-release CCACHE_NOHASHDIR=1 CCACHE_MAXSIZE=3G',
+        "printf '#!/bin/sh\\nexec ccache clang-18 \"$@\"\\n' > /usr/local/bin/clang-cc; chmod +x /usr/local/bin/clang-cc",
+        'export CLANG=/usr/local/bin/clang-cc',
+        'ccache -s | head -3 || true',
         f'python3 port/tools/build_all.py --platform ps5 --package --release-version {version} --jobs 3',
         'unzip -t port/ps5/dist/PPSA98511.zip | tail -1',
     ]) + '\n'
