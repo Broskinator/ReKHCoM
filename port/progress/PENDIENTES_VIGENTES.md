@@ -28,7 +28,8 @@ completas al final.
   Web; PS5 por su VM) y lo que se integre hasta entonces (59 retratos de Codex ya en
   main). v1.9.5 salió el 18/10 como prerelease, solo Windows; la estable sigue v1.9.2.
   Prueba Android para el usuario: v1.9.6-android-test.1 (reserva por regiones #20 y
-  retratos #59). **Responder el issue #20 recién al publicar la próxima estable.**
+  retratos #59). El usuario confirma que en su Android corre bien. **Responder el
+  issue #20 recién al publicar la próxima estable.**
 
 ## 2. Codex
 
@@ -100,6 +101,13 @@ completas al final.
   izquierda Sora queda atascado salvo que se presione arriba. Savestate 3:
   caminando a la derecha queda atrapado y luego no puede salir a la izquierda.
   Replicar y comparar con el juego original antes de tocar nada.
+- **68 (bug, 18/10):** Android (APK de prueba v1.9.6): iniciar partida con texto HD
+  activado crashea. Replicar en el emulador (AVD en D:/ReKHCoM-build/android-avd).
+- **66 (18/10):** Android: la app aún pregunta el idioma del juego al empezar, pero
+  se elige dentro del juego. Quitar esa pregunta; dejar más escondida una opción
+  solo para cambiar el idioma de la interfaz/launcher.
+- **67 (18/10):** launcher de PC: banderas de los idiomas en la página principal
+  de elegir versión (EU/US/JP).
 - **65 (18/10, nuevo):** menú de pausa en las escenas habladas («cinemáticas»):
   centrado, con el estilo de botón del menú (la luz), dos opciones: Volver al
   juego y Saltar escena; Saltar pide confirmación. Implementar el salto de escena
