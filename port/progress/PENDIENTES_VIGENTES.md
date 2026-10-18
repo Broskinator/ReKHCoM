@@ -49,6 +49,12 @@ completas al final.
   a la derecha y hasta «revelado». Comparar con el juego original, encontrar la
   causa (orden de ventana/retrato, capa HD, márgenes anchos u oclusión) y
   corregirlo en todas las rutas (Sora y Reverse/Rebirth, EU/US/JP).
+  Detalle del usuario: pasa ANTES de que hablen. Ejemplo: Riku en el círculo
+  gris; DiZ aparece a la izquierda con su cara a color (revelado) y, cuando
+  entra la ventana «Duerme. Aquí, entre la luz y la oscuridad», pasa a la
+  silueta negra correcta. Hipótesis: en la GBA el retrato espera fuera de
+  pantalla (x negativa) mientras entra la ventana, y la vista amplia lo muestra
+  en el margen; ocultar retratos fuera de 240x160 mientras su ventana no está.
 - **2:** recoger el cierre del chat del bug de sincorazones.
 
 ## 3. Claude
