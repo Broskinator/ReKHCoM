@@ -117,6 +117,7 @@ enum {
 enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS, PAGE_CONTROLS, PAGE_REMATCH };
 static int sPage;
 static int sControlPad, sControlCapture;
+static void ControlBindingName(int binding, int l, char* out, size_t size);
 static int sNgRecom; /* new game page: the Re:CoM version chosen */
 static int sNgQol;   /* the one-button controls as set before the new game page */
 enum { WIZ_VERSION, WIZ_DIFFICULTY, WIZ_OPTIONS };
@@ -884,15 +885,7 @@ static void ValueText(int item, char* out, size_t size) {
                 int action = item - ITEM_CONTROL_A;
                 if (sControlCapture) SDL_strlcpy(out, "Press...", size);
                 else if (sControlPad) {
-                    int b = gPortConfig.pad[action];
-                    if (b >= PORT_PAD_AXIS_BASE) {
-                        int axis = (b - PORT_PAD_AXIS_BASE) / 2;
-                        static const char* const axes[] = { "Left X", "Left Y", "Right X", "Right Y", "LT", "RT" };
-                        SDL_snprintf(out, size, "%s %s", axis < SDL_GAMEPAD_AXIS_COUNT ? axes[axis] : "Axis", ((b - PORT_PAD_AXIS_BASE) & 1) ? "-" : "+");
-                    } else {
-                        const char* name = b < 0 ? "-" : SDL_GetGamepadStringForButton((SDL_GamepadButton)b);
-                        SDL_strlcpy(out, name ? name : "?", size);
-                    }
+                    ControlBindingName(gPortConfig.pad[action], l, out, size);
                 } else {
                     int b = gPortConfig.keys[action][0];
                     SDL_strlcpy(out, b ? SDL_GetKeyName((SDL_Keycode)b) : "-", size);
@@ -1821,8 +1814,11 @@ static void DrawWizard(int l, int width, int height) {
     DrawText(sWizStep == WIZ_VERSION ? sWizHelpFirst[l] : sWizHelp[l], x0 + 8, y0 + h - 12, MENU_DIM, 0xFFFFFFFFu);
 }
 
+#include "port_control_diagram.inc"
+
 static void DrawMenu(int l, int width, int height) {
     int rows, i, x, y, labelW = 0, valueW = 0, barX = 10, barW, top = MENU_TOP, artX;
+    int rowH = sPage == PAGE_CONTROLS && sControlPad ? 14 : 16;
     char value[64];
 
     if (sPage == PAGE_NEWGAME) {
@@ -1838,7 +1834,11 @@ static void DrawMenu(int l, int width, int height) {
         valueW = SDL_max(valueW, TextWidth(value));
     }
     barW = SDL_min(labelW + valueW + 40, width - barX - 6);
-    rows = SDL_min(PageEnd() - PageFirst(), (height - top - 14) / 16);
+    rows = SDL_min(PageEnd() - PageFirst(), (height - top - 14) / rowH);
+    /* Keep the pad beneath the list and above help. Compact resolutions scroll
+     * the list instead of overlapping it or drawing over the character art. */
+    if (sPage == PAGE_CONTROLS && sControlPad && height - top - 14 >= rowH + 68)
+        rows = SDL_min(rows, (height - top - 14 - 68) / rowH);
     if (sScroll < PageFirst() || sScroll >= PageEnd())
         sScroll = PageFirst();
     if (sCursor < sScroll)
@@ -1863,18 +1863,18 @@ static void DrawMenu(int l, int width, int height) {
     /* keep the list readable where it runs over the picture */
     for (x = barX + barW - 24; x < barX + barW + 16; x++)
         if (x >= artX + MENU_ART_X)
-            Shade(x, 0, 1, top + rows * 16, 0xFFFFFFFFu,
+            Shade(x, 0, 1, top + rows * rowH, 0xFFFFFFFFu,
                   SDL_clamp(256 - (x - (barX + barW)) * 16, 0, 230));
     if (barX + barW - 24 > artX + MENU_ART_X)
-        Shade(artX + MENU_ART_X, 0, barX + barW - 24 - (artX + MENU_ART_X), top + rows * 16, 0xFFFFFFFFu, 230);
+        Shade(artX + MENU_ART_X, 0, barX + barW - 24 - (artX + MENU_ART_X), top + rows * rowH, 0xFFFFFFFFu, 230);
 
-    DrawText(sPage == PAGE_REMATCH ? sRematchTitle[l] : sPage == PAGE_CHEATS ? sCheatsTitle[l] : sPage == PAGE_PS2 ? sPs2Title[l] : sPage == PAGE_CONTROLS ? (sControlPad ? "Controls - Gamepad" : "Controls - Keyboard") : sPage == PAGE_NEWGAME ? sNgTitle[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
+    DrawText(sPage == PAGE_REMATCH ? sRematchTitle[l] : sPage == PAGE_CHEATS ? sCheatsTitle[l] : sPage == PAGE_PS2 ? sPs2Title[l] : sPage == PAGE_CONTROLS ? (l == LANG_ES ? (sControlPad ? "Controles - Mando" : "Controles - Teclado") : (sControlPad ? "Controls - Gamepad" : "Controls - Keyboard")) : sPage == PAGE_NEWGAME ? sNgTitle[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
     if (sScroll > PageFirst())
         DrawText("\xE2\x86\x91", barX + barW - 8, 2, MENU_INK, 0xFFD8D8D8u);
-    for (i = sScroll, y = top; i < sScroll + rows && i < PageEnd(); i++, y += 16) {
+    for (i = sScroll, y = top; i < sScroll + rows && i < PageEnd(); i++, y += rowH) {
         int on = ItemEnabled(i), sel = i == sCursor;
         if (!ItemVisible(i)) {
-            y -= 16;
+            y -= rowH;
             continue;
         }
         uint32_t face = on ? MENU_INK : MENU_DIM;
@@ -1900,12 +1900,14 @@ static void DrawMenu(int l, int width, int height) {
         DrawText(value, x, y - 2, face, 0xFFD8D8D8u);
     }
     if (sScroll + rows < PageEnd())
-        DrawText("\xE2\x86\x93", barX + barW - 8, top + rows * 16 - 2, MENU_INK, 0xFFD8D8D8u);
+        DrawText("\xE2\x86\x93", barX + barW - 8, top + rows * rowH - 2, MENU_INK, 0xFFD8D8D8u);
+    if (sPage == PAGE_CONTROLS && sControlPad)
+        DrawControlDiagram(barX, top + rows * rowH + 2, barW, height - 15 - (top + rows * rowH + 2));
     if (sPage == PAGE_MAIN && sCursor == ITEM_ZOOM && ItemEnabled(ITEM_ZOOM) && PortConfigZoomHeavy(gPortConfig.zoom))
         /* a demanding zoom: say so where the help line is */
         MenuButton(barX, height - 15, sZoomHeavy[l], '!');
     else
-        DrawText(sPage == PAGE_REMATCH ? sRematchHelp[l] : sPage == PAGE_CHEATS ? sCheatsHelp[l] : sPage == PAGE_CONTROLS ? "Left/right: keyboard or gamepad; confirm: bind; Delete: clear" : sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
+        DrawText(sPage == PAGE_REMATCH ? sRematchHelp[l] : sPage == PAGE_CHEATS ? sCheatsHelp[l] : sPage == PAGE_CONTROLS ? (l == LANG_ES ? "←/→: teclado/mando; confirmar: asignar; Supr: borrar" : "Left/right: keyboard or gamepad; confirm: bind; Delete: clear") : sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
 }
 
 /* Test harness: KHCOM_OPTIONS_HOLD=n closes the menu n frames after it has

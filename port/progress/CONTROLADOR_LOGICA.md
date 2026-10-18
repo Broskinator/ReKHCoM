@@ -71,3 +71,29 @@ PID `310a`. Esto sustituye el resultado anterior de cero mandos para el estado
 actual del equipo. Se abrió el launcher de revisión y se pidió al usuario
 ejecutar el diagnóstico y exportar `controller_report.txt`. Hasta recibir ese
 informe no se dan por comprobados botones, ejes, gatillos ni reconexión física.
+
+### Informe físico recibido y nueva ubicación solicitada
+
+El usuario guardó el informe y confirmó haber pulsado todos los botones y movido
+los ejes. `build/achievements-review/controller_report.txt` registra SDL virtual=0,
+VID 11720 / PID 12554 (2DC8:310A), down/released=32767/32767 (15/15),
+sticks=255 (8/8 direcciones), centered=15 (4/4), LT=1/1, RT=1/1 y simultáneos=1.
+Esta es evidencia de entradas reales; no demuestra reconexión, persistencia de
+bindings ni todas las rutas dentro del juego.
+
+El usuario aclaró que el dibujo debía estar en el menú Controles del juego.
+`port_control_diagram.inc`, incluido por port_ui.c, dibuja una silueta propia
+inspirada en Ultimate 2C sobre rejilla 96x64, contorno violeta oscuro, tres planos
+de carcasa, botones rotulados y pozos de sticks. Va bajo la lista, encima de ayuda,
+con una sola escala entera. El menú del mando usa separación de filas de 14 px
+para conservar toda la lista y reservar 68 px; ventanas menores desplazan la lista.
+El foco ilumina su binding y el signo correcto de un eje; captura añade entradas
+del handle SDL ya abierto. No abre handles extra ni modifica bindings al dibujar.
+Lista: A/B/X/Y, LB/RB, LT/RT, LS/RS y cruceta con flechas. Teclado conserva nombres
+de teclas. Builds EU/US/JP y capturas reales del renderer en 1920x1080, 1016x570 y
+480x320; evidencia privada build/controller-native-review. Aprobación artística
+pendiente; no declararla aprobada automáticamente.
+
+Siguiente encargo: eliminar el salto del juego a escala pequeña al entrar/salir
+del menú manteniendo el fundido; estudiar la animación original del cursor debug
+y reproducir su luz en el selector de opciones, conservando tamaños de UI.

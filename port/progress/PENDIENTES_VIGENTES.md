@@ -110,8 +110,10 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 25. [x] **Codex:** remapeo/gatillos implementado y comprobado con SDL virtual;
     EU/US/JP compilan. Mando físico: llegará como reporte (ver abajo).
     18/10: usuario conecta 8BitDo Ultimate 2C por dongle; SDL3 detecta
-    XInput Controller #1, VID 2DC8 / PID 310A. Entradas físicas pendientes
-    del informe del diagnóstico abierto al usuario; detección sola no las valida.
+    XInput Controller #1, VID 2DC8 / PID 310A. Informe físico recibido:
+    15/15 botones pulsados/liberados, 8/8 direcciones de sticks, 4/4 ejes
+    centrados, LT/RT pulsados/liberados y simultáneos; SDL virtual=0.
+    Reconexión y persistencia de remapeo físicas no incluidas en esta prueba.
     Launcher: diagnóstico con botones/ejes/gatillos en vivo y exportación de
     observaciones a controller_report.txt; apertura de mando corregida también
     fuera de captura de remapeo. No confundir ese panel con una prueba física hecha.
@@ -179,6 +181,13 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     preferencia persistente, limpieza de pulsaciones y acceso a Opciones.
     6d0f33df1; pruebas de entrada, persistencia y controles Web correctas.
     Odin 2 y otros dispositivos físicos pendientes de validar (35/37).
+
+49. [~] **Codex:** corrección de ubicación del mando solicitada por el usuario:
+    diagrama Ultimate 2C con acabado toon en Controles del juego, debajo de la
+    lista, nombres Xbox y resaltado del binding seleccionado. Builds EU/US/JP;
+    capturas nativas 1080p/1016x570/480x320. Aprobación visual pendiente.
+    Continuación: quitar salto de escala durante fundidos y adaptar luz del
+    cursor debug sin cambiar tamaños. Lógica en CONTROLADOR_LOGICA.md.
 
 ## Esperan reportes (no cuentan como pendientes)
 
