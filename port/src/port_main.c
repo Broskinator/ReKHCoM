@@ -2302,6 +2302,16 @@ int main(int argc, char** argv) {
     if (sWindow == NULL)
         PortFatal("Could not create the window: %s", SDL_GetError());
     SDL_SetWindowMinimumSize(sWindow, GBA_SCREEN_W, GBA_SCREEN_H);
+#if defined(__linux__) && !defined(__ANDROID__)
+    {
+        /* Windows takes the icon from the executable; X11/Wayland need it set. */
+        SDL_Surface* icon = SDL_LoadBMP(PortConfigPath("assets/icon.bmp"));
+        if (icon != NULL) {
+            SDL_SetWindowIcon(sWindow, icon);
+            SDL_DestroySurface(icon);
+        }
+    }
+#endif
     PortCanvasAlloc();
     GrowPixelBuffer(&sComposite, &sCompositeCapacity, (size_t)gPortScreen.width * gPortScreen.height);
     sRenderer = SDL_CreateRenderer(sWindow, NULL);

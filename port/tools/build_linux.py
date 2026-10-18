@@ -188,6 +188,13 @@ def bundle(arch, base, versions, dest):
     for name in ('KHMenu.otf', 'ComicHearts.otf', 'NOTICE.md'):
         (dest / 'assets/fonts').mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'port/assets/fonts' / name, dest / 'assets/fonts' / name)
+    # Window icon (set by the game) and a launcher entry for desktops/Steam Deck.
+    shutil.copyfile(ROOT / 'port/assets/icon.bmp', dest / 'assets/icon.bmp')
+    shutil.copyfile(ROOT / 'port/assets/icon.png', dest / 'ReKHCoM.png')
+    desktop = ['[Desktop Entry]', 'Type=Application', 'Name=ReKHCoM',
+               'Comment=Kingdom Hearts: Chain of Memories (PC port)', 'Exec=sh ReKHCoM.sh',
+               'Icon=ReKHCoM.png', 'Terminal=false', 'Categories=Game;']
+    (dest / 'ReKHCoM.desktop').write_bytes((chr(10).join(desktop) + chr(10)).encode())
     for name in ('README.md', 'CHANGELOG.md', 'LICENSE.md'):
         shutil.copyfile(ROOT / name, dest / name)
     (dest / 'licenses').mkdir()
