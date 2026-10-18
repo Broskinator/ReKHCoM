@@ -27,6 +27,30 @@ Para KHCoMPC conviene conservar la idea general —tarjeta clara propia del jueg
 - Interfaz para login, lista/avisos de logros, pausa y errores.
 - Política de integridad para ROM, región, savestates, cheats y las funciones experimentales; probar cada caso antes de habilitar Hardcore.
 
+## Primer bloque integrado: lector acotado de RAM
+
+`port/src/port_ra_memory.c` expone `PortRaReadMemory`, que lee únicamente
+EWRAM (`0x02000000–0x0203ffff`) e IWRAM (`0x03000000–0x03007fff`). Rechaza
+lecturas que cruzan el límite de una región o apuntan a MMIO/ROM/SRAM y pone a
+cero el buffer en caso de rechazo. Esto implementa la frontera de memoria que
+necesita el cliente; todavía **no** incorpora rcheevos, identificación/hash,
+sesión HTTP, interfaz ni logros verificables.
+
+La prueba `port/tools/test_ra_memory.c` reserva esas ventanas en sus direcciones
+GBA reales y ejercita bytes de borde, lectura inicial, exceso de rango, MMIO y
+lectura vacía. Compilada con el toolchain i686 de SDL/MinGW, pasa con
+`PASS: RetroAchievements GBA RAM adapter bounds`. Siguiente paso: validar que el
+hash del juego y las definiciones oficiales carguen, y después conectar esta
+función al callback de lectura de `rc_client`.
+
+También se comprobó por MD5 la ROM europea de 32 MiB que acompaña al Nightly
+2 local: coincide con `d369f791d86a969778d2c3a5278d544c`, el hash EU anotado
+para el juego 768. Las copias US/JP locales no coinciden con ese hash EU, como
+se espera; sus hashes admitidos aún deben verificarse con la lista oficial.
+La identificación futura debe calcularse desde la ROM original antes de que
+las relocaciones nativas modifiquen palabras en la región mapeada. No hay un
+parche Level 1 local disponible para verificar el MD5 `02c38fb19dab302379ece65724fb4e0f`.
+
 ## Fuentes primarias
 
 - README y API de rcheevos: https://github.com/RetroAchievements/rcheevos

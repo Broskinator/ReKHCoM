@@ -189,6 +189,9 @@ const char* PortSaveName(void);
 /* Writes the current bank, then loads gPortConfig.saveBank. */
 void PortSramSwitchBank(void);
 void PortBiosAreaRefresh(void);
+/* RetroAchievements memory adapter: reads only valid GBA work-RAM windows.
+ * Returns 1 on success; invalid ranges are zero-filled and return 0. */
+int PortRaReadMemory(uint32_t address, uint8_t* buffer, uint32_t size);
 /* The game's globals: initialised data and zero-initialised data. */
 void PortGameSections(char** data, size_t* dataSize, char** bss, size_t* bssSize);
 

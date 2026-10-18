@@ -109,13 +109,14 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     Guard Armor de los casos que aún quedan, en especial Maléfica dragón.
 25. [x] **Codex:** remapeo/gatillos implementado y comprobado con SDL virtual;
     EU/US/JP compilan. Mando físico: llegará como reporte (ver abajo).
-
+    SDL3 enumera cero gamepads en este equipo; no hay validación física realizada.
 26. [~] **Codex:** #3 cerrado por su autor tras confirmar que se corrigió. #2
     sigue abierto: el autor pide una edición definitiva y enlazó Re:CoM; se le
     pidieron una o dos prioridades GBA concretas en el comentario
     6253397772. No prometer un remake completo mientras falta priorización.
-27. [ ] **Codex:** RetroAchievements: pasar de investigación a implementación y
-    comprobación del set base/Level 1; investigación actual no equivale a soporte jugable.
+27. [~] **Codex:** primer lector acotado EWRAM/IWRAM y prueba de límites integrados
+    (`RETROACHIEVEMENTS.md`, `test_ra_memory.c`). Falta conectar rcheevos, comprobar
+    hash/carga del set base y Level 1; aún no hay logros jugables.
 28. [x] **Codex:** revisión de submenús y transiciones completada en
     LOGICA_PENDIENTES_20261018.md: builds EU/US/JP; Sora 6/6 y Riku 6/6 por
     región (36/36). Incluye tutorial inicial de baraja Riku, capturas y regreso

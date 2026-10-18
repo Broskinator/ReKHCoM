@@ -43,3 +43,12 @@ salvo edición deliberada; persistencia tras reinicio. Revisar capturas con UI
 español/inglés, ventanas pequeña/grande y escala de Windows. Mando virtual
 verifica mapeo; mando físico queda indicado si no está disponible. Compilar
 launcher y EU/US/JP, registrar evidencia y push.
+
+## Verificación física, 18/10/2026
+
+En este equipo SDL3 3.4.18 inicializó el subsistema de gamepad correctamente,
+pero `SDL_GetGamepads` devolvió cero dispositivos. Windows lista USB/HID, pero
+ninguno aparece ante SDL como gamepad y, por tanto, no se atribuye a ellos una
+prueba de mandos. El cierre físico sigue pendiente hasta conectar uno reconocido
+por SDL y registrar su nombre/VID/PID y los botones/ejes comprobados. Se conserva
+la prueba virtual existente para regresión de mapeos y gatillos.

@@ -44,6 +44,25 @@ Controles: [`CONTROLADOR_LOGICA.md`](CONTROLADOR_LOGICA.md).
   reconexión; después probar un mando físico y registrar modelo/SDL/reportes.
 - Cerrar lo físico cuando se pueda nombrar dispositivo y resultado. La prueba
   virtual no se presenta como cobertura física. Avance anterior: 3fd15b641.
+- 18/10/2026: SDL3 3.4.18 inicializa gamepad, pero enumera cero dispositivos en
+  esta máquina. Windows sí ve periféricos USB/HID, sin que SDL los exponga como
+  gamepad. No cerrar el tramo físico; conservar el harness virtual y registrar
+  identidad/resultados cuando haya un mando SDL disponible.
+
+## 27 — RetroAchievements
+
+- Avanzar por etapas y no presentar investigación ni el callback aislado como
+  integración jugable. Primera etapa: una lectura acotada de EWRAM/IWRAM en las
+  direcciones GBA originales, rechazando MMIO, ROM, SRAM y rangos que excedan
+  una región. Probar código de producción con memoria reservada en esas
+  direcciones, incluidos bordes y cero del buffer ante rechazo.
+- La etapa siguiente integra una versión/licencia fijada de rcheevos, verifica
+  hash real contra juego 768 y subset 40403, conecta callback/identificación y
+  recorre RAM conocida del set. Mantener offline/Softcore separado de la
+  autorización oficial, login, integridad, cheats y Hardcore.
+- Avance 18/10: `PortRaReadMemory` y `test_ra_memory.c` pasan con el toolchain
+  i686. No existe todavía rcheevos ni soporte jugable; hash/ROM y Level 1 quedan
+  abiertos.
 
 ## 26 — Issues #2 y #3
 
