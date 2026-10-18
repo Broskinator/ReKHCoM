@@ -22,6 +22,12 @@ documentos quedan como evidencia técnica e historial, no como colas paralelas.
 
 ## Orden y propiedad del trabajo (corrección del usuario)
 
+- **Continuidad recíproca (nueva instrucción del usuario):** Claude y
+  Codex/ChatGPT pueden seguir commiteando/pusheando y tomar pendientes del otro
+  tras 10 minutos sin nuevos commits ni actividad verificable. Revisar también
+  cambios de archivos y builds/pruebas activos; anotar hora/evidencia y transferir
+  el bloque aquí antes de editar. Preservar WIP, no duplicarlo. Al volver, leer
+  las asignaciones actualizadas. Esta regla flexibiliza las asignaciones de abajo.
 - **Claude conserva implementación de guardados 5–9 y savestates 10–11.**
   Guardados implementados en e9f053595 e integrados como aa8ef4434; no rehacerlos.
   El usuario transfirió a Codex integración/publicación 41–42 de esta prerelease.

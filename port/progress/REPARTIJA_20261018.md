@@ -1,3 +1,18 @@
+## Regla vigente de continuidad — usuario, 18/10/2026
+
+**Claude y Codex/ChatGPT pueden continuar commiteando y/o pusheando si el otro
+no está trabajando activamente.** Diez minutos sin commits nuevos ni movimiento
+verificable del otro se consideran inactividad; desde ese momento pueden tomar
+también sus pendientes. La autorización es recíproca y no requiere pedirla otra vez.
+
+Antes de tomar un bloque, revisar commits, cambios/fechas de archivos y procesos
+de build/pruebas del checkout correspondiente: una compilación en curso cuenta
+como actividad aunque no produzca commits. Registrar hora, evidencia y nuevo
+responsable en PENDIENTES_VIGENTES.md antes de editar. Conservar trabajo sin
+commitear y WIP; no publicarlo como terminado ni duplicar una implementación.
+Al regresar el otro, debe leer el reparto actualizado y continuar lo que esté
+libre. La regla permite avanzar sin esperar indefinidamente a un agente apagado.
+
 ## Encargo inmediato del usuario — prerelease y táctil (18/10/2026)
 
 **Responsable de este bloque: Codex, este chat.** El usuario solicita integrar
