@@ -159,8 +159,13 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     para rehacer el port. Las comprobaciones de cada paquete y la validación
     física pendiente se conservan como parte de publicación/plataforma, no
     como implementación aún sin entregar. Detalle: CIERRE_WORKERS.md.
-39. [ ] **Claude:** rutas completas Sora y Reverse/Rebirth, campañas/regiones;
-    baterías cortas sin crash no equivalen a partidas completas.
+39. [ ] **Claude (AL FINAL, aprobado el plan 18/10):** rutas completas Sora y
+    Reverse/Rebirth. Método elegido por el usuario: usar el speedrun (.vbm USA en
+    la raíz) como guía, no como reproducción exacta: reproducir por tramos,
+    comparar con el emulador en puntos de control (sala, mundo, HP, escena) y
+    corregir el desfase por los fotogramas de lag; replicar y verificar cada
+    escena frente al emulador. Reverse/Rebirth sin movie: bot (KHCOM_BOT).
+    Baterías cortas sin crash no equivalen a partidas completas.
 40. [ ] **Codex:** comparación de audio PSG pendiente frente a referencia de
     combate; no repetir como pendiente la música de Coliseo ya explicada.
 41. [x] **Codex (transferido por el usuario para esta prerelease):** integrados
@@ -173,9 +178,10 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     Stable sigue v1.9.2. URL, hashes, fuentes y límites: NIGHTLY3_PUBLICACION.md.
 43. [ ] **Claude + Codex:** actualizar contadores/status/documentos tras cada
     cierre; conservar solo esta cola como vigente y eliminar contradicciones históricas.
-44. [ ] **Claude:** limpieza de worktrees/builds antiguos después de verificar
-    snapshots y condiciones previas; nunca borrar carpetas ReKHCoM-vX del usuario.
-
+44. [~] **Claude:** limpieza. Hecho 18/10 (autorizado): borradas las carpetas
+    ReKHCoM-vX antiguas y sus .bat; quedan v1.9.1, nightly.20261018, .2 y la copia
+    de prueba de Riku; guardados/ini respaldados en backups/saves-releases-borradas-20261018.
+    Pendiente: worktrees y carpetas build viejos (preguntar antes de borrar).
 45. [x] **Codex:** Ocultar controles táctiles en Experimental, Android/Web;
     preferencia persistente, limpieza de pulsaciones y acceso a Opciones.
     6d0f33df1; pruebas de entrada, persistencia y controles Web correctas.
