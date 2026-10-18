@@ -51,5 +51,8 @@ de proponer algo nuevo; ante un caso nuevo, derivar la solución de ellas.
 - 17: borde superior de la sala de Riku (Hollow Bastion B1, sala 3): aprobado
   totalmente el 18/10 (`src/map/map_cell.c`: `MapFindEdgeStrip`,
   `MapTopEdgeTile`, `MapPlainBaseTile`).
+- 061 hielo y 074 Monstro: aprobadas (18/10). 057 playa: aprobada con mejoras
+  (igualar la estructura de tiles del lado derecho-superior con la del izquierdo;
+  no cortar motivos de pasto por la mitad).
 - Anteriores (márgenes de ventanas 1-17, escenas 004/057/061/074, Guard Armor):
   ver REPARTO.md y ESCENAS_REVISION_AMPLIA.md; mismos principios 1-3.

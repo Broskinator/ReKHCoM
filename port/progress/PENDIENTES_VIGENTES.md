@@ -82,12 +82,12 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     APROBADO TOTALMENTE por el usuario (18/10); activo por defecto (KHCOM_TOPCLOSE=0
     lo apaga). Lógica en LOGICA_APROBADOS.md.
 11. [x] **Claude:** #18 Mapamundi: el usuario confirma que ya quedó arreglado (18/10).
-12. [~] **Codex:** 057 playa corregida para vistas amplias; código y capturas listos,
-    falta revisión visual final de la nueva extensión.
-13. [~] **Codex:** 061 hielo corregida para vistas amplias; código y capturas listos,
-    falta revisión visual final de la nueva extensión.
-14. [~] **Codex:** 074 Monstro corregida para vistas amplias; motivos completos,
-    código y capturas listos, falta revisión visual final de la nueva extensión.
+12. [~] **Codex:** 057 playa APROBADA CON MEJORAS por el usuario (18/10): el lado
+    superior derecho (junto a Sora) sigue otra estructura de tiles que el izquierdo
+    y debe igualarse; el pasto tiene cortes a medias (motivos cortados). Aplicar
+    LOGICA_APROBADOS.md: motivos completos, sin media pieza.
+13. [x] **Codex:** 061 hielo APROBADA por el usuario (18/10).
+14. [x] **Codex:** 074 Monstro APROBADA por el usuario (18/10).
 15. [x] **Codex:** entregar 057/061/074 en main 0cb04a8dd; fuente 643739f9b.
     EU/US/JP compilan; 23/23 regionales y 6/6 tras último ajuste Monstro;
     capturas reales 960×540/1440×810, GBA intacta y León idéntica.

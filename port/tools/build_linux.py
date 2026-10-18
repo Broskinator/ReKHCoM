@@ -174,6 +174,14 @@ def bundle(arch, base, versions, dest):
         shutil.copyfile(src, dest / 'lib' / name)
         todo += needed(src)
     subprocess.check_call(['llvm-strip', '--strip-unneeded', str(dest / 'lib' / 'libSDL3.so.0')])
+    # SDL3 opens these by their unversioned names (libasound.so, libX11.so ...),
+    # which runtime packages do not ship. Without a copy under that name the
+    # system's library is loaded instead and may need a newer glibc than the
+    # bundled one (issue #19: libasound.so wanting GLIBC_2.43).
+    for name in DLOPEN:
+        plain = name.split('.so')[0] + '.so'
+        if plain != name and (dest / 'lib' / name).is_file():
+            shutil.copyfile(dest / 'lib' / name, dest / 'lib' / plain)
     # The loader runs the game, so the process is named after its file.
     (dest / 'lib' / LOADER[arch]).rename(dest / 'lib' / 'rekhcom')
     (dest / 'ReKHCoM.sh').write_bytes((ROOT / 'port/linux/ReKHCoM.sh').read_bytes().replace(b'\r\n', b'\n'))
