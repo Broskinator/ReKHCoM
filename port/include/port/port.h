@@ -129,6 +129,7 @@ typedef struct PortConfig {
     int cheatUnlockRiku;         /* opt-in title access; never marks Sora cleared */
     int undub;                  /* Japanese voices; applied when loading the ROM */
     int savePointSlotSelect;    /* experimental: choose the save slot at save points */
+    int hideTouchControls;      /* hide gameplay panels; keep access to options */
 } PortConfig;
 
 extern PortConfig gPortConfig;

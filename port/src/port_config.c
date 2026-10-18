@@ -94,6 +94,7 @@ static const Key sKeys[] = {
     { "zoom", &gPortConfig.zoom, 0, PORT_ZOOM_LEVELS },
     { "cheat_unlock_riku", &gPortConfig.cheatUnlockRiku, 0, 1 },
     { "experimental_save_point_slot_select", &gPortConfig.savePointSlotSelect, 0, 1 },
+    { "experimental_hide_touch_controls", &gPortConfig.hideTouchControls, 0, 1 },
     { "undub", &gPortConfig.undub, 0, 1 },
     { "integer_zoom", &gPortConfig.integerZoom, 0, 1 },
     { "scale_mode", &gPortConfig.scaleMode, 0, PORT_SCALE_COUNT - 1 },

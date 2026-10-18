@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -54,6 +55,13 @@ def main():
     p.add_argument('--native-only',action='store_true')
     p.add_argument('--smoke',action='store_true',help='Separate test app: starts a debug battle, captures frame 600 and exits at 900')
     args=p.parse_args()
+    release=re.search(r'#define REKHCOM_VERSION\s+"([^"]+)"',
+                      (ROOT/'port/decompui/decompui.cpp').read_text(encoding='utf-8'))[1]
+    version_name=release.removeprefix('v')+'-android-alpha'
+    parts=re.match(r'v(\d+)\.(\d+)\.(\d+)',release)
+    major,minor,patch=map(int,parts.groups())
+    nightly=re.search(r'nightly\.(\d{8})\.(\d+)$',release)
+    version_code=major*1000000+minor*10000+patch*100+(int(nightly[2]) if nightly else 99)
     if args.jobs<1:p.error('--jobs must be positive')
     tools=ROOT.parent/'toolchain/android';sdk=tools/'sdk'
     ndk=next((tools/'native').glob('android-ndk-*'))
@@ -111,13 +119,13 @@ android {
  namespace 'com.rekhcom.android'
  compileSdk 35
  ndkVersion '__NDK_VERSION__'
- defaultConfig { applicationId 'com.rekhcom.android'; minSdk 21; targetSdk 35; versionCode 19003; versionName '1.9-android-alpha3' }
+ defaultConfig { applicationId 'com.rekhcom.android'; minSdk 21; targetSdk 35; versionCode __VERSION_CODE__; versionName '__VERSION_NAME__' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
  buildTypes { debug { debuggable true }; release { minifyEnabled false } }
  lint { abortOnError true }
  packaging { jniLibs { useLegacyPackaging true } }
 }
-""".replace('__NDK_VERSION__',ndk_version))
+""".replace('__NDK_VERSION__',ndk_version).replace('__VERSION_CODE__',str(version_code)).replace('__VERSION_NAME__',version_name))
     if args.smoke:
         gradle=stage/'app/build.gradle'
         gradle.write_text(gradle.read_text().replace("applicationId 'com.rekhcom.android'","applicationId 'com.rekhcom.android.smoke'"))
@@ -147,12 +155,12 @@ android {
             assert member in z.namelist()
             assert hashlib.sha256(z.read(member)).digest()==hashlib.sha256((libs/name).read_bytes()).digest(), ('stale APK library',name)
     out=ROOT/'build/releases';out.mkdir(exist_ok=True)
-    target=out/f"ReKHCoM-v1.9.2-android-alpha{'-smoke' if args.smoke else ''}.apk"
+    target=out/f"ReKHCoM-{release}-android-alpha{'-smoke' if args.smoke else ''}.apk"
     shutil.copy2(apk,target)
     digest=hashlib.sha256(target.read_bytes()).hexdigest()
     target.with_suffix('.apk.sha256').write_text(f'{digest}  {target.name}\n')
     (out/('android-build-manifest'+suffix+'.json')).write_text(json.dumps({'apk':target.name,'sha256':digest,'regions':args.regions,
-        'abi':args.abi,'version':'1.9.2-android-alpha','debug_signed':True,'test_only':args.smoke,'runtime_tested':False},indent=2))
+        'abi':args.abi,'version':version_name,'version_code':version_code,'debug_signed':True,'test_only':args.smoke,'runtime_tested':False},indent=2))
     print('Built (runtime verification still required):',target,digest)
 
 

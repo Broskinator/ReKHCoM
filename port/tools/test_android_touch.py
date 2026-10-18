@@ -8,5 +8,5 @@ out=R/'build/android-touch-test';out.mkdir(exist_ok=True)
 exe=out/'touch.exe'
 subprocess.run([str(cc),'-O2','-std=gnu11','-I'+str(R/'port/include'),'-I'+str(sdl/'include'),
                str(R/'port/tools/android_touch_conformance.c'),'-L'+str(sdl/'lib'),'-lSDL3','-o',str(exe)],check=True)
-shutil.copy2(R/'build/rel-eu/SDL3.dll',out/'SDL3.dll')
+shutil.copy2(sdl/'bin/SDL3.dll',out/'SDL3.dll')
 subprocess.run([str(exe)],cwd=out,check=True)

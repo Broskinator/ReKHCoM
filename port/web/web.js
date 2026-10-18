@@ -78,7 +78,14 @@ $('rom').addEventListener('change',async()=>{
     };
     try{await ReKHWeb.fonts(core);core.hdReady=true;core._PortWebSetHdReady(1);}
     catch(error){log(error);core.hdReady=false;core._PortWebSetHdReady(0);warning('fonts');}
-    $('touch').checked=matchMedia('(pointer:coarse)').matches;
+    core.onTouchPanelsChanged=enabled=>{$('touch').checked=!!enabled;};
+    let touchPreference=matchMedia('(pointer:coarse)').matches;
+    try {
+      const ini=core.FS.readFile('/saves/kh_com.ini',{encoding:'utf8'});
+      const hidden=ini.match(/^experimental_hide_touch_controls=(\d+)$/m);
+      if(hidden)touchPreference=hidden[1]==='0';
+    }catch{}
+    $('touch').checked=touchPreference;
     core._PortWebTouchEnable($('touch').checked?1:0);
     $('play').disabled=false;$('save').disabled=false;status('ready');
   }catch(error){fail(error);core=null;region=null;$('rom').disabled=false;$('rom').value='';}
@@ -104,7 +111,11 @@ $('play').addEventListener('click',()=>{
   $('setup').hidden=true;$('game').hidden=false;canvasSize();started=true;$('canvas').focus();status('');
   try{core.callMain(['--data-dir','/saves','--rom',':browser:']);scheduleResize();}catch(error){fail(error);}
 });
-$('touch').addEventListener('change',()=>{core?._PortWebTouchEnable($('touch').checked?1:0);$('canvas').focus();});
+$('touch').addEventListener('change',()=>{
+  core?._PortWebTouchEnable($('touch').checked?1:0);
+  if(started)core?._PortWebTouchPersist();
+  $('canvas').focus();
+});
 async function toggleFullscreen(){
   try{
     if(document.fullscreenElement)await document.exitFullscreen();

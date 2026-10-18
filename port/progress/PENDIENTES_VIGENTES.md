@@ -125,9 +125,9 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     baterías cortas sin crash no equivalen a partidas completas.
 40. [ ] **Codex:** comparación de audio PSG pendiente frente a referencia de
     combate; no repetir como pendiente la música de Coliseo ya explicada.
-41. [ ] **Claude:** integrar commits terminados de la entrega actual, resolver
+41. [~] **Codex (transferido por el usuario para esta prerelease):** integrar commits terminados de la entrega actual, resolver
     PPU compartido una vez y comprobar el conjunto EU/US/JP.
-42. [ ] **Claude:** empaquetar y PUBLICAR la entrega corregida autorizada; registrar
+42. [~] **Codex (transferido por el usuario para esta prerelease):** empaquetar y PUBLICAR la entrega corregida autorizada; registrar
     tag, URL, hashes y plataformas realmente actualizadas. Actualizar Pages/APK
     solo con sus builds correspondientes. No etiquetar WIP como stable.
     Incluir también PS5 desde el main de esa entrega: compilar en Linux/VM
@@ -138,6 +138,9 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     cierre; conservar solo esta cola como vigente y eliminar contradicciones históricas.
 44. [ ] **Claude:** limpieza de worktrees/builds antiguos después de verificar
     snapshots y condiciones previas; nunca borrar carpetas ReKHCoM-vX del usuario.
+
+45. [~] **Codex:** Ocultar controles táctiles en Experimental, Android/Web;
+    persistir preferencia, limpiar pulsaciones y conservar acceso a Opciones.
 
 ## Qué bloquea la entrega inmediata
 

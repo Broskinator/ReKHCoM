@@ -9,8 +9,10 @@
 static int touchEnabled;
 EMSCRIPTEN_KEEPALIVE void PortWebTouchEnable(int enabled) {
     touchEnabled=enabled;
+    gPortConfig.hideTouchControls=!enabled;
     PortAndroidTouchClear();
 }
+EMSCRIPTEN_KEEPALIVE void PortWebTouchPersist(void) { PortConfigSave(); }
 #endif
 
 typedef struct Finger { SDL_FingerID id; float x,y; int active; } Finger;
@@ -38,6 +40,14 @@ static const Button buttons[]={
 static SDL_Texture* icons[2];
 static uint16_t uiHeld;
 void PortAndroidTouchClear(void) { SDL_memset(fingers,0,sizeof(fingers)); uiHeld=0; }
+void PortAndroidTouchSettingsChanged(void) {
+    PortAndroidTouchClear();
+#ifdef __EMSCRIPTEN__
+    touchEnabled=1;
+    EM_ASM({ if (Module.onTouchPanelsChanged) Module.onTouchPanelsChanged(!!$0); },
+           !gPortConfig.hideTouchControls);
+#endif
+}
 static void TouchUi(void) {
     uint16_t keys=PortAndroidTouchKeys(), pressed=keys & ~uiHeld;
     static const struct { uint16_t bit; SDL_Keycode key; } bindings[]={
@@ -95,13 +105,14 @@ uint16_t PortAndroidTouchKeys(void) {
 #endif
     uint16_t keys=0;
     int i,b;
+    int panels = !gPortConfig.hideTouchControls || PortUiActive();
     for(i=0;i<10;i++) if(fingers[i].active) {
         float fx=fingers[i].x,fy=fingers[i].y;
 #if defined(__EMSCRIPTEN__) || defined(PORT_TOUCH_CENTERED_LAYOUT)
         fx=(fx*outputW-layoutX)/layoutW;fy=(fy*outputH-layoutY)/layoutH;
 #endif
         float dx=(fx-.13f)*aspect,dy=fy-.73f;
-        if(SDL_fabsf(dx)<.17f && SDL_fabsf(dy)<.17f) {
+        if(panels && SDL_fabsf(dx)<.17f && SDL_fabsf(dy)<.17f) {
             if(dx<-.035f) keys|=0x20;
             if(dx>.035f) keys|=0x10;
             if(dy<-.035f) keys|=0x40;
@@ -109,6 +120,7 @@ uint16_t PortAndroidTouchKeys(void) {
             continue;
         }
         for(b=0;b<(int)SDL_arraysize(buttons);b++) {
+            if(!panels && b!=(int)SDL_arraysize(buttons)-1) continue;
             float x=(fx-buttons[b].x)*aspect,y=fy-buttons[b].y;
             float radius=b==6 || b==7 ? .055f : .075f;
             if(x*x+y*y<=radius*radius) { keys|=buttons[b].bits; break; }
@@ -163,8 +175,12 @@ void PortAndroidTouchDraw(SDL_Renderer* r) {
         SDL_SetTextureBlendMode(icons[b],SDL_BLENDMODE_BLEND);
     }
     SDL_SetRenderDrawBlendMode(r,SDL_BLENDMODE_BLEND);
-    for(b=0;b<(int)SDL_arraysize(buttons);b++) DrawButton(r,w,h,buttons[b].x,buttons[b].y,
-        b==6 || b==7?.05f:.066f,buttons[b].text,buttons[b].icon,(keys&buttons[b].bits)==buttons[b].bits);
+    for(b=0;b<(int)SDL_arraysize(buttons);b++) {
+        if(gPortConfig.hideTouchControls && !PortUiActive() && b!=(int)SDL_arraysize(buttons)-1) continue;
+        DrawButton(r,w,h,buttons[b].x,buttons[b].y,
+            b==6 || b==7?.05f:.066f,buttons[b].text,buttons[b].icon,(keys&buttons[b].bits)==buttons[b].bits);
+    }
+    if(gPortConfig.hideTouchControls && !PortUiActive()) return;
     DrawButton(r,w,h,.13f,.73f-.10f,.063f,"^",0,keys&0x40);
     DrawButton(r,w,h,.13f,.73f+.10f,.063f,"v",0,keys&0x80);
     DrawButton(r,w,h,.13f-.10f/aspect,.73f,.063f,"<",0,keys&0x20);

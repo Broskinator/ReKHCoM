@@ -53,7 +53,7 @@ namespace fs = std::filesystem;
 #include "save_file.h"
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.9.3-nightly.20261018.2"
+#define REKHCOM_VERSION "v1.9.3-nightly.20261018.3"
 #endif
 
 static bool sSpanish;
@@ -232,6 +232,7 @@ static const Setting kSettings[] = {
     { "undub", 0 },
     { "cheat_unlock_riku", 0 },
     { "experimental_save_point_slot_select", 0 },
+    { "experimental_hide_touch_controls", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },

@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "../android/native/touch_android.c"
+PortConfig gPortConfig;
 int PortUiActive(void){return 0;}
 void PortUiOpenOptions(void){}
 int PortUiHandleEvent(const void* event){(void)event;return 0;}

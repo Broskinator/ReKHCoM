@@ -5,5 +5,6 @@ struct SDL_Renderer;
 void PortAndroidTouchEvent(const void* event);
 uint16_t PortAndroidTouchKeys(void);
 void PortAndroidTouchClear(void);
+void PortAndroidTouchSettingsChanged(void);
 void PortAndroidTouchDraw(struct SDL_Renderer* renderer);
 #endif

@@ -4,6 +4,7 @@
 #include "input_controls_conformance.c"
 #undef main
 #include "../android/native/touch_android.c"
+void PortConfigSave(void){}
 static SDL_Renderer* renderer;
 static unsigned observed, presses, frames;
 int PortUiActive(void){return 0;}

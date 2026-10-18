@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "../android/native/touch_android.c"
+PortConfig gPortConfig;
 static int ui,opened,count;
 static SDL_Keycode received[32];
 int PortUiActive(void) { return ui; }
@@ -41,6 +42,18 @@ int main(void) {
     finger(SDL_EVENT_FINGER_DOWN,20,.45f,.93f);assert(PortAndroidTouchKeys()==4);
     finger(SDL_EVENT_FINGER_DOWN,21,.55f,.93f);
     assert(opened==2 && !PortAndroidTouchKeys());
-    puts("Touch: multi-finger, diagonal, slide, cancel, focus, settings and UI routing passed");
+    /* Disable held inputs, ignore hidden gameplay buttons, retain settings. */
+    ui=0;PortAndroidTouchClear();
+    finger(SDL_EVENT_FINGER_DOWN,30,.91f,.62f);assert(PortAndroidTouchKeys()==1);
+    gPortConfig.hideTouchControls=1;PortAndroidTouchSettingsChanged();
+    assert(!PortAndroidTouchKeys());
+    finger(SDL_EVENT_FINGER_DOWN,31,.91f,.62f);assert(!PortAndroidTouchKeys());
+    finger(SDL_EVENT_FINGER_DOWN,32,.07f,.73f);assert(!PortAndroidTouchKeys());
+    finger(SDL_EVENT_FINGER_DOWN,33,.95f,.17f);assert(ui && opened==3);
+    finger(SDL_EVENT_FINGER_UP,33,0,0);
+    finger(SDL_EVENT_FINGER_DOWN,34,.13f,.83f);assert(received[count-1]==SDLK_DOWN);
+    gPortConfig.hideTouchControls=0;PortAndroidTouchSettingsChanged();ui=0;
+    finger(SDL_EVENT_FINGER_DOWN,35,.91f,.62f);assert(PortAndroidTouchKeys()==1);
+    puts("Touch: multi-finger, UI, hide/restore, held-key clearing and settings recovery passed");
     return 0;
 }

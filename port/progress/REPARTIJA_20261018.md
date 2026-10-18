@@ -1,3 +1,13 @@
+## Encargo inmediato del usuario — prerelease y táctil (18/10/2026)
+
+**Responsable de este bloque: Codex, este chat.** El usuario solicita integrar
+los commits terminados de Claude, push y prerelease de lo acumulado, incluyendo
+PS5; añadir Ocultar controles táctiles en Experimental para Android/Web.
+Esto transfiere a Codex la preparación/publicación DE ESTA prerelease (41–42),
+sin reasignar implementación de guardados/savestates de Claude ni tareas de PS5.
+Guardados de Claude e9f053595 integrados como aa8ef4434. No rehacerlos.
+Versión prevista: v1.9.3-nightly.20261018.3. Arte nuevo sigue al final de la cola.
+
 ## Corrección vigente: no duplicar responsables
 
 Claude ya terminó guardados en **e9f053595**, checkout khcom-claude-int.

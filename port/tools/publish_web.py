@@ -48,7 +48,9 @@ def main():
             raise RuntimeError('Invalid Wasm binary: ' + str(wasm))
         if f'rekhcom-{region}.wasm' not in (site / f'rekhcom-{region}.js').read_text():
             raise RuntimeError('JS/Wasm filename mismatch')
-    manifest = {'version':'v1.9.2-web-alpha', 'source_commit':git('rev-parse','HEAD'),
+    release = re.search(r'#define REKHCOM_VERSION\s+"([^"]+)"',
+                        (ROOT/'port/decompui/decompui.cpp').read_text(encoding='utf-8'))[1]
+    manifest = {'version':release+'-web-alpha', 'source_commit':git('rev-parse','HEAD'),
                 'source_dirty':bool(git('diff','--name-only')),
                 'built_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(), 'files':{}}
     for name in FILES:
