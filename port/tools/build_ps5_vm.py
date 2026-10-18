@@ -40,6 +40,14 @@ def main():
                                         (ROOT / 'port/decompui/decompui.cpp').read_text(encoding='utf-8'))[1]
     if not IMAGE.is_file():
         sys.exit(f'PS5 VM image not found: {IMAGE}')
+    # The VM disk is persistent: two QEMU processes on it would corrupt it.
+    if os.name == 'nt':
+        running = subprocess.run(['powershell', '-NoProfile', '-Command',
+                                  "Get-CimInstance Win32_Process -Filter \"Name='qemu-system-x86_64.exe'\" | "
+                                  "Where-Object { $_.CommandLine -like '*ps5env.qcow2*' } | Measure-Object | "
+                                  "Select-Object -ExpandProperty Count"], capture_output=True, text=True).stdout.strip()
+        if running not in ('', '0'):
+            sys.exit('The PS5 VM is already running (another build?). Wait for it to finish; never start two on the same disk.')
     for code in ('B8CP', 'B8CE', 'B8CJ'):
         if not (ROOT / 'roms' / f'{code}.gba').is_file():
             sys.exit(f'Missing roms/{code}.gba (the PS5 build needs the three cartridges)')
