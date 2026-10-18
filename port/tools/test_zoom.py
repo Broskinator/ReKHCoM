@@ -12,7 +12,7 @@ code = r"""
 extern float gPortAutoScaleF;
 int PortUiActive(void) { return 0; }
 int main(void) {
- int sizes[][2]={{320,180},{960,540},{1280,720},{1920,1080},{3440,1440},{5120,1440},{7680,2160}};
+ int sizes[][2]={{320,180},{960,540},{1280,720},{1280,800},{1920,1080},{3440,1440},{5120,1440},{7680,2160}};
  int i,z,w,h,s,k,only,prev,cases=0;
  assert(gPortConfig.zoom==PORT_ZOOM_DEFAULT && gPortConfig.integerZoom==0);
  assert(!gPortConfig.cheatUnlockRiku && !PortRikuAvailable(0));
@@ -23,7 +23,7 @@ int main(void) {
  gPortConfig.cheatUnlockRiku=0;PortConfigSave();PortConfigLoad();assert(!PortRikuAvailable(0));
  for(only=1;only<2;only++) {
   gPortConfig.integerZoom=only;
-  for(i=0;i<7;i++) {
+  for(i=0;i<8;i++) {
    int W=sizes[i][0],H=sizes[i][1],count=PortZoomCount(only,W,H);
    prev=999;
    for(k=0;k<count;k++) {
@@ -41,6 +41,10 @@ int main(void) {
    }
   }
  }
+ gPortConfig.integerZoom=1;gPortConfig.zoom=PORT_ZOOM_CLASSIC;
+ gPortConfig.integerZoom=0;gPortConfig.zoom=10; /* x5 on a 16:10 laptop. */
+ PortConfigAutoView(1280,800,&w,&h,&s);
+ assert(w==256 && h==160 && s==5 && fabsf(gPortAutoScaleF-5.0f)<0.001f);
  gPortConfig.integerZoom=1;gPortConfig.zoom=PORT_ZOOM_CLASSIC;
  PortConfigAutoView(1920,1080,&w,&h,&s);
  assert(w==480 && h==270 && s==4);
@@ -63,7 +67,7 @@ int main(void) {
  gPortConfig.integerZoom=1;assert(PortConfigZoomNext(12,1)==10); /* no intermediate step */
  gPortConfig.integerZoom=0;assert(PortConfigZoomNext(12,1)==10);
  for(z=1;z<=PORT_ZOOM_LEVELS;z++)assert(!(PortConfigZoomId(z)&1));
- printf("PASS: %d resolution/zoom cases, exact v1.4 x4, numbered selector without intermediate steps, INI migration/persistence\n",cases);
+ printf("PASS: %d resolution/zoom cases, exact 16:10 256x160 @x5, exact v1.4 x4, numbered selector, INI migration/persistence\n",cases);
  return 0;
 }
 

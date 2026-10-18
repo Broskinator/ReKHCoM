@@ -73,6 +73,9 @@ int main(int argc, char** argv) {
     gPortConfig.ps2Difficulty = 1;
     assert(PortScaleDamage(1, 1) == 1);
     assert(PortScaleDamage(10, 1) == 5);
+    gPortConfig.ps2Difficulty = 2;
+    assert(PortScaleDamage(10, 1) == 15); /* Proud: Sora receives 150%. */
+    assert(PortScaleDamage(10, 0) == 8);  /* Proud: enemies receive 80%. */
     /* Version follows the loaded save, not the retired global mode switch. */
     PortRecomSetActive(0);
     assert(PortScaleDamage(10, 1) == 10 && !PortFastText());
@@ -108,7 +111,7 @@ def main():
         env.pop("KHCOM_DAMAGELOG", None)
         subprocess.run([str(exe)], cwd=work, env=env, check=True)
         subprocess.run([str(exe), "reload"], cwd=work, env=env, check=True)
-    print("PASS: legacy metadata, 80 control/text combinations, five banks, restart, damage, Original isolation")
+    print("PASS: legacy metadata, 80 control/text combinations, five banks, restart, Beginner/Proud damage, Original isolation")
 
 
 if __name__ == "__main__":
