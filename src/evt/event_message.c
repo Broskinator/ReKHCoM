@@ -6795,6 +6795,16 @@ void msgface_2(MsgFaceWork* work) {
     ObjAffine* affine;
     u8 flipX;
 
+#ifdef PLATFORM_PC
+    int clipPortrait = getenv("KHCOM_PORTRAIT_UNCLIPPED") == NULL;
+    /* Hidden positions are parking coordinates, not another part of the scene.
+     * Their initial palette may deliberately precede the silhouette command. */
+    if (clipPortrait && work->face->positionIndex < 4 &&
+        work->x == gMsgfaceHiddenX[work->face->positionIndex]) return;
+    if (clipPortrait)
+        PortSpriteClipX(gPortSpriteShiftX, gPortSpriteShiftX + 240);
+#endif
+
     if (work->visible) {
         affine = AllocObjAffine(0, work->scaleX, Q_8_8(1), FALSE);
 
@@ -6810,6 +6820,9 @@ void msgface_2(MsgFaceWork* work) {
             }
         }
     }
+#ifdef PLATFORM_PC
+    if (clipPortrait) PortSpriteClipX(0, 0);
+#endif
 }
 
 void msgface_3(MsgFaceWork* work) {

@@ -375,9 +375,16 @@ typedef struct SpriteTag {
     uint8_t hdHudPart; /* HD enemy panel: frame, cap, live bar */
     uint8_t digit;
     int16_t ayq; /* ay 3 only */
+    int16_t clipX0, clipX1; /* x0==x1: no clip; coordinates include docking shift */
 } SpriteTag;
 static SpriteTag sEntryTag[128];
 static SpriteTag sOamTag[128];
+static int sSpriteClipX0, sSpriteClipX1;
+
+void PortSpriteClipX(int x0, int x1) {
+    sSpriteClipX0 = x0;
+    sSpriteClipX1 = x1;
+}
 
 static int FollowQ(int y) {
     return y >= 96 ? 256 : y <= 40 ? -256 : -256 + (y - 40) * 512 / 56;
@@ -561,6 +568,8 @@ void PortSpriteTag(int entry) {
         sEntryTag[entry].header = gPortHeaderDraw != 0;
         sEntryTag[entry].hdHudPart = (uint8_t)gPortHdHudPart;
         sEntryTag[entry].digit = (uint8_t)gPortHudDigit;
+        sEntryTag[entry].clipX0 = (int16_t)sSpriteClipX0;
+        sEntryTag[entry].clipX1 = (int16_t)sSpriteClipX1;
     }
 }
 
@@ -1668,6 +1677,9 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
             uint32_t off;
 
             if (gx < sLeft || gx >= sRight)
+                continue;
+            if (sOamTag[i].clipX0 < sOamTag[i].clipX1 &&
+                (gx < sOamTag[i].clipX0 || gx >= sOamTag[i].clipX1))
                 continue;
             x = gx + gPortScreen.originX;
             if (x < 0 || x >= w)

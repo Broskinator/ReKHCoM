@@ -43,6 +43,11 @@ completas al final.
   el launcher y en Opciones). Entrega visual: capturas antes/después y aprobación.
 - **40:** audio PSG frente a la referencia de combate.
 - **59 (bug grande, 18/10, PRIORIDAD):** caras flotando en las escenas: el retrato
+  **Implementado, pendiente revisión visual.** Reproducido DiZ a color y Riku sin
+  ventana; posición de espera oculta y recorte del retrato al área GBA de su ventana.
+  EU/US/JP compilan; 12 comparaciones / 24 ejecuciones pasan, 48 pares GBA idénticos.
+  Copia separada + BAT «Probar retratos 59 - Riku/Sora» en la raíz. Detalle:
+  RETRATOS_59_LOGICA.md. Encargo original:
   del diálogo aparece suelto, sin su ventana de texto, en casi todas las escenas
   del juego (el usuario creía que era normal). En una escena de Riku (círculo gris
   sobre fondo blanco, Riku agachado en el centro) el retrato de Riku sale flotando

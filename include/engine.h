@@ -44,6 +44,9 @@ void PortSetBgShiftX(int bg, int shift);
 void PortDockBg(int bg, int shift);
 extern int gPortSpriteShiftX;
 extern int gPortSpriteShiftY;
+/* Clip subsequently queued sprites to logical GBA X coordinates. x0==x1 ends
+ * the scope. Docked dialogue portraits use their window's shifted viewport. */
+void PortSpriteClipX(int x0, int x1);
 int PortWideMarginY(void);
 /* Anchor what is drawn until PortHudEnd() to a side of the wide view:
    ax/ay are -1 (left/top), 0 (stay) or 1 (right/bottom). */
