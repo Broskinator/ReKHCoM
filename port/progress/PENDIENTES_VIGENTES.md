@@ -99,8 +99,12 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 37. [ ] **Codex:** Web: texto HD/menús, audio/foco, FPS/memoria, controles y
     móvil real. Evaluar Worker/OffscreenCanvas solo si mejora medida; es distinto
     de los workers/agentes cuyo cierre pide ahora el usuario.
-38. [ ] **Claude:** PS5 y demás plataformas: recoger estado del responsable
-    previo y pruebas de dispositivo; no anunciar compatibilidad sin ese cierre.
+38. [~] **Claude + worker PS5:** el usuario confirma que se recibió un pull
+    request con casi todo el port preparado para integrar sus pendientes.
+    Revisar ese PR, integrar lo que esté listo y enumerar/cerrar lo que falte;
+    recoger las pruebas de dispositivo del responsable. No rehacer el port.
+    PR recibido no equivale a PR integrado ni a validación final. Número/enlace
+    del PR aún no registrado en esta lista. Fuente: usuario, 18/10/2026.
 39. [ ] **Claude:** rutas completas Sora y Reverse/Rebirth, campañas/regiones;
     baterías cortas sin crash no equivalen a partidas completas.
 40. [ ] **Codex:** comparación de audio PSG pendiente frente a referencia de

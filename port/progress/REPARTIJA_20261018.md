@@ -33,3 +33,11 @@ no rehacerlas ni adjudicarles aprobación visual definitiva.
 Capturas de escenas: khcom-wide-review/build/wide-runtime-review (061),
 wide-runtime-beach-final (057), wide-runtime-monstro-final (074).
 1/44 escenas aprobada definitiva: 004 León; 057/061/074 mejorables.
+
+## Actualización PS5 — 18/10/2026
+
+El usuario confirma un PR recibido con casi todo el port preparado. Claude y
+el worker PS5 deben revisar e integrar ese PR y cerrar sus pendientes restantes,
+conservando la evidencia del responsable. No encargar rehacer lo ya aportado.
+Estado: PR recibido, revisión/integración pendientes; enlace/número por registrar.
+El punto 38 de la lista única contiene el seguimiento vigente.
