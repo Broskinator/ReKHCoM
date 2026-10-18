@@ -327,27 +327,33 @@ def main():
     if args.version and args.step not in ('host', 'all'):
         p.error('--version can be used with host or all')
     original_header = None
+    original_param = None
+    updated_header = None
     if args.version:
         if not re.fullmatch(r'\d+\.\d+\.\d+', args.version):
             p.error('--version must use X.Y.Z')
         header = HERE / 'app/ReKHCoM.h'
         original_header = header.read_text()
-        updated = re.sub(r'(#define\s+ReKHCoM_VERSION\s+")\d+\.\d+\.\d+(" )?',
-                         lambda m: m.group(1) + args.version + '"', original_header, count=1)
-        if updated == original_header:
+        param = HERE / 'sce_sys/param.json'
+        original_param = param.read_text()
+        updated_header = re.sub(r'(#define\s+ReKHCoM_VERSION\s+")\d+\.\d+\.\d+(" )?',
+                                lambda m: m.group(1) + args.version + '"', original_header, count=1)
+        if updated_header == original_header:
             p.error('ReKHCoM_VERSION (X.Y.Z) not found in app/ReKHCoM.h')
-        header.write_text(updated)
     if args.step in ('guest', 'all'):
         for region in (args.regions if args.step == 'all' else [args.region]):
             build_guest(region, args.jobs)
     if args.step in ('host', 'all'):
         try:
+            if updated_header is not None:
+                (HERE / 'app/ReKHCoM.h').write_text(updated_header)
             build_host(args.regions)
             if args.package:
                 package_host()
         finally:
             if original_header is not None:
                 (HERE / 'app/ReKHCoM.h').write_text(original_header)
+                (HERE / 'sce_sys/param.json').write_text(original_param)
     if args.step == 'deploy':
         if not args.ip:
             sys.exit('deploy needs --ip')

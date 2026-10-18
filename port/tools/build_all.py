@@ -6,7 +6,8 @@ python port/tools/build_all.py --platform all --package --release-version v1.9.3
 
 --platform all runs windows, linux, android and web in turn (web uses the
 D:/ReKHCoM-build folders unless --emsdk/--web-sdl-build/--web-work are given).
-Linux needs the sysroots prepared once (port/progress/LINUX.md).
+Linux needs the sysroots prepared once (port/progress/LINUX.md). PS5 requires
+a native Linux host and the three original ROMs; run --platform ps5 there.
 """
 import argparse
 import hashlib
@@ -23,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--platform', choices=['windows', 'linux', 'android', 'web', 'all'], default='windows')
+    p.add_argument('--platform', choices=['windows', 'linux', 'android', 'web', 'ps5', 'all'], default='windows')
     p.add_argument('--versions', nargs='+', choices=['eu', 'us', 'jp'], default=['eu', 'us', 'jp'])
     p.add_argument('--jobs', type=int, default=3, help='Total compiler workers; region builds run sequentially')
     p.add_argument('--out-prefix', default='build/rel-')
@@ -59,6 +60,31 @@ def main():
                     del command[i:i + 2]
             print('==', plat, flush=True)
             subprocess.run(command, cwd=ROOT, check=True)
+        if sys.platform.startswith('linux'):
+            command = [sys.executable, __file__, '--platform', 'ps5', *rest]
+            print('== ps5', flush=True)
+            subprocess.run(command, cwd=ROOT, check=True)
+        else:
+            print('PS5 skipped: run --platform ps5 on a native Linux host with PS5 build dependencies and ROMs.', flush=True)
+        return
+    if args.platform == 'ps5':
+        if not sys.platform.startswith('linux'):
+            p.error('PS5 builds require native Linux; use the prepared Linux VM or a Linux host')
+        command = [sys.executable, 'port/ps5/build_ps5.py', 'all', '--jobs', str(args.jobs)]
+        if args.package:
+            if not args.release_version:
+                p.error('PS5 --package requires --release-version')
+            version = re.search(r'#define REKHCOM_VERSION\s+"([^"]+)"',
+                                (ROOT / 'port/decompui/decompui.cpp').read_text(encoding='utf-8'))
+            if not version or args.release_version != version[1]:
+                p.error('--release-version must match REKHCOM_VERSION in the launcher')
+            command += ['--version', args.release_version, '--package']
+        elif args.release_version:
+            command += ['--version', args.release_version]
+        if args.dry_run:
+            print(json.dumps({'platform': 'ps5', 'commands': [command]}, indent=2))
+        else:
+            subprocess.run(command, cwd=ROOT, check=True, env=dict(os.environ, PYTHONUTF8='1'))
         return
     if args.platform == 'linux':
         if args.package:
