@@ -110,6 +110,8 @@ enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE, PORT_SIDE_BLUR, PO
        PORT_SIDE_BLUR_BANDS, PORT_SIDE_GROUND_BANDS, PORT_SIDE_MOVIE,
        PORT_SIDE_SCENE_BANDS /* the PPU's own margin (scenery carried on) with the frame's bars drawn on */ };
 void PortSideStyle(int style);
+/* Only the illustrated title BG; never text, logo, sprites or other modes. */
+void PortTitleArtFade(int enabled);
 void PortMenuPanelSide(int side);
 /* Status has authored BG panels; foreground badges must never fill margins. */
 int PortMenuBackgroundOnly(void);

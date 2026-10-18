@@ -51,7 +51,7 @@ namespace fs = std::filesystem;
 #include "save_file.h"
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.9"
+#define REKHCOM_VERSION "v1.9.1"
 #endif
 
 static bool sSpanish;

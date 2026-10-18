@@ -11,6 +11,15 @@ set(SDL_SHARED ON CACHE BOOL "" FORCE)
 set(SDL_STATIC OFF CACHE BOOL "" FORCE)
 set(SDL_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory("${SDL_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/SDL")
+if(NOT FREETYPE_SOURCE_DIR)
+    message(FATAL_ERROR "Set FREETYPE_SOURCE_DIR to the pinned FreeType checkout")
+endif()
+set(FT_DISABLE_ZLIB ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_PNG ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BROTLI ON CACHE BOOL "" FORCE)
+add_subdirectory("${FREETYPE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/freetype")
 set(REGIONS "eu" CACHE STRING "Cartridge regions to compile: eu;us;jp")
 file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS "${ROOT}/src/*.c")
 file(GLOB PORT_SOURCES CONFIGURE_DEPENDS "${ROOT}/port/src/*.c")
@@ -49,14 +58,15 @@ foreach(region IN LISTS REGIONS)
     add_library(rekhcom_${region} SHARED $<TARGET_OBJECTS:game_${region}> ${PORT_SOURCES}
         "${glue}/rom_relocs.c" "${CMAKE_CURRENT_BINARY_DIR}/rom_symbols_${region}.S"
         "${CMAKE_CURRENT_BINARY_DIR}/fixed_symbols_${region}.S"
-        native/port_memory_android.c native/platform_android.c native/touch_android.c)
+        native/port_memory_android.c native/platform_android.c native/touch_android.c
+        "${ROOT}/port/portable/hdtext_freetype.c")
     target_compile_definitions(rekhcom_${region} PRIVATE PLATFORM_PC VERSION_${upper})
     target_compile_options(rekhcom_${region} PRIVATE -O2 -funsigned-char -fno-strict-aliasing -fwrapv)
     foreach(dir ${GAME_INCLUDES} "${gen}")
         target_compile_options(rekhcom_${region} PRIVATE "-iquote${dir}")
     endforeach()
     target_include_directories(rekhcom_${region} PRIVATE "${ROOT}/port/include")
-    target_link_libraries(rekhcom_${region} PRIVATE SDL3::SDL3 log android m)
+    target_link_libraries(rekhcom_${region} PRIVATE SDL3::SDL3 freetype log android m)
     # Cartridge symbols are SHN_ABS (hardware addresses and integer constants).
     # Bind locally: older Android loaders otherwise add the shared-object bias
     # to GLOB_DAT absolute symbols, e.g. the music-player count 26.

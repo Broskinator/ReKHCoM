@@ -159,6 +159,10 @@ void mode_title_0() {
 #endif
     sTitleCancelled = FALSE;
     ResetGameState();
+#ifdef PLATFORM_PC
+    /* Riku's illustration already ends in white within the native canvas. */
+    PortTitleArtFade(!(gGameState.flags & GAME_FLAG_RIKU_TITLE));
+#endif
     SaveLoadHeader();
     InitMapCardInventory();
     ResetSelectedMapCard();
@@ -455,6 +459,9 @@ void mode_title_1() {
 }
 
 void mode_title_2() {
+#ifdef PLATFORM_PC
+    PortTitleArtFade(0);
+#endif
     TaskPoolDestroy(&sTitleTaskPool);
     REG_IME = 0;
     REG_IE &= ~INTR_FLAG_VCOUNT;

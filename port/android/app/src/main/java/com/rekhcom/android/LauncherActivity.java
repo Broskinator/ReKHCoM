@@ -144,7 +144,7 @@ public class LauncherActivity extends Activity {
             properties.setProperty("config_version","11");properties.setProperty("view_mode","4");
             properties.setProperty("zoom",Integer.toString((zoom.getSelectedItemPosition()+zoomFirst)*2));
             properties.setProperty("save_bank",Integer.toString(bank.getSelectedItemPosition()+1));
-            properties.setProperty("hd_text","0");properties.setProperty("narrow_fit","1");
+            properties.setProperty("narrow_fit","1");
             File temp=File.createTempFile("config-",".tmp",getFilesDir());
             try(FileOutputStream out=new FileOutputStream(temp)){properties.store(out,"ReKHCoM Android alpha");out.getFD().sync();}
             if(!temp.renameTo(config))throw new IOException("No se pudo escribir la configuración");

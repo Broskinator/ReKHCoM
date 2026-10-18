@@ -201,6 +201,14 @@ int PortMenuSliding(void) {
 }
 static int sSceneNarrow, sNarrowWanted, sNarrowWait; /* PortSceneNarrow, below */
 static int sSpotlight;
+static int sTitleArtFade;
+static uint16_t sTitlePalette[256], sTitleFadeColors[49][256];
+static uint8_t sTitleFadeReady[49][256];
+static int sTitlePaletteValid;
+void PortTitleArtFade(int enabled) {
+    sTitleArtFade = enabled != 0;
+    sTitlePaletteValid = 0;
+}
 void PortSetSpotlight(int active) { sSpotlight = active; }
 int PortSpotlightActive(void) { return sSpotlight; }
 void PortPpuVisitState(PortStateVisitor visit) {
@@ -223,6 +231,7 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(&sNarrowWanted, sizeof(sNarrowWanted));
     visit(&sNarrowWait, sizeof(sNarrowWait));
     visit(&sSpotlight, sizeof(sSpotlight));
+    visit(&sTitleArtFade, sizeof(sTitleArtFade));
     visit(&sMenuShown, sizeof(sMenuShown));
     visit(&sMenuPend, sizeof(sMenuPend));
 }
@@ -1613,6 +1622,44 @@ static uint16_t Darken(uint16_t c, int ey) {
 
 static void BuildNarrowSides(int gy, uint16_t dispcnt, const int* bgOn, const int* bgPrio);
 
+/* The approved study: six native pixels, original palette only. White is
+   entry31 in both regional title palettes. Use its LIVE value so palette
+   fades/brightness remain coherent. Cache only while that palette is stable. */
+static void TitleArtFadeLine(int gy) {
+    static const int ramp[7] = {0, 19, 66, 128, 189, 236, 255};
+    int x, by;
+    if (!sTitleArtFade || gy < 0 || gy >= GBA_SCREEN_H) return;
+    by = gy > 153 ? gy - 153 : 0;
+    for (x = 0; x < gPortScreen.width; x++) {
+        int gx = x - gPortScreen.originX, rx, code, c, index, i, strength, target[3], best, distance;
+        if (gx < 0 || gx >= GBA_SCREEN_W) continue;
+        rx = gx > 233 ? gx - 233 : 0;
+        if (!rx && !by) continue;
+        c = sBgLine[1][x];
+        if (c == TRANSPARENT) continue;
+        for (index = 0; index < 256 && (sTitlePalette[index] & 0x7FFF) != c; index++) {}
+        if (index == 256) continue;
+        code = by * 7 + rx;
+        if (!sTitleFadeReady[code][index]) {
+            strength = 255 - ((255-ramp[rx])*(255-ramp[by]) + 127)/255;
+            for (i = 0; i < 3; i++) {
+                int a = (c >> (i*5)) & 31, white = (sTitlePalette[31] >> (i*5)) & 31;
+                target[i] = a * (255-strength) + white * strength;
+            }
+            best = 0; distance = 0x7FFFFFFF;
+            for (i = 0; i < 256; i++) {
+                int p = sTitlePalette[i], r = (p & 31)*255-target[0];
+                int g = ((p>>5)&31)*255-target[1], b = ((p>>10)&31)*255-target[2];
+                int d = r*r + g*g + b*b;
+                if (d < distance) {best = i; distance = d;}
+            }
+            sTitleFadeColors[code][index] = sTitlePalette[best] & 0x7FFF;
+            sTitleFadeReady[code][index] = 1;
+        }
+        sBgLine[1][x] = sTitleFadeColors[code][index];
+    }
+}
+
 static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgPrio, uint32_t* frame, int objects) {
     int w = gPortScreen.width;
     uint32_t* dst = frame + y * w;
@@ -1949,6 +1996,7 @@ static void RenderLine(int y, int gy) {
                     sBgLine[b][x] = TRANSPARENT;
         }
     }
+    if (bgOn[1]) TitleArtFadeLine(gy);
     DrawObjs(gy, dispcnt);
     BuildWindows(gy, dispcnt);
     ComposeLine(y, dispcnt, bgOn, bgPrio, gPortFrame, 1);
@@ -2184,9 +2232,13 @@ void PortPpuBeginFrame(void) {
 #endif
     uint16_t dispcnt = IO16(0x00);
     int b, any = 0;
+    if (sTitleArtFade && (!sTitlePaletteValid || memcmp(sTitlePalette, PLTT16, sizeof(sTitlePalette)))) {
+        memcpy(sTitlePalette, PLTT16, sizeof(sTitlePalette));
+        memset(sTitleFadeReady, 0, sizeof(sTitleFadeReady));
+        sTitlePaletteValid = 1;
+    }
 #ifdef __ANDROID__
-    /* Alpha keeps original pixel text until its portable font backend exists. */
-    gPortConfig.hdText = 0;
+    extern int PortPortableHdReady(void);
 #endif
     sBgTextCount = 0;
     sSinglePanelBg = PortEventBackdropPanel();
@@ -2217,6 +2269,9 @@ void PortPpuBeginFrame(void) {
                 IO16(0x0C), IO16(0x0E), gPortScreen.wide, sSceneNarrow);
     sHudLayer = gPortScreen.wide && gPortHudScale > 0 && gPortHudW >= GBA_SCREEN_W;
     sHdText = gPortConfig.hdText;
+#ifdef __ANDROID__
+    sHdText = sHdText && PortPortableHdReady();
+#endif
     if (sHudLayer || sHdText) {
         memset(sOccBg, 4, (size_t)gPortScreen.width * gPortScreen.height);
         memset(sOccBgLayer, 4, (size_t)gPortScreen.width * gPortScreen.height);

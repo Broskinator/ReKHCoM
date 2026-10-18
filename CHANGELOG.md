@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v1.9.1 — 2026-10-17
+
+- Field Heartless no longer vanish in plain sight near the edges of the wide
+  view and respawn elsewhere: the original game removes them when they leave the
+  240x160 screen, and that limit now follows the visible area on PC.
+- Title screen: the illustration fades into white at the edges of wide screens
+  using the original art only (text, logo and Riku's title are unchanged).
+- Android alpha: launcher icon and HD text option. Web alpha: site icons.
+
 ## v1.9 — 2026-10-17
 
 - Riku: single-circle opening, native tile borders in eligible cutscenes,
