@@ -128,15 +128,14 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     baterías cortas sin crash no equivalen a partidas completas.
 40. [ ] **Codex:** comparación de audio PSG pendiente frente a referencia de
     combate; no repetir como pendiente la música de Coliseo ya explicada.
-41. [~] **Codex (transferido por el usuario para esta prerelease):** integrar commits terminados de la entrega actual, resolver
-    PPU compartido una vez y comprobar el conjunto EU/US/JP.
-42. [~] **Codex (transferido por el usuario para esta prerelease):** empaquetar y PUBLICAR la entrega corregida autorizada; registrar
-    tag, URL, hashes y plataformas realmente actualizadas. Actualizar Pages/APK
-    solo con sus builds correspondientes. No etiquetar WIP como stable.
-    Incluir también PS5 desde el main de esa entrega: compilar en Linux/VM
-    preparada y adjuntar el asset exacto PPSA98511.zip. Mantener su etiqueta
-    alpha y registrar las comprobaciones reales; no reutilizar un ZIP viejo
-    como si correspondiera al tag nuevo.
+41. [x] **Codex (transferido por el usuario para esta prerelease):** integrados
+    guardados e informe de Claude (aa8ef4434, b7e9da465), táctil 6d0f33df1 y
+    build Linux/Web 333b0f9a0. Compilación EU/US/JP; sin duplicar PPU ni guardados.
+42. [x] **Codex (transferido por el usuario para esta prerelease):** publicada
+    v1.9.3-nightly.20261018.3 con Windows, Linux, Steam Deck, Anbernic alpha,
+    Android alpha, Web alpha y PPSA98511.zip PS5 alpha recién compilado.
+    Pages actualizado: manifiesto y hashes de sus 19 archivos públicos comprobados.
+    Stable sigue v1.9.2. URL, hashes, fuentes y límites: NIGHTLY3_PUBLICACION.md.
 43. [ ] **Claude + Codex:** actualizar contadores/status/documentos tras cada
     cierre; conservar solo esta cola como vigente y eliminar contradicciones históricas.
 44. [ ] **Claude:** limpieza de worktrees/builds antiguos después de verificar

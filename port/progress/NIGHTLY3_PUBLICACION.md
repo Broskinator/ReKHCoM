@@ -41,4 +41,22 @@ Hollow Bastion, revisión visual y pruebas físicas siguen en la lista única.
 
 ## Publicación
 
-Pendiente de completar con URL, manifest Web y hashes finales tras la subida.
+- [Prerelease publicada](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9.3-nightly.20261018.3).
+- Tag/fuente de publicación: `568e43d5d0ed6b03e1c809108c947641b747e34a`.
+- [Web alpha actualizada](https://matymeatboy.github.io/ReKHCoM/).
+  gh-pages `3fe92a1e3ab7167b908c45180cd5caae944fa054`, deployment 39133622902
+  completado. Manifest `v1.9.3-nightly.20261018.3-web-alpha`, fuente limpia.
+  Los 19 archivos públicos descargados coinciden byte a byte con sus SHA-256.
+- Siete paquetes, siete archivos SHA individuales y SHA256SUMS-nightly3.txt.
+  Tamaños y digests SHA-256 de GitHub coinciden con los archivos locales.
+- API latest confirma `v1.9.2`; Nightly 3 está marcada como prerelease.
+
+| Archivo | SHA-256 |
+|---|---|
+| Windows x86 ZIP | `9186d1eb51dfd74aa8678446d86c4eb8bdf672ba912b70e5d7feec4722b9e9a2` |
+| Linux x86 tar.gz | `e4e1e8f0691038c675e80dcd461749c14225ef626e53861f816dd0329eab460c` |
+| Steam Deck tar.gz | `86b235cce972129bef42d19acc59687a1409b73cdd96af5ada42cbc4406c81c8` |
+| Anbernic alpha ZIP | `d2313325286beac55e2f36f1481b46070e0fdc6141bf52c269d5f3bc48d771f7` |
+| Android alpha APK | `f1c9ccceb63c85b7681318a56a55ef7b6d2148b1383e885388bfff4f60c00309` |
+| Web alpha ZIP | `e178d41787b63d71924164a754f74e78ed6e2328cd9058f82503959e3efde13b` |
+| PPSA98511.zip | `784774a76eeb7ba45626475670e42661e10580e4918c7c824928e1f1d9204278` |

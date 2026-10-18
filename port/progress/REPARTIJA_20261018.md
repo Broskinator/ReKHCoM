@@ -6,7 +6,8 @@ PS5; añadir Ocultar controles táctiles en Experimental para Android/Web.
 Esto transfiere a Codex la preparación/publicación DE ESTA prerelease (41–42),
 sin reasignar implementación de guardados/savestates de Claude ni tareas de PS5.
 Guardados de Claude e9f053595 integrados como aa8ef4434. No rehacerlos.
-Versión prevista: v1.9.3-nightly.20261018.3. Arte nuevo sigue al final de la cola.
+Publicada: v1.9.3-nightly.20261018.3, siete paquetes y Pages actualizados.
+Informe: NIGHTLY3_PUBLICACION.md. 41, 42 y 45 cerrados. Arte sigue al final.
 
 ## Corrección vigente: no duplicar responsables
 
@@ -27,11 +28,11 @@ No mantener otra cola de pendientes aquí.
 
 ## Encargo de Claude
 
-Puntos 3, 5–11, 30–35, 38–39 y 41–44: recoger sus workers; guardados,
+Puntos 3, 5–11, 30–35, 38–39 y 43–44: recoger sus workers; guardados,
 persistencia y último slot; savestate de cierre superior; checkerboard slot3;
-cola de funciones/plataformas; integración y publicación autorizada.
-Los bugs actuales se cierran antes de publicar; las funciones de largo plazo
-no se presentan como terminadas por publicar esta entrega.
+cola de funciones/plataformas. 41–42 de esta prerelease fueron transferidos
+a Codex y ya publicados; los bugs pendientes siguen identificados en la cola.
+Las funciones de largo plazo no se presentan como terminadas por esta entrega.
 
 ## Encargo de Codex
 
