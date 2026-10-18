@@ -1904,6 +1904,12 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
     int evy = IO16(0x54) & 31, effect = (bldcnt >> 6) & 3;
     uint16_t backdrop = PLTT16[0] & 0x7FFF;
     int order[4], n = 0, p, b, x, docked = 0;
+    /* Wide margins where no layer draws: the room's own void colour (a map's
+       uniform padding), not the system backdrop. A room can end inside its
+       map with nothing past it, which showed black or white beside the void
+       the rest of the margin has (#56). The GBA's 240x160 is untouched. */
+    uint16_t marginFill = TRANSPARENT;
+    int gyLine = y - gPortScreen.originY;
     int collect = objects && (sHudLayer || sHdText || PortHd2dActive());
     int row = y * w;
 
@@ -1914,6 +1920,9 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
         for (b = 0; b < 4; b++)
             if (bgOn[b] && !sScreenBg[b] && bgPrio[b] == p)
                 order[n++] = b;
+    if (gPortScreen.wide && !sBattleView)
+        for (p = n - 1; p >= 0 && marginFill == TRANSPARENT; p--)
+            marginFill = sWorldPadding[order[p]];
     if (collect)
         for (b = 0; b < 4; b++)
             if (bgOn[b] && sBgDockedLatched[b]) docked |= 1 << b;
@@ -1931,7 +1940,10 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
                 int candidate = order[b];
                 if (sBgLine[candidate][x] != TRANSPARENT) { bg = candidate; break; }
             }
-            dst[x] = sColorLut[bg < 0 ? (sInWorld[x] ? backdrop : 0) : sBgLine[bg][x]];
+            int gx = x - gPortScreen.originX;
+            int margin = gx < 0 || gx >= GBA_SCREEN_W || gyLine < 0 || gyLine >= GBA_SCREEN_H;
+            dst[x] = sColorLut[bg >= 0 ? sBgLine[bg][x] :
+                               margin && marginFill != TRANSPARENT ? marginFill : sInWorld[x] ? backdrop : 0];
             if (collect) {
                 sMsgMask[row + x] = 0;
                 sOccBg[row + x] = bg < 0 ? 4 : (uint8_t)bgPrio[bg];
@@ -1945,7 +1957,8 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
     for (x = 0; x < w; x++) {
         int gx = x - gPortScreen.originX;
         uint8_t mask = sWinMask[x];
-        uint16_t bd = sInWorld[x] ? backdrop : 0;
+        int margin = gx < 0 || gx >= GBA_SCREEN_W || gyLine < 0 || gyLine >= GBA_SCREEN_H;
+        uint16_t bd = margin && marginFill != TRANSPARENT ? marginFill : sInWorld[x] ? backdrop : 0;
         uint16_t top, second = bd, col;
         int first, topLayer, secondLayer = LAYER_BD, bg = -1;
         int obj = objects && (mask & WIN_OBJ) && sObjLine[x] != TRANSPARENT;
