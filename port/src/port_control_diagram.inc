@@ -1,4 +1,4 @@
-/* Native options menu: Ultimate 2C-inspired silhouette, 96 x 64 logical pixels.
+/* Native options menu: user-selected Ultimate 2C sprite + interactive regions.
  * All edges, labels and highlights share the framebuffer's integer pixel grid.
  * No texture filtering, device-specific remapping, or input side effects. */
 static void ControlBindingName(int binding, int l, char* out, size_t size) {
@@ -23,11 +23,13 @@ static void ControlBindingName(int binding, int l, char* out, size_t size) {
     }
 }
 
+enum { CD_LT = SDL_GAMEPAD_BUTTON_COUNT, CD_RT, CD_COUNT };
+
 static int ControlDiagramRegion(int binding) {
     if (binding >= PORT_PAD_AXIS_BASE) {
         int axis = (binding - PORT_PAD_AXIS_BASE) / 2;
         if (axis < 4) return axis < 2 ? SDL_GAMEPAD_BUTTON_LEFT_STICK : SDL_GAMEPAD_BUTTON_RIGHT_STICK;
-        if (axis < 6) return 15 + axis - 4;
+        if (axis < 6) return CD_LT + axis - 4;
         return -1;
     }
     return binding >= 0 && binding <= SDL_GAMEPAD_BUTTON_DPAD_RIGHT ? binding : -1;
@@ -55,122 +57,120 @@ static void ControlDiagramLabel(int ox, int oy, int scale, int x, int y, const c
     }
 }
 
+#include "port_controller_art.inc"
+
+/* Direction bits: up/down/left/right. A stick click lights the complete cap. */
+static unsigned ControlDiagramDirections(int binding) {
+    if (binding < PORT_PAD_AXIS_BASE) return 15;
+    int a = (binding - PORT_PAD_AXIS_BASE) / 2;
+    int neg = (binding - PORT_PAD_AXIS_BASE) & 1;
+    return a >= 4 ? 15 : (a & 1) ? (neg ? 1 : 2) : (neg ? 4 : 8);
+}
+
+static int ControlDiagramPixelLit(int r, int x, int y, const unsigned* lit) {
+    if (r < 0 || r >= CD_COUNT || !lit[r]) return 0;
+    if (r != SDL_GAMEPAD_BUTTON_LEFT_STICK && r != SDL_GAMEPAD_BUTTON_RIGHT_STICK) return 1;
+    int dx = x - (r == SDL_GAMEPAD_BUTTON_LEFT_STICK ? 20 : 68);
+    int dy = y - (r == SDL_GAMEPAD_BUTTON_LEFT_STICK ? 27 : 44);
+    return ((lit[r]&1) && dy <= 0) || ((lit[r]&2) && dy >= 0) ||
+           ((lit[r]&4) && dx <= 0) || ((lit[r]&8) && dx >= 0);
+}
+
 static void DrawControlDiagram(int x, int y, int w, int h) {
-    static unsigned char body[64][96];
-    static signed char region[64][96];
+    enum { TOP = 7, HEIGHT = CONTROL_ART_H + TOP };
+    static signed char region[HEIGHT][CONTROL_ART_W];
     static int ready;
-    static const struct { int x, y, radius, region; } discs[] = {
-        {23, 28, 9, 7}, {61, 44, 9, 8},
-        {75, 22, 5, 3}, {66, 31, 5, 2}, {84, 31, 5, 1}, {75, 40, 5, 0},
-        {42, 27, 3, 4}, {53, 27, 3, 6}, {48, 17, 3, 5}
+    static const struct { int x, y, radius, id; } discs[] = {
+        {20,27,7,SDL_GAMEPAD_BUTTON_LEFT_STICK}, {68,44,7,SDL_GAMEPAD_BUTTON_RIGHT_STICK},
+        {83,20,4,SDL_GAMEPAD_BUTTON_NORTH}, {75,28,4,SDL_GAMEPAD_BUTTON_WEST},
+        {90,28,4,SDL_GAMEPAD_BUTTON_EAST}, {83,36,4,SDL_GAMEPAD_BUTTON_SOUTH},
+        {37,18,3,SDL_GAMEPAD_BUTTON_BACK}, {67,18,3,SDL_GAMEPAD_BUTTON_START},
+        {52,18,4,SDL_GAMEPAD_BUTTON_GUIDE}
     };
-    int scale = SDL_min(w / 96, h / 64), focus = -1, binding = -1;
-    int lit[17] = {0};
+    static const struct { int x, id; const char* name; } tabs[] = {
+        {4,CD_LT,"LT"}, {22,SDL_GAMEPAD_BUTTON_LEFT_SHOULDER,"LB"},
+        {65,SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER,"RB"}, {83,CD_RT,"RT"}
+    };
+    unsigned lit[CD_COUNT] = {0};
+    int scale = SDL_min(w / CONTROL_ART_W, h / HEIGHT);
     if (scale < 1) return;
     if (!ready) {
         SDL_memset(region, -1, sizeof(region));
-        /* Rounded face and long tapered grips. Scanlines are symmetric;
-         * the rising inner gap separates the handles from the central bridge. */
-        static const unsigned char contour[] = {
-            24,19,16,13,11,9,8,7,6,5,4,4,3,3,2,2,2,2,2,2,2,2,2,2,2,
-            2,2,2,3,3,3,3,4,4,4,4,5,5,5,6,6,7,7,8,8,10,12,15,18,22,26,29
-        };
-        for (int yy = 10; yy < 62; ++yy) {
-            int left = contour[yy - 10];
-            for (int xx = left; xx <= 95 - left; ++xx) {
-                int gap = yy >= 45 ? 47 - (yy - 45) : 48;
-                if (yy >= 45 && xx > gap && xx < 95 - gap) continue;
-                body[yy][xx] = 1;
-            }
-        }
         for (unsigned i = 0; i < sizeof(discs) / sizeof(discs[0]); ++i)
-            for (int yy = -discs[i].radius; yy <= discs[i].radius; ++yy)
-                for (int xx = -discs[i].radius; xx <= discs[i].radius; ++xx)
-                    if (xx * xx + yy * yy <= discs[i].radius * discs[i].radius + 1)
-                        region[discs[i].y + yy][discs[i].x + xx] = (signed char)discs[i].region;
-        /* Separate rear triggers and front shoulders, with stepped end caps. */
-        for (int yy = 0; yy < 13; ++yy)
-            for (int xx = 14; xx < 35; ++xx) {
-                if ((yy == 0 || yy == 7) && (xx < 17 || xx > 32)) continue;
-                if (yy == 6) continue;
-                region[yy][xx] = yy < 6 ? 15 : 9;
-                region[yy][95 - xx] = yy < 6 ? 16 : 10;
+            for (int dy = -discs[i].radius; dy <= discs[i].radius; ++dy)
+                for (int dx = -discs[i].radius; dx <= discs[i].radius; ++dx)
+                    if (dx*dx + dy*dy <= discs[i].radius*discs[i].radius + 1)
+                        region[discs[i].y+dy][discs[i].x+dx] = (signed char)discs[i].id;
+        /* Four arms of the actual cross; the middle is deliberately neutral. */
+        for (int yy = 35; yy <= 54; ++yy)
+            for (int xx = 28; xx <= 46; ++xx) {
+                if (xx >= 34 && xx <= 39)
+                    region[yy][xx] = yy < 42 ? SDL_GAMEPAD_BUTTON_DPAD_UP :
+                                     yy > 47 ? SDL_GAMEPAD_BUTTON_DPAD_DOWN : -1;
+                else if (yy >= 42 && yy <= 47)
+                    region[yy][xx] = xx < 34 ? SDL_GAMEPAD_BUTTON_DPAD_LEFT : SDL_GAMEPAD_BUTTON_DPAD_RIGHT;
             }
-        for (int yy = 38; yy <= 52; ++yy)
-            for (int xx = 29; xx <= 43; ++xx) {
-                if (xx >= 34 && xx <= 38) region[yy][xx] = yy < 43 ? 11 : yy > 47 ? 12 : 17;
-                else if (yy >= 43 && yy <= 47) region[yy][xx] = xx < 34 ? 13 : 14;
+        /* Front shoulder caps also respond, in addition to the labelled tabs.
+         * Triggers sit behind the shell in this front view: only their tabs light. */
+        for (int yy = 7; yy <= 10; ++yy)
+            for (int xx = 16; xx <= 30; ++xx) {
+                region[yy][xx] = SDL_GAMEPAD_BUTTON_LEFT_SHOULDER;
+                region[yy][CONTROL_ART_W-1-xx] = SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER;
             }
         ready = 1;
     }
-    x += (w - 96 * scale) / 2;
-    y += (h - 64 * scale) / 2;
     if (sCursor >= ITEM_CONTROL_A && sCursor <= ITEM_CONTROL_UNSTOCK) {
-        binding = gPortConfig.pad[sCursor - ITEM_CONTROL_A];
-        focus = ControlDiagramRegion(binding);
-        if (focus >= 0) lit[focus] = 1;
+        int binding = gPortConfig.pad[sCursor - ITEM_CONTROL_A];
+        int r = ControlDiagramRegion(binding);
+        if (r >= 0 && r < CD_COUNT) lit[r] |= ControlDiagramDirections(binding);
     }
-    /* During capture also show real current input; querying an already-open
-     * handle preserves ownership in port_input and never changes bindings. */
     if (sControlCapture) {
         int count = 0;
         SDL_JoystickID* ids = SDL_GetGamepads(&count);
-        SDL_Gamepad* pad = count ? SDL_GetGamepadFromID(ids[0]) : NULL;
+        SDL_Gamepad* pad = count > 0 ? SDL_GetGamepadFromID(ids[0]) : NULL;
         if (pad) {
-            for (int b = 0; b < 15; ++b) if (SDL_GetGamepadButton(pad, (SDL_GamepadButton)b)) lit[b] = 1;
-            for (int a = 0; a < 6; ++a) {
-                int v = SDL_GetGamepadAxis(pad, (SDL_GamepadAxis)a);
-                if (SDL_abs(v) > 16000) lit[ControlDiagramRegion(PORT_PAD_AXIS_BASE + a * 2 + (v < 0))] = 1;
+            for (int b = 0; b <= SDL_GAMEPAD_BUTTON_DPAD_RIGHT; ++b)
+                if (SDL_GetGamepadButton(pad, (SDL_GamepadButton)b)) lit[b] = 15;
+            for (int a = 0; a < SDL_GAMEPAD_AXIS_COUNT; ++a) {
+                int value = SDL_GetGamepadAxis(pad, (SDL_GamepadAxis)a);
+                if (SDL_abs(value) > 16000) {
+                    int binding = PORT_PAD_AXIS_BASE + a*2 + (value < 0);
+                    int r = ControlDiagramRegion(binding);
+                    if (r >= 0 && r < CD_COUNT) lit[r] |= ControlDiagramDirections(binding);
+                }
             }
         }
         SDL_free(ids);
     }
-    for (int yy = 0; yy < 64; ++yy)
-        for (int xx = 0; xx < 96; ++xx) {
-            int r = region[yy][xx], edge;
-            uint32_t color;
-            if (r >= 0) {
-                edge = !xx || !yy || xx == 95 || yy == 63 || region[yy-1][xx] != r ||
-                       region[yy+1][xx] != r || region[yy][xx-1] != r || region[yy][xx+1] != r;
-                int active = r < 17 && lit[r];
-                /* A focused stick axis highlights only its corresponding half. */
-                if (active && r == focus && binding >= PORT_PAD_AXIS_BASE && r < 15) {
-                    int a = (binding - PORT_PAD_AXIS_BASE) / 2, neg = (binding - PORT_PAD_AXIS_BASE) & 1;
-                    int delta = (a & 1) ? yy - (r == 7 ? 28 : 44) : xx - (r == 7 ? 23 : 61);
-                    active = neg ? delta <= 0 : delta >= 0;
-                }
-                static const uint32_t face[] = { 0xFF46814Du, 0xFFAB414Du, 0xFF456DA1u, 0xFFB98937u };
-                color = edge ? 0xFF292535u : r < 4 ? face[r] : 0xFF5D536Eu;
-                /* Stick wells and raised caps, with a single upper-left glint. */
-                if (r == 7 || r == 8) {
-                    int dx = xx - (r == 7 ? 23 : 61), dy = yy - (r == 7 ? 28 : 44);
-                    int distance = dx * dx + dy * dy;
-                    color = distance > 53 ? 0xFF292535u : distance > 37 ? 0xFF9D8EADu :
-                            dy < -3 ? 0xFF82738Eu : 0xFF494153u;
-                }
-                if (active) color = edge ? MENU_RED_DARK : 0xFFF77558u;
-            } else if (body[yy][xx]) {
-                edge = !xx || !yy || xx == 95 || yy == 63 || !body[yy-1][xx] ||
-                       !body[yy+1][xx] || !body[yy][xx-1] || !body[yy][xx+1];
-                /* Cel shading: broad lit face, one shadow plane on the right
-                 * grip and underside, a short top-left rim; no noisy dithering. */
-                color = 0xFFC9B7DCu;
-                if (xx > 80 - (yy - 30) / 3 || yy > 52) color = 0xFF9583B3u;
-                if (yy < 20 && xx < 67) color = 0xFFE5D9F1u;
-                if (yy > 39 && xx < 29 && xx > 22 - (yy - 39) / 2) color = 0xFFB4A0CCu;
-                if (yy > 11 && yy < 29 && xx > 3 && !body[yy-2][xx]) color = 0xFFF9EEFFu;
-                if (edge) color = 0xFF373044u;
-            } else continue;
-            ControlDiagramRect(x, y, scale, xx, yy, 1, 1, color);
+    x += (w - CONTROL_ART_W * scale) / 2;
+    y += (h - HEIGHT * scale) / 2;
+    for (int yy = TOP; yy < HEIGHT; ++yy)
+        for (int xx = 0; xx < CONTROL_ART_W; ++xx) {
+            unsigned index = sControlArt[yy - TOP][xx];
+            if (!index) continue; /* alpha: never draw a white/background plate */
+            uint32_t color = sControlArtPalette[index];
+            int r = region[yy][xx], active = ControlDiagramPixelLit(r,xx,yy,lit);
+            if (active) {
+                int edge = !xx || yy == TOP || xx == CONTROL_ART_W-1 || yy == HEIGHT-1 ||
+                           region[yy-1][xx] != r || region[yy+1][xx] != r ||
+                           region[yy][xx-1] != r || region[yy][xx+1] != r;
+                unsigned red = (color >> 16)&255, green = (color >> 8)&255, blue = color&255;
+                /* Keep the dark pixel lettering legible inside the warm tint. */
+                if (edge) color = MENU_RED_DARK;
+                else if (red + green + blue > 180)
+                    color = 0xFF000000u | (((red + 255)/2) << 16) |
+                            (((green + 158)/2) << 8) | ((blue + 52)/2);
+            } else if ((xx > 0 && ControlDiagramPixelLit(region[yy][xx-1],xx-1,yy,lit)) ||
+                       (xx+1 < CONTROL_ART_W && ControlDiagramPixelLit(region[yy][xx+1],xx+1,yy,lit)) ||
+                       (yy > TOP && ControlDiagramPixelLit(region[yy-1][xx],xx,yy-1,lit)) ||
+                       (yy+1 < HEIGHT && ControlDiagramPixelLit(region[yy+1][xx],xx,yy+1,lit)))
+                color = 0xFFFFE68Eu; /* one-pixel light rim, clipped to opaque art */
+            ControlDiagramRect(x,y,scale,xx,yy,1,1,color);
         }
-    ControlDiagramLabel(x,y,scale,74,38,"A",0xFFFFFFFFu);
-    ControlDiagramLabel(x,y,scale,83,29,"B",0xFFFFFFFFu);
-    ControlDiagramLabel(x,y,scale,65,29,"X",0xFFFFFFFFu);
-    ControlDiagramLabel(x,y,scale,74,20,"Y",0xFFFFFFFFu);
-    ControlDiagramLabel(x,y,scale,21,0,"LT",0xFFFFFFFFu);
-    ControlDiagramLabel(x,y,scale,68,0,"RT",0xFFFFFFFFu);
-    ControlDiagramLabel(x,y,scale,21,7,"LB",0xFFFFFFFFu);
-    ControlDiagramLabel(x,y,scale,68,7,"RB",0xFFFFFFFFu);
-    ControlDiagramLabel(x,y,scale,41,25,"-",0xFFFFFFFFu);
-    ControlDiagramLabel(x,y,scale,52,25,"+",0xFFFFFFFFu);
+    for (unsigned i = 0; i < sizeof(tabs)/sizeof(tabs[0]); ++i) {
+        int on = lit[tabs[i].id] != 0;
+        ControlDiagramRect(x,y,scale,tabs[i].x,0,17,7,on ? MENU_RED_DARK : 0xFF43343Cu);
+        ControlDiagramRect(x,y,scale,tabs[i].x+1,1,15,5,on ? 0xFFCB563Du : 0xFF78626Bu);
+        ControlDiagramLabel(x,y,scale,tabs[i].x+5,1,tabs[i].name,0xFFFFF2CDu);
+    }
 }

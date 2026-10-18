@@ -1896,8 +1896,8 @@ static void DrawMenu(int l, int width, int height) {
     rows = SDL_min(PageEnd() - PageFirst(), (height - top - 14) / rowH);
     /* Keep the pad beneath the list and above help. Compact resolutions scroll
      * the list instead of overlapping it or drawing over the character art. */
-    if (sPage == PAGE_CONTROLS && sControlPad && height - top - 14 >= rowH + 68)
-        rows = SDL_min(rows, (height - top - 14 - 68) / rowH);
+    if (sPage == PAGE_CONTROLS && sControlPad && height - top - 14 >= rowH + 80)
+        rows = SDL_min(rows, (height - top - 14 - 80) / rowH);
     if (sScroll < PageFirst() || sScroll >= PageEnd())
         sScroll = PageFirst();
     if (sCursor < sScroll)

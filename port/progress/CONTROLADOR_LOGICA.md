@@ -82,6 +82,7 @@ Esta es evidencia de entradas reales; no demuestra reconexión, persistencia de
 bindings ni todas las rutas dentro del juego.
 
 El usuario aclaró que el dibujo debía estar en el menú Controles del juego.
+La primera versión (3542f817d), reemplazada por el arte Gemini de abajo, fue:
 `port_control_diagram.inc`, incluido por port_ui.c, dibuja una silueta propia
 inspirada en Ultimate 2C sobre rejilla 96x64, contorno violeta oscuro, tres planos
 de carcasa, botones rotulados y pozos de sticks. Va bajo la lista, encima de ayuda,
@@ -94,6 +95,37 @@ de teclas. Builds EU/US/JP y capturas reales del renderer en 1920x1080, 1016x570
 480x320; evidencia privada build/controller-native-review. Aprobación artística
 pendiente; no declararla aprobada automáticamente.
 
-Siguiente encargo: eliminar el salto del juego a escala pequeña al entrar/salir
-del menú manteniendo el fundido; estudiar la animación original del cursor debug
-y reproducir su luz en el selector de opciones, conservando tamaños de UI.
+El salto de escala y la luz original del debug quedaron corregidos en 75a7efa60.
+Detalles y evidencia: MENU_TRANSICIONES_LOGICA.md.
+
+### Arte Gemini elegido y conectado al remapeo
+
+El usuario aportó después Gemini_Generated_Image_lukhx5lukhx5lukh.jpg y pidió
+usar ese dibujo, con transparencia, y darle las funciones del control. Se retiró
+el fondo con imagegen integrado preservando el diseño elegido. Fuente transparente,
+procedencia y prompt en port/assets/controller; el importador normaliza a 104x72,
+48 colores y cobertura binaria sin dithering, y genera port_controller_art.inc.
+El juego usa 7488 bytes de índices y 49 entradas de paleta, sin JPEG/PNG decoder
+ni archivos externos que falten en paquetes Web/Android/consolas.
+
+La máscara interactiva se alinea sobre cada botón de ese arte. Se conservan sus
+letras oscuras al teñir; un borde luminoso de un píxel indica la selección. Las
+cuatro direcciones de cruceta son regiones independientes; LS/RS distinguen
+dirección de eje y pulsación de stick. Minus/plus/corazón corresponden a
+Back/Start/Guide. Los pequeños botones decorativos restantes no inventan bindings.
+LT/RT aparecen como pestañas porque están detrás en esta vista frontal; LB/RB
+encienden pestañas y los topes visibles. Sus IDs internos quedan después de
+SDL_GAMEPAD_BUTTON_COUNT, separados de los números reales de botones SDL.
+
+El dibujo completo mide 104x79 con las pestañas. Reservar 80 píxeles mantiene
+las 15 filas actuales del mando a altura lógica 320; se dibuja con escala entera
+sin placa de fondo y se recorta la iluminación a píxeles opacos. La captura consulta
+el handle existente y no modifica asignaciones al dibujar. Al reasignar, el foco
+usa inmediatamente el binding guardado, con el nombre Xbox correspondiente.
+
+EU/US/JP compilan. Capturas del renderer 1080p y 1016x570 en
+build/controller-gemini-review: A, LB, LT y eje LS←. Se dejó copia jugable separada
+ReKHCoM-prueba-menu-mando-20261018, con datos propios, y Probar menu y mando.bat
+en la raíz. No pisa las carpetas de versiones ni sus partidas. La aprobación
+artística queda para el usuario; las pruebas virtuales de presentación no sustituyen
+el informe físico de entradas ya recibido.

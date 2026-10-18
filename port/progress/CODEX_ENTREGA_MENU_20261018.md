@@ -29,12 +29,18 @@ normal, no duplicar mediante cherry-pick si los commits ya son ancestros.
   direcciones, cuatro ejes recentrados, LT/RT separados y simultáneos. No incluye
   reconexión/persistencia físicas ni permite afirmar pruebas de otros modelos.
 
-## Aún en curso de Codex
+## Entrega posterior: arte Gemini funcional
 
 El usuario eligió `Gemini_Generated_Image_lukhx5lukhx5lukh.jpg` de la raíz como
-arte del mando. Se está preparando transparencia y máscara de zonas interactivas.
-Llega en commit posterior; no dar por aprobado visualmente el dibujo manual.
-No modificar este bloque en paralelo mientras Codex lo integra.
+arte del mando. Esta entrega ya integra transparencia y máscara de zonas
+interactivas, reemplazando la silueta manual de 3542f817d. Incluir el commit que
+actualiza este apartado; no es un archivo externo opcional, sus píxeles y paleta
+van embebidos en el binario. El builder Web incluye ahora port/src/*.inc en su
+huella para recompilar si se actualiza el arte o la máscara.
+
+EU/US/JP compilan; capturas en build/controller-gemini-review. Prueba jugable
+separada en la raíz: Probar menu y mando.bat. La aprobación visual del usuario
+sigue pendiente; el dibujo ya tiene funciones para que pueda revisarlas.
 
 Lógica detallada: MENU_TRANSICIONES_LOGICA.md y CONTROLADOR_LOGICA.md.
 Cola única: PENDIENTES_VIGENTES.md, puntos 49 y 50.

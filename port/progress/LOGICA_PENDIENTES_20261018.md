@@ -145,3 +145,14 @@ Controles: [`CONTROLADOR_LOGICA.md`](CONTROLADOR_LOGICA.md).
 - Cierre: discrepancia localizada y corregida o explicación de incompatibilidad
   aceptada, WAV/medidas reproducibles, combate no PSG sin regresión y compilación
   EU/US/JP.
+
+## 49–50 — Mando nativo y transiciones de opciones
+
+- 49: usar el arte Gemini elegido por el usuario con transparencia, máscara de
+  regiones y nombres Xbox. Conservar propiedad del input y bindings; foco por
+  acción/eje, sin dependencias de imágenes externas al ejecutar. Lógica actual,
+  importación y copia de revisión en CONTROLADOR_LOGICA.md.
+- 50: mantener presentación de juego hasta negro y cambiar entonces al lienzo
+  del menú; fundido final de todas las capas. Luz del selector tomada de frames,
+  paleta y tiempos originales del debug, conservando tamaños de cuadros/textos.
+  Implementación y comprobaciones en MENU_TRANSICIONES_LOGICA.md (75a7efa60).

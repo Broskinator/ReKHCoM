@@ -186,8 +186,10 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     diagrama Ultimate 2C con acabado toon en Controles del juego, debajo de la
     lista, nombres Xbox y resaltado del binding seleccionado. Builds EU/US/JP;
     capturas nativas 1080p/1016x570/480x320. Aprobación visual pendiente.
-    Usuario aporta 8bitdo.webp en la raíz: adaptar esa silueta y acabado toon
-    como siguiente revisión artística. Lógica en CONTROLADOR_LOGICA.md.
+    Arte Gemini elegido después por el usuario: integrado con transparencia real,
+    máscaras de botones/cruceta/sticks y pestañas LT/LB/RB/RT. Capturas de A, LB,
+    LT y LS←; copia jugable «Probar menu y mando.bat» en la raíz. Aprobación visual
+    pendiente. Lógica y procedencia en CONTROLADOR_LOGICA.md y assets/controller.
 
 50. [x] **Codex:** transición de opciones sin salto de escala: conservar lienzo y
     presentación del juego hasta negro, luego cambiar al menú; fundido final sobre
