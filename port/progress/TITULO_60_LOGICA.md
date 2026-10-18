@@ -20,4 +20,4 @@ el título alternativo de Riku ni todos los idiomas EU por separado.
 Evidencia: build/title60-regression/{region}-{size}/{before,after}/out_*.png.
 Copia jugable separada: ReKHCoM-prueba-titulo-60 en la raíz; Probar titulo 60.bat
 y Comparar titulo 60 anterior.bat (KHCOM_TITLE_BANDS_OFF=1 solo diagnóstico).
-Pendiente aprobación visual del usuario; no publicar como aprobado.
+Aprobado visualmente por el usuario el 18/10/2026.

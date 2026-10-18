@@ -62,3 +62,8 @@ de proponer algo nuevo; ante un caso nuevo, derivar la solución de ellas.
   recortar su entrada/salida al área original de la ventana desplazada. Aplicar
   en la función común, sin excepciones por personaje/escena. Commit `acd85c818`;
   detalle en RETRATOS_59_LOGICA.md.
+
+- 60 título: aprobado el 18/10. Prolongar las filas planas de BG0 y del OBJ
+  del pie de brillo, con paleta viva, mezcla alpha y alineación PixelEdge.
+  No tocar letras, ilustración ni píxeles del rectángulo GBA. Detalle:
+  TITULO_60_LOGICA.md; commit `6039fc04d`.
