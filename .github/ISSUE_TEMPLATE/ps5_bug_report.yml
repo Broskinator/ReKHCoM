@@ -1,0 +1,84 @@
+name: PS5 bug report
+description: Something went wrong in the PS5 version (a crash, a freeze, a graphical or sound problem, a button that does nothing).
+title: "[PS5] "
+labels: ["ps5", "bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting it. The logs and the save are what let a crash be found, so please attach them (see the last section).
+        **Do not attach the ROM or a BIOS.**
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: The version shown in the release you installed (for example 1.0.1).
+      placeholder: "1.0.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: region
+    attributes:
+      label: Cartridge version
+      description: The region of the ROM you are playing.
+      options:
+        - Europe (B8CP)
+        - USA (B8CE)
+        - Japan (B8CJ)
+    validations:
+      required: true
+  - type: input
+    id: console
+    attributes:
+      label: Console and firmware
+      description: The firmware, and what you use to run homebrew (etaHEN, ...).
+      placeholder: "PS5, firmware 7.61, etaHEN 2.x"
+    validations:
+      required: true
+  - type: dropdown
+    id: closed
+    attributes:
+      label: Did the app close by itself?
+      options:
+        - "Yes, it crashed (the app closed)"
+        - "No, it froze"
+        - "No, it kept running"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you were doing and what you expected. If you can, say where in the game it happened (room, world, menu) and the steps to get there.
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Logs and save (required)
+      description: |
+        Copy these from the console with FTP before opening the game again, put them in a `.zip` and drag it into this box (GitHub does not accept `.sav` files on their own).
+
+        **Logs**, in `/data/ReKHCom/logs/`:
+        - `crash-….log`, the one with the date and time of the crash (only exists if the app crashed)
+        - `ReKHCoM.log`, the log of the last run
+        - `ReKHCoM.old.log`, the log of the run before
+
+        In `/data/ReKHCom/`:
+        - `kh_com.log`, the game's own log
+
+        **The save, from before the problem.** The save is written to disk every second when it changes, so open the game again only after copying it:
+        - `kh_com.sav` (Europe), `kh_com_us.sav` (USA) or `kh_com_jp.sav` (Japan), and `kh_com.ini` with your settings
+        - If you have an older copy of the save from before the crash, attach that one too and say which is which.
+      placeholder: Drag the .zip here.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before sending
+      options:
+        - label: I attached the logs and the save (not the ROM or a BIOS).
+          required: true
+        - label: I use my own dump of the cartridge, and it is one of the versions listed above.
+          required: true
