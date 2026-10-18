@@ -17,21 +17,17 @@ conservada para poder rastrear. Reglas del usuario:
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
 | **Claude (Opus)** | Publicar v1.9.4 estable y responder #19 (en curso); 44 limpieza; 43 mantener la cola; 51 Vita (por fases); 39 rutas completas (al final) | 1) cerrar v1.9.4, 2) 44 con permiso, 3) 39 |
-| **ChatGPT/Codex** | 12 playa; 16–24 arte de jefes/escenas; 27 RetroAchievements; 29 Mapamundi/objetos de sala; 36–37 Web en navegador real; 40 audio PSG; 2 cierre del chat sincorazones | 1) 12 (mejoras pedidas), 2) 29 y 40 (cortos), 3) 36–37, 4) 27, 5) 16–24 al final |
+| **ChatGPT/Codex** | 16–24 arte de jefes/escenas; 27 RetroAchievements; 29 Mapamundi/objetos de sala; 36–37 Web en navegador real; 40 audio PSG; 2 cierre del chat sincorazones | 1) 29 y 40 (cortos), 2) 36–37, 3) 27, 4) 16–24 al final |
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
 
-## 1. Esperan la aprobación del usuario / publicación
+## 1. Por publicar
 
-- 49 mando: aprobado el 18/10; sale en v1.9.4 (compilando, aún sin publicar).
 - v1.9.4 estable: compilada la fuente; falta Android/Web, reconstruir Linux (ícono) y publicar.
-- **12 (Codex):** 057 playa aprobada con mejoras (ver sección 2).
 
 ## 2. Codex
 
-- **12:** 057 playa: igualar la estructura de tiles del lado superior derecho
-  (junto a Sora) con la del izquierdo; el pasto no debe tener motivos cortados.
 - **16–24:** arte de jefes/escenas, al final y de a uno con antes/después:
   16 Darkside (WIP en rama wip/darkside-backdrop-20261018, fuera de main),
   17 Oogie, 18 Jafar, 19 Maléfica dragón, 20 Úrsula, 21 Marluxia final,
@@ -79,13 +75,18 @@ completas al final.
 
 ## Cerrados hoy (referencia)
 
-Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
+Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
 y 074 Monstro (13–14), remapeo y gatillos (25), submenús (28), fuente CJK Linux
 (34), PS5 (38), táctil (45), transición de Opciones (50), regresión sincorazones (4).
 Publicado en Nightly 5 (18/10, v1.9.3-nightly.20261018.5): #17 borde de Riku, logros locales,
-arte del mando (49 pendiente de aprobación), transición de Opciones, CJK Linux, corrección Linux #19.
+arte del mando (49 aprobado), transición de Opciones, CJK Linux, corrección Linux #19.
 Publicados antes: Nightly 4 (trucos, revanchas, aviso moguri, editor de partidas,
 #16, diagrama de mando v1). Ver NIGHTLY4_PUBLICACION.md y NIGHTLY5_PUBLICACION.md.
+
+## Futuro muy lejano (no cuenta como pendiente)
+
+- 057 playa (12, aprobada): igualar los tiles del lado superior derecho con el
+  izquierdo y que el pasto no tenga motivos cortados. Solo si algún día sobran tokens.
 
 ## Esperan reportes (no cuentan como pendientes)
 
