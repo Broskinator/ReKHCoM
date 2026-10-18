@@ -17,7 +17,7 @@ conservada para poder rastrear. Reglas del usuario:
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
 | **Claude (Opus)** | Publicar v1.9.4 estable y responder #19 (en curso); 44 limpieza; 43 mantener la cola; 39 rutas completas (al final) | 1) cerrar v1.9.4, 2) 44 con permiso, 3) 39 |
-| **ChatGPT/Codex** | 12 playa; 16–24 arte de jefes/escenas; 26 (#2, espera lista del autor); 27 RetroAchievements; 29 Mapamundi/objetos de sala; 36–37 Web en navegador real; 40 audio PSG; 2 cierre del chat sincorazones | 1) 12 (mejoras pedidas), 2) 29 y 40 (cortos), 3) 36–37, 4) 27, 5) 16–24 al final |
+| **ChatGPT/Codex** | 12 playa; 16–24 arte de jefes/escenas; 27 RetroAchievements; 29 Mapamundi/objetos de sala; 36–37 Web en navegador real; 40 audio PSG; 2 cierre del chat sincorazones | 1) 12 (mejoras pedidas), 2) 29 y 40 (cortos), 3) 36–37, 4) 27, 5) 16–24 al final |
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
@@ -37,8 +37,8 @@ completas al final.
   17 Oogie, 18 Jafar, 19 Maléfica dragón, 20 Úrsula, 21 Marluxia final,
   22 Alicia/Trickmaster (tablero inferior), 23 resto de candidatas,
   24 tira de fondo de arenas GBA.
-- **26:** issue #2 (funciones del remake): respondido el 18/10; esperar la lista
-  de 1–2 escenas concretas del autor. No prometer remake.
+- **26:** CERRADO 18/10: issue #2 (funciones del remake) cerrado por el usuario como
+  mod muy específico, fuera de alcance por ahora.
 - **27:** RetroAchievements: hay logros locales y catálogo oficial experimental;
   falta login real y validar memoria/set; Level 1 pendiente.
 - **29:** variantes de planta de Mapamundi y objetos de sala en transiciones.
