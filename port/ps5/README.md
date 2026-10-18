@@ -2,6 +2,8 @@
 
 Alpha build of the PS5 port: the three regions (EU, US, JP) in one app, `PPSA98511`.
 Rendering is Vulkan, with audio and controller input through the PS5 platform layer.
+The tested upstream implementation was contributed by darkxex in [PR #15](https://github.com/MatyMeatBoy/ReKHCoM/pull/15);
+future PS5 improvements should come through reviewed updates from that contributor's port.
 
 ## How it works
 
