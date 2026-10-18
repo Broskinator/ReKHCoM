@@ -54,6 +54,7 @@ def main():
     p.add_argument('--abi',choices=['armeabi-v7a','x86'],default='armeabi-v7a')
     p.add_argument('--native-only',action='store_true')
     p.add_argument('--smoke',action='store_true',help='Separate test app: starts a debug battle, captures frame 600 and exits at 900')
+    p.add_argument('--smoke-env',default='',help='Smoke app only: KEY=VALUE;KEY=VALUE harness settings replacing the debug battle')
     args=p.parse_args()
     release=re.search(r'#define REKHCOM_VERSION\s+"([^"]+)"',
                       (ROOT/'port/decompui/decompui.cpp').read_text(encoding='utf-8'))[1]
@@ -96,6 +97,8 @@ def main():
         text=manifest.read_text(encoding='utf-8')
         settings={'KHCOM_BATTLE':'10:4:0','KHCOM_KEYS':'60-63:A','KHCOM_OUTPUT_SHOT':'600',
                   'KHCOM_QUIT':'900','KHCOM_TRACE_MODES':'1'}
+        if args.smoke_env:
+            settings=dict(item.split('=',1) for item in args.smoke_env.split(';') if item)
         metadata=''.join(f'<meta-data android:name="SDL_ENV.{k}" android:value="{v}"/>\n' for k,v in settings.items())
         manifest.write_text(text.replace('  <activity',metadata+'  <activity',1),encoding='utf-8')
     else:
