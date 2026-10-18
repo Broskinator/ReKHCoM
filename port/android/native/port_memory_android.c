@@ -48,6 +48,7 @@ int PortMemoryInit(void) {
     if (space!=(void*)low) {
         FILE* maps=fopen("/proc/self/maps","r");
         char line[256];
+        int placed=0;
         PortLog("GBA space: mmap returned %p", space);
         /* What already lies in the hardware range (diagnostics on devices). */
         while(maps && fgets(line,sizeof(line),maps)) {
@@ -56,8 +57,29 @@ int PortMemoryInit(void) {
         }
         if(maps) fclose(maps);
         if (space!=MAP_FAILED) munmap(space,high-low);
-        PortFatal("Cannot reserve the GBA address space 0x02000000-0x0E010000");
-        return 0;
+        /* Some devices keep a library or allocator mapping in the unused gaps
+           between the hardware regions. The game only touches the regions
+           themselves, so reserve each one on its own at its exact address. */
+        for(i=0;i<sizeof(regions)/sizeof(regions[0]);i++) {
+            uintptr_t start=regions[i].base & ~(uintptr_t)(page-1);
+            size_t bytes=(regions[i].base+regions[i].bytes-start+page-1)&~(page-1);
+            void* part=mmap((void*)start,bytes,PROT_NONE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+            if (part!=(void*)start) {
+                PortLog("GBA region %u cannot be reserved at %p (got %p)",(unsigned)i,(void*)start,part);
+                if (part!=MAP_FAILED) munmap(part,bytes);
+                break;
+            }
+            placed++;
+        }
+        if (placed!=(int)(sizeof(regions)/sizeof(regions[0]))) {
+            for(i=0;i<(size_t)placed;i++) {
+                uintptr_t start=regions[i].base & ~(uintptr_t)(page-1);
+                munmap((void*)start,(regions[i].base+regions[i].bytes-start+page-1)&~(page-1));
+            }
+            PortFatal("Cannot reserve the GBA address space 0x02000000-0x0E010000");
+            return 0;
+        }
+        PortLog("GBA space: reserved region by region");
     }
     for(i=0;i<sizeof(regions)/sizeof(regions[0]);i++) {
         uintptr_t start=regions[i].base & ~(uintptr_t)(page-1);
