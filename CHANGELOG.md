@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Dialogue portraits no longer show early or uncovered in wide views (Codex, #59).
+- Android: the GBA memory is reserved region by region when the whole range is not free (#20).
+
 ## v1.9.5 — 2026-10-18
 
 Everything from the v1.9.3 test builds, now stable (v1.9.4 was prepared but never
