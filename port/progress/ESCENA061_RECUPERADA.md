@@ -6,6 +6,23 @@ Pendientes visuales: detalle/sombra extraña en la pared arriba a la derecha;
 motivo del suelo arriba a la izquierda con contorno de cuadrado isométrico
 incompleto. Ninguna mejora posterior sustituye esta base sin revisión.
 
+**Actualización: MEJORA ACEPTADA por el usuario.** Receta nueva:
+`py -3 port/tools/scene061_polish_preview.py`. Su salida
+`polish061/061-approved-polish-native.png` coincide píxel por píxel con la
+prueba mejorada revisada. La base previa sigue preservada en `a3ff671f6`.
+
+- Suelo: destino BG3 x=-5..3, y=3..7; copiar entrada original (x+12,y+6).
+  Completa el rombo atravesando el borde anterior. En esa región, BG2 toma
+  la entrada transparente original (0,3) para evitar superponer el motivo viejo.
+- Pared: destinos BG2 (32..36,5) toman respectivamente las entradas originales
+  (16,0), (17,0), (2,0), (3,0), (16,0). Conservan exactamente los píxeles claros
+  y sustituyen la franja de sombra por la textura azul de panel original.
+- La mejora cambia 1023 píxeles frente a la base, incluidos 162 dentro del
+  encuadre GBA original al completar el rombo. No se inventan colores ni tiles.
+- El header de integración ya contiene ambos ajustes. Main debe aplicar el
+  perfil también dentro del mapa (motivo que cruza el borde), usando siempre
+  mapas fuente originales sin mutarlos. Todavía no se ha conectado al PPU aquí.
+
 Base privada congelada antes de las mejoras: `build/scene-review/accepted061/`.
 SHA256 del PNG nativo aceptado:
 `e1525b9d8d89281528a57ba5c41c3803aa869f25c968f61cda3eb9526bf16e24`.
