@@ -1,5 +1,8 @@
 # Lista única larga y reparto vigente — 18/10/2026
 
+**Resumen 18/10 15:35:** 48 puntos; 18 cerrados (6 publicados en Nightly 4),
+8 en curso, 22 abiertos. Relevo de Claude y siguiente paso: HANDOFF_CLAUDE_20261018.md.
+
 Encargo del usuario: TERMINAR EL BLOQUE DE LOS WORKERS, RECOGER SUS CIERRES y
 continuar desde una sola cola larga repartida entre Claude y Codex. No abrir
 nuevos workers mientras se cierra esta tanda. Publicación autorizada al terminar
