@@ -14,9 +14,7 @@ conservada para poder rastrear. Reglas del usuario:
 
 ## 1. Esperan la aprobación del usuario
 
-- **49 (Codex):** diagrama del mando (arte Gemini transparente, máscaras de
-  botones/sticks/gatillos, resaltado del binding). Probar con
-  «Probar menu y mando.bat» o con la Nightly 5.
+- (vacío) 49 mando: aprobado por el usuario el 18/10 y publicado en v1.9.4.
 - **12 (Codex):** 057 playa aprobada con mejoras (ver sección 2).
 
 ## 2. Codex

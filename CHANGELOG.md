@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+## v1.9.4 — 2026-10-18
+
+Everything from the v1.9.3 test builds, now stable.
+
+- Options → Cheats (off by default, remembered): one-hit enemies, infinite HP, level 99
+  with every bonus, map cards at 9 and a full battle card collection.
+- Options → Boss rematches: refight Sora's beaten bosses and the two battle tutorials.
+- Optional save-slot selector at save points (Options → Experimental); the save
+  crystal refreshes the summary per slot and remembers the last slot used.
+- Moogle points notice (on by default, optional).
+- Launcher: Save editor tab (level, HP, CP/AP/DP, moogle points, cards; backed up
+  before writing), controller drawing with the Xbox-style buttons lit for the action
+  being remapped; unknown settings are kept.
+- Controls screen in the game: toon controller art highlights the binding being remapped.
+- Local achievements for EU/US/JP with centred animated notices (Windows);
+  official RetroAchievements is not active yet.
+- Wide view: Guard Armor patio and scenes 061 (ice) and 074 (Monstro) extended with the
+  game's own tiles; beach 057 included (still being refined); Riku's rooms close the cut
+  top wall with the room's own scalloped border (KHCOM_TOPCLOSE=0 turns it off).
+- Fixed #16 (black screen at door card select), #17 and #18 (world map bands).
+- Opening and closing Options no longer jumps the scene scale.
+- Android/Web: option to hide the touch controls; Android and Web alphas updated.
+- Linux, Steam Deck and Anbernic alpha: the bundled libraries are found by the names SDL
+  asks for (issue #19); HD text looks for a Japanese font in more places.
+- PS5 alpha integrated (build needs a native Linux host; not rebuilt in this release).
+- You need your own ROM; none is included.
+
 ## v1.9.3-nightly.20261018.5 — 2026-10-18 (public test build)
 
 - Riku's rooms: the cut wall at the top of the wide view now closes with the room's
