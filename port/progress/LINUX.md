@@ -65,8 +65,23 @@ Hecho (VM Debian 12 x86_64 sin bibliotecas de 32 bits, WHPX):
   `ClearStockedCardSlots` (`@bug`) se emulan como en Windows
   (`bios: write 00000007`), el combate sigue y el proceso sale con 0.
 
-Ver abajo el resultado ARM. **No probado en hardware real**: escritorio Linux
-con X11/PulseAudio de verdad, Steam Deck, ni ninguna Anbernic.
+- Paquete final `linux-x86.tar.gz` extraído tal cual: lanzado desde otra
+  carpeta, detecta la ROM JP por la cabecera (archivo `my dump.gba`), juega
+  sala y combate y sale con 0.
+
+Hecho (VM Debian 12 arm64, Cortex-A53 emulado, virtio-gpu con /dev/fb0):
+- El paquete armhf corre en el kernel de 64 bits, abre /dev/fb0 (1280x800,
+  32 bpp) y la imagen del juego llega al framebuffer escalada y con los
+  colores correctos (volcado comprimido revisado).
+- Hallazgo: en kernels ARM64, lanzar el cargador a mano (`ld-linux prog`)
+  pone el heap (brk) en 0x021xxxxx, dentro del espacio GBA. Por eso el juego
+  se enlaza con `lib/rekhcom` como intérprete relativo y el lanzador entra en
+  la carpeta antes de ejecutarlo; el heap queda detrás del ejecutable.
+- Rendimiento NO medible ahí: la CPU ARM va emulada por software (600
+  fotogramas en 5,5 min).
+
+**No probado en hardware real**: escritorio Linux con X11/PulseAudio de verdad,
+Steam Deck, ni ninguna Anbernic.
 
 ## Pendiente
 
