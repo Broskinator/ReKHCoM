@@ -16,7 +16,7 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
-| **Claude (Opus)** | 56/56b fondos sin pintar en el tutorial; 57 menú de Opciones a toda la altura; 58 sonidos del modo debug; 63 colisiones; 64 moguri a Experimental; 65 pausa y saltar escena; v1.9.4 y #19; 44 limpieza; 43 cola; 51–54 consolas (otro chat); 39 rutas (al final) | 1) 64, 56/56b, 57, 58 (cortos), 2) 63, 3) 65, 4) 44 con permiso, 5) 39 |
+| **Claude (Opus)** | 57 menú de Opciones a toda la altura; 58 sonidos del modo debug; 63 colisiones; 64 moguri a Experimental; 65 pausa y saltar escena; v1.9.4 y #19; 44 limpieza; 43 cola; 51–54 consolas (otro chat); 39 rutas (al final) | 1) 58 (corto), 2) 63, 3) 65, 4) 44 con permiso, 5) 39 |
 | **ChatGPT/Codex** | 59 caras flotando en escenas; 60 barras del título; 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; después 61–62 y 16–24 | Orden explícito del usuario: **55 → 27** (59 y 60 aprobados; 40 sin fallo actual). Los demás quedan después. |
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
@@ -83,22 +83,11 @@ completas al final.
 
 ## 3. Claude
 
-- **56 (bug, 18/10):** sala del tutorial de Ciudad de Paso en vista amplia: a la
-  derecha del mapa queda una franja negra que no calza con el fondo café que sí
-  llega abajo. Savestate del usuario: Nightly 5, slot1 (respaldo en
-  khcom-claude-int/build/userstates/nightly5). Causa: la sala va por bloques de
-  mapa (latch) y WorldPadding() solo rellena si una esquina es un tile uniforme;
-  aquí las esquinas tienen el borde con dither.
 - **58 (18/10):** añadir los sonidos de las luces del modo debug al menú de
   Opciones, un poco más bajos de volumen. Intento en stash
   `claude-58-menu-click-music-regression`: el clic suena, pero pausar la música con
   m4aMPlayStop corta las notas largas (al volver suena más baja) y deja un tono
   sostenido del PSG con el menú abierto. Falta pausar sin soltar notas.
-- **56b (18/10):** mismo caso que 56 en la escena del tutorial «Ahora están a
-  merced de los naipes» (encapuchado en la sala): a la derecha y abajo queda
-  blanco sin pintar; un poco después, lo mismo en negro. Pintar con el color de
-  fondo que corresponde (mejora rápida). Savestates del usuario respaldados en
-  build/userstates/nightly5/states-1955 (slot1 pisado por la escena del panel).
 - **63 (18/10, colisión):** savestate 2: detrás del cristal, al presionar
   izquierda Sora queda atascado salvo que se presione arriba. Savestate 3:
   caminando a la derecha queda atrapado y luego no puede salir a la izquierda.
@@ -145,7 +134,7 @@ completas al final.
 
 ## Cerrados hoy (referencia)
 
-Menú de Opciones a toda la altura (57) y aviso moguri a Experimental (64), publicados en v1.9.5. 29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
+Márgenes sin pintar en las escenas del tutorial (56/56b) en f5ddc75b9, sale en v1.9.6. Menú de Opciones a toda la altura (57) y aviso moguri a Experimental (64), publicados en v1.9.5. 29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
 y 074 Monstro (13–14), remapeo y gatillos (25), submenús (28), fuente CJK Linux
 (34), PS5 (38), táctil (45), transición de Opciones (50), regresión sincorazones (4).
 Publicado en Nightly 5 (18/10, v1.9.3-nightly.20261018.5): #17 borde de Riku, logros locales,
