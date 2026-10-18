@@ -84,7 +84,7 @@ def configure(version, arch, base, out):
     includes = ' '.join(f'-I{d}' for d in include_dirs + [rel(gen), 'port/include'])
     quoted = ' '.join(f'-iquote {d}' for d in include_dirs + [rel(gen)])
     common = (f'{target} -O2 -g -fno-pie -funsigned-char -fno-strict-aliasing -fwrapv -fno-common '
-              f'-DVERSION_{version.upper()} -DPLATFORM_PC')
+              f'-DVERSION_{version.upper()} -DPLATFORM_PC -DPORT_LINUX')
     game_cflags = f'{common} -std=gnu89 -w -include port/game_prefix.h {includes}'
     port_cflags = (f'{common} -std=gnu11 -Wall -Wno-unused-function -Wno-missing-braces {quoted} -Iport/include '
                    f'-I{rel(out)} -I{(sdl / "include").as_posix()} -I{(ft / "include/freetype2").as_posix()}')
