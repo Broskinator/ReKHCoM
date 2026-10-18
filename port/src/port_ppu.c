@@ -1906,7 +1906,7 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
     if (gPortScreen.wide && !(dispcnt & 0xE000) &&
         (!objects || !sLineHasObjects) && !docked &&
         (effect == 0 || !(bldcnt & 0x3F)) &&
-        !(sSpotlight && (sScreenBgMask & 2u))) {
+        !(sOverlay && sSpotlight && (sScreenBgMask & 2u))) {
         for (x = 0; x < w; x++) {
             int bg = -1;
             for (b = 0; b < n; b++) {
@@ -1933,7 +1933,10 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
         int obj = objects && (mask & WIN_OBJ) && sObjLine[x] != TRANSPARENT;
         int objFront, blend;
 
-        if (gx < sLeft || gx >= sRight || (sSpotlight && (sScreenBgMask & 2u))) {
+        /* Only clear the world behind a separately composed synthesis UI.
+           Fixed views draw that UI in this very pass, so clearing it would
+           leave a black screen with only the later HD text visible (#16). */
+        if (gx < sLeft || gx >= sRight || (sOverlay && sSpotlight && (sScreenBgMask & 2u))) {
             dst[x] = 0xFF000000u;
             continue;
         }
