@@ -19,6 +19,7 @@
 #include "port/port_hd2d.h"
 #include "engine.h"
 #include "port/port_state.h"
+#include "port/port_battle_backdrop.h"
 
 extern const void* gMsgwinMapBlocks[4];
 
@@ -1099,6 +1100,9 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     int x, py, ty, fy, outside;
     int w = gPortScreen.width;
     int cachedTx = 0, cachedTy = 0, cachedEntry = -1, cachedValid = 0;
+    int guardPatio = sBattleView && bg == 0 && sBgLatch[bg].valid &&
+        PortGuardArmorBackdropMatches((const void* const*)sBgLatch[bg].map) &&
+        !getenv("KHCOM_NO_GUARD_PATIO"); /* isolated before/after harness */
 
     (void)dispcnt;
     if (mosV > 1)
@@ -1128,6 +1132,15 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             gx = (gx < 0 ? 0 : gx >= GBA_SCREEN_W ? GBA_SCREEN_W - 1 : gx);
         if (mosH > 1)
             gx -= ((gx % mosH) + mosH) % mosH;
+        if (guardPatio && (outside || gx < 0 || gx >= GBA_SCREEN_W)) {
+            const BgLatch* l = &sBgLatch[bg];
+            int wx = l->x + gx + (hofs - l->hofs);
+            int wy = l->y + gy + (vofs - l->vofs);
+            if (PortGuardArmorBackdropPixel(wx, wy, &out[x])) {
+                sInWorld[x] = 1;
+                continue;
+            }
+        }
         if (bg == sSinglePanelBg && sBgLatch[bg].valid &&
             (outside || gx < 0 || gx >= GBA_SCREEN_W)) {
             const BgLatch* l = &sBgLatch[bg];

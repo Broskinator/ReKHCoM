@@ -1,0 +1,61 @@
+# Continuar escenarios desde sus tiles y píxeles originales
+
+Método aceptado por el usuario para Guard Armor, 18/10/2026. La referencia
+visual aprobada es el prototipo del patio y después su integración real en
+16:9 y 32:9. No trasladar automáticamente sus constantes a otro escenario.
+
+1. Decodificar localmente los mapas, tiles y paletas originales y ubicar el
+   rectángulo realmente ilustrado. Un mapa declarado de 512×512 puede contener
+   grandes zonas transparentes; repetir sus dimensiones duplica la escena y
+   sus huecos, no la continúa.
+2. Separar zonas únicas (torre, escalera, mástil, jefe, plataformas) de bandas
+   repetibles (fachada, tejado, arcos, pavimento). Conservar las primeras y
+   continuar cada banda con el período y dirección de su propio dibujo.
+3. Para suelos en perspectiva, trabajar fila por fila con los colores y
+   límites de las celdas del suelo original. Guard Armor busca dos colores
+   dominantes en cada fila y toma pares de celdas cerca de cada borde; así no
+   pega un rectángulo de suelo de tamaño fijo a todas las alturas.
+4. Por debajo del frente ilustrado, continuar la anchura creciente de las
+   baldosas con un dibujo en coordenadas del mundo. La continuación del patio
+   usa dos índices de color del propio pavimento, no una imagen filtrada.
+5. Muestrear **índices de paleta** y resolverlos con la paleta hardware activa
+   en cada frame. Los fundidos y efectos de color del juego se conservan.
+   Nunca hornear una captura con sus colores actuales como textura final.
+6. Aplicar la extensión en el renderizador, únicamente fuera de los 240×160
+   originales y solo al mapa/capa identificados. No ampliar colisiones,
+   duplicar enemigos ni modificar la lógica de la cámara o del combate.
+7. Comparar el mismo ejecutable con la extensión activada/desactivada:
+   región GBA idéntica, vista Original idéntica, otros mapas idénticos, y
+   capturas de la cámara en varias posiciones a 16:9 y 32:9. Revisar después
+   las animaciones particulares de cada jefe y los personajes/regiones.
+8. Guardar cada variante aceptada en un commit con su receta, límites y
+   evidencia privada. No introducir en Git ROMs, capturas extraídas ni saves.
+
+Implementación de referencia: `port/src/port_guard_armor.c` y su llamada desde
+`DrawTextBg` en `port_ppu.c`. Identificación por los cuatro bloques concretos
+del mapa, sin bandera persistente que pueda quedar activa en otra pelea.
+El muestreo usa los tiles de la ROM instalada del usuario; no añade arte al
+paquete. Los datos derivados de filas son caché reconstruible, no savestate.
+
+Prueba: `python port/tools/test_guard_armor_backdrop.py`. El harness
+`KHCOM_NO_GUARD_PATIO=1` permite el antes/después en carpetas aisladas.
+
+## Resultado de Guard Armor
+
+- Aceptación visual explícita del usuario: «queda como aceptada, integrar».
+- Windows EU/US/JP compilan.
+- 13/13 fixtures de comparación: Sora EU/US/JP a 16:9 y 32:9, Riku EU en
+  ambos aspectos, Original EU/US/JP, Hook y Monstro. Tres frames por caso;
+  cero diferencias en el rectángulo GBA. Original y las otras dos arenas
+  permanecen idénticas en toda la imagen.
+- Capturas de juego: `build/codex-evidence/guard-patio-preview/`.
+- Comparaciones: `build/codex-evidence/guard-patio-tests/report.json`.
+- No equivale a una partida completa ni a todas las escalas posibles.
+
+## Aplicación a próximas escenas
+
+Mantener las escenas que el usuario ya considera buenas. En Alicia solo
+falta el suelo inferior: no reconstruir paredes ni chimenea. En Darkside,
+Úrsula y Maléfica separar especialmente la capa del jefe de la del escenario.
+En Jafar preservar pilares animados y límites jugables. Revisar cada propuesta
+antes de adoptar sus períodos: la receta es el proceso, no las constantes.

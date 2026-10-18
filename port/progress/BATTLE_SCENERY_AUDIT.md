@@ -4,8 +4,8 @@
 
 - **28/28 escenarios distintos inspeccionados inicialmente** en EU, con Sora,
   en 16:9 y 32:9; 56/56 ejecuciones, 168 capturas.
-- **0/8 mejoras necesarias terminadas.** Esta tarea entrega el inventario y
-  la evidencia; todavía no modifica el renderizador ni los escenarios.
+- **1/8 mejoras necesarias terminadas y aceptadas:** Guard Armor.
+  Implementación, receta y pruebas en `BATTLE_SCENERY_TECHNIQUE.md`.
 - **2/28 escenarios aceptados expresamente por el usuario para conservar:**
   Hook e interior normal de Monstro. No equivalen a 2 correcciones nuevas.
 - 8 ejecuciones largas adicionales, 24 capturas, para Hook, Jafar, Oogie y
@@ -24,11 +24,11 @@ dibujo. Separar el escenario de las capas que dibujan al jefe: extender el
 fondo no debe repetir a Úrsula, al dragón o a Marluxia. Los huecos que pertenecen
 a la silueta del mapa no se rellenan automáticamente.
 
-## Lista de mejoras necesarias — 0/8
+## Lista de mejoras necesarias — 1/8
 
 | # | Pelea / escenario | Evidencia observada | Trabajo pendiente | Estado |
 |---|---|---|---|---|
-| 1 | Guard Armor | Recorte rectangular del patio; bloques negros laterales, y copias del patio separadas en 32:9. | Continuar baldosas y arquitectura por tiles, sin volver a dibujar otra copia del patio completo. | Pendiente |
+| 1 | Guard Armor | Recorte rectangular del patio; bloques negros laterales, y copias del patio separadas en 32:9. | Continuación integrada y aceptada; 13/13 pruebas de píxeles. | Terminada |
 | 2 | Darkside | Escenario en una ventana estrecha; negro alrededor, partes del jefe cortadas y repetidas en 32:9. | Extender playa/cielo y mantener una sola capa de Darkside con su encuadre correcto. | Pendiente |
 | 3 | Oogie Boogie | La sala/ruleta acaba en bordes rectos; negro lateral y copias parciales de la sala en ultrawide. | Continuar paredes/suelo sin duplicar la ruleta, puerta, rejas ni al jefe. | Pendiente |
 | 4 | Jafar | Lava, muros y pilares quedan en un rectángulo aislado; al mover la cámara aparece negro en varios lados. | Continuar lava y paredes, respetando los tres pilares móviles y sus límites jugables. | Pendiente |

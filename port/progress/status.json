@@ -76,7 +76,7 @@
       "name": "Movie (FMV) decoder",
       "weight": 6,
       "done": 100,
-      "notes": "native C; all 3605 video frames and 3604 audio blocks match ARM; all five movies play to their last frame and hand over to the next scene (castle, Larxene, Destiny Islands, staff roll) — KHCOM_MOVIE"
+      "notes": "native C; all 3605 video frames and 3604 audio blocks match ARM; all five movies play to their last frame and hand over to the next scene (castle, Larxene, Destiny Islands, staff roll) â€” KHCOM_MOVIE"
     },
     {
       "name": "Save data (SRAM)",
@@ -249,8 +249,8 @@
     },
     {
       "name": "Battle scenery: authored extensions",
-      "done": 0,
-      "notes": "0/8 improvements complete; 28/28 distinct backgrounds initially inspected in EU/Sora, 16:9 and 32:9. Hook and Monstro preserved per user feedback. See BATTLE_SCENERY_AUDIT.md and .json; initial sampling is not full fight validation."
+      "done": 12.5,
+      "notes": "1/8 complete and accepted: Guard Armor. Windows EU/US/JP and 13/13 comparison fixtures pass. Hook and Monstro preserved. See BATTLE_SCENERY_TECHNIQUE.md."
     }
   ]
 }

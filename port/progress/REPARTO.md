@@ -1,3 +1,11 @@
+## Guard Armor aceptado e integrado — 18/10/2026
+
+**1/8 escenarios de jefe terminados.** Continuación de patio por tiles/píxeles
+originales, solo fuera de GBA. EU/US/JP compilan; 13/13 comparaciones, Original
+y rectángulo GBA idénticos; Hook/Monstro sin cambios. Receta reutilizable en
+`BATTLE_SCENERY_TECHNIQUE.md`. Usuario pide integrar además los commits de
+escenas del otro chat en una nueva nightly y después continuar con Darkside.
+
 ## Actualización: auditoría de escenarios de combate — 18/10/2026
 
 Inventario y contador en [BATTLE_SCENERY_AUDIT.md](BATTLE_SCENERY_AUDIT.md),
