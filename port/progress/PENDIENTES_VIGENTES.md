@@ -114,12 +114,13 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 37. [ ] **Codex:** Web: texto HD/menús, audio/foco, FPS/memoria, controles y
     móvil real. Evaluar Worker/OffscreenCanvas solo si mejora medida; es distinto
     de los workers/agentes cuyo cierre pide ahora el usuario.
-38. [~] **Claude + worker PS5:** el usuario confirma que se recibió un pull
-    request con casi todo el port preparado para integrar sus pendientes.
-    Revisar ese PR, integrar lo que esté listo y enumerar/cerrar lo que falte;
-    recoger las pruebas de dispositivo del responsable. No rehacer el port.
-    PR recibido no equivale a PR integrado ni a validación final. Número/enlace
-    del PR aún no registrado en esta lista. Fuente: usuario, 18/10/2026.
+38. [~] **Claude + worker PS5:** PR #15 de darkxex fue fusionado en `main`
+    (`5a068ce82`); integración local de build/release subida en `13fba3337`.
+    El build PS5 y ZIP pasaron en Debian x86_64; tres imágenes guest compilaron.
+    Pendiente: build versionado desde el último main, probar actualización desde
+    `PPSA98511.zip` de la release principal y validar gameplay en PS5 real o
+    reparar el runner headless que falla al arrancar EU/US/JP. No publicar aún.
+    Cierre técnico: `CIERRE_WORKERS.md`, sección Worker PS5 / revisión PR #15.
 39. [ ] **Claude:** rutas completas Sora y Reverse/Rebirth, campañas/regiones;
     baterías cortas sin crash no equivalen a partidas completas.
 40. [ ] **Codex:** comparación de audio PSG pendiente frente a referencia de

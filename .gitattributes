@@ -1,1 +1,2 @@
 *.sh text eol=lf
+port/ps5/tooling/prospero-clang18 text eol=lf

@@ -165,7 +165,7 @@ void PortRaiseIrq(uint16_t flag) {
 
 /* Fullscreen uses the configured display mode (closest the monitor offers);
    0x0 selects the desktop resolution without a mode change. */
-#if defined(__linux__) && !defined(__ANDROID__)
+#ifdef PORT_LINUX
 /* port/linux/fbdev_linux.c: handhelds without a usable 32-bit GPU driver. */
 int PortFbInit(int* w, int* h);
 int PortFbActive(void);
@@ -174,7 +174,7 @@ static int sFbW, sFbH;
 #endif
 
 static void ApplyWindowMode(void) {
-#if defined(__linux__) && !defined(__ANDROID__)
+#ifdef PORT_LINUX
     /* The framebuffer is the screen: one window of its size, paced by the game. */
     if (PortFbActive()) {
         SDL_SetRenderVSync(sRenderer, 0);
@@ -1618,7 +1618,7 @@ static void Present(void) {
 #if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
     PortAndroidTouchDraw(sRenderer);
 #endif
-#if defined(__linux__) && !defined(__ANDROID__)
+#ifdef PORT_LINUX
     PortFbPresent(sRenderer);
 #endif
     SDL_RenderPresent(sRenderer);
@@ -2234,7 +2234,7 @@ int main(int argc, char** argv) {
     SDL_SetHint(SDL_HINT_EMSCRIPTEN_ASYNCIFY, "0");
     SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
 #endif
-#if defined(__linux__) && !defined(__ANDROID__)
+#ifdef PORT_LINUX
     if (PortFbInit(&sFbW, &sFbH))
         SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "offscreen");
 #endif
@@ -2258,7 +2258,7 @@ int main(int argc, char** argv) {
             winH = h;
         }
     }
-#if defined(__linux__) && !defined(__ANDROID__)
+#ifdef PORT_LINUX
     if (PortFbActive()) {
         winW = sFbW;
         winH = sFbH;

@@ -80,6 +80,11 @@ def main():
     ap.add_argument('--fetch', action='append', default=[])
     ap.add_argument('--out', type=Path, default=Path('.'))
     ap.add_argument('--accel', default='whpx,kernel-irqchip=off')
+    ap.add_argument('--disk', type=Path, help='persistent qcow2 overlay (created from the image, kept between runs)')
+    ap.add_argument('--disk-size', default='40G')
+    ap.add_argument('--net', action='store_true', help='user-mode network (apt, downloads)')
+    ap.add_argument('--mem', default='2048')
+    ap.add_argument('--cpus', default='2')
     args = ap.parse_args()
     # The shared folder travels as a tar archive used as a raw disk (tar
     # blocks are 512 bytes): fast, and keeps the executable bits.
@@ -97,17 +102,24 @@ def main():
     with open(image, 'ab') as fh:
         fh.write(b'\0' * (-fh.tell() % 1048576))
     share = str(image).replace('\\', '/')
+    system = f'file={IMAGES[args.machine]},if=virtio,snapshot=on'
+    if args.disk:
+        if not args.disk.exists():
+            subprocess.check_call([str(QEMU / 'qemu-img.exe'), 'create', '-f', 'qcow2', '-F', 'qcow2',
+                                   '-b', str(IMAGES[args.machine]), str(args.disk), args.disk_size])
+        system = f'file={args.disk},if=virtio'
+    nic = ['-nic', 'user,model=virtio-net-pci'] if args.net else ['-nic', 'none']
     if args.machine == 'x86_64':
-        cmd = [str(QEMU / 'qemu-system-x86_64.exe'), '-m', '2048', '-smp', '2', '-accel', args.accel, '-accel', 'tcg',
-               '-drive', f'file={IMAGES["x86_64"]},if=virtio,snapshot=on',
-               '-drive', f'file={share},format=raw,if=virtio,readonly=on', '-nographic', '-nic', 'none']
+        cmd = [str(QEMU / 'qemu-system-x86_64.exe'), '-m', args.mem, '-smp', args.cpus, '-accel', args.accel,
+               '-accel', 'tcg', '-drive', system,
+               '-drive', f'file={share},format=raw,if=virtio,readonly=on', '-nographic', *nic]
     else:
         # cortex-a53 like the H700; virtio-gpu gives the kernel a /dev/fb0.
         cmd = [str(QEMU / 'qemu-system-aarch64.exe'), '-M', 'virt', '-cpu', 'cortex-a53', '-m', '1024', '-smp', '2',
                '-device', 'virtio-gpu-pci',
                '-bios', str(QEMU / 'share/edk2-aarch64-code.fd'),
-               '-drive', f'file={IMAGES["aarch64"]},if=virtio,snapshot=on',
-               '-drive', f'file={share},format=raw,if=virtio,readonly=on', '-nographic', '-nic', 'none']
+               '-drive', system,
+               '-drive', f'file={share},format=raw,if=virtio,readonly=on', '-nographic', *nic]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     con = Console(proc)
     try:
