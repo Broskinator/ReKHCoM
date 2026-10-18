@@ -1,3 +1,59 @@
+## Reparto vigente — 18/10/2026 (sustituye a los anteriores)
+
+Estable pública: **v1.9.2** (Windows + Android alpha + Web alpha, un archivo
+por plataforma). Todo lo demás en borrador. Issues #7, #8 y #9 cerradas.
+
+### Esta sesión (con el usuario, revisión visual)
+1. Escenas 16:9: extensión del suelo con tiles originales (PortSetBgIsoExtend,
+   lista kIsoScenes en port_ppu.c). 44 de 194 eventos cambian con KHCOM_ISOALL;
+   muchos mapas tienen un vacío oscuro a propósito. Revisar en lotes de 10 con
+   antes/después y cuadros de cámara; solo se añaden a la lista las aprobadas.
+   Aprobada: 004 (Sora conoce a Leon). Informe: build/scene-review/run1/report.json.
+2. Arenas tamaño GBA (Guard Armor, Dragon Maleficent): asoma una tira del fondo
+   en el borde derecho.
+3. Issues rápidas: #5 (16:10 ya cubierto por la vista Automática: responder),
+   #4 (más niveles de zoom: comprobar los pasos actuales y responder).
+
+### Sesión Linux (local_2950e992, parada por límite de uso)
+4. Linux x86 (PC y Steam Deck, i686 con librerías incluidas) y Anbernic
+   (armhf, probablemente salida directa a /dev/fb0). Ver el plan en su sesión.
+
+### Sesión nueva: menú de opciones, trucos y mejoras PS2
+5. Selector del menú de opciones con el efecto del menú de depuración oficial
+   (al que se entra con CodeBreaker EU 320348DC 0006, US/JP 3203493C 0006).
+6. Trucos: primera opción "Entrar al modo debug".
+7. Revisar la implementación de devolver cartas acumuladas (unstock, de
+   ggdrn/KH_COM_VITA) y mover estas mejoras a un título propio dentro de las
+   mejoras PS2, como el de Experimental.
+8. Resto de trucos y editor de cartas (región + banco + ranura, checksum).
+
+### Sesión nueva: RetroAchievements (investigación)
+9. Ver si el port puede usar rcheevos con los logros de la versión GBA:
+   como variante/hack de la ROM o al menos funcionando en local. No se puede
+   enlazar como la GBA original; documentar qué se puede y qué no.
+
+### Sesión nueva: issues de jugadores
+10. #12 elegir ranura de guardado en el juego, #6 texto de la dificultad
+    Orgulloso, #3 falta el texto grande del HUD, #2 funciones de la historia del
+    remake (valorar alcance antes de prometer nada).
+
+### Usuario
+11. Aprobar la limpieza: worktrees khcom-fix y khcom-codex-perf (ya en main),
+    rama remota codex/ppu-performance, carpetas build/ de revisiones viejas
+    (~30 GB) y el checkout khcom (su trabajo sin commitear está en
+    backups/khcom-hdhud-wip-20261014). Nunca las carpetas ReKHCoM-vX.
+12. Pruebas en dispositivos reales: Android ARM, web en móvil, Steam Deck.
+13. Partidas completas de Sora y Reverse/Rebirth (validación de jugabilidad).
+
+### Opcional / más adelante
+14. Revisión visual de menús a 21:9 y 32:9 (muy opcional).
+15. Tráiler nuevo con material de la versión terminada.
+
+Cerrados hoy: pantalla de título (difuminado, se da por terminada), zoom x3
+(no había error), commits PPU de Codex (ya estaban en main), bugs @bug de la
+decomp revisados (2 corregidos para PC), lógicas atadas a la pantalla GBA
+(solo los enemigos del campo, corregido en v1.9.1).
+
 ## Titulo — correccion de enfoque del usuario (17/10/2026)
 
 - Usuario rechazo el cristal/guante imaginado de ec2493eb7. Eliminados del
