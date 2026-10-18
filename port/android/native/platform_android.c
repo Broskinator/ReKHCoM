@@ -17,6 +17,10 @@ const char* PortStatePath(int slot) { (void)slot; return ""; }
 void PortStateRequestSave(const char* path) { (void)path; PortUiNotice("Quick states unavailable in Android alpha"); }
 void PortStateRequestLoad(const char* path) { (void)path; PortUiNotice("Quick states unavailable in Android alpha"); }
 void PortStateService(void) {}
+/* no states here: boss rematches stay hidden (port_ui.c) */
+void PortStateRequestQuiet(int load, const char* path) { (void)load; (void)path; }
+int PortStateBusy(void) { return 0; }
+int PortStateLastResult(void) { return 0; }
 void PortWatchdogStart(void) {}
 void PortCrashHandlerInstall(void) {}
 void PortBiosFaultInstall(void) { PortLog("Android: explicit BIOS_PTR helpers; no x86 fault recovery"); }

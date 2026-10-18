@@ -17,6 +17,10 @@ const char* PortStatePath(int slot) { (void)slot;return ""; }
 void PortStateRequestSave(const char* p) { (void)p;PortUiNotice("Use normal saves in the browser"); }
 void PortStateRequestLoad(const char* p) { (void)p;PortUiNotice("Use normal saves in the browser"); }
 void PortStateService(void) {}
+/* no states here: boss rematches stay hidden (port_ui.c) */
+void PortStateRequestQuiet(int load, const char* path) { (void)load; (void)path; }
+int PortStateBusy(void) { return 0; }
+int PortStateLastResult(void) { return 0; }
 void PortWatchdogStart(void) {}
 void PortCrashHandlerInstall(void) {}
 void PortBiosFaultInstall(void) {}

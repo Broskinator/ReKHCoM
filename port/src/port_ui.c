@@ -133,6 +133,8 @@ static int ItemVisible(int item) {
     switch (item) {
 #if !defined(__ANDROID__) && !defined(__EMSCRIPTEN__)
         case ITEM_HIDE_TOUCH: return 0;
+#else
+        case ITEM_REMATCH_MENU: return 0; /* rematches need states, not on these yet */
 #endif
 #if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
         case ITEM_FULLSCREEN:
