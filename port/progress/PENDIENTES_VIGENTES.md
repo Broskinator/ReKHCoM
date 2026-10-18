@@ -16,7 +16,7 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
-| **Claude (Opus)** | Publicar v1.9.4 estable y responder #19 (en curso); 44 limpieza; 43 mantener la cola; 39 rutas completas (al final) | 1) cerrar v1.9.4, 2) 44 con permiso, 3) 39 |
+| **Claude (Opus)** | Publicar v1.9.4 estable y responder #19 (en curso); 44 limpieza; 43 mantener la cola; 51 Vita (por fases); 39 rutas completas (al final) | 1) cerrar v1.9.4, 2) 44 con permiso, 3) 39 |
 | **ChatGPT/Codex** | 12 playa; 16–24 arte de jefes/escenas; 27 RetroAchievements; 29 Mapamundi/objetos de sala; 36–37 Web en navegador real; 40 audio PSG; 2 cierre del chat sincorazones | 1) 12 (mejoras pedidas), 2) 29 y 40 (cortos), 3) 36–37, 4) 27, 5) 16–24 al final |
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
@@ -55,6 +55,16 @@ completas al final.
   replicar y verificar cada escena; Reverse/Rebirth con el bot (KHCOM_BOT).
 - **44:** limpieza: hecha la de carpetas ReKHCoM-vX; falta worktrees y carpetas
   build viejas (preguntar antes de borrar).
+- **51 (nuevo, 18/10): PS Vita.** Decisión del usuario: de ggdrn/KH_COM_VITA (MIT, v0.08.08)
+  solo se toma la FORMA DE COMPILAR (VitaSDK + vitaGL, ROM sin datos en el .vpk con
+  tira/auditoría y carga al arrancar desde ux0:data, kubridge opcional); todo lo demás
+  es nuestro (PPU, m4a, opciones, trucos, vista amplia, guardados). Fases:
+  1) VitaSDK+vitaGL en la VM Debian, compilar su repo como referencia y probar el .vpk en
+  Vita3K (Windows); 2) build Vita de nuestro árbol: punteros reubicables en vez de
+  direcciones GBA fijas (la Vita no permite mapa fijo), macros de acceso a hardware,
+  capa propia de vídeo/audio/entrada (vitaGL, sceAudioOut, sceCtrl); 3) .vpk alpha
+  (EU/US/JP) con aviso de ROM propia; validación en Vita real = reportes. Atribución MIT
+  en NOTICE si se adapta algún script. Grande (semanas); va después de lo corto.
 - **43:** mantener esta cola y los contadores tras cada cierre.
 
 ## Cerrados hoy (referencia)
