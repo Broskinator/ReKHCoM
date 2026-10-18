@@ -29,7 +29,7 @@ ARCHES = {
 }
 # Windows-only platform files; Linux replacements live in port/linux and the
 # POSIX memory backend shared with Android.
-WINDOWS_ONLY = {'port_memory', 'port_sections', 'port_hdtext', 'port_watchdog', 'port_undub'}
+WINDOWS_ONLY = {'port_memory', 'port_sections', 'port_hdtext', 'port_watchdog'}
 
 
 def rel(p):
