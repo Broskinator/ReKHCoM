@@ -51,6 +51,8 @@ namespace fs = std::filesystem;
 #include "../include/port/port_aspect.h"
 #include "save_import.h"
 #include "save_file.h"
+#include "save_editor.h"
+#include "card_table.h"
 
 #ifndef REKHCOM_VERSION
 #define REKHCOM_VERSION "v1.9.3-nightly.20261018.3"
@@ -778,7 +780,7 @@ static bool SliderRow(const char* label, int& value, int lo, int hi, const char*
 
 /* ---- pages ------------------------------------------------------------------- */
 
-enum Page { PAGE_HOME, PAGE_GRAPHICS, PAGE_SOUND, PAGE_EXTRAS, PAGE_CONTROLS, PAGE_COUNT };
+enum Page { PAGE_HOME, PAGE_GRAPHICS, PAGE_SOUND, PAGE_EXTRAS, PAGE_CONTROLS, PAGE_EDITOR, PAGE_COUNT };
 
 static int sPage;
 static GLuint sBoxArt;
@@ -1447,7 +1449,8 @@ static void Header() {
     }
 
     const char* tabs[PAGE_COUNT] = { T("Inicio", "Home"), T("Gráficos", "Graphics"), T("Sonido", "Sound"),
-                                     T("Mejoras", "Enhancements"), T("Controles", "Controls") };
+                                     T("Mejoras", "Enhancements"), T("Controles", "Controls"),
+                                     T("Editor de partidas", "Save editor") };
     ImGui::Spacing();
     for (int i = 0; i < PAGE_COUNT; i++) {
         bool active = sPage == i;
@@ -1464,6 +1467,8 @@ static void Header() {
     ImGui::Spacing();
     ImGui::Spacing();
 }
+
+#include "save_editor_page.inc"
 
 static void Footer() {
     if (!sNotice.empty() && ImGui::GetTime() - sNoticeTime < 8.0) {
@@ -1483,6 +1488,8 @@ static void Frame(SDL_Window* window) {
                      ImGuiWindowFlags_NoBringToFrontOnFocus);
     Header();
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+    if (const char* scroll = SDL_getenv("DECOMPUI_SCROLL")) /* harness: a lower part of the page */
+        ImGui::SetNextWindowScroll(ImVec2(0, (float)std::atof(scroll)));
     ImGui::BeginChild("page", ImVec2(0, -Px(28)), ImGuiChildFlags_None, ImGuiWindowFlags_None);
     ImGui::PopStyleColor();
     switch (sPage) {
@@ -1500,6 +1507,9 @@ static void Frame(SDL_Window* window) {
             break;
         case PAGE_CONTROLS:
             PageControls();
+            break;
+        case PAGE_EDITOR:
+            PageEditor();
             break;
     }
     ImGui::EndChild();
@@ -1672,6 +1682,10 @@ int main(int, char**) {
     ImGui_ImplOpenGL3_Init("#version 130");
     LoadBoxArt();
     if (shotDir && SDL_getenv("DECOMPUI_REWRITE_SETTINGS")) SaveIni();
+    if (shotDir && SDL_getenv("DECOMPUI_EDITOR")) { /* harness: the editor on, this file */
+        sEditorOn = true;
+        sEdFile = std::clamp(std::atoi(SDL_getenv("DECOMPUI_EDITOR")), 0, 3);
+    }
     if (const char* rom = SDL_getenv("DECOMPUI_INSTALL")) {
         InstallRom(fs::u8path(rom));
     }
