@@ -4037,6 +4037,12 @@ void MapPrizeBounce(MapPrizeWork* work) {
             if (gGameState.progression.mooglePoints > 99999) {
                 gGameState.progression.mooglePoints = 99999;
             }
+#ifdef PLATFORM_PC
+            {
+                extern void PortMoogleNotice(unsigned amount, unsigned total);
+                PortMoogleNotice(work->amount, gGameState.progression.mooglePoints);
+            }
+#endif
 
             break;
         case MAP_PRIZE_HP_SMALL:

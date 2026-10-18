@@ -51,6 +51,7 @@ enum {
     ITEM_FPS,
     ITEM_DODGE,
     ITEM_STOCK,
+    ITEM_MOOGLE_NOTICE,
     ITEM_SAVEBANK,
     ITEM_UNDUB,
     ITEM_MUSIC,
@@ -173,6 +174,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
+    { "Moogle points notice", "Avis des points mog", "Mogry-Punkte anzeigen", "Avviso punti moguri",
+      "Aviso de puntos moguri", "モーグリポイント通知" },
     { "Save bank", "Banque de sauvegarde", "Speicherbank", "Banco di salvataggio", "Banco de partidas",
       "セーブバンク" },
     { "Japanese voices (restart)", "Voix japonaises (relancer)", "Japanische Stimmen (Neustart)",
@@ -734,6 +737,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_STOCK:
             SDL_strlcpy(out, sOnOff[gPortConfig.stockButton != 0][l], size);
             break;
+        case ITEM_MOOGLE_NOTICE:
+            SDL_strlcpy(out, sOnOff[gPortConfig.moogleNotice != 0][l], size);
+            break;
         case ITEM_UNSTOCK:
             SDL_strlcpy(out, sOnOff[gPortConfig.unstockButton != 0][l], size);
             break;
@@ -918,6 +924,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_STOCK:
             gPortConfig.stockButton = !gPortConfig.stockButton;
+            break;
+        case ITEM_MOOGLE_NOTICE:
+            gPortConfig.moogleNotice = !gPortConfig.moogleNotice;
             break;
         case ITEM_UNSTOCK:
             gPortConfig.unstockButton = !gPortConfig.unstockButton;
@@ -1158,6 +1167,26 @@ void PortUiNotice(const char* text) {
     else
         SDL_strlcpy(sNotice, text, sizeof(sNotice));
     sNoticeFrames = 120;
+}
+
+/* map_tasks.c / poo.c: moogle points picked up on the field. Pickups close
+   together add up in one notice: "+30 moogle points (total 1250)". */
+void PortMoogleNotice(unsigned amount, unsigned total) {
+    static const char* const text[LANG_COUNT] = {
+        "+%u moogle points (total %u)", "+%u points mog (total %u)", "+%u Mogry-Punkte (gesamt %u)",
+        "+%u punti moguri (totale %u)", "+%u puntos moguri (total %u)", "モーグリポイント +%u (合計 %u)",
+    };
+    static unsigned sum;
+    static uint32_t last;
+    uint32_t now = PortFrameCount();
+    char line[96];
+
+    if (!gPortConfig.moogleNotice)
+        return;
+    sum = (sNoticeFrames > 0 && now - last < 120) ? sum + amount : amount;
+    last = now;
+    SDL_snprintf(line, sizeof(line), text[Lang()], sum, total);
+    PortUiNotice(line);
 }
 
 void PortUiTitleHint(void) {

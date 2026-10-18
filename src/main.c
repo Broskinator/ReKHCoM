@@ -229,6 +229,14 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
 
+    /* moogle points picked up on the field, as map_tasks.c does */
+    if (strcmp(name, "moogle") == 0) {
+        extern void PortMoogleNotice(unsigned amount, unsigned total);
+        gGameState.progression.mooglePoints += (u32)arg;
+        PortMoogleNotice((unsigned)arg, gGameState.progression.mooglePoints);
+        return 1;
+    }
+
     /* the Cheats page's actions: 1 level 99, 2 map cards, 3 battle cards */
     if (strcmp(name, "cheat") == 0) {
         extern int PortCheatMaxLevel(void), PortCheatMapCards(void), PortCheatBattleCards(void);
