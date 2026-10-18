@@ -12,9 +12,20 @@ conservada para poder rastrear. Reglas del usuario:
 - Nunca borrar carpetas ReKHCoM-vX sin pedirlo el usuario (18/10: autorizó borrar
   las antiguas dejando 3; respaldo de guardados en backups/).
 
-## 1. Esperan la aprobación del usuario
+## Reparto actual (18/10, noche)
 
-- (vacío) 49 mando: aprobado por el usuario el 18/10 y publicado en v1.9.4.
+| Quién | Puntos | Orden sugerido |
+|---|---|---|
+| **Claude (Opus)** | Publicar v1.9.4 estable y responder #19 (en curso); 44 limpieza; 43 mantener la cola; 39 rutas completas (al final) | 1) cerrar v1.9.4, 2) 44 con permiso, 3) 39 |
+| **ChatGPT/Codex** | 12 playa; 16–24 arte de jefes/escenas; 26 (#2, espera lista del autor); 27 RetroAchievements; 29 Mapamundi/objetos de sala; 36–37 Web en navegador real; 40 audio PSG; 2 cierre del chat sincorazones | 1) 12 (mejoras pedidas), 2) 29 y 40 (cortos), 3) 36–37, 4) 27, 5) 16–24 al final |
+
+Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
+completas al final.
+
+## 1. Esperan la aprobación del usuario / publicación
+
+- 49 mando: aprobado el 18/10; sale en v1.9.4 (compilando, aún sin publicar).
+- v1.9.4 estable: compilada la fuente; falta Android/Web, reconstruir Linux (ícono) y publicar.
 - **12 (Codex):** 057 playa aprobada con mejoras (ver sección 2).
 
 ## 2. Codex
