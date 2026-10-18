@@ -73,6 +73,7 @@ int main(int argc, char** argv) {
     gPortConfig.ps2Difficulty = 1;
     assert(PortScaleDamage(1, 1) == 1);
     assert(PortScaleDamage(10, 1) == 5);
+    assert(PortScaleDamage(10, 0) == 12); /* Beginner: enemies receive 125%. */
     gPortConfig.ps2Difficulty = 2;
     assert(PortScaleDamage(10, 1) == 15); /* Proud: Sora receives 150%. */
     assert(PortScaleDamage(10, 0) == 8);  /* Proud: enemies receive 80%. */
