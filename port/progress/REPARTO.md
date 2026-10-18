@@ -1,3 +1,10 @@
+## CIERRE DE WORKERS Y COLA ÚNICA (vigente)
+
+Abrir [PENDIENTES_VIGENTES.md](PENDIENTES_VIGENTES.md): 44 puntos y responsables.
+Cierres comprobados en [CIERRE_WORKERS.md](CIERRE_WORKERS.md).
+Primero recoger los workers actuales; no abrir otra tanda.
+Los apartados siguientes son historial y no otra cola vigente.
+
 ## ENCARGO VIGENTE: CLAUDE + CODEX, CERRAR Y PUBLICAR (18/10/2026)
 
 **Claude:** guardados/persistencia + savestate borde superior + savestate 3
