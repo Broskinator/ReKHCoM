@@ -22,7 +22,7 @@ Antes de empezar comprobar propietario y commits de su checkout, no solo main.
 **Primero terminar/recoger los workers existentes; después seguir la lista.**
 No abrir nuevos frentes de workers durante el cierre de esta tanda.
 
-La lista larga vigente, con 46 puntos, responsables y estados, es
+La lista larga vigente, con 47 puntos, responsables y estados, es
 [PENDIENTES_VIGENTES.md](PENDIENTES_VIGENTES.md). Sustituye repartos anteriores.
 No mantener otra cola de pendientes aquí.
 

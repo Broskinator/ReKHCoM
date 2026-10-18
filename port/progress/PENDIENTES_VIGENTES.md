@@ -102,8 +102,11 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     transiciones; conservar lo ya resuelto y verificar variantes pendientes.
 29. [ ] **Codex:** revisar variantes de planta de Mapamundi y conservación de
     objetos de sala en transiciones, según PENDIENTES.md histórico.
-30. [ ] **Claude:** decidir y desarrollar cheats/editor de cartas pendientes
-    del encargo previo; mantener separados de la entrega inmediata de bugs.
+30. [ ] **Claude:** cheats pedidos expresamente: enemigos de un golpe, vida
+    infinita, 99 de cada carta de mapa y de combate (valores de llaves espada,
+    cartas enemigo/jefe), nivel máximo con todos los bonos de HP, CP y sleights.
+    Mostrar controles claros en pestaña Trucos; fuentes y alcance en
+    SAVE_EDITOR_Y_CHEATS.md. No confundir nivel máximo con sus bonos completos.
 31. [ ] **Claude:** mejoras Vita pendientes registradas: aviso de puntos moguri,
     revancha de jefes y repetición de tutoriales; conservar como cola posterior.
 32. [ ] **Claude:** Linux real y Steam Deck: X11/XWayland, sonido, controles y
@@ -151,6 +154,12 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 46. [~] **Codex:** issue #16, pantalla negra al sintetizar puertas fuera de vista
     Automática. Reproducir con entrada real de puerta y comprobar todas las vistas;
     prioridad sobre extensiones de arte. Claude mantiene #17/#18 (10–11).
+
+47. [ ] **Claude (ampliación del bloque 30 por el usuario):** pestaña nueva del
+    launcher para editor de saves basado en game-tools-collection, con aviso y
+    confirmación al activarla; cartas con sprites nativos ×1 y presentación cuidada.
+    Archivo/región/banco/ranura explícitos, vista previa, copia de seguridad y
+    escritura válida comprobada. Requisitos/fuentes: SAVE_EDITOR_Y_CHEATS.md.
 
 ## Qué bloquea la entrega inmediata
 
