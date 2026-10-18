@@ -1,6 +1,6 @@
 # Revisión acumulativa de escenas con extensión de tiles
 
-Estado 18/10/2026: **3/44 candidatas aceptadas (074 preliminar)**. Son 44 eventos con cambios
+Estado 18/10/2026: **3/44 candidatas aceptadas**. Son 44 eventos con cambios
 potenciales en 33 fondos; los vacíos que forman un marco intencionado se
 descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
 
@@ -8,8 +8,8 @@ descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
 | --- | --- | --- |
 | 004 Leon | Aceptada previamente | Continuar diagonales y período propio, sin duplicar cajas. |
 | 061 Cristal | Mejorada aceptada | Perfiles distintos por capa; rombo entero en la unión; seleccionar tile de panel sin sombra ajena. |
-| 057 Playa | Pendiente | Período del suelo 8×4; pared con huecos requiere revisar capas por separado. |
-| 074 Monstruo | Preliminar aceptada | Paleta activa y tres capas; pendiente rematar motivo verde inferior derecho con la forma izquierda como referencia. |
+| 057 Playa | Siguiente en revisión | Período del suelo 8×4; pared con huecos requiere revisar capas por separado. |
+| 074 Monstruo | Mejorada aceptada | Paleta activa y tres capas; pieza inferior completada con el motivo izquierdo original. |
 
 ## Lógica que se acumula con cada ejemplo
 
@@ -44,6 +44,18 @@ descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
     ya contiene la siguiente actualización de la paleta. BLDCNT/BLDALPHA/BLDY
     están en cero, por lo que aquí el efecto se debe a la paleta, no a blending.
     En el motor usar siempre PLTT activa; no fijar un aclarado constante de 49 RGB.
+12. Antes de extender un adorno cortado con el período general, buscar una copia
+    completa del mismo adorno en el mapa original. En la mejora de 074, 19 entradas
+    ya visibles de BG2 coinciden con la pieza izquierda desplazada (+20,-1) tiles.
+    Esto permite completar el extremo derecho con coordenadas fuente (x-20,y+1),
+    sin inventar un nuevo fragmento ni volver a copiar el comienzo del adorno.
+
+Mejora 074 aprobada por el usuario: `py -3 port/tools/scene074_polish_preview.py`.
+El commit preliminar es `8cf93bc78`; permanece congelado. Solo BG2 destino
+x=32..34, y=17..21 toma entradas fuente (x-20,y+1). La comparación muestra
+la pieza completa y elimina el fragmento repetido inferior; 507 píxeles cambian,
+todos dentro de la franja añadida. El header de integración contiene esta
+sustitución; la base preliminar sigue disponible en su commit.
 
 Propuesta 074: `py -3 port/tools/scene074_tile_preview.py`; encuadre frame100,
 cámara (0,0), perfil de derecha/abajo. Salida privada `review074/074-before-after.png`.
