@@ -56,3 +56,9 @@ de proponer algo nuevo; ante un caso nuevo, derivar la solución de ellas.
   no cortar motivos de pasto por la mitad).
 - Anteriores (márgenes de ventanas 1-17, escenas 004/057/061/074, Guard Armor):
   ver REPARTO.md y ESCENAS_REVISION_AMPLIA.md; mismos principios 1-3.
+
+- 59 retratos: aprobado el 18/10. La vista amplia exponía las posiciones de espera
+  X=449/-299 antes de aplicar la silueta. Ocultar la espera en `msgface_2` y
+  recortar su entrada/salida al área original de la ventana desplazada. Aplicar
+  en la función común, sin excepciones por personaje/escena. Commit `acd85c818`;
+  detalle en RETRATOS_59_LOGICA.md.

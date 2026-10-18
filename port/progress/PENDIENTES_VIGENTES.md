@@ -17,7 +17,7 @@ conservada para poder rastrear. Reglas del usuario:
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
 | **Claude (Opus)** | 56/56b fondos sin pintar en el tutorial; 57 menú de Opciones a toda la altura; 58 sonidos del modo debug; 63 colisiones; 64 moguri a Experimental; 65 pausa y saltar escena; v1.9.4 y #19; 44 limpieza; 43 cola; 51–54 consolas (otro chat); 39 rutas (al final) | 1) 64, 56/56b, 57, 58 (cortos), 2) 63, 3) 65, 4) 44 con permiso, 5) 39 |
-| **ChatGPT/Codex** | 59 caras flotando en escenas; 60 barras del título; 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; después 61–62, 27 y 16–24 | Orden explícito del usuario: **59 → 60 → 40 → 55**. Los demás quedan después. |
+| **ChatGPT/Codex** | 59 caras flotando en escenas; 60 barras del título; 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; después 61–62 y 16–24 | Orden explícito del usuario: **60 → 40 → 55 → 27**. Los demás quedan después. |
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
@@ -45,7 +45,7 @@ completas al final.
   el launcher y en Opciones). Entrega visual: capturas antes/después y aprobación.
 - **40:** audio PSG frente a la referencia de combate.
 - **59 (bug grande, 18/10, PRIORIDAD):** caras flotando en las escenas: el retrato
-  **Implementado, pendiente revisión visual.** Reproducido DiZ a color y Riku sin
+  **APROBADO por el usuario el 18/10. Implementado y commiteado (`acd85c818`).** Reproducido DiZ a color y Riku sin
   ventana; posición de espera oculta y recorte del retrato al área GBA de su ventana.
   EU/US/JP compilan; 12 comparaciones / 24 ejecuciones pasan, 48 pares GBA idénticos.
   Copia separada + BAT «Probar retratos 59 - Riku/Sora» en la raíz. Detalle:
