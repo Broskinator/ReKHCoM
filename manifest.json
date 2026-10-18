@@ -1,12 +1,12 @@
 {
-  "version": "web-alpha3",
-  "source_commit": "08633e5853220e4a06df67ae35699d588c490ef5",
+  "version": "v1.9.1-web-alpha",
+  "source_commit": "5659b0a13c28b15dfbb5ae540eef0126842e6cae",
   "source_dirty": false,
-  "built_utc": "2026-10-17T22:24:47.744522+00:00",
+  "built_utc": "2026-10-18T00:25:29.254449+00:00",
   "files": {
     "index.html": {
-      "bytes": 3050,
-      "sha256": "1431f867acd4d2859799d4174c2885d517d4bc8c803573f88d3ee6b2e680e234"
+      "bytes": 3174,
+      "sha256": "0a4624dbf913edf627b721d7ca89c5a8701b12b4dae4284de621a828736f7e12"
     },
     "web.css": {
       "bytes": 2242,
@@ -23,6 +23,14 @@
     "i18n.js": {
       "bytes": 4686,
       "sha256": "e29073c01672021b0c6e9c57d0e9c01f181ee49bf39bc2245497a928f603c2f0"
+    },
+    "favicon.png": {
+      "bytes": 62166,
+      "sha256": "84436832374c1bce67ebfcfc6263f26f200e00dec58744970f3822df7e061daa"
+    },
+    "apple-touch-icon.png": {
+      "bytes": 36459,
+      "sha256": "7cc1d3474fdee969d3dcfbb003ac36eab54d28793d5e62e575af652ba9193b7e"
     },
     ".nojekyll": {
       "bytes": 0,
@@ -50,27 +58,27 @@
     },
     "rekhcom-eu.js": {
       "bytes": 203636,
-      "sha256": "8228573729a46f6fdc9d4726d4ea34cba5c3a089176700e2f37ef1e4e56a16c5"
+      "sha256": "e3ed0e4b597dd7c6316c2fff79dd8f1ec992d5963869fed0986d59c153390eb5"
     },
     "rekhcom-eu.wasm": {
-      "bytes": 4363011,
-      "sha256": "e1a55ad361aa6a99dbfb420210f1349c544097b3e28713dbbdae878de450ce12"
+      "bytes": 4364094,
+      "sha256": "4d1523d91242a40099c2ceae632a3f50310641c7ff8dd0f1bac3697217f598ee"
     },
     "rekhcom-us.js": {
       "bytes": 203636,
-      "sha256": "684967c134c608898b1a5118610265206f812c745e248329b2ceab071462986d"
+      "sha256": "82e7ad6275b73f54a090484a718ec4b5ebfef89a978acd11e5375f4f0fbe69b4"
     },
     "rekhcom-us.wasm": {
-      "bytes": 4512714,
-      "sha256": "663725f87c22091e1ddd9b459513952614a8b4633a6abdb50f4d9f73820c4e1b"
+      "bytes": 4513797,
+      "sha256": "abe15156daf9b63759135aad87e25c691421a3898e8d39ddaf99243693403843"
     },
     "rekhcom-jp.js": {
-      "bytes": 203636,
-      "sha256": "f7e66e3d1270d25db2f78e5b1830a955111c18c738ea4dec562cb0ecefbba7b3"
+      "bytes": 203635,
+      "sha256": "c0418eaee28c0be0d95f1dc3c29414a7c5878fd8e054dab1892a798e81482d00"
     },
     "rekhcom-jp.wasm": {
-      "bytes": 4393452,
-      "sha256": "0ce2a167b37ff5ccbcb03841d2b36092799db295edbfb661a8d221d5dcdc76b9"
+      "bytes": 4394533,
+      "sha256": "9bff51b4230a0646401be48a186f5bfb18b37f4dc7b550825e1c6a04fa2f7b41"
     }
   }
 }
