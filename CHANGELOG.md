@@ -2,16 +2,19 @@
 
 ## Unreleased
 
-## v1.9.4 — 2026-10-18
+## v1.9.5 — 2026-10-18
 
-Everything from the v1.9.3 test builds, now stable.
+Everything from the v1.9.3 test builds, now stable (v1.9.4 was prepared but never
+published; its changes are here).
 
 - Options → Cheats (off by default, remembered): one-hit enemies, infinite HP, level 99
   with every bonus, map cards at 9 and a full battle card collection.
 - Options → Boss rematches: refight Sora's beaten bosses and the two battle tutorials.
 - Optional save-slot selector at save points (Options → Experimental); the save
   crystal refreshes the summary per slot and remembers the last slot used.
-- Moogle points notice (on by default, optional).
+- Moogle points notice (Options → Experimental, off by default).
+- Options menu: the list now uses the whole height of the window (it stopped three
+  rows early).
 - Launcher: Save editor tab (level, HP, CP/AP/DP, moogle points, cards; backed up
   before writing), controller drawing with the Xbox-style buttons lit for the action
   being remapped; unknown settings are kept.
