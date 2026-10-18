@@ -6,6 +6,7 @@ dumps stay under build/codex-evidence/undub/.
 
     python port/tools/test_undub.py
 """
+import argparse
 import hashlib
 import os
 import shutil
@@ -15,10 +16,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 EVIDENCE = ROOT / "build" / "codex-evidence" / "undub"
 VOICE_IDS = (150, 152)  # SONG_VO_SR_ATTACK00 / SONG_VO_SR_ATTACK02
+BUILD_DIRS = {"eu": EVIDENCE.parent / "final-eu", "us": EVIDENCE.parent / "final-us"}
 
 
 def run(region: str, song_id: int, enabled: bool) -> tuple[bytes, str]:
-    exe_dir = EVIDENCE.parent / f"final-{region}"
+    exe_dir = BUILD_DIRS[region]
     # The repository's EU build maps B8CP and US maps B8CE (see port.h).
     rom_name = {"eu": "B8CP.gba", "us": "B8CE.gba"}[region]
     run_dir = EVIDENCE / "runs" / f"{region}-{song_id}-{int(enabled)}"
@@ -59,6 +61,11 @@ def run(region: str, song_id: int, enabled: bool) -> tuple[bytes, str]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build-eu", default=str(BUILD_DIRS["eu"]))
+    parser.add_argument("--build-us", default=str(BUILD_DIRS["us"]))
+    args = parser.parse_args()
+    BUILD_DIRS.update(eu=Path(args.build_eu), us=Path(args.build_us))
     for song_id in VOICE_IDS:
         regional_reference = None
         undub_reference = None

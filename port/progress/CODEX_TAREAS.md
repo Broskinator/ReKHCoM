@@ -44,9 +44,11 @@ Encargo del usuario: Codex hace las issues y mejoras de abajo y puede integrarla
   compilan; launcher pasa 11/11 pruebas. #13 queda listo para revisión manual
   con mando.
 - **Hecho:** texto Orgulloso/Beginner actualizado. #12 (selección de ranura en
-  puntos de guardado) queda pendiente: no está implementada en esta rama, es
-  opcional y de baja prioridad. Si se retoma, debe activarse desde Opciones >
-  Experimental y probarse manualmente antes de entrar a una release.
+  puntos de guardado) ahora está detrás de Opciones > Experimental, apagada por
+  defecto y probada por el harness de menú/configuración. Se prepara para una
+  nightly pública; la selección/escritura de ambas ranuras aún requiere prueba
+  manual de gameplay antes de una release estable. Sigue siendo opcional y de
+  baja prioridad.
 - **Hecho:** selector de opciones con estilo debug, acceso de modo debug bajo
   Trucos y grupo propio para las mejoras Re:CoM. Unstock continúa opcional y
   apagado por defecto.

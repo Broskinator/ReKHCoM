@@ -22,6 +22,8 @@ def main():
     parser.add_argument("--build-jp", type=Path, default=ROOT / "build/pc-jp")
     parser.add_argument("--sdl", type=Path, required=True)
     parser.add_argument("--out", type=Path, default=ROOT / "build/releases")
+    parser.add_argument("--nightly-notice", type=Path,
+                        help="include a test-build notice as NIGHTLY-TESTING.md")
     args = parser.parse_args()
     if not re.fullmatch(r"v\d+\.\d+(?:\.\d+)?(?:-[A-Za-z0-9.-]+)?", args.version):
         parser.error("version must look like v0.1 or v0.1.1")
@@ -52,6 +54,10 @@ def main():
     for source in files.values():
         if not source.is_file():
             parser.error(f"missing package input: {source}")
+    if args.nightly_notice:
+        if not args.nightly_notice.is_file():
+            parser.error(f"missing nightly notice: {args.nightly_notice}")
+        files["NIGHTLY-TESTING.md"] = args.nightly_notice
     from review_hd_hud import approved_pieces
     manifest = ROOT / "port/assets/hd-hud/sprites/manifest.json"
     if manifest.is_file():

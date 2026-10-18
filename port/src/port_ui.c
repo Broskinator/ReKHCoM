@@ -53,6 +53,7 @@ enum {
     ITEM_HDHUD,
     ITEM_HD2D,
     ITEM_SMOOTHAUDIO,
+    ITEM_SAVE_SLOT_EXPERIMENTAL,
     ITEM_RECOM_EXTRAS, /* section heading, not selectable */
     ITEM_UNSTOCK,
     ITEM_PS2_MODE,
@@ -167,6 +168,9 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "HD HUD (pilot)", "HUD HD (pilote)", "HD-HUD (Pilot)", "HUD HD (pilota)", "HUD HD (piloto)", "HD HUD (試験)" },
     { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
     { "Audio filter", "Filtre audio", "Audiofilter", "Filtro audio", "Filtro de audio", "オーディオフィルター" },
+    { "Choose save slot at save points", "Choisir un emplacement aux points de sauvegarde",
+      "Speicherplatz am Speicherpunkt wählen", "Scegli uno slot ai punti di salvataggio",
+      "Elegir ranura en puntos de guardado", "セーブポイントでスロットを選択" },
     { "Re:CoM improvements", "Améliorations Re:CoM", "Re:CoM-Verbesserungen", "Miglioramenti Re:CoM", "Mejoras de Re:CoM", "Re:CoMの改善" },
     { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
       "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
@@ -714,6 +718,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_SMOOTHAUDIO:
             SDL_strlcpy(out, sOnOff[gPortConfig.smoothAudio != 0][l], size);
             break;
+        case ITEM_SAVE_SLOT_EXPERIMENTAL:
+            SDL_strlcpy(out, sOnOff[gPortConfig.savePointSlotSelect != 0][l], size);
+            break;
         case ITEM_PS2_MODE:
             SDL_strlcpy(out, sOnOff[gPortConfig.ps2Mode != 0][l], size);
             break;
@@ -882,6 +889,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_SMOOTHAUDIO:
             gPortConfig.smoothAudio = !gPortConfig.smoothAudio;
+            break;
+        case ITEM_SAVE_SLOT_EXPERIMENTAL:
+            gPortConfig.savePointSlotSelect = !gPortConfig.savePointSlotSelect;
             break;
         case ITEM_PS2_MODE:
             gPortConfig.ps2Mode = !gPortConfig.ps2Mode;

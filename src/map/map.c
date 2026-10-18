@@ -5,6 +5,7 @@
 
 #ifdef PLATFORM_PC
 #include "engine.h"
+extern int PortSaveSlotSelectEnabled(void);
 #endif
 #include "system_state.h"
 #include "monsgage.h"
@@ -6469,13 +6470,14 @@ static void MapSaveSelectTarget(MapSaveWork* work, u8 slot) {
 #endif
 
 s32 MapSaveInput(MapSaveWork* work) {
+    u8 targetSlot = (gGameState.flags & GAME_FLAG_SECOND_FILE) ? 1 : 0;
 #ifdef PLATFORM_PC
-    if (GetKeysRepeat() & DPAD_UP) {
-        MapSaveSelectTarget(work, sMapSaveTargetSlot ^ 1);
-        m4aSongNumStart(SONG_SYS_CLICK);
-    } else if (GetKeysRepeat() & DPAD_DOWN) {
-        MapSaveSelectTarget(work, sMapSaveTargetSlot ^ 1);
-        m4aSongNumStart(SONG_SYS_CLICK);
+    if (PortSaveSlotSelectEnabled()) {
+        if (GetKeysRepeat() & (DPAD_UP | DPAD_DOWN)) {
+            MapSaveSelectTarget(work, sMapSaveTargetSlot ^ 1);
+            m4aSongNumStart(SONG_SYS_CLICK);
+        }
+        targetSlot = sMapSaveTargetSlot;
     }
 #endif
     if (GetKeysRepeat() & DPAD_LEFT) {
@@ -6503,21 +6505,11 @@ s32 MapSaveInput(MapSaveWork* work) {
         m4aSongNumStart(SONG_SYS_SAVELOAD);
 
         if (gGameState.flags & GAME_FLAG_RIKU) {
-            if (gGameState.flags & GAME_FLAG_SECOND_FILE) {
-                SaveWriteFileSmall(sMapSaveTargetSlot);
-                MapSaveShowSummary(work, sMapSaveTargetSlot + 2);
-            } else {
-                SaveWriteFileSmall(sMapSaveTargetSlot);
-                MapSaveShowSummary(work, sMapSaveTargetSlot + 2);
-            }
+            SaveWriteFileSmall(targetSlot);
+            MapSaveShowSummary(work, targetSlot + 2);
         } else {
-            if (gGameState.flags & GAME_FLAG_SECOND_FILE) {
-                SaveWriteFileLarge(sMapSaveTargetSlot);
-                MapSaveShowSummary(work, sMapSaveTargetSlot);
-            } else {
-                SaveWriteFileLarge(sMapSaveTargetSlot);
-                MapSaveShowSummary(work, sMapSaveTargetSlot);
-            }
+            SaveWriteFileLarge(targetSlot);
+            MapSaveShowSummary(work, targetSlot);
         }
 
         work->textSlotCount2 = LoadTextSlots(LOCALIZED_STRING(gMapSaveCompleteText), work->textSlots2);

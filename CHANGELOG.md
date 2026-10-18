@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v1.9.3-nightly.20261018 — 2026-10-18 (public test build)
+
+- Experimental save-slot selection at save points. It is Off by default and
+  must be enabled under Options → Experimental. This flow has passed build and
+  menu-toggle checks but still needs a manual gameplay test; see
+  `NIGHTLY-TESTING.md` in the package.
+
 ## v1.9.2 — 2026-10-18
 
 - Battle HUD at every aspect ratio (issues #7, #8, #9): Sora's stocked cards

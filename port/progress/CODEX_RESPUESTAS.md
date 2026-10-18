@@ -16,7 +16,7 @@ The PC port now supports remapping the analog triggers as well as the other game
 
 ## #12 — Choose a save slot at save points
 
-This request remains pending and is optional, with low priority. If included in a release, the save-slot selection must be enabled under **Options → Experimental** and tested manually with both slots. No reply has been posted because that validation is not complete.
+The optional save-slot selector is now behind **Options → Experimental** and is Off by default. Its setting toggle and persistence are tested, but selecting and writing both save slots in gameplay still needs manual verification. No issue reply has been posted yet; this remains low priority and is only included in the v1.9.3 nightly test build.
 
 ## #6 — Proud wording
 

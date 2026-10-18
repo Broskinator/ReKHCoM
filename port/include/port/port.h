@@ -128,6 +128,7 @@ typedef struct PortConfig {
     int pad[PORT_ACT_COUNT];     /* SDL gamepad button or PORT_PAD_AXIS_BASE+axis*2+sign */
     int cheatUnlockRiku;         /* opt-in title access; never marks Sora cleared */
     int undub;                  /* Japanese voices; applied when loading the ROM */
+    int savePointSlotSelect;    /* experimental: choose the save slot at save points */
 } PortConfig;
 
 extern PortConfig gPortConfig;
@@ -156,6 +157,7 @@ int PortEventTiledBackdrop(void); /* Riku scenery eligible for verified tile-ban
 void PortConfigLoad(void);
 void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);
+int PortSaveSlotSelectEnabled(void);
 void PortConfigView(int mode, int* w, int* h);
 /* Internal size and pixel scale that fill an outW x outH output (auto view). */
 void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale);

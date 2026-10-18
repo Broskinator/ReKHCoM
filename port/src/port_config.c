@@ -93,6 +93,7 @@ static const Key sKeys[] = {
     { "view_mode", &gPortConfig.viewMode, 0, PORT_VIEW_COUNT - 1 },
     { "zoom", &gPortConfig.zoom, 0, PORT_ZOOM_LEVELS },
     { "cheat_unlock_riku", &gPortConfig.cheatUnlockRiku, 0, 1 },
+    { "experimental_save_point_slot_select", &gPortConfig.savePointSlotSelect, 0, 1 },
     { "undub", &gPortConfig.undub, 0, 1 },
     { "integer_zoom", &gPortConfig.integerZoom, 0, 1 },
     { "scale_mode", &gPortConfig.scaleMode, 0, PORT_SCALE_COUNT - 1 },
@@ -131,6 +132,10 @@ static const Key sKeys[] = {
     BIND("unstock", PORT_ACT_UNSTOCK),
 #undef BIND
 };
+
+int PortSaveSlotSelectEnabled(void) {
+    return gPortConfig.savePointSlotSelect != 0;
+}
 
 /* This is a title permission, not a fabricated story-completion flag. */
 int PortRikuAvailable(int soraCleared) {
