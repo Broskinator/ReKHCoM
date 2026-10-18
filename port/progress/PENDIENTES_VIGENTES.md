@@ -52,8 +52,8 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
    main a1d4147e2, sin workers propios pendientes y Darkside WIP preservado.
 2. [~] **Codex/coordinación:** recoger cierre del chat del bug de sincorazones y
    el inventario de sus workers. Conservar resultado y pendientes por separado.
-3. [ ] **Claude/coordinación:** terminar/recoger sus workers externos, registrar
-   cuáles acabaron y qué dejó cada uno. No iniciar otra tanda antes de consolidar.
+3. [x] **Claude/coordinación:** Claude no lanzó workers externos en esta tanda;
+   nada que recoger (18/10).
 4. [ ] **Codex:** verificar el cierre del bug grave de sincorazones pequeños
    que desaparecen sin animación, usando el savestate del usuario y el resultado
    del chat actual; continuar su corrección si el cierre resulta incompleto.
@@ -64,14 +64,16 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
    EU/US/JP compilan. Evidencia de Claude en CLAUDE_CIERRE_20261018.md.
 7. [x] **Claude:** persistencia del selector implementada en e9f053595;
    launcher registra la clave y conserva también claves desconocidas.
-8. [ ] **Claude:** auditar persistencia de las otras opciones reportadas y mantener
-   el selector de slots dentro de Experimental.
+8. [x] **Claude:** persistencia auditada: las claves del juego están todas en el
+   launcher, que conserva además las desconocidas; selector de ranura en
+   Experimental (juego y launcher). Regresión test_settings_keys.py. fbaa9ef16.
 9. [x] **Claude:** último slot corregido en e9f053595 mediante la bandera nativa
    guardada en la partida. Comprobación conjunta sigue en el punto 6.
-10. [ ] **Claude:** localizar y respaldar el savestate donde el mapa queda abierto
-    arriba; reconstruir cierre con sus propios tiles de borde.
-11. [ ] **Claude:** savestate 3, Hollow Bastion: completar checkerboard lateral,
-    conservar fase, título/cartel, iconos y objetos.
+10. [~] **Claude:** #17. Sala exacta reproducida (roomType 18, semilla 138815524,
+    modos roomshape/roomseed). Continuación de pared en 249aceff5, apagada por
+    defecto (KHCOM_TOPCLOSE=1) hasta revisión visual del usuario.
+11. [~] **Claude:** #18. El savestate 3 a 16:9 y 32:9 muestra la banda completa;
+    falta que el usuario señale la zona exacta.
 12. [~] **Codex:** 057 playa corregida para vistas amplias; código y capturas listos,
     falta revisión visual final de la nueva extensión.
 13. [~] **Codex:** 061 hielo corregida para vistas amplias; código y capturas listos,
@@ -108,13 +110,12 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     transiciones; conservar lo ya resuelto y verificar variantes pendientes.
 29. [ ] **Codex:** revisar variantes de planta de Mapamundi y conservación de
     objetos de sala en transiciones, según PENDIENTES.md histórico.
-30. [ ] **Claude:** cheats pedidos expresamente: enemigos de un golpe, vida
-    infinita, 99 de cada carta de mapa y de combate (valores de llaves espada,
-    cartas enemigo/jefe), nivel máximo con todos los bonos de HP, CP y sleights.
-    Mostrar controles claros en pestaña Trucos; fuentes y alcance en
-    SAVE_EDITOR_Y_CHEATS.md. No confundir nivel máximo con sus bonos completos.
-31. [ ] **Claude:** mejoras Vita pendientes registradas: aviso de puntos moguri,
-    revancha de jefes y repetición de tutoriales; conservar como cola posterior.
+30. [x] **Claude:** Trucos en 2fdca4ca7: un golpe, vida infinita, nivel 99 con
+    todos los bonos, cartas de mapa (9 c/u, máximo del juego) y colección de
+    combate llena (999, 99 por carta). Detalle en CLAUDE_CIERRE_20261018.md.
+31. [x] **Claude:** mejoras Vita: aviso de puntos moguri 77e2eac4f (opcional);
+    revancha de jefes y tutoriales de combate 8ebdb493e (Opciones → Revancha de
+    jefes; estado guardado y restaurado, nada del combate se conserva).
 32. [ ] **Claude:** Linux real y Steam Deck: X11/XWayland, sonido, controles y
     rendimiento. Hay pruebas VM; no repetir la afirmación antigua de «sin binario».
 33. [ ] **Claude:** Anbernic RG34XX real: kernel/32 bits, framebuffer, orientación,
@@ -157,15 +158,16 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     6d0f33df1; pruebas de entrada, persistencia y controles Web correctas.
     Odin 2 y otros dispositivos físicos pendientes de validar (35/37).
 
-46. [~] **Codex:** issue #16, pantalla negra al sintetizar puertas fuera de vista
-    Automática. Reproducir con entrada real de puerta y comprobar todas las vistas;
-    prioridad sobre extensiones de arte. Claude mantiene #17/#18 (10–11).
+46. [~] **Claude (traspaso desde Codex, 18/10 11:56):** issue #16. Codex sin
+    commits desde 11:09 ni archivos tocados desde 11:14 (>40 min). Su WIP sin
+    commitear en khcom-codex (port_ppu.c: limpiar el mundo solo con sOverlay;
+    port/tools/test_door_views.py) se recoge tal cual, se verifica y se commitea
+    con crédito; no se rehace. Codex: al volver, no repitas este punto.
 
-47. [ ] **Claude (ampliación del bloque 30 por el usuario):** pestaña nueva del
-    launcher para editor de saves basado en game-tools-collection, con aviso y
-    confirmación al activarla; cartas con sprites nativos ×1 y presentación cuidada.
-    Archivo/región/banco/ranura explícitos, vista previa, copia de seguridad y
-    escritura válida comprobada. Requisitos/fuentes: SAVE_EDITOR_Y_CHEATS.md.
+47. [x] **Claude:** pestaña «Editor de partidas» del launcher en b7d491ef5: aviso
+    y confirmación, versión/banco/archivo, nivel/HP/CP/AP/DP/moguri, cartas de
+    mapa y colección con sprites ×1 del cartucho, lista de cambios, copia en
+    backups/ y checksums; test_save_editor.py (el juego carga lo editado).
 
 ## Qué bloquea la entrega inmediata
 
