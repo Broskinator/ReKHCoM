@@ -17,7 +17,9 @@ está al final de ese archivo. Build Windows EU/US/JP PASS; launcher 11/11,
 Re:CoM 80 combinaciones, zoom 41 y aspecto 56 PASS. Undub está implementado
 pero falta comparar dumps de voz. #12 compila, falta validar el guardado en
 juego. La tira de las arenas y la integración de RetroAchievements siguen
-pendientes. No hay nada publicado desde esta rama.
+pendientes. Codex integró este bloque en `main` (commit `ae40c79de`), sin
+crear paquete ni release. Próxima versión anotada para preparación: **v1.9.3**;
+la última estable pública sigue siendo v1.9.2.
 
 El usuario confirmó como referencia el repositorio abierto
 [RaceWave46](https://github.com/DomazinUS/RaceWave46) (GPL-3.0). La
