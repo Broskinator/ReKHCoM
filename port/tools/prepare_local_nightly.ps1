@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][ValidatePattern('^v\d+\.\d+(?:\.\d+)?-nightly\.\d{8}$')][string]$Version)
+param([Parameter(Mandatory=$true)][ValidatePattern('^v\d+\.\d+(?:\.\d+)?-nightly\.\d{8}(?:\.\d+)?$')][string]$Version)
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $projectRoot = Split-Path -Parent $repoRoot

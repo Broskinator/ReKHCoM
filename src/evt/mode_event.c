@@ -44,6 +44,10 @@ static u32 sEventId;
 static u8 sEventEndStep;
 
 #ifdef PLATFORM_PC
+/* Derived from game state, including after loading a checkpoint. */
+int PortEventBackdropProfile(void) {
+    return gEventState != NULL ? gEventState->eventId : -1;
+}
 /* The opening's first 256x256 panel contains Riku's one circle. The
    adjacent panels are other artwork/empty space, not a repeating room. */
 int PortEventBackdropPanel(void) {

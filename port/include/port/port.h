@@ -154,6 +154,7 @@ extern const char* gPortRomPath;
 int PortRikuAvailable(int soraCleared);
 int PortEventBackdropPanel(void); /* single authored backdrop panel, or -1 */
 int PortEventTiledBackdrop(void); /* Riku scenery eligible for verified tile-band extension, or -1 */
+int PortEventBackdropProfile(void); /* current story event, -1 outside events */
 void PortConfigLoad(void);
 void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);

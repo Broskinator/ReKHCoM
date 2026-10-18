@@ -102,3 +102,11 @@ x32..35,y5..11 fuente(x-15,y+4): nueve tiles con pasto coinciden exactamente
 con el motivo completo del mapa. Cambian1590 píxeles, 600 en el encuadre GBA
 original por la continuación del pasto izquierdo. Ningún cambio de pared ni
 palmera. Salida privada `polish057/057-polish-before-after.png`.
+
+## Integración en main y Nightly 2 (18/10/2026)
+
+Los perfiles aprobados de 057/061/074 ya están conectados al PPU con paleta
+activa, junto a 004 que ya estaba integrada. Incluye el pasto mejorado de
+`b651e4b65`. Build EU/US/JP y 23/23 comparaciones de escenas PASS; Original
+y región GBA idénticos. Ver `NIGHTLY2_INTEGRATION.md`. Esta nota actualiza
+las referencias históricas anteriores que describían los perfiles sin hook.

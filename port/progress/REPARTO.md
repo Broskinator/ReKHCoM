@@ -1,3 +1,10 @@
+## Integración Nightly 2 — 18/10/2026
+
+Guard Armor aceptado y perfiles de escenas 057/061/074 conectados al juego,
+incluyendo playa mejorada `b651e4b65`. EU/US/JP compilan; escenas 23/23 y
+Guard Armor 13/13 PASS. Detalles: `NIGHTLY2_INTEGRATION.md`. Preparada como
+`v1.9.3-nightly.20261018.2`, sin promover a stable. Siguiente jefe: Darkside.
+
 ## Guard Armor aceptado e integrado — 18/10/2026
 
 **1/8 escenarios de jefe terminados.** Continuación de patio por tiles/píxeles
