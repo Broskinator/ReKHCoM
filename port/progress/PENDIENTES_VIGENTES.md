@@ -43,6 +43,10 @@ documentos quedan como evidencia técnica e historial, no como colas paralelas.
 
 ## Cola de trabajo, numeración única
 
+Cada pendiente debe enlazar su lógica de implementación, comprobaciones y criterio
+de cierre. Mantener LOGICA_PENDIENTES_20261018.md al añadir o concretar tareas.
+Para 30/47: SAVE_EDITOR_LOGICA.md; para 48: CONTROLADOR_LOGICA.md.
+
 Los responsables indicados son asignaciones para continuar DESPUÉS de recoger
 los bloques actuales; no son afirmaciones de que se hayan iniciado más workers.
 [x] cerrado; [~] implementado/en curso; [ ] pendiente. No hay aprobación visual
@@ -100,12 +104,16 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     (reposo, umbral, simultáneos, liberación, cierre de overlay y desconexión).
     EU/US/JP compilan; test_web_controls.py PASS. Falta mando físico, sin
     atribuirle a la prueba virtual validación de dispositivos concretos.
-26. [ ] **Codex:** issues #2/#3: concretar la función de historia y elemento HUD
-    reportados antes de implementar; no prometer un remake completo.
+26. [~] **Codex:** #3 cerrado por su autor tras confirmar que se corrigió. #2
+    sigue abierto: el autor pide una edición definitiva y enlazó Re:CoM; se le
+    pidieron una o dos prioridades GBA concretas en el comentario
+    6253397772. No prometer un remake completo mientras falta priorización.
 27. [ ] **Codex:** RetroAchievements: pasar de investigación a implementación y
     comprobación del set base/Level 1; investigación actual no equivale a soporte jugable.
-28. [ ] **Codex:** cerrar revisión de submenús Diario/Estado/Barajas/Naipes y
-    transiciones; conservar lo ya resuelto y verificar variantes pendientes.
+28. [x] **Codex:** revisión de submenús y transiciones completada en
+    LOGICA_PENDIENTES_20261018.md: builds EU/US/JP; Sora 6/6 y Riku 6/6 por
+    región (36/36). Incluye tutorial inicial de baraja Riku, capturas y regreso
+    al campo. El harness aísla cada menú para que un encuentro no contamine otro.
 29. [ ] **Codex:** revisar variantes de planta de Mapamundi y conservación de
     objetos de sala en transiciones, según PENDIENTES.md histórico.
 

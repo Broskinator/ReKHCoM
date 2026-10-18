@@ -37,9 +37,14 @@ Antes de empezar comprobar propietario y commits de su checkout, no solo main.
 **Primero terminar/recoger los workers existentes; después seguir la lista.**
 No abrir nuevos frentes de workers durante el cierre de esta tanda.
 
-La lista larga vigente, con 47 puntos, responsables y estados, es
+La lista larga vigente, con 48 puntos, responsables y estados, es
 [PENDIENTES_VIGENTES.md](PENDIENTES_VIGENTES.md). Sustituye repartos anteriores.
 No mantener otra cola de pendientes aquí.
+Cada tarea nueva o retomada registra lógica, pruebas y criterio de cierre en
+LOGICA_PENDIENTES_20261018.md o en su documento técnico enlazado. Editor/cheats
+30/47 y mando Xbox 48 ya tienen implementación de Claude en main; sus reglas y
+alcance de verificación están en SAVE_EDITOR_LOGICA.md y CONTROLADOR_LOGICA.md.
+Límite 999 confirmado por el usuario; conservar formato original.
 
 ## Encargo de Claude
 
@@ -53,7 +58,8 @@ Las funciones de largo plazo no se presentan como terminadas por esta entrega.
 
 Puntos 1–2, 4, 12–29, 36–37 y 40: consolidar cierres, verificar el bug de
 sincorazones, escenas amplias, jefes/arenas, issues/RetroAchievements,
-menús y revisión Web/audio. Escenas amplias ya en main 0cb04a8dd;
+menús y revisión Web/audio. #28 ya cerró 36/36 rutas de submenú; lógica y evidencia
+en LOGICA_PENDIENTES_20261018.md. Escenas amplias ya en main 0cb04a8dd;
 no rehacerlas ni adjudicarles aprobación visual definitiva.
 
 ## Cierres reales

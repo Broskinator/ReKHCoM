@@ -1,0 +1,45 @@
+# Controles: mando y símbolos Xbox — lógica del punto 48
+
+Implementación integrada desde Claude en `b3a0f1e7d` y punto 48 cerrado en
+`5e23665c7`, después del traspaso por inactividad. Este checklist registra la
+lógica solicitada por el usuario y guía la revisión; no sustituye la validación
+física de mandos. Complementa el remapeo del punto 25. No cambiar asignaciones.
+
+## Estado y representación
+
+Una sola tabla ButtonVisual relaciona el binding SDL con nombre traducido,
+símbolo y región del dibujo: A/B/X/Y, LB/RB, LT/RT, Back/Start, cruceta, LS/RS.
+Los ejes se decodifican con PORT_PAD_AXIS_BASE: índice /2, signo en bit 0.
+LT/RT positivos iluminan sus gatillos; los ejes de stick iluminan su dirección.
+Bindings de teclado no se convierten en botones Xbox ni iluminan un botón ajeno.
+
+Separar dos estados visibles: acción enfocada (resaltar su binding actual) y
+captura activa (resaltar también lo que se está pulsando hasta confirmar).
+Al terminar/cancelar captura, volver al foco de la fila. Mantener Esc/Delete,
+restauración y advertencias de asignaciones repetidas ya implementadas.
+
+## Arte y UI
+
+- Silueta de mando inspirada en la distribución Xbox 360, dibujada con píxeles
+  de una rejilla lógica fija. No copiar logotipo ni fotografía.
+- Render propio con ImGui: rectángulos de la rejilla a escala entera, sin AA en
+  la capa del dibujo. Posiciones de sticks asimétricas, cruceta, cuatro botones,
+  hombros/gatillos y centro reconocibles.
+- Un solo origen y factor de escala entero para el mando y sus regiones; si no
+  cabe, reorganizar mando/lista, no usar píxeles de distintos tamaños.
+- Botones A/B/X/Y con letra y forma además de color; hombros/gatillos rotulados.
+  Mostrar junto a cada binding su símbolo Xbox y nombre, no solo un enum SDL.
+- Resaltado por contorno/luz de paleta, manteniendo letra visible. Sin animación
+  continua que dificulte leer. Texto de acción y estado de captura próximos.
+- Primera integración en PageControls de port/decompui/decompui.cpp; reutilizar
+  tabla de nombres en el menú del juego cuando sea posible. No añadir imágenes
+  generadas a la ROM ni alterar recursos originales.
+
+## Criterio de cierre
+
+Comprobar cada binding (incluidos LT/RT, sticks, cruceta y sin asignar), cambio
+de fila, captura, cancelación y reconexión. Asignación antes/después idéntica
+salvo edición deliberada; persistencia tras reinicio. Revisar capturas con UI
+español/inglés, ventanas pequeña/grande y escala de Windows. Mando virtual
+verifica mapeo; mando físico queda indicado si no está disponible. Compilar
+launcher y EU/US/JP, registrar evidencia y push.

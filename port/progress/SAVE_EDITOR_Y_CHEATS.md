@@ -3,6 +3,13 @@
 Responsable: **Claude**, continuación del bloque 30; pestaña launcher en 47.
 Codex integra las entregas terminadas y continúa sus correcciones 25–29/36–40/46.
 No abrir dos implementaciones del mismo editor. Arte extendido sigue al final.
+Lógica técnica detallada: [SAVE_EDITOR_LOGICA.md](SAVE_EDITOR_LOGICA.md).
+
+**Decisión confirmada por el usuario:** conservar formato y límites originales.
+Cartas de combate: 999 en total; catálogo/reposición de cartas elegidas, sin
+ampliar SRAM ni llenar 99 de cada variante simultáneamente. Mostrar el espacio
+disponible y no borrar cartas para hacer sitio. Respetar también los límites
+nativos de mapa (9 por entrada y 99 normales en total).
 
 ## Encargo explícito
 
