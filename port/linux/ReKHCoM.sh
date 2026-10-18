@@ -42,7 +42,9 @@ fi
 # X11/XWayland and PulseAudio/PipeWire are reached through the bundled client
 # libraries. The system's 64-bit GPU driver cannot be loaded into this 32-bit
 # process, so SDL draws with its software renderer.
+# The game's interpreter is lib/rekhcom (the bundled loader), a path relative
+# to this folder: run it from here.
+# Libraries that SDL opens later (ALSA, PulseAudio, X11) come from lib/ too.
+export LD_LIBRARY_PATH="$DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 cd "$DIR" || exit 1
-LOADER="$DIR/lib/rekhcom" # the bundled ld-linux, named after the game
-exec "$LOADER" --library-path "$DIR/lib" "$DIR/bin/khcom_$REGION" \
-    --data-dir "$DIR" --rom "$ROM" "$@"
+exec "./bin/khcom_$REGION" --data-dir "$DIR" --rom "$ROM" "$@"

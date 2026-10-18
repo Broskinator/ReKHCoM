@@ -46,6 +46,15 @@ int PortMemoryInit(void) {
     size_t page=(size_t)sysconf(_SC_PAGESIZE), i;
     void* space=mmap((void*)low,high-low,PROT_NONE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
     if (space!=(void*)low) {
+        FILE* maps=fopen("/proc/self/maps","r");
+        char line[256];
+        PortLog("GBA space: mmap returned %p", space);
+        /* What already lies in the hardware range (diagnostics on devices). */
+        while(maps && fgets(line,sizeof(line),maps)) {
+            unsigned long a=0,b=0;
+            if(sscanf(line,"%lx-%lx",&a,&b)==2 && a<high && b>low) PortLog("GBA space taken: %s",line);
+        }
+        if(maps) fclose(maps);
         if (space!=MAP_FAILED) munmap(space,high-low);
         PortFatal("Cannot reserve the GBA address space 0x02000000-0x0E010000");
         return 0;

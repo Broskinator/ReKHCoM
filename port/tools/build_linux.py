@@ -91,7 +91,11 @@ def configure(version, arch, base, out):
     # Fixed image base above the GBA space (0x02000000-0x0E010000): quick
     # states hold raw pointers, as on Windows.
     ldflags = (f'{target} -fuse-ld=lld -no-pie -Wl,--image-base=0x10000000 -Wl,-z,nostart-stop-gc '
-               f"-Wl,-rpath,'$$ORIGIN/lib' -L{(sdl / 'lib').as_posix()} -lSDL3 {(ft / 'lib/libfreetype.a').as_posix()} "
+               # The bundled loader, relative to the game folder (the launcher
+               # changes into it): run by the kernel as the interpreter, the
+               # heap follows the executable instead of landing in the GBA
+               # range (ARM64 kernels put a directly-run loader's brk there).
+               f"-Wl,--dynamic-linker=lib/rekhcom -Wl,-rpath,'$$ORIGIN/../lib' -L{(sdl / 'lib').as_posix()} -lSDL3 {(ft / 'lib/libfreetype.a').as_posix()} "
                f'-lm -lpthread -ldl -Wl,--build-id')
     with open(out / 'build.ninja', 'w') as f:
         n = ninja_syntax.Writer(f)
