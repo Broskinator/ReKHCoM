@@ -137,6 +137,24 @@ static const Key sKeys[] = {
 #undef BIND
 };
 
+#ifdef __EMSCRIPTEN__
+/* The browser uses the same bounded settings and persistence as Options.
+   SRAM banks are selected before starting, never switched beneath a game. */
+EMSCRIPTEN_KEEPALIVE int PortWebOption(const char* name, int value, int write) {
+    size_t i;
+    for (i = 0; i < sizeof(sKeys) / sizeof(sKeys[0]); i++) {
+        if (SDL_strcmp(name, sKeys[i].name)) continue;
+        if (write) {
+            if (!SDL_strcmp(name, "save_bank") || !SDL_strcmp(name, "config_version")) return -1;
+            *sKeys[i].value = SDL_clamp(value, sKeys[i].min, sKeys[i].max);
+            PortConfigSave();
+        }
+        return *sKeys[i].value;
+    }
+    return -1;
+}
+#endif
+
 int PortSaveSlotSelectEnabled(void) {
     return gPortConfig.savePointSlotSelect != 0;
 }
