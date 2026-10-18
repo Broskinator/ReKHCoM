@@ -37,4 +37,4 @@ exacta marcada por el usuario: build/portrait59-output/{before,after}/out_01200.
 Copia separada en la raíz ReKHCoM-prueba-retratos-59, con datos propios. BAT:
 Probar retratos 59 - Riku.bat y Probar retratos 59 - Sora.bat. El preset solo
 selecciona la escena; el usuario avanza el texto normalmente. No se cargan ni
-reescriben sus partidas. Propuesta lista para revisión visual; no declarada aprobada.
+reescriben sus partidas. Aprobada por el usuario el 18/10/2026.

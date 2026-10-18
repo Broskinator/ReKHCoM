@@ -236,7 +236,12 @@ int PortMenuSliding(void) {
 }
 static int sSceneNarrow, sNarrowWanted, sNarrowWait; /* PortSceneNarrow, below */
 static int sSpotlight;
-static int sTitleArtFade;
+static int sTitleArtFade, sTitleBands;
+static uint32_t sTitleBand[2][GBA_SCREEN_H];
+void PortTitleBands(int enabled) { sTitleBands = enabled != 0; }
+unsigned int PortTitleBandPixel(int side, int y) {
+    return sTitleBands && y >= 0 && y < GBA_SCREEN_H ? sTitleBand[side > 0][y] : 0;
+}
 static uint16_t sTitlePalette[256], sTitleFadeColors[49][256];
 static uint8_t sTitleFadeReady[49][256];
 static int sTitlePaletteValid;
@@ -269,6 +274,7 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(&sNarrowWait, sizeof(sNarrowWait));
     visit(&sSpotlight, sizeof(sSpotlight));
     visit(&sTitleArtFade, sizeof(sTitleArtFade));
+    visit(&sTitleBands, sizeof(sTitleBands));
     visit(&sMenuShown, sizeof(sMenuShown));
     visit(&sMenuPend, sizeof(sMenuPend));
 }
@@ -2165,6 +2171,46 @@ static void ComposeOverlayLine(int gy, uint16_t dispcnt, const int* bgOn, const 
     }
 }
 
+/* Extend authored title bands over the plain margin, before presentation.
+   Sample each uncomposited layer, never the illustration/lettering. Keep
+   hardware alpha and palette effects; the title margin is palette white. */
+static void BuildTitleBands(int gy, const int* bgOn) {
+    int side;
+    if (!sTitleBands || gy < 0 || gy >= GBA_SCREEN_H || getenv("KHCOM_TITLE_BANDS_OFF")) return;
+    for (side = 0; side < 2; side++) {
+        int edge = gPortScreen.originX + (side ? GBA_SCREEN_W - 1 : 0);
+        int step = side ? -1 : 1, k, layer = -1;
+        uint16_t c = TRANSPARENT, white = PLTT16[31] & 0x7FFF;
+        uint16_t ctrl = IO16(0x50), alpha = IO16(0x52);
+        int effect = (ctrl >> 6) & 3;
+        /* The press-start strip is BG0; its edge is a flat run. */
+        if (bgOn[0] && sBgLine[0][edge] != TRANSPARENT) {
+            c = sBgLine[0][edge];
+            for (k = 0; k < 8 && sBgLine[0][edge + k * step] == c; k++) {}
+            if (k == 8) layer = 0;
+        }
+        /* The brightness footer is an OBJ rooted at the native edge.
+           Its authored band begins at y=143; labels remain inside. */
+        if (gy >= 143 && sObjLine[edge] != TRANSPARENT) {
+            uint16_t obj = sObjLine[edge];
+            for (k = 0; k < 8 && sObjLine[edge + k * step] == obj; k++) {}
+            if (k == 8) { c = obj; layer = LAYER_OBJ; }
+        }
+        if (layer < 0) continue;
+        if ((layer == LAYER_OBJ && sObjSemi[edge]) ||
+            (effect == 1 && (ctrl & (1 << layer))))
+            c = Blend(c, white, (alpha & 31) > 16 ? 16 : alpha & 31,
+                      ((alpha >> 8) & 31) > 16 ? 16 : (alpha >> 8) & 31);
+        else if (ctrl & (1 << layer)) {
+            int evy = IO16(0x54) & 31;
+            if (evy > 16) evy = 16;
+            if (effect == 2) c = Brighten(c, evy);
+            if (effect == 3) c = Darken(c, evy);
+        }
+        sTitleBand[side][gy] = sColorLut[c];
+    }
+}
+
 static void RenderLine(int y, int gy) {
     uint16_t dispcnt = IO16(0x00);
     int mode = dispcnt & 7;
@@ -2231,6 +2277,7 @@ static void RenderLine(int y, int gy) {
     }
     if (bgOn[1]) TitleArtFadeLine(gy);
     DrawObjs(gy, dispcnt);
+    BuildTitleBands(gy, bgOn);
     BuildWindows(gy, dispcnt);
     ComposeLine(y, dispcnt, bgOn, bgPrio, gPortFrame, 1);
     /* The presenter also uses this background in non-menu narrow scenes,
@@ -2478,6 +2525,7 @@ void PortPpuBeginFrame(void) {
     sUseSceneProfiles = getenv("KHCOM_NO_SCENE_PROFILES") == NULL;
     sSinglePanelBg = PortEventBackdropPanel();
 
+    memset(sTitleBand, 0, sizeof(sTitleBand));
     BuildLut();
     UpdateSceneNarrow(dispcnt);
     for (b = 0; b < 4; b++) {

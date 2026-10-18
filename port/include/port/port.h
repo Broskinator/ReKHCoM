@@ -264,6 +264,7 @@ void PortCanvasAlloc(void);
 uint32_t PortMenuHeaderPixel(int y, int phase);
 uint32_t PortMenuHeaderPixelAt(int y, int distance); /* follows the header sprite's slide */
 uint32_t PortMenuBandPixel(int y, int phase);
+uint32_t PortTitleBandPixel(int side, int y);
 int PortSpotlightActive(void);
 uint32_t PortMenuTabPixel(int y, int phase, int side);
 

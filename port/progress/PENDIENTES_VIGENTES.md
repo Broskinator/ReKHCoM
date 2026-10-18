@@ -64,7 +64,8 @@ completas al final.
   silueta negra correcta. Hipótesis: en la GBA el retrato espera fuera de
   pantalla (x negativa) mientras entra la ventana, y la vista amplia lo muestra
   en el margen; ocultar retratos fuera de 240x160 mientras su ventana no está.
-- **60 (18/10, mejora visual principal):** pantalla de título: la barra
+- **60 (implementado; pendiente aprobación visual):** copia + BAT «Probar titulo 60»
+  en la raíz. Lógica y evidencia en TITULO_60_LOGICA.md. Pantalla de título: la barra
   «PULSA START» con su transparencia debe llegar hasta el borde derecho, y el
   borde del pie «L ◀ BRILLO ▶ R» hasta el izquierdo, en todas las resoluciones.
 - **61 (18/10):** revisar escenas en zoom x3 (integra x2) a 1080p, que muestra

@@ -760,6 +760,17 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
         SDL_FRect r = { x0, y, x1 - x0, GBA_SCREEN_H * scale };
         SDL_SetRenderDrawColor(sRenderer, (bd >> 16) & 255, (bd >> 8) & 255, bd & 255, 255);
         SDL_RenderFillRect(sRenderer, &r);
+        /* Title bands use the same native row grid as the picture, at
+           every output size. The original 240x160 image stays untouched. */
+        for (i = 0; i < GBA_SCREEN_H; i++) {
+            uint32_t c = PortTitleBandPixel(side, i);
+            if (c) {
+                float top = PixelEdge(y, i, scale), bottom = PixelEdge(y, i + 1, scale);
+                SDL_FRect bandRect = { x0, top, x1 - x0, bottom - top };
+                SDL_SetRenderDrawColor(sRenderer, (c >> 16) & 255, (c >> 8) & 255, c & 255, 255);
+                SDL_RenderFillRect(sRenderer, &bandRect);
+            }
+        }
         return;
     }
     if (sSideStyle != 2) {

@@ -118,6 +118,7 @@ enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE, PORT_SIDE_BLUR, PO
 void PortSideStyle(int style);
 /* Only the illustrated title BG; never text, logo, sprites or other modes. */
 void PortTitleArtFade(int enabled);
+void PortTitleBands(int enabled);
 void PortMenuPanelSide(int side);
 /* Status has authored BG panels; foreground badges must never fill margins. */
 int PortMenuBackgroundOnly(void);

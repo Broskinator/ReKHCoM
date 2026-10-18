@@ -141,6 +141,9 @@ void TitleFinishIntro() {
     }
 #endif
 
+#ifdef PLATFORM_PC
+    PortTitleBands(1);
+#endif
     SetBgBlend(0, 5, 16);
     EnableBg(1);
     m4aSongNumStart(SONG_BGM_TITLE);
@@ -155,6 +158,7 @@ void TitleFadeOut() {
 
 void mode_title_0() {
 #ifdef PLATFORM_PC
+    PortTitleBands(0);
     PortSideStyle(PORT_SIDE_COLOR); /* side bars in the screen's background colour */
 #endif
     sTitleCancelled = FALSE;
@@ -461,6 +465,7 @@ void mode_title_1() {
 void mode_title_2() {
 #ifdef PLATFORM_PC
     PortTitleArtFade(0);
+    PortTitleBands(0);
 #endif
     TaskPoolDestroy(&sTitleTaskPool);
     REG_IME = 0;
