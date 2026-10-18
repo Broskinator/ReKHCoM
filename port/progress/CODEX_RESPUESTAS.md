@@ -1,6 +1,8 @@
-# Respuestas propuestas para Claude
+# Estado de respuestas a issues
 
-No publicar desde esta rama. Revisar e integrar primero.
+Las respuestas de #4, #5 y #6 ya se publicaron tras verificar sus pruebas. Los
+demás textos son borradores internos; no publicar hasta completar la
+validación correspondiente.
 
 ## #14 — Undub
 
@@ -12,7 +14,7 @@ The PC port now supports remapping the analog triggers as well as the other game
 
 ## #12 — Choose a save slot at save points
 
-Save points now let you choose File 1 or File 2 with Up/Down before confirming. The selected slot is shown in the save panel, and saving there does not switch the active in-game file. Please try selecting both slots and let us know if the prompt could be clearer.
+This request remains pending and is optional, with low priority. If included in a release, the save-slot selection must be enabled under **Options → Experimental** and tested manually with both slots. No reply has been posted because that validation is not complete.
 
 ## #6 — Proud wording
 

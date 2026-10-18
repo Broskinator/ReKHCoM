@@ -25,8 +25,9 @@ Encargo del usuario: Codex hace las issues y mejoras de abajo y puede integrarla
   variables del harness (KHCOM_MODE, KHCOM_KEYS, KHCOM_OUTPUT_SHOT, KHCOM_FAST).
   Nunca en las carpetas `ReKHCoM-vX` del usuario ni en `build/pc`.
 - No subir ROMs, saves, estados ni datos extraídos de la ROM.
-- Las respuestas a las issues (en inglés) se dejan redactadas en
-  `port/progress/CODEX_RESPUESTAS.md`; Claude las publica al integrar.
+- Las respuestas a las issues (en inglés) se registran en
+  `port/progress/CODEX_RESPUESTAS.md`; Codex puede publicar las que ya tengan
+  cambios y pruebas comprobadas. No cerrar issues sin indicación del usuario.
 - Al terminar cada tarea: compilar EU/US/JP, dejar capturas/evidencia en
   `build/codex-evidence/<tarea>/` y anotar aquí qué está hecho y verificado.
 
@@ -41,14 +42,16 @@ Encargo del usuario: Codex hace las issues y mejoras de abajo y puede integrarla
   defaults y aviso rojo de asignaciones repetidas en el launcher. EU/US/JP
   compilan; launcher pasa 11/11 pruebas. #13 queda listo para revisión manual
   con mando.
-- **Hecho:** texto Orgulloso/Beginner actualizado; selector de guardado en
-  puntos de guardado permite File 1/2 con arriba/abajo sin cambiar la ranura
-  activa. El cambio de #12 compila; falta una prueba manual de guardado en juego.
+- **Hecho:** texto Orgulloso/Beginner actualizado. El cambio de #12 está en
+  `main` y compila, pero sigue pendiente de prueba manual y de quedar detrás
+  de una opción en Opciones > Experimental. Por indicación del usuario es una
+  mejora opcional de baja prioridad; no considerarla lista para release.
 - **Hecho:** selector de opciones con estilo debug, acceso de modo debug bajo
   Trucos y grupo propio para las mejoras Re:CoM. Unstock continúa opcional y
   apagado por defecto.
-- **Redactado para Claude:** respuestas de #14, #13, #12, #6, #5, #4, #3 y #2
-  en `CODEX_RESPUESTAS.md`. No publicar desde esta rama.
+- **Respuestas:** #4, #5 y #6 publicadas tras validar las pruebas; #12, #13 y
+  #14 no respondidas por falta de pruebas manuales/de audio. Los borradores de
+  preguntas #2 y #3 quedan en `CODEX_RESPUESTAS.md`.
 - **Pendiente:** corregir la tira de fondo en las arenas GBA y verificarla.
 - **RetroAchievements:** investigación en `RETROACHIEVEMENTS.md`. Confirmados
   set base (90) y `Subset - Level 1` (39, ROM parchada con hash distinto), y
@@ -102,10 +105,11 @@ la issue una explicación detallada de qué cambia ese modo respecto al normal
 
 ## 4. Respuestas sin código
 
-- **#5 (vista 16:10):** ya soportado: la vista Automática se adapta a la
-  forma de la ventana (1280x800 da un lienzo 16:10 exacto; 256x160 con zoom
-  x5). Redactar respuesta (Claude decide si cierra).
-- **#4 (más zooms):** ya hay zoom de x1 a x6. Respuesta y cierre.
+- **#5 (vista 16:10):** la vista Automática se adapta a la forma de la ventana;
+  prueba exacta: 1280x800 da un lienzo de 256x160 a ×5. Respuesta publicada;
+  el issue sigue abierto.
+- **#4 (más zooms):** selector dinámico por resolución; en 2880x1800 llega a
+  ×11. 56 casos pasan. Respuesta publicada; el issue sigue abierto.
 - **#3 (falta el texto grande del HUD):** no está claro a qué se refiere;
   respuesta cortés pidiendo detalles si vuelve a pasar, y cierre.
 
@@ -118,7 +122,9 @@ la issue una explicación detallada de qué cambia ese modo respecto al normal
 - Revisar la implementación de devolver cartas acumuladas (unstock, de
   ggdrn/KH_COM_VITA) y poner estas mejoras en un título propio dentro de las
   mejoras PS2, como el de Experimental.
-- Issue #12: elegir la ranura de guardado dentro del juego (opción).
+- Issue #12 (baja prioridad/opcional): elegir la ranura de guardado dentro del
+  juego. Si se integra en una release, debe activarse desde Opciones >
+  Experimental; no dejar la selección de ranura siempre activa.
 - Arenas tamaño GBA (Guard Armor, Dragon Maleficent): en la vista ancha asoma
   una tira del fondo en el borde derecho; corregir.
 

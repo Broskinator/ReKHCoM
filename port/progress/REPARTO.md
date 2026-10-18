@@ -4,7 +4,8 @@ Encargo completo en **port/progress/CODEX_TAREAS.md**: issues #14 (Undub desde
 la ROM JP, prioridad), #13 (reasignar controles, gatillos), #6, respuestas de
 #5/#4/#3, menú de opciones con el selector del debug oficial, truco "modo
 debug", revisar unstock, #12, tira del fondo en arenas GBA y RetroAchievements.
-Codex solo commitea en su rama; Claude integra, publica y cierra issues.
+Codex puede integrar a `main` y responder issues con pruebas verificadas;
+Claude prepara releases y Pages. No cerrar issues sin autorización del usuario.
 Claude sigue con los fondos de escenas en lotes de 10 con el usuario.
 
 ## Reparto vigente — 18/10/2026 (sustituye a los anteriores)
@@ -14,10 +15,12 @@ Claude sigue con los fondos de escenas en lotes de 10 con el usuario.
 La rama local `codex/issues` contiene el primer bloque de issues y mejoras del
 encargo en [CODEX_TAREAS.md](CODEX_TAREAS.md); el detalle de estado y pruebas
 está al final de ese archivo. Build Windows EU/US/JP PASS; launcher 11/11,
-Re:CoM 80 combinaciones, zoom 41 y aspecto 56 PASS. Undub está implementado
-pero falta comparar dumps de voz. #12 compila, falta validar el guardado en
-juego. La tira de las arenas y la integración de RetroAchievements siguen
-pendientes. Codex integró este bloque en `main` (commit `ae40c79de`), sin
+Re:CoM 80 combinaciones, zoom 56 y aspecto 56 PASS. Undub está implementado
+pero falta comparar dumps de voz. #12 está en `main`, pero queda opcional y de
+baja prioridad: antes de incluirlo en una release, mover la activación a
+Opciones > Experimental y probarlo manualmente. La tira de las arenas y la
+integración de RetroAchievements siguen pendientes. Codex integró este bloque
+en `main` (commit `ae40c79de`), sin
 crear paquete ni release. Próxima versión anotada para preparación: **v1.9.3**;
 la última estable pública sigue siendo v1.9.2.
 
