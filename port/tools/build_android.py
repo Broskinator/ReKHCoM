@@ -147,12 +147,12 @@ android {
             assert member in z.namelist()
             assert hashlib.sha256(z.read(member)).digest()==hashlib.sha256((libs/name).read_bytes()).digest(), ('stale APK library',name)
     out=ROOT/'build/releases';out.mkdir(exist_ok=True)
-    target=out/f"ReKHCoM-v1.9.1-android-alpha-{args.abi}{'-smoke' if args.smoke else ''}-debug.apk"
+    target=out/f"ReKHCoM-v1.9.2-android-alpha-{args.abi}{'-smoke' if args.smoke else ''}-debug.apk"
     shutil.copy2(apk,target)
     digest=hashlib.sha256(target.read_bytes()).hexdigest()
     target.with_suffix('.apk.sha256').write_text(f'{digest}  {target.name}\n')
     (out/('android-build-manifest'+suffix+'.json')).write_text(json.dumps({'apk':target.name,'sha256':digest,'regions':args.regions,
-        'abi':args.abi,'version':'1.9.1-android-alpha','debug_signed':True,'test_only':args.smoke,'runtime_tested':False},indent=2))
+        'abi':args.abi,'version':'1.9.2-android-alpha','debug_signed':True,'test_only':args.smoke,'runtime_tested':False},indent=2))
     print('Built (runtime verification still required):',target,digest)
 
 

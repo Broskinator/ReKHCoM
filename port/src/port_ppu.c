@@ -64,6 +64,35 @@ typedef struct BgWorld {
 } BgWorld;
 static BgWorld sBgWorld[4];
 static BgWorld sBgWorldLatched[4];
+static int sBgIso[4];
+static int sBgIsoLatched[4];
+
+/* Scenes reviewed with the continued floor. Many maps end in an authored
+   dark void past their walls, which must stay; only listed scenes extend.
+   KHCOM_ISOALL=1 (harness) tries it on every scene for review. */
+static const int kIsoScenes[] = {
+    4, /* 1F Traverse Town: Sora meets Leon */
+};
+
+int PortIsoScene(int eventId) {
+    size_t i;
+    if (getenv("KHCOM_ISOALL"))
+        return 1;
+    for (i = 0; i < sizeof(kIsoScenes) / sizeof(kIsoScenes[0]); i++)
+        if (kIsoScenes[i] == eventId)
+            return 1;
+    return 0;
+}
+
+void PortSetBgIsoExtend(int bg, int enabled) {
+    static int disabled = -1;
+    if (disabled < 0)
+        disabled = getenv("KHCOM_NOISO") != NULL; /* harness: the scene without it */
+    if (disabled)
+        enabled = 0;
+    if (bg >= 0 && bg < 4)
+        sBgIso[bg] = enabled != 0;
+}
 
 void PortSetBgWorld(int bg, PortWorldTileFunc fn, int originX, int originY) {
     if (bg >= 0 && bg < 4) {
@@ -223,6 +252,8 @@ void PortPpuVisitState(PortStateVisitor visit) {
     visit(sOamExt, sizeof(sOamExt));
     visit(sBgWorld, sizeof(sBgWorld));
     visit(sBgWorldLatched, sizeof(sBgWorldLatched));
+    visit(sBgIso, sizeof(sBgIso));
+    visit(sBgIsoLatched, sizeof(sBgIsoLatched));
     visit(sBgSplit, sizeof(sBgSplit));
     visit(&sScreenBgMask, sizeof(sScreenBgMask));
     visit(sBgSplitBands, sizeof(sBgSplitBands));
@@ -261,9 +292,10 @@ int PortWideMarginY(void) {
 }
 
 /* Anchors nest (a HUD task may draw child tasks), so keep a small stack. */
-static int sHudStack[16][4];
+static int sHudStack[16][5];
 static int sHudDepth;
 static int sHudAx, sHudAy;
+static int sHudAyQ; /* ay 3: vertical anchor in 1/256ths, -256 top .. 256 bottom */
 
 void PortHudBegin(int ax, int ay) {
     if (sHudDepth < 16) {
@@ -271,10 +303,12 @@ void PortHudBegin(int ax, int ay) {
         sHudStack[sHudDepth][1] = gPortSpriteShiftY;
         sHudStack[sHudDepth][2] = sHudAx;
         sHudStack[sHudDepth][3] = sHudAy;
+        sHudStack[sHudDepth][4] = sHudAyQ;
     }
     sHudDepth++;
     sHudAx = ax;
     sHudAy = ay;
+    sHudAyQ = ay * 256;
     /* ax 2: the HUD's scale, but placed where the world puts it (the
        enemy's card follows its enemy across the arena) */
     gPortSpriteShiftX = (ax == 2 ? 0 : ax) * PortWideMarginX();
@@ -299,8 +333,20 @@ void PortHudEnd(void) {
         gPortSpriteShiftY = sHudStack[sHudDepth][1];
         sHudAx = sHudStack[sHudDepth][2];
         sHudAy = sHudStack[sHudDepth][3];
+        sHudAyQ = sHudStack[sHudDepth][4];
     }
 }
+
+/* Cards that travel between the deck (bottom) and the stock under the HP
+   gauge (top): each sprite's vertical anchor follows its own height, so it
+   ends docked to whichever edge it reaches without jumping on the way. */
+void PortHudBeginFollowY(int ax) {
+    PortHudBegin(ax, 0);
+    sHudAy = 3;
+    sHudAyQ = 0;
+    gPortSpriteShiftY = 0;
+}
+
 
 /* Pointers/highlights that refer to HUD elements: anchor by screen zone,
    matching the corners the HUD itself is docked to. */
@@ -322,9 +368,38 @@ typedef struct SpriteTag {
     uint8_t header; /* a menu header (DrawMenuHeader) */
     uint8_t hdHudPart; /* HD enemy panel: frame, cap, live bar */
     uint8_t digit;
+    int16_t ayq; /* ay 3 only */
 } SpriteTag;
 static SpriteTag sEntryTag[128];
 static SpriteTag sOamTag[128];
+
+static int FollowQ(int y) {
+    return y >= 96 ? 256 : y <= 40 ? -256 : -256 + (y - 40) * 512 / 56;
+}
+
+/* The vertical shift of a sprite drawn now (engine.c, sprite.c). */
+int PortSpriteShiftY(int entry, int y) {
+    int q;
+    if (sHudDepth == 0 || sHudAy != 3)
+        return gPortSpriteShiftY;
+    q = FollowQ(y);
+    if (entry >= 0 && entry < 128)
+        sEntryTag[entry].ayq = (int16_t)q;
+    return q * PortWideMarginY() / 256;
+}
+
+/* The tag's vertical shift on the world canvas, and its place on the HUD. */
+static int TagShiftY(const SpriteTag* t) {
+    return t->ay == 3 ? t->ayq * gPortScreen.originY / 256 : t->ay * gPortScreen.originY;
+}
+static int TagHudY(const SpriteTag* t, int yg, int h, int raise) {
+    int q;
+    if (t->ay != 3)
+        return t->ay < 0 ? yg : (t->ay > 0 ? h - (GBA_SCREEN_H - yg) - raise : yg + (h - GBA_SCREEN_H) / 2);
+    q = t->ayq + 256; /* 0 top .. 512 bottom */
+    return yg + (h - GBA_SCREEN_H) * q / 512 - raise * q / 512;
+}
+
 static int sHudLayer;
 static int sHdText;
 int gPortHdHudPart;
@@ -473,6 +548,7 @@ void PortSpriteTag(int entry) {
         sEntryTag[entry].hud = sHudDepth > 0;
         sEntryTag[entry].ax = (int8_t)sHudAx;
         sEntryTag[entry].ay = (int8_t)sHudAy;
+        sEntryTag[entry].ayq = (int16_t)sHudAyQ;
         sEntryTag[entry].text = (uint16_t)gPortTextChar;
         sEntryTag[entry].style = (uint8_t)gPortTextStyle;
         sEntryTag[entry].screen = sScreenDepth > 0;
@@ -648,9 +724,9 @@ void PortPpuDumpOam(void) {
         uint16_t a0 = OAM16[i * 4], a1 = OAM16[i * 4 + 1], a2 = OAM16[i * 4 + 2];
         if ((a0 & 0x300) == 0x200)
             continue;
-        PortLog("oam %3d ext(%4d,%4d) raw(%3d,%3d) shape %d size %d prio %d pal %2d tile %4d mode %d", i,
+        PortLog("oam %3d ext(%4d,%4d) raw(%3d,%3d) shape %d size %d prio %d pal %2d tile %4d mode %d hud %d ax %d ay %d", i,
                 sOamExt[i].x, sOamExt[i].y, a1 & 0x1FF, a0 & 0xFF, a0 >> 14, a1 >> 14, (a2 >> 10) & 3, a2 >> 12,
-                a2 & 0x3FF, (a0 >> 10) & 3);
+                a2 & 0x3FF, (a0 >> 10) & 3, sOamTag[i].hud, sOamTag[i].ax, sOamTag[i].ay);
     }
 }
 
@@ -678,6 +754,7 @@ void PortLatchBgMaps(const BgEntry* entries) {
         sBgWorldLatched[b].hofs = l->hofs;
         sBgWorldLatched[b].vofs = l->vofs;
         sBgDockedLatched[b] = sBgDocked[b];
+        sBgIsoLatched[b] = sBgIso[b];
     }
 }
 
@@ -715,6 +792,100 @@ void PortSetBattleView(int on) {
 }
 
 /* Screen entry of the world map at world pixel (wx, wy); -1 outside it. */
+/*
+ * Event scenes are isometric: the floor and walls repeat along the 2:1
+ * diagonal, two tiles across for one tile down. Past the map's edge, the tile
+ * at (tx, ty) is the one reached by stepping inward along that diagonal, with
+ * the direction per edge chosen by how often the map repeats itself along
+ * each one. One-off tiles (stains, props) are skipped by stepping further, so
+ * only repeating scenery is continued. Original tiles only, no new pixels.
+ */
+#define ISO_COMMON 6
+static struct {
+    void* const* map;
+    int width, height;
+    int leftDy, rightDy, topDx, bottomDx;
+    uint16_t freq[65536];
+} sIso;
+
+static int MapTile(const BgLatch* l, int tx, int ty) {
+    const uint16_t* block = (const uint16_t*)l->map[(ty >> 5) * l->width + (tx >> 5)];
+    if ((uintptr_t)block < 0x02000000u || (uintptr_t)block >= 0x0A000000u)
+        return -1;
+    return block[(ty & 31) * 32 + (tx & 31)];
+}
+
+/* Matches between each tile near an edge and its diagonal neighbour inward. */
+static int IsoScore(const BgLatch* l, int x0, int x1, int y0, int y1, int dx, int dy) {
+    int W = l->width * 32, H = l->height * 32, x, y, score = 0;
+    for (y = y0; y < y1; y++)
+        for (x = x0; x < x1; x++) {
+            int nx = x + dx, ny = y + dy;
+            if (nx >= 0 && ny >= 0 && nx < W && ny < H && MapTile(l, x, y) == MapTile(l, nx, ny))
+                score++;
+        }
+    return score;
+}
+
+static int IsoPrepare(const BgLatch* l) {
+    int W = l->width * 32, H = l->height * 32, x, y;
+    if (sIso.map == l->map && sIso.width == l->width && sIso.height == l->height)
+        return 1;
+    if (W < 8 || H < 8)
+        return 0;
+    memset(sIso.freq, 0, sizeof(sIso.freq));
+    for (y = 0; y < H; y++)
+        for (x = 0; x < W; x++) {
+            int e = MapTile(l, x, y);
+            if (e < 0)
+                return 0;
+            if (sIso.freq[e] < 0xFFFF)
+                sIso.freq[e]++;
+        }
+    sIso.leftDy = IsoScore(l, 0, 8, 0, H, 2, -1) >= IsoScore(l, 0, 8, 0, H, 2, 1) ? -1 : 1;
+    sIso.rightDy = IsoScore(l, W - 8, W, 0, H, -2, -1) >= IsoScore(l, W - 8, W, 0, H, -2, 1) ? -1 : 1;
+    sIso.topDx = IsoScore(l, 0, W, 0, 4, 2, 1) >= IsoScore(l, 0, W, 0, 4, -2, 1) ? 2 : -2;
+    sIso.bottomDx = IsoScore(l, 0, W, H - 4, H, 2, -1) >= IsoScore(l, 0, W, H - 4, H, -2, -1) ? 2 : -2;
+    sIso.map = l->map;
+    sIso.width = l->width;
+    sIso.height = l->height;
+    return 1;
+}
+
+static int IsoEntry(const BgLatch* l, int tx, int ty) {
+    int W = l->width * 32, H = l->height * 32, dx = 0, dy = 0, i, e;
+    if (!IsoPrepare(l))
+        return -1;
+    /* Walk inward: across a side edge along that edge's diagonal, across the
+       top or bottom along theirs (both inward at a corner). */
+    for (i = 0; i < 4096; i++) {
+        int outX = tx < 0 || tx >= W, outY = ty < 0 || ty >= H;
+        if (!outX && !outY)
+            break;
+        if (outX) {
+            dx = tx < 0 ? 2 : -2;
+            dy = outY ? (ty < 0 ? 1 : -1) : (tx < 0 ? sIso.leftDy : sIso.rightDy);
+        } else {
+            dy = ty < 0 ? 1 : -1;
+            dx = ty < 0 ? sIso.topDx : sIso.bottomDx;
+        }
+        tx += dx;
+        ty += dy;
+    }
+    if (tx < 0 || ty < 0 || tx >= W || ty >= H)
+        return -1;
+    e = MapTile(l, tx, ty);
+    while (e >= 0 && sIso.freq[e] < ISO_COMMON && i++ < 4096) {
+        int nx = tx + dx, ny = ty + dy;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H)
+            break;
+        tx = nx;
+        ty = ny;
+        e = MapTile(l, tx, ty);
+    }
+    return e;
+}
+
 static int WorldEntry(const BgLatch* l, int wx, int wy) {
     const uint16_t* block;
     if (sSinglePanelBg >= 0 && l == &sBgLatch[sSinglePanelBg] &&
@@ -724,6 +895,9 @@ static int WorldEntry(const BgLatch* l, int wx, int wy) {
     if (sBattleView && l->width > 0 && (wx < 0 || wx >= l->width * 256))
         wx = ((wx % (l->width * 256)) + l->width * 256) % (l->width * 256);
 
+    if (l->map != NULL && sBgIsoLatched[l - sBgLatch] && !sBattleView && l->width > 0 && l->height > 0 &&
+        (wx < 0 || wy < 0 || wx >= l->width * 256 || wy >= l->height * 256))
+        return IsoEntry(l, wx >> 3, wy >> 3);
     if (l->map == NULL || wx < 0 || wy < 0 || wx >= l->width * 256 || wy >= l->height * 256)
         return -1;
     block = (const uint16_t*)l->map[(wy >> 8) * l->width + (wx >> 8)];
@@ -739,6 +913,9 @@ static uint16_t WorldPadding(int bg, const BgLatch* l) {
     int corner, bpp8 = (IO16(8 + bg * 2) & 0x80) != 0;
     unsigned base = ((IO16(8 + bg * 2) >> 2) & 3) * 0x4000;
     if (!l->valid || sBgDockedLatched[bg] || sScreenBg[bg]) return TRANSPARENT;
+    /* With the floor continued past the map, the layers above it end there. */
+    if (!sBgIsoLatched[bg] && (sBgIsoLatched[0] | sBgIsoLatched[1] | sBgIsoLatched[2] | sBgIsoLatched[3]))
+        return TRANSPARENT;
     for (corner = 0; corner < 4; corner++) {
         int entry = WorldEntry(l, (corner & 1) ? l->width * 256 - 1 : 0,
                                   (corner & 2) ? l->height * 256 - 1 : 0);
@@ -2752,7 +2929,7 @@ void PortPpuRenderHud(uint32_t* buf) {
                     int c = ObjColor(a0, a2, xx, yy, ow, mapping1d);
                     reference[yy * ow + xx] = c < 0 ? 0 : sColorLut[c];
                 }
-                PortHdHudExportSprite(ow, oh, tag->hdHudPart, tag->ax, tag->ay);
+                PortHdHudExportSprite(ow, oh, tag->hdHudPart, tag->ax, tag->ay == 3 ? (tag->ayq > 0 ? 1 : -1) : tag->ay);
             }
         }
         bw = ow << (affine && dbl);
@@ -2765,12 +2942,10 @@ void PortPpuRenderHud(uint32_t* buf) {
         }
         /* back to GBA-screen coordinates, then onto the HUD canvas */
         xg = ox - (tag->ax == 2 ? 0 : tag->ax) * gPortScreen.originX;
-        yg = oy - tag->ay * gPortScreen.originY;
+        yg = oy - TagShiftY(tag);
         hx = tag->ax == 2 ? HudWorldX(xg, bw, w)
              : tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
-        hy = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) : yg + (h - GBA_SCREEN_H) / 2);
-        if (tag->ay > 0)
-            hy -= HudRaise();
+        hy = TagHudY(tag, yg, h, HudRaise());
         if (!affine && !tag->hdHudPart && !tag->digit && sHudDigitOwners &&
             (size_t)w*h <= sHudDigitOwnerSize)
             hdSprite = PortHdHudSpriteRegister(rawHud, ow, oh, i, hx, hy,
@@ -3045,10 +3220,10 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
             out[n].y = oy;
         } else if (onHud) {
             int w = gPortHudW, h = gPortHudH;
-            int xg = ox - (tag->ax == 2 ? 0 : tag->ax) * gPortScreen.originX, yg = oy - tag->ay * gPortScreen.originY;
+            int xg = ox - (tag->ax == 2 ? 0 : tag->ax) * gPortScreen.originX, yg = oy - TagShiftY(tag);
             out[n].x = tag->ax == 2 ? HudWorldX(xg, 8, w)
                        : tag->ax < 0 ? xg : (tag->ax > 0 ? w - (GBA_SCREEN_W - xg) : xg + (w - GBA_SCREEN_W) / 2);
-            out[n].y = tag->ay < 0 ? yg : (tag->ay > 0 ? h - (GBA_SCREEN_H - yg) - HudRaise() : yg + (h - GBA_SCREEN_H) / 2);
+            out[n].y = TagHudY(tag, yg, h, HudRaise());
         } else {
             if (ox + 16 <= sLeft || ox >= sRight || oy + 16 <= sTop || oy >= sBottom)
                 continue;

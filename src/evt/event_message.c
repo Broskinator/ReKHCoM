@@ -8,6 +8,10 @@
 #include "eventselect_api.h"
 #include "system_state.h"
 #include "msg_api.h"
+#ifdef PLATFORM_PC
+void PortSetBgIsoExtend(int bg, int enabled);
+int PortIsoScene(int eventId);
+#endif
 #include "intr.h"
 #include "m4a_song.h"
 #include "obj_api.h"
@@ -2568,9 +2572,15 @@ u8 LoadEventBg3(EventSeqWork* work) {
                 bg->compression[0] == EVENT_BG_COMPRESSION_TILES_AND_MAPS) {
                 work->bg3MapUnpacked = TRUE;
                 SetBgMapBlocksLz77(3, bg->maps, bg->mapWidth, bg->mapHeight);
+#ifdef PLATFORM_PC
+                PortSetBgIsoExtend(3, PortIsoScene(work->eventId)); /* wide view: continue the floor past the map */
+#endif
             } else {
                 work->bg3MapUnpacked = FALSE;
                 SetBgMapBlocks(3, bg->maps, bg->mapWidth, bg->mapHeight);
+#ifdef PLATFORM_PC
+                PortSetBgIsoExtend(3, PortIsoScene(work->eventId)); /* wide view: continue the floor past the map */
+#endif
             }
 
             RedrawBgMapAt(3, 0, 0);
@@ -2740,6 +2750,9 @@ u8 event_seq_1(EventSeqWork* work, void* task) {
 
             if (bg->maps != NULL) {
                 SetBgMapBlocks(3, bg->maps, bg->mapWidth, bg->mapHeight);
+#ifdef PLATFORM_PC
+                PortSetBgIsoExtend(3, PortIsoScene(work->eventId)); /* wide view: continue the floor past the map */
+#endif
                 RedrawBgMapAt(3, 0, 0);
             }
 

@@ -51,6 +51,9 @@ void PortHudBegin(int ax, int ay);
 /* Same, choosing the side from where (x, y) lies on the GBA screen: for
    pointers and highlights that refer to an anchored HUD element. */
 void PortHudBeginAt(int x, int y);
+/* Deck cards that rise to the stock: vertical anchor follows their height. */
+void PortHudBeginFollowY(int ax);
+int PortSpriteShiftY(int entry, int y);
 /* Bookkeeping for the HUD layer: the sprite entry just queued, and which
    entry an OAM slot was built from. */
 void PortSpriteTag(int entry);
@@ -146,6 +149,8 @@ void PortSceneNarrow(int on);
    top-left. NULL clears it. */
 typedef int (*PortWorldTileFunc)(int bg, int tx, int ty);
 void PortSetBgWorld(int bg, PortWorldTileFunc fn, int originX, int originY);
+/* Event scenes: continue the map past its edges along the isometric diagonal. */
+void PortSetBgIsoExtend(int bg, int enabled);
 #endif
 
 typedef struct BgWork {

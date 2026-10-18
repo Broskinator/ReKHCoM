@@ -4195,9 +4195,10 @@ u8 SoraCardUpdateLoaded(CardDisplayWork* work, void* task) {
 #ifdef PLATFORM_PC
 static void card_2_Body(CardDisplayWork* work);
 
-/* Deck cards: bottom-left corner of the screen. */
+/* Deck cards: bottom-left corner of the screen; stocked cards follow up to
+   the HP gauge (top-left) instead of keeping the bottom's offset. */
 static void card_2(CardDisplayWork* work) {
-    PortHudBegin(-1, 1);
+    PortHudBeginFollowY(-1);
     card_2_Body(work);
     PortHudEnd();
 }
@@ -4319,7 +4320,7 @@ static void card_not_have_2_Body(CardDisplayWork* work);
 
 /* Deck cards: bottom-left corner of the screen. */
 void card_not_have_2(CardDisplayWork* work) {
-    PortHudBegin(-1, 1);
+    PortHudBeginFollowY(-1);
     card_not_have_2_Body(work);
     PortHudEnd();
 }
@@ -5414,7 +5415,7 @@ static void card_reload_2_Body(CardDisplayWork* work);
 
 /* Reload card: bottom-left corner of the screen. */
 void card_reload_2(CardDisplayWork* work) {
-    PortHudBegin(-1, 1);
+    PortHudBeginFollowY(-1);
     card_reload_2_Body(work);
     PortHudEnd();
 }
