@@ -54,7 +54,7 @@ static MapCell* sMapFixCells;
 #include <stdlib.h>
 #include "engine.h"
 
-static int sMapTopClose = -1; /* pending review: KHCOM_TOPCLOSE=1 turns it on */
+static int sMapTopClose = -1; /* approved, improvable (18/10): KHCOM_TOPCLOSE=0 turns it off */
 
 /* a cell showing only wall: BG2 art with nothing of BG1 (void, edges) over it */
 static int MapCellBareWall(const MapCell* cell) {
@@ -140,13 +140,14 @@ static int MapWorldTile(int bg, int tx, int ty) {
     s16 hy = (y < 0) ? (y - 8) / 2 : y / 2;
     s16 my = y % 2;
     MapCell* cell;
+    int edgeX, edgeY;
 
     if (sMapCells == NULL || sMapRoomDef == NULL)
         return -1;
     if (sMapTopClose < 0)
-        sMapTopClose = getenv("KHCOM_TOPCLOSE") != NULL;
+        sMapTopClose = getenv("KHCOM_TOPCLOSE") == NULL || atoi(getenv("KHCOM_TOPCLOSE")) != 0;
     cell = MapGetCell(hx, hy);
-    if (cell == NULL && y < 0 && x >= 0 && sMapTopClose && MapCellBareWall(MapGetCell(hx, 0))) {
+    if (cell == NULL && y < 0 && x >= 0 && sMapTopClose && MapCellBareWall(MapGetCell(hx, 0)) && MapFindEdgeStrip(&edgeX, &edgeY)) {
         /* Above the room the wide view showed the wall cut flat. Its top
            closes with the room's own lower edge, turned upside down: the
            stair of that edge rising then falling, void above, the wall
@@ -156,7 +157,21 @@ static int MapWorldTile(int bg, int tx, int ty) {
             return e;
         if (bg == 1)
             return sMapRoomDef->map[0x110];
-        cell = MapGetCell(hx, 0);
+        /* behind the edge, plain wall rather than a piece of its ornaments:
+           the first cell below that continues unchanged into the next one */
+        {
+            int i, r;
+            cell = MapGetCell(hx, 0);
+            for (r = 0; r < 6 && MapCellBareWall(MapGetCell(hx, r + 1)); r++) {
+                MapCell* a = MapGetCell(hx, r);
+                MapCell* b = MapGetCell(hx, r + 1);
+                for (i = 0; i < 8 && a->bg2Map[(i >> 2) * 32 + (i & 3)] == b->bg2Map[(i >> 2) * 32 + (i & 3)]; i++) {}
+                if (i == 8) {
+                    cell = a;
+                    break;
+                }
+            }
+        }
         my = y & 1;
     }
     if (cell == NULL) {
