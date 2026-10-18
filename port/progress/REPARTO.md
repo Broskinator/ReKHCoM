@@ -15,11 +15,12 @@ Claude sigue con los fondos de escenas en lotes de 10 con el usuario.
 La rama local `codex/issues` contiene el primer bloque de issues y mejoras del
 encargo en [CODEX_TAREAS.md](CODEX_TAREAS.md); el detalle de estado y pruebas
 está al final de ese archivo. Build Windows EU/US/JP PASS; launcher 11/11,
-Re:CoM 80 combinaciones, zoom 56 y aspecto 56 PASS. Undub está implementado
-pero falta comparar dumps de voz. #12 está en `main`, pero queda opcional y de
-baja prioridad: antes de incluirlo en una release, mover la activación a
-Opciones > Experimental y probarlo manualmente. La tira de las arenas y la
-integración de RetroAchievements siguen pendientes. Codex integró este bloque
+Re:CoM 80 combinaciones, zoom 56 y aspecto 56 PASS. Undub está implementado;
+`port/tools/test_undub.py` verifica dumps de dos voces en EU/US (OFF conserva
+el audio regional; ON produce el mismo audio entre regiones). #12 sigue sin
+implementar, opcional y de baja prioridad; si se retoma, debe activarse desde
+Opciones > Experimental. La tira de las arenas y la integración de
+RetroAchievements siguen pendientes. Codex integró este bloque
 en `main` (commit `ae40c79de`), sin
 crear paquete ni release. Próxima versión anotada para preparación: **v1.9.3**;
 la última estable pública sigue siendo v1.9.2.

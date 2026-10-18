@@ -33,25 +33,26 @@ Encargo del usuario: Codex hace las issues y mejoras de abajo y puede integrarla
 
 ## Estado de esta repartija — 18/10/2026
 
-- **Hecho en esta rama:** análisis de BPS del Undub sin generar ni guardar ROM
+- **Hecho y probado:** análisis de BPS del Undub sin generar ni guardar ROM
   modificada; capa opcional de voces JP desde B8CJ validada, por región y OFF
-  por defecto. Falta comparar dumps de voz antes de marcar #14 completamente
-  verificada.
+  por defecto. `python port/tools/test_undub.py` captura dos voces de Sora en
+  EU/US: los dumps cambian con Undub, coinciden entre regiones y permanecen
+  regionales cuando se apaga. Evidencia en `build/codex-evidence/undub/runs/`.
 - **Hecho:** remapeo de controles de juego en launcher y menú, incluidos ejes
   de gatillos, las acciones de esquivar/acumular/devolver, restauración de
   defaults y aviso rojo de asignaciones repetidas en el launcher. EU/US/JP
   compilan; launcher pasa 11/11 pruebas. #13 queda listo para revisión manual
   con mando.
-- **Hecho:** texto Orgulloso/Beginner actualizado. El cambio de #12 está en
-  `main` y compila, pero sigue pendiente de prueba manual y de quedar detrás
-  de una opción en Opciones > Experimental. Por indicación del usuario es una
-  mejora opcional de baja prioridad; no considerarla lista para release.
+- **Hecho:** texto Orgulloso/Beginner actualizado. #12 (selección de ranura en
+  puntos de guardado) queda pendiente: no está implementada en esta rama, es
+  opcional y de baja prioridad. Si se retoma, debe activarse desde Opciones >
+  Experimental y probarse manualmente antes de entrar a una release.
 - **Hecho:** selector de opciones con estilo debug, acceso de modo debug bajo
   Trucos y grupo propio para las mejoras Re:CoM. Unstock continúa opcional y
   apagado por defecto.
-- **Respuestas:** #4, #5 y #6 publicadas tras validar las pruebas; #12, #13 y
-  #14 no respondidas por falta de pruebas manuales/de audio. Los borradores de
-  preguntas #2 y #3 quedan en `CODEX_RESPUESTAS.md`.
+- **Respuestas:** #4, #5, #6 y #14 publicadas tras validar las pruebas; #12 y
+  #13 siguen sin respuesta hasta completar la validación correspondiente. Los
+  borradores de preguntas #2 y #3 quedan en `CODEX_RESPUESTAS.md`.
 - **Pendiente:** corregir la tira de fondo en las arenas GBA y verificarla.
 - **RetroAchievements:** investigación en `RETROACHIEVEMENTS.md`. Confirmados
   set base (90) y `Subset - Level 1` (39, ROM parchada con hash distinto), y
@@ -81,8 +82,9 @@ de carga.
   instalada y verificada, la opción aparece en gris (deshabilitada) con un
   texto que explica que hace falta la ROM japonesa.
 - Clave en kh_com.ini; desactivada por defecto. Sin la ROM JP no cambia nada.
-- Verificar con capturas de audio (KHCOM_WAVDUMP) que las voces son las
-  japonesas en EU y US, y que sin la opción todo queda idéntico.
+- Verificado con `port/tools/test_undub.py`: WAV dumps de dos voces de Sora en
+  EU/US, modo OFF idéntico entre regiones, modo ON distinto al OFF e idéntico
+  entre EU/US. El test exige además que el log confirme la carga del mapa JP.
 - Respuesta para #14 explicando el soporte y cómo activarlo.
 
 ## 2. Issue #13 — Reasignar controles

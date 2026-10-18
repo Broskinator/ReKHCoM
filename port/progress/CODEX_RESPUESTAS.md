@@ -6,7 +6,9 @@ validación correspondiente.
 
 ## #14 — Undub
 
-An optional Japanese-voice mode is now implemented for the European and US builds. It reads the verified original Japanese B8CJ ROM from `roms/B8CJ.gba` at startup; no patched ROM or audio is distributed. Install the Japanese ROM through the launcher, enable **Japanese voices (restart)**, then relaunch. The original regional text and gameplay remain in place. The option stays disabled when the required Japanese ROM is absent. We are finishing audio-dump verification before calling this fully validated.
+An optional Japanese-voice mode is now implemented for the EU and US builds. It reads the verified original Japanese B8CJ ROM from `roms/B8CJ.gba` at startup; no patched ROM or audio is distributed. Install the Japanese ROM through the launcher, enable **Japanese voices (restart)**, then relaunch. The original regional text and gameplay remain in place. The option stays disabled when the required Japanese ROM is absent. WAV dumps for two Sora attack voices were verified in both builds: the option changes the output, the Japanese-mode dumps match across EU/US, and disabled mode preserves the regional output.
+
+Posted 2026-10-18: https://github.com/MatyMeatBoy/ReKHCoM/issues/14#issuecomment-6246614068
 
 ## #13 — Remap triggers
 
