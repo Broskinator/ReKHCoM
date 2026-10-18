@@ -127,8 +127,9 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     rendimiento. Hay pruebas VM; no repetir la afirmación antigua de «sin binario».
 33. [ ] **Claude:** Anbernic RG34XX real: kernel/32 bits, framebuffer, orientación,
     mando/PortMaster y rendimiento; la VM ARM no mide rendimiento físico.
-34. [ ] **Claude:** Linux, fuente CJK para texto HD japonés y launcher gráfico
-    pendiente; conservar ajustes del menú del juego mientras tanto.
+34. [~] **Claude:** fuente CJK de Linux: búsqueda ampliada (KHCOM_CJK_FONT,
+    rutas Noto/Takao/IPA/Droid/WQY y fc-match), compila; falta probarla en
+    Linux real. Launcher gráfico sigue pendiente; ajustes en el menú del juego.
 35. [ ] **Claude:** Android físico: guardados, controles táctiles, audio, memoria,
     orientación y rendimiento; mantener alpha donde falte validación real.
 36. [ ] **Codex:** Web EU/US/JP en navegador real: arranque, diálogos, combate,

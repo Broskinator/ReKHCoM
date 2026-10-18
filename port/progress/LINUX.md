@@ -89,7 +89,9 @@ Steam Deck, ni ninguna Anbernic.
 - Anbernic: probar en una RG34XX real (Knulli/muOS/ROCKNIX): kernel con
   soporte de 32 bits, `/dev/fb0`, orientación del panel, mandos (mapeo
   SDL/PortMaster), rendimiento del A53 en modo AArch32.
-- Texto HD en japonés: FreeType no tiene una fuente CJK del sistema que
-  usar (solo DejaVu como respaldo latino).
+- Texto HD en japonés: la fuente CJK se busca en `KHCOM_CJK_FONT`, en rutas
+  habituales (Noto CJK, Takao, IPA, Droid, WenQuanYi) y con `fc-match :lang=ja`;
+  sin ninguna, el HD japonés sigue desactivado. Falta confirmarlo en una
+  distro/Steam Deck real.
 - No hay launcher gráfico en Linux (el de Windows usa APIs de Windows); los
   ajustes están en el menú de opciones del juego.

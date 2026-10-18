@@ -1,6 +1,7 @@
 /* Portable outline rasterizer; the game's layout/occlusion is shared with
    Windows/Web. FreeType handles the existing CFF OpenType fonts directly. */
 #include <SDL3/SDL.h>
+#include <stdio.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include "port/port.h"
@@ -27,6 +28,42 @@ const uint16_t* PortLatinGlyphWidths(void);
 uint32_t PortFrameCount(void);
 unsigned PortSjisToCodepoint(unsigned code);
 
+/* First usable CJK face: KHCOM_CJK_FONT, common distro/Steam Deck paths, then
+   whatever fontconfig maps to Japanese. */
+static void OpenJapanese(void) {
+    static const char* const paths[] = {
+        "/system/fonts/NotoSansCJK-Regular.ttc", "/system/fonts/NotoSansCJKjp-Regular.otf",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/google-noto-sans-cjk-fonts/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/OTF/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/opentype/noto/NotoSansCJKjp-Regular.otf",
+        "/usr/share/fonts/truetype/takao-gothic/TakaoGothic.ttf",
+        "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
+        "/usr/share/fonts/ipa-gothic/ipag.ttf", "/usr/share/fonts/TTF/ipag.ttf",
+        "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
+        "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"
+    };
+    const char* env=SDL_getenv("KHCOM_CJK_FONT");
+    size_t i;
+    if (env && *env) FT_New_Face(library,env,0,&japanese);
+    for (i=0;!japanese && i<SDL_arraysize(paths);i++) FT_New_Face(library,paths[i],0,&japanese);
+#if defined(__linux__) && !defined(__ANDROID__)
+    if (!japanese) {
+        FILE* pipe=popen("fc-match -f '%{file}' :lang=ja 2>/dev/null","r");
+        if (pipe) {
+            char path[1024]; size_t n=fread(path,1,sizeof(path)-1,pipe); path[n]=0;
+            pclose(pipe);
+            if (n && FT_New_Face(library,path,0,&japanese)) japanese=NULL;
+        }
+    }
+#endif
+    if (japanese) PortLog("HD text: CJK face found");
+}
+
 int PortPortableHdReady(void) {
     static const char* names[2] = {"KHMenu.otf","ComicHearts.otf"};
     int i;
@@ -46,8 +83,7 @@ int PortPortableHdReady(void) {
     FT_New_Face(library,"/system/fonts/Roboto-Regular.ttf",0,&fallback);
     if (!fallback) FT_New_Face(library,"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",0,&fallback);
     if (!fallback) FT_New_Face(library,"C:/Windows/Fonts/arial.ttf",0,&fallback);
-    FT_New_Face(library,"/system/fonts/NotoSansCJK-Regular.ttc",0,&japanese);
-    if (!japanese) FT_New_Face(library,"/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",0,&japanese);
+    OpenJapanese();
 #ifdef VERSION_JP
     /* Never hide Japanese SD glyphs without a usable Japanese outline face. */
     if (!japanese) return 0;
