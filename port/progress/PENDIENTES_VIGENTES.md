@@ -17,7 +17,7 @@ conservada para poder rastrear. Reglas del usuario:
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
 | **Claude (Opus)** | 56/56b fondos sin pintar en el tutorial; 57 menú de Opciones a toda la altura; 58 sonidos del modo debug; 63 colisiones; 64 moguri a Experimental; 65 pausa y saltar escena; v1.9.4 y #19; 44 limpieza; 43 cola; 51–54 consolas (otro chat); 39 rutas (al final) | 1) 64, 56/56b, 57, 58 (cortos), 2) 63, 3) 65, 4) 44 con permiso, 5) 39 |
-| **ChatGPT/Codex** | 59 caras flotando en escenas; 60 barras del título; 61–62 escenas a completar en x3; 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; 27 RetroAchievements; 16–24 arte de jefes/escenas; 2 cierre del chat sincorazones | 1) 59 (bug grande), 2) 60, 3) 61–62, 4) 40, 5) 55, 6) 27, 7) 16–24 al final |
+| **ChatGPT/Codex** | 59 caras flotando en escenas; 60 barras del título; 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; después 61–62, 27 y 16–24 | Orden explícito del usuario: **59 → 60 → 40 → 55**. Los demás quedan después. |
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
@@ -66,7 +66,7 @@ completas al final.
   «¡Sí, exacto! Como si no nos conociéramos…», «¿Cómo es eso?»): faltan las dos
   puntas de la habitación y hacia arriba. Comprobar si está en la lista de 44
   candidatas; si no, agregarla.
-- **2:** recoger el cierre del chat del bug de sincorazones.
+- **2:** CERRADO por decisión explícita del usuario: trámite de coordinación descartado. No requiere implementar ni volver a contactar el chat de sincorazones.
 
 ## 3. Claude
 
