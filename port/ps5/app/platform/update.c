@@ -2,7 +2,7 @@
  * ReKHCoM for PS5 - updates from the project's GitHub releases.
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * Checks api.github.com for the newest release tagged ps5-vX.Y.Z; installing downloads its .zip and writes the
+ * Checks api.github.com for the newest project release carrying PPSA98511.zip; installing downloads that asset and writes the
  * PPSA98511 folder inside it over the installed app. Each file goes to <name>.new and is renamed into place: a
  * running eboot.bin can't be overwritten, but it can be replaced by name, and the new one runs from the next start.
  * eboot.bin and param.json go last, so an interrupted update never leaves a new executable without its files.
@@ -245,7 +245,7 @@ static void *check_thread(void *unused)
         fail("Couldn't reach GitHub");
         return NULL;
     }
-    /* the newest release (not a draft or a pre-release) tagged ps5-vX.Y.Z that has a .zip */
+    /* the newest vX.Y.Z release (not a draft or pre-release) carrying the PS5 package */
     sVersion[0] = '\0';
     sZipUrl[0] = '\0';
     for (const char *rel = strstr(body, "\"tag_name\""); rel;)
@@ -266,11 +266,14 @@ static void *check_thread(void *unused)
                strstr(one, "\"prerelease\":true");
         for (const char *p = one; !skip && (p = strstr(p, "\"browser_download_url\""));)
         {
-            if (json_string(p, "browser_download_url", url, sizeof(url)) && strlen(url) > 4 &&
-                !strcmp(url + strlen(url) - 4, ".zip"))
+            if (json_string(p, "browser_download_url", url, sizeof(url)))
             {
-                snprintf(found, sizeof(found), "%s", url);
-                break;
+                const char *asset = strrchr(url, '/');
+                if (asset && !strcmp(asset + 1, "PPSA98511.zip"))
+                {
+                    snprintf(found, sizeof(found), "%s", url);
+                    break;
+                }
             }
             p += 22;
         }

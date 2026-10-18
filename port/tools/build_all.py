@@ -68,8 +68,6 @@ def main():
             print('PS5 skipped: run --platform ps5 on a native Linux host with PS5 build dependencies and ROMs.', flush=True)
         return
     if args.platform == 'ps5':
-        if not sys.platform.startswith('linux'):
-            p.error('PS5 builds require native Linux; use the prepared Linux VM or a Linux host')
         command = [sys.executable, 'port/ps5/build_ps5.py', 'all', '--jobs', str(args.jobs)]
         if args.package:
             if not args.release_version:
@@ -78,12 +76,17 @@ def main():
                                 (ROOT / 'port/decompui/decompui.cpp').read_text(encoding='utf-8'))
             if not version or args.release_version != version[1]:
                 p.error('--release-version must match REKHCOM_VERSION in the launcher')
-            command += ['--version', args.release_version, '--package']
+            numeric_version = re.match(r'v?(\d+\.\d+\.\d+)', args.release_version)
+            if not numeric_version:
+                p.error('--release-version must start with vX.Y.Z for the PS5 package')
+            command += ['--version', numeric_version[1], '--package']
         elif args.release_version:
             command += ['--version', args.release_version]
         if args.dry_run:
             print(json.dumps({'platform': 'ps5', 'commands': [command]}, indent=2))
         else:
+            if not sys.platform.startswith('linux'):
+                p.error('PS5 builds require native Linux; use the prepared Linux VM or a Linux host')
             subprocess.run(command, cwd=ROOT, check=True, env=dict(os.environ, PYTHONUTF8='1'))
         return
     if args.platform == 'linux':
