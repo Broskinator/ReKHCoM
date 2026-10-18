@@ -1,6 +1,6 @@
 # Revisión acumulativa de escenas con extensión de tiles
 
-Estado 18/10/2026: **3/44 candidatas aceptadas**. Son 44 eventos con cambios
+Estado 18/10/2026: **4/44 candidatas aceptadas (057 mejorable)**. Son 44 eventos con cambios
 potenciales en 33 fondos; los vacíos que forman un marco intencionado se
 descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
 
@@ -8,10 +8,17 @@ descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
 | --- | --- | --- |
 | 004 Leon | Aceptada previamente | Continuar diagonales y período propio, sin duplicar cajas. |
 | 061 Cristal | Mejorada aceptada | Perfiles distintos por capa; rombo entero en la unión; seleccionar tile de panel sin sombra ajena. |
-| 057 Playa | Siguiente en revisión | Período del suelo 8×4; pared con huecos requiere revisar capas por separado. |
+| 057 Playa | Aceptada, mejorable | Pared continua aprobada; completar pasto con las piezas originales del motivo entero. |
 | 074 Monstruo | Mejorada aceptada | Paleta activa y tres capas; pieza inferior completada con el motivo izquierdo original. |
 
 ## Lógica que se acumula con cada ejemplo
+
+Corrección explícita del usuario: no tomar ensayos fallidos o ejemplos feos de
+otras propuestas como referencias para escenas nuevas. Arrancar cada propuesta
+desde el original del juego y sus piezas; las reglas técnicas documentadas y las
+versiones aprobadas se conservan. Retiradas las tarjetas fallidas `cards/057.png`,
+`cards/p_057.png` y `cards/t1_057.png`. La nueva receta 057 no lee ningún "after"
+histórico, solo ROM, snapshot de paleta y captura original sin extensión.
 
 1. Determinar por separado los bordes que se cortan y los vacíos diseñados.
 2. Buscar período y dirección en cada capa, guiándose por líneas estructurales
@@ -70,3 +77,9 @@ Por revisión: mostrar el mismo encuadre antes/después; conservar cámara, capa
 bordes, pasos y sustituciones. Actualizar el contador al aceptar o descartar una
 escena. Los perfiles concretos aprobados son ejemplos; no aplicar sus números
 indiscriminadamente a otros mapas.
+
+057 nueva: `py -3 port/tools/scene057_tile_preview.py`. Cámara(7,43), frame100,
+suelo y pared a izquierda con fuente (+8,-4), siguiendo su base ascendente a la
+derecha. Suelo a derecha (-8,+4); BG2 transparente ahí para no copiar el tronco
+único de la zona original. Paleta activa del snapshot camera057. Perfil nuevo
+aceptado como mejorable, base congelada en `accepted057/`. Salida `review057/057-before-after.png`.
