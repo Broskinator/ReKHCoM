@@ -27,6 +27,8 @@ completas al final.
 - **v1.9.6 (pronto):** con los ports de vuelta (Linux, Steam Deck, Anbernic, Android,
   Web; PS5 por su VM) y lo que se integre hasta entonces (59 retratos de Codex ya en
   main). v1.9.5 salió el 18/10 como prerelease, solo Windows; la estable sigue v1.9.2.
+  Prueba Android para el usuario: v1.9.6-android-test.1 (reserva por regiones #20 y
+  retratos #59). **Responder el issue #20 recién al publicar la próxima estable.**
 
 ## 2. Codex
 
