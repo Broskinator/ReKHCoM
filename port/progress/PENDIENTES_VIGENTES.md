@@ -17,7 +17,7 @@ conservada para poder rastrear. Reglas del usuario:
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
 | **Claude (Opus)** | 56 franja negra en la sala del tutorial; 57 menú de Opciones a toda la altura; 58 sonidos del modo debug en Opciones; v1.9.4 y #19; 44 limpieza; 43 cola; 51–54 consolas (otro chat); 39 rutas (al final) | 1) 56, 57 y 58 (cortos), 2) 44 con permiso, 3) 39 |
-| **ChatGPT/Codex** | 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; 27 RetroAchievements; 16–24 arte de jefes/escenas; 2 cierre del chat sincorazones | 1) 40 (corto), 2) 55, 3) 27, 4) 16–24 al final |
+| **ChatGPT/Codex** | 59 caras flotando en escenas; 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; 27 RetroAchievements; 16–24 arte de jefes/escenas; 2 cierre del chat sincorazones | 1) 59 (bug grande), 2) 40, 3) 55, 4) 27, 5) 16–24 al final |
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
@@ -42,6 +42,13 @@ completas al final.
   general para que calce con el arte del juego (estilo del menú debug ya usado en
   el launcher y en Opciones). Entrega visual: capturas antes/después y aprobación.
 - **40:** audio PSG frente a la referencia de combate.
+- **59 (bug grande, 18/10, PRIORIDAD):** caras flotando en las escenas: el retrato
+  del diálogo aparece suelto, sin su ventana de texto, en casi todas las escenas
+  del juego (el usuario creía que era normal). En una escena de Riku (círculo gris
+  sobre fondo blanco, Riku agachado en el centro) el retrato de Riku sale flotando
+  a la derecha y hasta «revelado». Comparar con el juego original, encontrar la
+  causa (orden de ventana/retrato, capa HD, márgenes anchos u oclusión) y
+  corregirlo en todas las rutas (Sora y Reverse/Rebirth, EU/US/JP).
 - **2:** recoger el cierre del chat del bug de sincorazones.
 
 ## 3. Claude
