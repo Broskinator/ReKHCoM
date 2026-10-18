@@ -243,6 +243,7 @@ typedef int SDL_Scancode;
 #define SDLK_F7 0x40000040u
 #define SDLK_F9 0x40000042u
 #define SDLK_F11 0x40000044u
+#define SDLK_DELETE 0x4000004Cu
 
 typedef enum SDL_EventType {
     SDL_EVENT_QUIT = 0x100,
@@ -254,6 +255,7 @@ typedef enum SDL_EventType {
     SDL_EVENT_KEY_UP = 0x301,
     SDL_EVENT_GAMEPAD_BUTTON_DOWN = 0x650,
     SDL_EVENT_GAMEPAD_BUTTON_UP = 0x651,
+    SDL_EVENT_GAMEPAD_AXIS_MOTION = 0x652,
     SDL_EVENT_GAMEPAD_ADDED = 0x653,
     SDL_EVENT_FINGER_DOWN = 0x700,
     SDL_EVENT_FINGER_UP = 0x701,
@@ -264,12 +266,14 @@ typedef enum SDL_EventType {
 
 typedef struct SDL_KeyboardEvent { Uint32 type; Uint32 reserved; Uint64 timestamp; Uint32 windowID; Uint32 which; SDL_Scancode scancode; SDL_Keycode key; SDL_Keymod mod; Uint16 raw; bool down; bool repeat; } SDL_KeyboardEvent;
 typedef struct SDL_GamepadButtonEvent { Uint32 type; Uint32 reserved; Uint64 timestamp; SDL_JoystickID which; Uint8 button; bool down; } SDL_GamepadButtonEvent;
+typedef struct SDL_GamepadAxisEvent { Uint32 type; Uint32 reserved; Uint64 timestamp; SDL_JoystickID which; Uint8 axis; Uint8 padding1, padding2, padding3; Sint16 value; Uint16 padding4; } SDL_GamepadAxisEvent;
 typedef struct SDL_GamepadDeviceEvent { Uint32 type; Uint32 reserved; Uint64 timestamp; SDL_JoystickID which; } SDL_GamepadDeviceEvent;
 typedef struct SDL_TouchFingerEvent { Uint32 type; Uint32 reserved; Uint64 timestamp; Uint64 touchID; SDL_FingerID fingerID; float x, y, dx, dy, pressure; Uint32 windowID; } SDL_TouchFingerEvent;
 typedef union SDL_Event {
     Uint32 type;
     SDL_KeyboardEvent key;
     SDL_GamepadButtonEvent gbutton;
+    SDL_GamepadAxisEvent gaxis;
     SDL_GamepadDeviceEvent gdevice;
     SDL_TouchFingerEvent tfinger;
     Uint8 padding[128];
@@ -297,6 +301,8 @@ typedef enum SDL_GamepadAxis {
 SDL_JoystickID* SDL_GetGamepads(int* count);
 SDL_Gamepad* SDL_GetGamepadFromID(SDL_JoystickID id);
 SDL_Gamepad* SDL_OpenGamepad(SDL_JoystickID id);
+const char* SDL_GetGamepadStringForButton(SDL_GamepadButton button);
+const char* SDL_GetKeyName(SDL_Keycode key);
 bool SDL_GetGamepadButton(SDL_Gamepad* gamepad, SDL_GamepadButton button);
 Sint16 SDL_GetGamepadAxis(SDL_Gamepad* gamepad, SDL_GamepadAxis axis);
 void SDL_SetGamepadEventsEnabled(bool enabled);

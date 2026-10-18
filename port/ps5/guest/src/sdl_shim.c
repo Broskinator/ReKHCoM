@@ -765,6 +765,30 @@ SDL_Gamepad* SDL_GetGamepadFromID(SDL_JoystickID id) {
     return &sPadHandles[id - 1];
 }
 SDL_Gamepad* SDL_OpenGamepad(SDL_JoystickID id) { return SDL_GetGamepadFromID(id); }
+const char* SDL_GetGamepadStringForButton(SDL_GamepadButton button) {
+    static const char* const names[SDL_GAMEPAD_BUTTON_COUNT] = {
+        "South", "East", "West", "North", "Back", "Guide", "Start", "L3", "R3",
+        "L1", "R1", "D-pad Up", "D-pad Down", "D-pad Left", "D-pad Right", "Misc"
+    };
+    return button >= 0 && button < SDL_GAMEPAD_BUTTON_COUNT ? names[button] : NULL;
+}
+const char* SDL_GetKeyName(SDL_Keycode key) {
+    static char name[2];
+    switch (key) {
+    case SDLK_RETURN: return "Return";
+    case SDLK_BACKSPACE: return "Backspace";
+    case SDLK_DELETE: return "Delete";
+    case SDLK_ESCAPE: return "Escape";
+    case SDLK_SPACE: return "Space";
+    case SDLK_UP: return "Up";
+    case SDLK_DOWN: return "Down";
+    case SDLK_LEFT: return "Left";
+    case SDLK_RIGHT: return "Right";
+    default:
+        if (key > 0 && key < 128) { name[0] = (char)key; name[1] = 0; return name; }
+        return "";
+    }
+}
 bool SDL_GetGamepadButton(SDL_Gamepad* g, SDL_GamepadButton b) { return g && Held(&g->pad->now, b); }
 
 Sint16 SDL_GetGamepadAxis(SDL_Gamepad* g, SDL_GamepadAxis a) {
