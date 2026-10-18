@@ -53,6 +53,8 @@ conservada para poder rastrear. Reglas del usuario:
 Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
 y 074 Monstro (13–14), remapeo y gatillos (25), submenús (28), fuente CJK Linux
 (34), PS5 (38), táctil (45), transición de Opciones (50), regresión sincorazones (4).
+Publicado en Nightly 5 (18/10, v1.9.3-nightly.20261018.5): #17 borde de Riku, logros locales,
+arte del mando (49 pendiente de aprobación), transición de Opciones, CJK Linux, corrección Linux #19.
 Publicados antes: Nightly 4 (trucos, revanchas, aviso moguri, editor de partidas,
 #16, diagrama de mando v1). Ver NIGHTLY4_PUBLICACION.md y NIGHTLY5_PUBLICACION.md.
 
