@@ -1,3 +1,11 @@
+## Corrección vigente: no duplicar responsables
+
+Claude ya terminó guardados en **e9f053595**, checkout khcom-claude-int.
+Claude conserva guardados/savestates e integración/publicación. Codex retiró
+su borrador duplicado y toma sus tareas cortas 25–26, 28–29, 36–37 y 40.
+Extensiones de arte 12–24 quedan al final de prioridad.
+Antes de empezar comprobar propietario y commits de su checkout, no solo main.
+
 # Repartija para Claude y Codex — cola única
 
 **Primero terminar/recoger los workers existentes; después seguir la lista.**

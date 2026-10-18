@@ -20,6 +20,20 @@ documentos quedan como evidencia técnica e historial, no como colas paralelas.
 - Los cierres deben quedar en CIERRE_WORKERS.md. Claude coordina sus propios
   workers externos; este chat no puede certificar su cierre sin recibir el informe.
 
+## Orden y propiedad del trabajo (corrección del usuario)
+
+- **Claude conserva guardados 5–9, savestates 10–11 e integración/publicación
+  41–42.** Guardados implementados en e9f053595; no volver a implementarlos.
+- **Codex toma primero sus pendientes cortos 25–26, 28–29, 36–37 y 40**, según
+  dependencias y evidencia disponible; RetroAchievements queda después.
+- **Extensiones de arte 12–24 al final**, después de bugs y funciones.
+- Antes de editar: comprobar propietario en esta lista y commits/estado del
+  checkout del propietario, no solo main. Un único responsable de implementación
+  por tarea. Transferirla expresamente antes de cambiar de responsable.
+- Codex retiró su implementación duplicada de guardados del árbol compartido.
+  Conservada solo como borrador privado en build/duplicate-save-draft;
+  NO integrar, NO publicar. La implementación válida es la de Claude.
+
 ## Cola de trabajo, numeración única
 
 Los responsables indicados son asignaciones para continuar DESPUÉS de recoger
@@ -39,11 +53,12 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 5. [ ] **Claude:** actualizar el resumen de guardado al cambiar de slot.
 6. [ ] **Claude:** verificar ranuras vacías y ocupadas, guardado real y aislamiento
    entre ranuras con copias de partidas, sin escribir sobre originales del usuario.
-7. [ ] **Claude:** conservar activación del selector al cerrar/reabrir juego y launcher.
+7. [x] **Claude:** persistencia del selector implementada en e9f053595;
+   launcher registra la clave y conserva también claves desconocidas.
 8. [ ] **Claude:** auditar persistencia de las otras opciones reportadas y mantener
    el selector de slots dentro de Experimental.
-9. [ ] **Claude:** recordar el último slot realmente guardado al regresar al cristal
-   y al reiniciar; actualizarlo solo tras completar el guardado.
+9. [x] **Claude:** último slot corregido en e9f053595 mediante la bandera nativa
+   guardada en la partida. Comprobación conjunta sigue en el punto 6.
 10. [ ] **Claude:** localizar y respaldar el savestate donde el mapa queda abierto
     arriba; reconstruir cierre con sus propios tiles de borde.
 11. [ ] **Claude:** savestate 3, Hollow Bastion: completar checkerboard lateral,
