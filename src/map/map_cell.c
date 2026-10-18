@@ -50,7 +50,21 @@ static MapRoomDef* sMapRoomDef;
 static MapCell* sMapFixCells;
 
 #ifdef PLATFORM_PC
+#include <stdlib.h>
 #include "engine.h"
+
+static int sMapTopClose = -1; /* pending review: KHCOM_TOPCLOSE=1 turns it on */
+
+/* a cell showing only wall: BG2 art with nothing of BG1 (void, edges) over it */
+static int MapCellBareWall(const MapCell* cell) {
+    int i;
+    if (cell == NULL || cell->bg2Map == NULL)
+        return 0;
+    for (i = 0; i < 8; i++)
+        if (cell->bg1Map != NULL && cell->bg1Map[(i >> 2) * 32 + (i & 3)] != 0)
+            return 0;
+    return 1;
+}
 
 /* Screen entry of world tile (tx, ty) for BG1-3 of a cell-built room: the
    same composition MapBuildBgColumn/Row stream into VRAM, so the wide view
@@ -66,7 +80,34 @@ static int MapWorldTile(int bg, int tx, int ty) {
 
     if (sMapCells == NULL || sMapRoomDef == NULL)
         return -1;
+    if (sMapTopClose < 0)
+        sMapTopClose = getenv("KHCOM_TOPCLOSE") != NULL;
     cell = MapGetCell(hx, hy);
+    if (cell == NULL && y < 0 && x >= 0 && sMapTopClose) {
+        /* Above the room the wide view showed walls cut flat at the room's
+           top row. Where that row shows bare wall (nothing of BG1's void or
+           edge pieces over it), the wall carries on upward with its own top
+           tiles; columns closed by the void or an edge keep the void. */
+        MapCell* top = MapGetCell(hx, 0);
+        int i, r, bare = MapCellBareWall(top);
+        /* repeat plain wall, not a piece of its ornaments: the first cell
+           below that continues unchanged into the next one */
+        for (r = 0; bare && r < 6 && MapCellBareWall(MapGetCell(hx, r + 1)); r++) {
+            MapCell* a = MapGetCell(hx, r);
+            MapCell* b = MapGetCell(hx, r + 1);
+            for (i = 0; i < 8 && a->bg2Map[(i >> 2) * 32 + (i & 3)] == b->bg2Map[(i >> 2) * 32 + (i & 3)]; i++) {}
+            if (i == 8) {
+                top = a;
+                break;
+            }
+        }
+        if (bare) {
+            if (bg == 1)
+                return 0;
+            cell = top;
+            my = y & 1;
+        }
+    }
     if (cell == NULL) {
         switch (bg) {
         case 3:

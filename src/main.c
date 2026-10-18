@@ -212,6 +212,23 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
 
+    /* Rebuild a reported room exactly: its shape (roomType) and seed, read
+       from the player's floor state. Applies to every room of the floor,
+       without enemies, before roomgoto. */
+    if (strcmp(name, "roomshape") == 0 || strcmp(name, "roomseed") == 0) {
+        int i;
+        for (i = 0; i < 32; i++) {
+            if (name[4] == 's' && name[5] == 'h') {
+                gMapFloorState.rooms[i].roomType = (u8)arg;
+                gMapFloorState.rooms[i].flags |= FLOOR_ROOM_FLAG_CREATED;
+            } else {
+                gMapFloorState.rooms[i].seed = (u32)arg;
+            }
+            gMapFloorState.rooms[i].enemiesLeft = 0;
+        }
+        return 1;
+    }
+
     if (strcmp(name, "rikuopening") == 0) {
         extern void RequestEventMode(u16 eventId);
         ResetGameState();
