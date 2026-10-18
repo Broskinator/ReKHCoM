@@ -65,8 +65,11 @@ completas al final.
   capa propia de vídeo/audio/entrada (vitaGL, sceAudioOut, sceCtrl); 3) .vpk alpha
   (EU/US/JP) con aviso de ROM propia; validación en Vita real = reportes. Atribución MIT
   en NOTICE si se adapta algún script. Grande (semanas); va después de lo corto.
-- **52–54 (nuevos, 18/10, largo plazo, sin fecha; estimación sin probar):**
-  52 **PS4** (el más viable): x86-64 como la PS5; reutilizar el guest de 32 bits y el
+- **52–54 (18/10, el usuario ordena empezar PS4, Switch y Vita junto con PS5; orden:
+  PS5 estable → Vita fase 1 → PS4 → Switch; estimación sin probar):**
+  52 **PS4** (el más viable; el guest x32 de port/ps5 es el mismo código, falta host propio con
+  sceVideoOut/sceAudioOut/pad dibujando con nuestro PPU por software; probar en shadPS4):
+  x86-64 como la PS5; reutilizar el guest de 32 bits y el
   puente host de port/ps5 con otro SDK (OpenOrbis/GoldHEN) y otra salida de vídeo.
   53 **Switch**: aarch64 de 64 bits; exige o bien la pasada de 64 bits del núcleo o un
   proceso de 32 bits (a verificar en libnx/Horizon). 54 **PS3**: Cell PowerPC big-endian
