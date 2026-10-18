@@ -64,8 +64,11 @@ def main():
             command = [sys.executable, __file__, '--platform', 'ps5', *rest]
             print('== ps5', flush=True)
             subprocess.run(command, cwd=ROOT, check=True)
+        elif Path('D:/ReKHCoM-build/ps5/ps5env.qcow2').is_file() and '--package' in rest and '--dry-run' not in rest:
+            print('== ps5 (Debian VM)', flush=True)
+            subprocess.run([sys.executable, 'port/tools/build_ps5_vm.py'], cwd=ROOT, check=True)
         else:
-            print('PS5 skipped: run --platform ps5 on a native Linux host with PS5 build dependencies and ROMs.', flush=True)
+            print('PS5 skipped: needs a native Linux host, or the prepared VM image (D:/ReKHCoM-build/ps5) with --package.', flush=True)
         return
     if args.platform == 'ps5':
         command = [sys.executable, 'port/ps5/build_ps5.py', 'all', '--jobs', str(args.jobs)]
@@ -86,7 +89,10 @@ def main():
             print(json.dumps({'platform': 'ps5', 'commands': [command]}, indent=2))
         else:
             if not sys.platform.startswith('linux'):
-                p.error('PS5 builds require native Linux; use the prepared Linux VM or a Linux host')
+                if args.package:
+                    subprocess.run([sys.executable, 'port/tools/build_ps5_vm.py', '--version', args.release_version], cwd=ROOT, check=True)
+                    return
+                p.error('PS5 builds require native Linux; use the prepared Linux VM (--package builds it there) or a Linux host')
             subprocess.run(command, cwd=ROOT, check=True, env=dict(os.environ, PYTHONUTF8='1'))
         return
     if args.platform == 'linux':
