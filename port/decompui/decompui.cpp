@@ -26,12 +26,14 @@
 #include <cfloat>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <map>
 #include <string>
 #include <vector>
 
+#define PORT_PAD_AXIS_BASE 100
 #include "../include/port/port_zoom.h"
 #include "imgui.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -51,7 +53,7 @@ namespace fs = std::filesystem;
 #include "save_file.h"
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.9"
+#define REKHCOM_VERSION "v1.9.2"
 #endif
 
 static bool sSpanish;
@@ -227,6 +229,7 @@ struct Setting {
 
 /* Same keys, order and defaults as port/src/port_config.c. */
 static const Setting kSettings[] = {
+    { "undub", 0 },
     { "cheat_unlock_riku", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
@@ -1124,6 +1127,12 @@ static void PageSound() {
     changed |= SliderRow(T("Volumen general", "Master volume"), Ini("master_volume"), 0, 100, "%d%%");
     changed |= SliderRow(T("Volumen música", "Music volume"), Ini("music_volume"), 0, 100, "%d%%");
     changed |= SliderRow(T("Volumen efectos", "Effects volume"), Ini("sfx_volume"), 0, 100, "%d%%");
+    ImGui::Separator();
+    ImGui::BeginDisabled(!sState[2].installed);
+    changed |= ToggleRow(T("Undub (voces japonesas)", "Undub (Japanese voices)"),
+                         T("Requiere la ROM japonesa original verificada en roms/B8CJ.gba. Se aplica al iniciar el juego; conserva los textos europeos o ingleses.",
+                           "Requires the verified original Japanese ROM in roms/B8CJ.gba. Applied when starting the game; keeps European or English text."), Ini("undub"));
+    ImGui::EndDisabled();
     ImGui::EndChild();
     if (changed)
         SaveIni();
@@ -1227,6 +1236,14 @@ static const char* PadName(int b) {
                                          "\xE2\x86\x91", "\xE2\x86\x93", "\xE2\x86\x90", "\xE2\x86\x92" };
     if (b < 0)
         return "-";
+    if (b >= PORT_PAD_AXIS_BASE) {
+        int encoded = b - PORT_PAD_AXIS_BASE, axis = encoded / 2;
+        static char label[24];
+        static const char* axes[] = { "Left X", "Left Y", "Right X", "Right Y", "LT", "RT" };
+        if (axis >= SDL_GAMEPAD_AXIS_COUNT) return "?";
+        std::snprintf(label, sizeof(label), "%s %s", axes[axis], (encoded & 1) ? "-" : "+");
+        return label;
+    }
     if (b < (int)(sizeof(names) / sizeof(names[0])))
         return names[b];
     return SDL_GetGamepadStringForButton((SDL_GamepadButton)b);
@@ -1256,13 +1273,33 @@ static bool CaptureEvent(const SDL_Event& ev) {
         SaveIni();
         return true;
     }
+    if (ev.type == SDL_EVENT_GAMEPAD_AXIS_MOTION && sCapturePad && std::abs(ev.gaxis.value) > 16000) {
+        Ini(sCapture.c_str()) = PORT_PAD_AXIS_BASE + ev.gaxis.axis * 2 + (ev.gaxis.value < 0);
+        sCapture.clear();
+        SaveIni();
+        return true;
+    }
     if (ev.type == SDL_EVENT_GAMEPAD_ADDED)
         SDL_OpenGamepad(ev.gdevice.which);
     return false;
 }
 
+static bool BindingConflict(const char* key, bool pad) {
+    const int value = Ini(key);
+    if (pad ? value < 0 : value == 0)
+        return false;
+    for (const Setting& st : kSettings) {
+        const bool isPad = std::strncmp(st.key, "pad_", 4) == 0;
+        const bool isKeyboard = std::strncmp(st.key, "kb_", 3) == 0;
+        if (std::strcmp(st.key, key) != 0 && ((pad && isPad) || (!pad && isKeyboard)) && Ini(st.key) == value)
+            return true;
+    }
+    return false;
+}
+
 static void BindCell(const char* key, bool pad) {
     bool waiting = sCapture == key;
+    bool conflict = !waiting && BindingConflict(key, pad);
     std::string label;
     if (waiting) {
         label = T("Pulsa...", "Press...");
@@ -1278,10 +1315,16 @@ static void BindCell(const char* key, bool pad) {
     label += key;
     if (waiting)
         ImGui::PushStyleColor(ImGuiCol_Button, kAccent);
+    if (conflict)
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.82f, 0.18f, 0.16f, 1.0f));
     if (ImGui::Button(label.c_str(), ImVec2(-FLT_MIN, 0))) {
         sCapture = key;
         sCapturePad = pad;
     }
+    if (conflict && ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s", T("Conflicto: otra acción usa esta asignación", "Conflict: another action uses this binding"));
+    if (conflict)
+        ImGui::PopStyleColor();
     if (waiting)
         ImGui::PopStyleColor();
 }
@@ -1310,12 +1353,10 @@ static void PageControls() {
     BeginCard("controls");
     Eyebrow(T("CONTROLES", "CONTROLS"));
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
-    ImGui::TextWrapped("%s", T("Haz clic en una casilla y pulsa la tecla o el botón. Supr la deja vacía, Esc cancela. "
-                               "Los gatillos y el stick izquierdo funcionan siempre como L/R y cruceta; el stick derecho "
-                               "cambia de carta (izquierda/derecha = L/R), arriba acumula (L+R).",
-                               "Click a cell and press the key or button. Delete clears it, Esc cancels. The "
-                               "triggers and the left stick always work as L/R and the d-pad; the right stick "
-                               "changes cards (left/right = L/R), up stocks (L+R)."));
+    ImGui::TextWrapped("%s", T("Haz clic en una casilla y pulsa la tecla, botón o eje. Supr la deja vacía, Esc cancela. "
+                               "Las asignaciones repetidas se marcan en rojo.",
+                               "Click a cell and press a key, button, or axis. Delete clears it, Esc cancels. "
+                               "Duplicate bindings are marked in red."));
     ImGui::PopStyleColor();
     if (ImGui::BeginTable("binds", 4, ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_PadOuterX)) {
         ImGui::TableSetupColumn(T("Acción", "Action"), ImGuiTableColumnFlags_WidthStretch, 1.3f);

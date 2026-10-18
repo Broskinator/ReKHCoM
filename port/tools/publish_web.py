@@ -13,7 +13,7 @@ import shutil
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
-FILES = ['index.html', 'web.css', 'web.js', 'runtime.js', 'i18n.js', '.nojekyll', 'LICENSE.md', 'SDL-LICENSE.txt',
+FILES = ['index.html', 'web.css', 'web.js', 'runtime.js', 'i18n.js', 'favicon.png', 'apple-touch-icon.png', '.nojekyll', 'LICENSE.md', 'SDL-LICENSE.txt',
          'fonts/KHMenu.otf', 'fonts/ComicHearts.otf', 'fonts/NOTICE.md']
 FILES += [f'rekhcom-{r}.{ext}' for r in ['eu','us','jp'] for ext in ['js','wasm']]
 
@@ -31,7 +31,7 @@ def main():
     (site / '.nojekyll').write_bytes(b'')
     shutil.copy2(ROOT / 'LICENSE.md', site / 'LICENSE.md')
     shutil.copy2(args.sdl_source / 'LICENSE.txt', site / 'SDL-LICENSE.txt')
-    for name in ['web.css','web.js','runtime.js','i18n.js']:
+    for name in ['web.css','web.js','runtime.js','i18n.js','favicon.png','apple-touch-icon.png']:
         shutil.copy2(ROOT / 'port/web' / name, site / name)
     # Version the shell too: a cached alpha1 web.js must never drive alpha2.
     html = (ROOT / 'port/web/index.html').read_text(encoding='utf-8')
@@ -48,7 +48,7 @@ def main():
             raise RuntimeError('Invalid Wasm binary: ' + str(wasm))
         if f'rekhcom-{region}.wasm' not in (site / f'rekhcom-{region}.js').read_text():
             raise RuntimeError('JS/Wasm filename mismatch')
-    manifest = {'version':'web-alpha3', 'source_commit':git('rev-parse','HEAD'),
+    manifest = {'version':'v1.9.2-web-alpha', 'source_commit':git('rev-parse','HEAD'),
                 'source_dirty':bool(git('diff','--name-only')),
                 'built_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(), 'files':{}}
     for name in FILES:

@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+## v1.9.2 — 2026-10-18
+
+- Battle HUD at every aspect ratio (issues #7, #8, #9): Sora's stocked cards
+  now sit under his HP gauge instead of floating mid-screen; the opponent's
+  deck (Leon's tutorial, Axel, Larxene, Riku, Vexen, Marluxia, Ansem, Lexaeus)
+  docks to the bottom-right corner and its stocked cards under its HP.
+  Checked at 3:2, 4:3, 5:4, 16:10 (Steam Deck), 16:9, 21:9 and 32:9.
+- Cutscenes: the scene where Sora meets Leon continues its floor and walls past
+  the map edge in the wide view (original tiles only) instead of a flat band.
+- Two original-game bugs that behaved differently on PC: Guard Armor's defeat
+  read an uninitialised flag, and World Inspect could write past its list.
+
+## v1.9.1 — 2026-10-17
+
+- Field Heartless no longer vanish in plain sight near the edges of the wide
+  view and respawn elsewhere: the original game removes them when they leave the
+  240x160 screen, and that limit now follows the visible area on PC.
+- Title screen: the illustration fades into white at the edges of wide screens
+  using the original art only (text, logo and Riku's title are unchanged).
+- Android alpha: launcher icon and HD text option. Web alpha: site icons.
+
 ## v1.9 — 2026-10-17
 
 - Riku: single-circle opening, native tile borders in eligible cutscenes,

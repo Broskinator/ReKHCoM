@@ -22,11 +22,21 @@ void PortCrashHandlerInstall(void) {}
 void PortBiosFaultInstall(void) { PortLog("Android: explicit BIOS_PTR helpers; no x86 fault recovery"); }
 int __aeabi_idiv0(int value) { (void)value; return 0; }
 long long __aeabi_ldiv0(long long value) { (void)value; return 0; }
-void PortHdTextDraw(SDL_Renderer* r,int layer,float x,float y,float scale) {
-    (void)r; (void)layer; (void)x; (void)y; (void)scale;
-}
-void PortHdTextHudDigits(SDL_Renderer* r,float x,float y,float scale) {
-    (void)r; (void)x; (void)y; (void)scale;
+unsigned PortSjisToCodepoint(unsigned code) {
+    JNIEnv* env=(JNIEnv*)SDL_GetAndroidJNIEnv();
+    jclass type; jmethodID method; jbyteArray bytes; jstring charset,text;
+    jbyte input[2]={(jbyte)(code>>8),(jbyte)code}; jchar output;unsigned result=0;
+    if(!env)return 0;
+    bytes=(*env)->NewByteArray(env,2);(*env)->SetByteArrayRegion(env,bytes,0,2,input);
+    charset=(*env)->NewStringUTF(env,"Shift_JIS");type=(*env)->FindClass(env,"java/lang/String");
+    method=(*env)->GetMethodID(env,type,"<init>","([BLjava/lang/String;)V");
+    text=(jstring)(*env)->NewObject(env,type,method,bytes,charset);
+    if(!(*env)->ExceptionCheck(env) && text && (*env)->GetStringLength(env,text)==1) {
+        (*env)->GetStringRegion(env,text,0,1,&output);result=output;
+    } else (*env)->ExceptionClear(env);
+    if(text)(*env)->DeleteLocalRef(env,text);
+    (*env)->DeleteLocalRef(env,type);(*env)->DeleteLocalRef(env,charset);(*env)->DeleteLocalRef(env,bytes);
+    return result;
 }
 int PortCodepointToSjis(unsigned cp) {
     JNIEnv* env;

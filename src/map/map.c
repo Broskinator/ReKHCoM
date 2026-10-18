@@ -118,6 +118,9 @@ static u8 sMapFixEventDelay;
 static NewGameSlotMenuWork* sNewGameSlotMenuWork;
 static LoadGameMenuWork* sLoadGameMenuWork;
 static MenuMsgWork* sMenuMsgWork;
+#ifdef PLATFORM_PC
+static u8 sMapSaveTargetSlot;
+#endif
 
 void MapEnmPlaceInView(MapEnmArgs* arg) {
     FldPos* pos = &arg->pos;
@@ -6442,7 +6445,39 @@ s32 MapSaveSlideInX(MapSaveWork* work) {
     return 1;
 }
 
+#ifdef PLATFORM_PC
+static void MapSaveSelectTarget(MapSaveWork* work, u8 slot) {
+    u8 summarySlot;
+    sMapSaveTargetSlot = slot & 1;
+    if (gGameState.flags & GAME_FLAG_RIKU) {
+        summarySlot = sMapSaveTargetSlot + 2;
+        if (sMapSaveTargetSlot)
+            LoadBgMap(0, gMapSaveRikuFile2Map, sizeof(gMapSaveRikuFile2Map));
+        else
+            LoadBgMap(0, gMapSaveRikuFile1Map, sizeof(gMapSaveRikuFile1Map));
+        if (SaveRepairFileSmall(sMapSaveTargetSlot) != SAVE_OK) work->textSlotCount = 0;
+    } else {
+        summarySlot = sMapSaveTargetSlot;
+        if (sMapSaveTargetSlot)
+            LoadBgMap(0, gMapSaveSoraFile2Map, sizeof(gMapSaveSoraFile2Map));
+        else
+            LoadBgMap(0, gMapSaveSoraFile1Map, sizeof(gMapSaveSoraFile1Map));
+        if (SaveRepairFileLarge(sMapSaveTargetSlot) != SAVE_OK) work->textSlotCount = 0;
+    }
+    MapSaveShowSummary(work, summarySlot);
+}
+#endif
+
 s32 MapSaveInput(MapSaveWork* work) {
+#ifdef PLATFORM_PC
+    if (GetKeysRepeat() & DPAD_UP) {
+        MapSaveSelectTarget(work, sMapSaveTargetSlot ^ 1);
+        m4aSongNumStart(SONG_SYS_CLICK);
+    } else if (GetKeysRepeat() & DPAD_DOWN) {
+        MapSaveSelectTarget(work, sMapSaveTargetSlot ^ 1);
+        m4aSongNumStart(SONG_SYS_CLICK);
+    }
+#endif
     if (GetKeysRepeat() & DPAD_LEFT) {
         if (work->confirmCursor != MAP_CONFIRM_CURSOR_YES) {
             work->confirmCursor = MAP_CONFIRM_CURSOR_YES;
@@ -6469,19 +6504,19 @@ s32 MapSaveInput(MapSaveWork* work) {
 
         if (gGameState.flags & GAME_FLAG_RIKU) {
             if (gGameState.flags & GAME_FLAG_SECOND_FILE) {
-                SaveWriteFileSmall(1);
-                MapSaveShowSummary(work, 3);
+                SaveWriteFileSmall(sMapSaveTargetSlot);
+                MapSaveShowSummary(work, sMapSaveTargetSlot + 2);
             } else {
-                SaveWriteFileSmall(0);
-                MapSaveShowSummary(work, 2);
+                SaveWriteFileSmall(sMapSaveTargetSlot);
+                MapSaveShowSummary(work, sMapSaveTargetSlot + 2);
             }
         } else {
             if (gGameState.flags & GAME_FLAG_SECOND_FILE) {
-                SaveWriteFileLarge(1);
-                MapSaveShowSummary(work, 1);
+                SaveWriteFileLarge(sMapSaveTargetSlot);
+                MapSaveShowSummary(work, sMapSaveTargetSlot);
             } else {
-                SaveWriteFileLarge(0);
-                MapSaveShowSummary(work, 0);
+                SaveWriteFileLarge(sMapSaveTargetSlot);
+                MapSaveShowSummary(work, sMapSaveTargetSlot);
             }
         }
 
@@ -6536,6 +6571,9 @@ s32 MapSaveSlideOutY(MapSaveWork* work) {
 }
 
 void Task_MapSave_0(MapSaveWork* work) {
+#ifdef PLATFORM_PC
+    sMapSaveTargetSlot = (gGameState.flags & GAME_FLAG_SECOND_FILE) ? 1 : 0;
+#endif
     gFieldState->flags |= FIELD_FLAG_FREEZE_PLAYER;
     gFieldState->flags |= FIELD_FLAG_FREEZE_ENEMIES;
     gMapRoomState->flags |= ROOM_FLAG_SAVE_MENU_OPEN;

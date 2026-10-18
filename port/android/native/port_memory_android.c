@@ -3,7 +3,7 @@
  *
  * Every region is committed at its hardware address, so the game's register
  * macros, VRAM/OAM pointers and the pointers baked into ROM data are valid
- * as-is. Android reserves the hardware range in a 32-bit process; it keeps
+ * as-is. It reserves the hardware range in a 32-bit process (Android, Linux); it keeps
  * the 0x02000000-0x0E010000 range free when the program starts.
  */
 #include <sys/mman.h>
@@ -17,7 +17,7 @@
 
 /* Keep original 32-bit GBA pointers, reserving virtual space without
  * replacing existing mappings. Only hardware regions receive physical pages. */
-_Static_assert(sizeof(void*) == 4, "Android core currently requires a 32-bit ABI");
+_Static_assert(sizeof(void*) == 4, "the native core requires a 32-bit ABI");
 
 /* Stand-in for the BIOS area behind BIOS_PTR(): reads see the open-bus value
    left by the BIOS (the opcode after the SWI return), writes are undone every
@@ -46,15 +46,24 @@ int PortMemoryInit(void) {
     size_t page=(size_t)sysconf(_SC_PAGESIZE), i;
     void* space=mmap((void*)low,high-low,PROT_NONE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
     if (space!=(void*)low) {
+        FILE* maps=fopen("/proc/self/maps","r");
+        char line[256];
+        PortLog("GBA space: mmap returned %p", space);
+        /* What already lies in the hardware range (diagnostics on devices). */
+        while(maps && fgets(line,sizeof(line),maps)) {
+            unsigned long a=0,b=0;
+            if(sscanf(line,"%lx-%lx",&a,&b)==2 && a<high && b>low) PortLog("GBA space taken: %s",line);
+        }
+        if(maps) fclose(maps);
         if (space!=MAP_FAILED) munmap(space,high-low);
-        PortFatal("Android cannot reserve the GBA address space safely");
+        PortFatal("Cannot reserve the GBA address space 0x02000000-0x0E010000");
         return 0;
     }
     for(i=0;i<sizeof(regions)/sizeof(regions[0]);i++) {
         uintptr_t start=regions[i].base & ~(uintptr_t)(page-1);
         size_t bytes=(regions[i].base+regions[i].bytes-start+page-1)&~(page-1);
         if(mprotect((void*)start,bytes,PROT_READ|PROT_WRITE)!=0) {
-            PortFatal("Android cannot commit GBA region %u",(unsigned)i);
+            PortFatal("Cannot commit GBA region %u",(unsigned)i);
             return 0;
         }
     }

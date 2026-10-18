@@ -51,6 +51,9 @@ void PortHudBegin(int ax, int ay);
 /* Same, choosing the side from where (x, y) lies on the GBA screen: for
    pointers and highlights that refer to an anchored HUD element. */
 void PortHudBeginAt(int x, int y);
+/* Deck cards that rise to the stock: vertical anchor follows their height. */
+void PortHudBeginFollowY(int ax);
+int PortSpriteShiftY(int entry, int y);
 /* Bookkeeping for the HUD layer: the sprite entry just queued, and which
    entry an OAM slot was built from. */
 void PortSpriteTag(int entry);
@@ -110,6 +113,8 @@ enum { PORT_SIDE_STRETCH, PORT_SIDE_COLOR, PORT_SIDE_TEXTURE, PORT_SIDE_BLUR, PO
        PORT_SIDE_BLUR_BANDS, PORT_SIDE_GROUND_BANDS, PORT_SIDE_MOVIE,
        PORT_SIDE_SCENE_BANDS /* the PPU's own margin (scenery carried on) with the frame's bars drawn on */ };
 void PortSideStyle(int style);
+/* Only the illustrated title BG; never text, logo, sprites or other modes. */
+void PortTitleArtFade(int enabled);
 void PortMenuPanelSide(int side);
 /* Status has authored BG panels; foreground badges must never fill margins. */
 int PortMenuBackgroundOnly(void);
@@ -144,6 +149,8 @@ void PortSceneNarrow(int on);
    top-left. NULL clears it. */
 typedef int (*PortWorldTileFunc)(int bg, int tx, int ty);
 void PortSetBgWorld(int bg, PortWorldTileFunc fn, int originX, int originY);
+/* Event scenes: continue the map past its edges along the isometric diagonal. */
+void PortSetBgIsoExtend(int bg, int enabled);
 #endif
 
 typedef struct BgWork {

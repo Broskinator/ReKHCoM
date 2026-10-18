@@ -71,6 +71,32 @@ el `#ifdef` y si la ruta se ejecuta; los comentarios con `@bug?` son hipótesis.
 - **Intro congelada o guardado fallando en emuladores/flashcarts:** no se incluyen
   como bugs originales sin identificar dispositivo, versión y reproducción.
 
+## Revisión de los @bug de la decomp (17/10/2026)
+
+Revisadas las 110 marcas de Pheenoh (más 5 del port) por categoría:
+
+- NULL y división por cero: emulados como en GBA por `port_biosfault.c`
+  (cada sitio se registra una vez como `bios: ...` en kh_com.log).
+- Lecturas pasado el final de gráficos: los assets están en sus direcciones de
+  ROM, así que leen los mismos bytes que el cartucho.
+- Corrupción dentro de la memoria GBA emulada (paleta liberada dos veces en
+  Intercambio de barajas, `LoadPalette` fuera de PLTT, descripciones de más de
+  60 slots, objeto de derrota usado tras liberarlo): misma memoria y mismo
+  tamaño de estructuras que en GBA, mismo resultado. Se conservan.
+- Jugabilidad original (límites de jefes, banderas de Selección de mundos,
+  carta 450): se conservan.
+- Corregidos en PC por comportarse distinto que en GBA:
+  - `mode_worldinspect.c`: con los 12 pisos llenos escribía una entrada pasado
+    el final de `sWorldInspectWorlds` (en PC la vecina no es la de la GBA).
+  - `bos_ga.c`: la derrota de Guard Armor leía `param.flags` sin inicializar;
+    elige entre el final con deriva (Guard Armor) y el fundido desde negro
+    (Darkside, que lo pone a 1). Fijado a 0.
+
+Lógicas atadas a la pantalla de 240x160 en la vista ancha: solo los enemigos
+del campo cambiaban (corregido en v1.9.1). Objetos del mapa (colisión fuera de
+vista), Pooh (`IsRectOutsideScreen` ya usa VIEW_*), cámaras de combate,
+cartas y menús se comportan como en GBA.
+
 ## Próximo cierre del catálogo
 
 - [ ] Reproducir BBA y Dark Aura/Sleight Lock en las tres ROM suministradas.

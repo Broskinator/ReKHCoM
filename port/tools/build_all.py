@@ -2,6 +2,11 @@
 
 python port/tools/build_all.py --dry-run
 python port/tools/build_all.py --package --release-version v1.8.3
+python port/tools/build_all.py --platform all --package --release-version v1.9.3
+
+--platform all runs windows, linux, android and web in turn (web uses the
+D:/ReKHCoM-build folders unless --emsdk/--web-sdl-build/--web-work are given).
+Linux needs the sysroots prepared once (port/progress/LINUX.md).
 """
 import argparse
 import hashlib
@@ -18,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--platform', choices=['windows', 'android', 'web'], default='windows')
+    p.add_argument('--platform', choices=['windows', 'linux', 'android', 'web', 'all'], default='windows')
     p.add_argument('--versions', nargs='+', choices=['eu', 'us', 'jp'], default=['eu', 'us', 'jp'])
     p.add_argument('--jobs', type=int, default=3, help='Total compiler workers; region builds run sequentially')
     p.add_argument('--out-prefix', default='build/rel-')
@@ -34,6 +39,40 @@ def main():
     args = p.parse_args()
     if args.jobs < 1:
         p.error('--jobs must be positive')
+    if args.platform == 'all':
+        rest = [a for a in sys.argv[1:] if a not in ('all',)]
+        rest = [a for i, a in enumerate(rest) if not (a == '--platform')]
+        cache = Path('D:/ReKHCoM-build')
+        for plat in ('windows', 'linux', 'android', 'web'):
+            extra = []
+            if plat == 'web':
+                for flag, value in (('--emsdk', cache / 'toolchain/emsdk'), ('--web-sdl-build', cache / 'web-sdl'),
+                                    ('--web-work', cache / 'web'),
+                                    ('--sdl', ROOT.parent / 'toolchain/android/SDL3-3.4.18')):
+                    if flag not in rest:
+                        extra += [flag, str(value)]
+            command = [sys.executable, __file__, '--platform', plat, *rest, *extra]
+            if plat in ('android', 'web'):
+                command = [c for c in command if c != '--package']
+                if '--release-version' in command:
+                    i = command.index('--release-version')
+                    del command[i:i + 2]
+            print('==', plat, flush=True)
+            subprocess.run(command, cwd=ROOT, check=True)
+        return
+    if args.platform == 'linux':
+        if args.package:
+            commands = [[sys.executable, 'port/tools/build_linux.py', '--package', args.release_version,
+                         '--jobs', str(args.jobs)]]
+        else:
+            commands = [[sys.executable, 'port/tools/build_linux.py', '--arch', arch, '--versions', *args.versions,
+                         '--jobs', str(args.jobs)] for arch in ('i386', 'armhf')]
+        if args.dry_run:
+            print(json.dumps({'platform': 'linux', 'commands': commands}, indent=2))
+        else:
+            for command in commands:
+                subprocess.run(command, cwd=ROOT, check=True, env=dict(os.environ, PYTHONUTF8='1'))
+        return
     if args.platform == 'web':
         if not all([args.emsdk, args.sdl, args.web_sdl_build, args.web_work]):
             p.error('Web requires --emsdk, --sdl (source), --web-sdl-build and --web-work')

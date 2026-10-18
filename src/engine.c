@@ -129,7 +129,7 @@ u8 DrawSpriteAllocatedTiles(s16 x, s16 y, void* sprite, void* obj, void* palette
     work->entries[work->entryCount].x = x;
 #endif
 #ifdef PLATFORM_PC
-    work->entries[work->entryCount].y = y + gPortSpriteShiftY;
+    work->entries[work->entryCount].y = y + PortSpriteShiftY(work->entryCount, y);
 #else
     work->entries[work->entryCount].y = y;
 #endif
@@ -180,7 +180,7 @@ u8 DrawSpriteFrameTiles(s16 x, s16 y, void* obj, void* palette, ObjAffine* affin
         work->entries[work->entryCount].x = x;
 #endif
 #ifdef PLATFORM_PC
-        work->entries[work->entryCount].y = y + gPortSpriteShiftY;
+        work->entries[work->entryCount].y = y + PortSpriteShiftY(work->entryCount, y);
 #else
         work->entries[work->entryCount].y = y;
 #endif
@@ -252,7 +252,7 @@ void DrawSpriteUnsorted(s16 x, s16 y, void* sprite, void* tiles, void* palette, 
 #endif
     z = 0;
 #ifdef PLATFORM_PC
-    work->entries[work->entryCount].y = y + gPortSpriteShiftY;
+    work->entries[work->entryCount].y = y + PortSpriteShiftY(work->entryCount, y);
 #else
     work->entries[work->entryCount].y = y;
 #endif
@@ -285,7 +285,7 @@ void DrawSpriteUnsortedAffine(u16 x, u16 y, void* sprite, void* tiles, void* pal
 #endif
     z = 0;
 #ifdef PLATFORM_PC
-    work->entries[work->entryCount].y = y + gPortSpriteShiftY;
+    work->entries[work->entryCount].y = y + PortSpriteShiftY(work->entryCount, y);
 #else
     work->entries[work->entryCount].y = y;
 #endif
@@ -2069,6 +2069,7 @@ void BgReset() {
         for (b = 0; b < 4; b++) {
             PortSetBgShiftX(b, 0);
             PortSetBgWorld(b, NULL, 0, 0);
+            PortSetBgIsoExtend(b, 0);
         }
     }
 #endif
@@ -2215,6 +2216,7 @@ void SetBgMapBlocks(s32 bg, const void* src, u8 w, u8 h) {
 #ifdef PLATFORM_PC
     PortSetBgShiftX(bg, 0);
     PortSetBgWorld(bg, NULL, 0, 0);
+    PortSetBgIsoExtend(bg, 0);
 #endif
     if (gDispCnt & DISPCNT_MODE_MASK) {
         if (bg == 2 || bg == 3) {
@@ -2555,6 +2557,10 @@ u8 SetBgMapBlocksLz77(s32 bg, const void* src, u8 w, u8 h) {
     BgEntry* entry;
     s32 count;
     s32 i;
+
+#ifdef PLATFORM_PC
+    PortSetBgIsoExtend(bg, 0);
+#endif
 
     if ((gDispCnt & DISPCNT_MODE_MASK) != 0 && (bg == 2 || bg == 3)) {
         return FALSE;

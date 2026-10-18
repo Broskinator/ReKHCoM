@@ -44,8 +44,6 @@ def main():
         "assets/fonts/ComicHearts.otf": ROOT / "port/assets/fonts/ComicHearts.otf",
         "assets/fonts/NOTICE.md": ROOT / "port/assets/fonts/NOTICE.md",
         "assets/hd-hud/pilot/enemy-hp-frame-v2.png": ROOT / "port/assets/hd-hud/pilot/enemy-hp-frame-v2.png",
-        "assets/hd-hud/pilot/README.md": ROOT / "port/assets/hd-hud/pilot/README.md",
-        "assets/hd-hud/pilot/PROMPTS.md": ROOT / "port/assets/hd-hud/pilot/PROMPTS.md",
         "assets/hd-hud/pilot/label-hp-v2.png": ROOT / "port/assets/hd-hud/pilot/label-hp-v2.png",
         "assets/hd-hud/pilot/label-vt-v2.png": ROOT / "port/assets/hd-hud/pilot/label-vt-v2.png",
         "assets/hd-hud/pilot/label-lp-v1.png": ROOT / "port/assets/hd-hud/pilot/label-lp-v1.png",

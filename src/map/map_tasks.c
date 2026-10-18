@@ -419,11 +419,21 @@ TaskDesc gTaskDescMapGmk00 = {
     sizeof(MapGmk00Work),
 };
 
+/*
+ * Field enemies are removed once they leave the screen (plus a small margin).
+ * The PC wide view shows more than 240x160, so the bounds follow the visible
+ * area; otherwise enemies vanish in plain sight and respawn elsewhere.
+ */
+#define MAP_ENM_OFF_LEFT (gFieldState->x + VIEW_LEFT * 0x100 - 0x1800)
+#define MAP_ENM_OFF_RIGHT (gFieldState->x + (VIEW_RIGHT - DISPLAY_WIDTH) * 0x100 + 0x10800)
+#define MAP_ENM_OFF_TOP (gFieldState->y + VIEW_TOP * 0x100 - 0x800)
+#define MAP_ENM_OFF_BOTTOM (gFieldState->y + (VIEW_BOTTOM - DISPLAY_HEIGHT) * 0x100 + 0xC000)
+
 s32 MapEnm00CheckOffscreen(MapEnmWork* work) {
     FldPos* pos = &work->obj.fieldPosition;
 
-    if (work->obj.fieldPosition.x < gFieldState->x - 0x1800 || work->obj.fieldPosition.x > gFieldState->x + 0x10800 ||
-        pos->y + pos->z < gFieldState->y - 0x800 || pos->y + pos->z > gFieldState->y + 0xC000) {
+    if (work->obj.fieldPosition.x < MAP_ENM_OFF_LEFT || work->obj.fieldPosition.x > MAP_ENM_OFF_RIGHT ||
+        pos->y + pos->z < MAP_ENM_OFF_TOP || pos->y + pos->z > MAP_ENM_OFF_BOTTOM) {
         work->update = NULL;
         ColliderSetDisabled(&work->collider, TRUE);
         return TRUE;
@@ -729,7 +739,7 @@ void Task_MapEnm00_3(MapEnmWork* work) {
 }
 
 void MapEnm01CheckOffscreen(MapEnm01Work* work) {
-    if (work->enm.obj.fieldPosition.x < gFieldState->x - 0x1800 || work->enm.obj.fieldPosition.x > gFieldState->x + 0x10800) {
+    if (work->enm.obj.fieldPosition.x < MAP_ENM_OFF_LEFT || work->enm.obj.fieldPosition.x > MAP_ENM_OFF_RIGHT) {
         if (work->wasOnScreen) {
             work->enm.update = NULL;
         }
@@ -1285,7 +1295,7 @@ void Task_MapEnm03_3(MapEnmWork* work) {
 }
 
 void MapEnm04CheckOffscreen(MapEnm01Work* work) {
-    if (work->enm.obj.fieldPosition.x < gFieldState->x - 0x1800 || work->enm.obj.fieldPosition.x > gFieldState->x + 0x10800) {
+    if (work->enm.obj.fieldPosition.x < MAP_ENM_OFF_LEFT || work->enm.obj.fieldPosition.x > MAP_ENM_OFF_RIGHT) {
         if (work->wasOnScreen) {
             work->enm.update = NULL;
         }

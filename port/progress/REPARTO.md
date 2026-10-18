@@ -1,3 +1,133 @@
+## Codex — 18/10/2026
+
+Encargo completo en **port/progress/CODEX_TAREAS.md**: issues #14 (Undub desde
+la ROM JP, prioridad), #13 (reasignar controles, gatillos), #6, respuestas de
+#5/#4/#3, menú de opciones con el selector del debug oficial, truco "modo
+debug", revisar unstock, #12, tira del fondo en arenas GBA y RetroAchievements.
+Codex puede integrar a `main` y responder issues con pruebas verificadas;
+Claude prepara releases y Pages. No cerrar issues sin autorización del usuario.
+Claude sigue con los fondos de escenas en lotes de 10 con el usuario.
+
+## Reparto vigente — 18/10/2026 (sustituye a los anteriores)
+
+### Actualización Codex — 18/10/2026
+
+La rama local `codex/issues` contiene el primer bloque de issues y mejoras del
+encargo en [CODEX_TAREAS.md](CODEX_TAREAS.md); el detalle de estado y pruebas
+está al final de ese archivo. Build Windows EU/US/JP PASS; launcher 11/11,
+Re:CoM 80 combinaciones, zoom 56 y aspecto 56 PASS. Undub está implementado
+pero falta comparar dumps de voz. #12 está en `main`, pero queda opcional y de
+baja prioridad: antes de incluirlo en una release, mover la activación a
+Opciones > Experimental y probarlo manualmente. La tira de las arenas y la
+integración de RetroAchievements siguen pendientes. Codex integró este bloque
+en `main` (commit `ae40c79de`), sin
+crear paquete ni release. Próxima versión anotada para preparación: **v1.9.3**;
+la última estable pública sigue siendo v1.9.2.
+
+El usuario autorizó a Codex a responder issues con cambios probados. Ya se
+publicaron respuestas en #4 (56 casos de zoom, incluido 2880×1800), #5 (16:10
+1280×800 → 256×160 a ×5) y #6 (multiplicadores Beginner/Proud). Siguen abiertos;
+no se cerró ninguno ni se creó una release.
+
+El usuario confirmó como referencia el repositorio abierto
+[RaceWave46](https://github.com/DomazinUS/RaceWave46) (GPL-3.0). La
+investigación y límites de los sets están en
+[RETROACHIEVEMENTS.md](RETROACHIEVEMENTS.md); no se debe presentar el diseño
+de popup como una integración funcional hasta que estén conectados los sets.
+
+Estable pública: **v1.9.2** (Windows + Android alpha + Web alpha, un archivo
+por plataforma). Todo lo demás en borrador. Issues #7, #8 y #9 cerradas.
+
+### Esta sesión (con el usuario, revisión visual)
+1. Escenas 16:9: extensión del suelo con tiles originales (PortSetBgIsoExtend,
+   lista kIsoScenes en port_ppu.c). 44 de 194 eventos cambian con KHCOM_ISOALL;
+   muchos mapas tienen un vacío oscuro a propósito. Revisar en lotes de 10 con
+   antes/después y cuadros de cámara; solo se añaden a la lista las aprobadas.
+   Aprobada: 004 (Sora conoce a Leon). Informe: build/scene-review/run1/report.json.
+2. Arenas tamaño GBA (Guard Armor, Dragon Maleficent): asoma una tira del fondo
+   en el borde derecho.
+3. Issues rápidas: #5 (16:10 ya cubierto por la vista Automática: responder),
+   #4 (más niveles de zoom: comprobar los pasos actuales y responder).
+
+### Sesión Linux (local_2950e992, parada por límite de uso)
+4. Linux x86 (PC y Steam Deck, i686 con librerías incluidas) y Anbernic
+   (armhf, probablemente salida directa a /dev/fb0). Ver el plan en su sesión.
+
+### Sesión nueva: menú de opciones, trucos y mejoras PS2
+5. Selector del menú de opciones con el efecto del menú de depuración oficial
+   (al que se entra con CodeBreaker EU 320348DC 0006, US/JP 3203493C 0006).
+6. Trucos: primera opción "Entrar al modo debug".
+7. Revisar la implementación de devolver cartas acumuladas (unstock, de
+   ggdrn/KH_COM_VITA) y mover estas mejoras a un título propio dentro de las
+   mejoras PS2, como el de Experimental.
+8. Resto de trucos y editor de cartas (región + banco + ranura, checksum).
+
+### Sesión nueva: RetroAchievements (investigación)
+9. Ver si el port puede usar rcheevos con los logros de la versión GBA:
+   como variante/hack de la ROM o al menos funcionando en local. No se puede
+   enlazar como la GBA original; documentar qué se puede y qué no.
+
+### Sesión nueva: issues de jugadores
+10. #12 elegir ranura de guardado en el juego, #6 texto de la dificultad
+    Orgulloso, #3 falta el texto grande del HUD, #2 funciones de la historia del
+    remake (valorar alcance antes de prometer nada).
+
+### Usuario
+11. Aprobar la limpieza: worktrees khcom-fix y khcom-codex-perf (ya en main),
+    rama remota codex/ppu-performance, carpetas build/ de revisiones viejas
+    (~30 GB) y el checkout khcom (su trabajo sin commitear está en
+    backups/khcom-hdhud-wip-20261014). Nunca las carpetas ReKHCoM-vX.
+12. Pruebas en dispositivos reales: Android ARM, web en móvil, Steam Deck.
+13. Partidas completas de Sora y Reverse/Rebirth (validación de jugabilidad).
+
+### Opcional / más adelante
+14. Revisión visual de menús a 21:9 y 32:9 (muy opcional).
+15. Tráiler nuevo con material de la versión terminada.
+
+Cerrados hoy: pantalla de título (difuminado, se da por terminada), zoom x3
+(no había error), commits PPU de Codex (ya estaban en main), bugs @bug de la
+decomp revisados (2 corregidos para PC), lógicas atadas a la pantalla GBA
+(solo los enemigos del campo, corregido en v1.9.1).
+
+## Titulo — correccion de enfoque del usuario (17/10/2026)
+
+- Usuario rechazo el cristal/guante imaginado de ec2493eb7. Eliminados del
+  arbol actual el parche y la receta anteriores; NO integrar esa propuesta.
+- Nueva referencia entregada solo como guia del difuminado, NO para
+  convertirla a pixel art ni pegarla en el juego. Se hizo un ensayo privado
+  de alineacion, descartado; NO es el asset actual ni entra en el motor.
+- Propuesta vigente: difuminar el ORIGINAL hacia blanco en los ultimos seis
+  pixeles derechos/inferiores, usando su propia paleta y cuadricula nativa.
+  Receta fade_title_edges.py, asset solo mascara gris en assets/title-study.
+- Verificado: rectangulo234x154 identico, posiciones intactas,654 pixeles
+  modificados en los bordes, colores de paleta original, bordes finales blancos.
+- Preview privado build/title-widescreen-review/fade-study/
+  title-original-faded-preview.png. MAQUETA, NO integrado, sin release nueva.
+- Revisar resultado visual antes de integrar; luego paleta viva/fades y BG
+  exclusivamente, sin modificar texto/menu/sprites. v1.9 publica intacta.
+
+## v1.9 PUBLICADA — 17/10/2026
+
+- Release publica estable Windows: https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9
+- Android Alpha3 ARMv7 actualizado adjunto a la misma release. Build EU/US/JP,
+  parser48 y touch PASS; NO se comprobo en ARM fisico. Mantener etiqueta alpha.
+- Web Alpha3: motores EU/US/JP nuevos; Wasm validado/compilado en Node, JS sin
+  errores de sintaxis. Pages desplegado; verificacion HTTP/SHA en reporte adjunto.
+  https://matymeatboy.github.io/ReKHCoM/
+- Windows: PPU206, Riku7, launcher11/import6, fondos circular/rectangular, input
+  opt-in/hold/foco/overlay y guardado aislado PASS. Paquetes sin ROM/save/config.
+- Devolver acumuladas: runtime OFF inerte; ON devuelve1 y3 cartas asentadas y
+  recupera mano21. Fixture3: KHCOM_BATTLE=0:1:0, modo200:hudhp:100, STOCK300/450/600,
+  UNSTOCK760-800. Intento con300/360/420 solo acumulo2 por combate/animacion:
+  no asumir que cada input del harness logra acumular una carta.
+- Instalacion local del BAT actualizada; hashes de saves, INI y estados intactos.
+  Copia del savestate anterior + EXE exacto guardada PRIVADA para diagnostico.
+- Git main y tagv1.9 actualizados al cierre; snapshot previo preservado como tag
+  v1.9-preview-20261017. Nunca subir fixtures privados de build/ ni arte extraido.
+- Linux/Steam Deck/RG34XX siguen SIN binario nativo: ABI32/64 pendiente.
+  Otros cheats/editor, menus relativos experimentales y zoomx3 reportado pendientes.
+  No anunciar esas tareas como terminadas ni compatibilidad de dispositivos no probados.
+
 ## Cierre v1.9 autorizado (17/10/2026)
 
 - Usuario autoriza publicar v1.9 tras corregir los bordes de Riku; sustituye

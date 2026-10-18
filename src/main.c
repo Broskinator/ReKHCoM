@@ -33,6 +33,8 @@
 #include "mode_pooh_api.h"
 #include <stddef.h>
 #include <string.h>
+
+extern const char* GetModeName(void);
 #include "engine_math.h"
 #include "gba/defines.h"
 #include "gba/macro.h"
@@ -85,6 +87,17 @@ extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, g
 
 void PortHarnessSong(int song) {
     m4aSongNumStart((u16)song);
+}
+
+/* The original debug menu resets volatile game progress, so make it available
+   through the cheat page only from the safe title screen. */
+int PortDebugModeAvailable(void) {
+    return strcmp(GetModeName(), "mode_title") == 0;
+}
+
+void PortDebugModeEnter(void) {
+    if (PortDebugModeAvailable())
+        ModeRequest(&gModeDebug, 0);
 }
 
 const char* PortHarnessModeName(void) {

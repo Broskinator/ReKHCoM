@@ -697,6 +697,12 @@ void mode_worldinspect_0() {
 
     for (i = 0, slot = sWorldInspectFloorCount; i <= 13; i++) {
         if ((gGameState.availableWorlds & sWorldinspectMsgs[i].flags) != 0) {
+#ifdef PLATFORM_PC
+            /* The list is full: on PC the next variable is not the GBA's. */
+            if (slot > 11) {
+                break;
+            }
+#endif
             // @bug Writes past the end of sWorldInspectWorlds when the floors fill it.
             sWorldInspectWorlds[slot++] = sWorldinspectMsgs[i].world;
 

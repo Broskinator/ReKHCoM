@@ -1464,7 +1464,13 @@ static u8 cardbattle_1(CardBattleWork* work, void* task) {
 
 static void cardbattle_2(CardBattleWork* work) {
     if (gCardBattleState->cardsOpen && gRikuBtlWork->hcEffect != HC_EFFECT_SLEIGHTBLIND && work->stockCount != 0 && work->stockValue != 0) {
+#ifdef PLATFORM_PC
+        PortHudBegin(1, -1); /* the opponent's stocked values: top-right, under its HP */
+#endif
         DrawSprite(work->x, 4, gStockValueFrames[0], work->tiles, work->palette, NULL, SPRITE_FLAG_NO_MOSAIC, 12);
+#ifdef PLATFORM_PC
+        PortHudEnd();
+#endif
     }
 
     TaskPoolDraw(&work->tasks);
@@ -2919,9 +2925,10 @@ u8 RikuCardUpdate(CardDisplayWork* work, void* task) {
 #ifdef PLATFORM_PC
 static void card_2_Body(CardDisplayWork* work);
 
-/* Deck cards: bottom-left corner of the screen. */
+/* The opponent's deck (humanoid bosses, Leon's tutorial): bottom-right
+   corner, mirroring Sora's; stocked cards follow up to the boss's HP. */
 static void card_2(CardDisplayWork* work) {
-    PortHudBegin(-1, 1);
+    PortHudBeginFollowY(1);
     card_2_Body(work);
     PortHudEnd();
 }
@@ -3056,9 +3063,9 @@ static void card_2(CardDisplayWork* work) {
 #ifdef PLATFORM_PC
 static void NO_Card_2_Body(CardDisplayWork* work);
 
-/* Deck cards: bottom-left corner of the screen. */
+/* The opponent's deck: bottom-right corner. */
 void NO_Card_2(CardDisplayWork* work) {
-    PortHudBegin(-1, 1);
+    PortHudBeginFollowY(1);
     NO_Card_2_Body(work);
     PortHudEnd();
 }
@@ -3955,9 +3962,9 @@ void UpdateRikuReloadGauge(CardDisplayWork* work) {
 #ifdef PLATFORM_PC
 static void Reload_Card_2_Body(CardDisplayWork* work);
 
-/* Reload card: bottom-left corner of the screen. */
+/* The opponent's reload card: bottom-right corner, with its deck. */
 void Reload_Card_2(CardDisplayWork* work) {
-    PortHudBegin(-1, 1);
+    PortHudBeginFollowY(1);
     Reload_Card_2_Body(work);
     PortHudEnd();
 }

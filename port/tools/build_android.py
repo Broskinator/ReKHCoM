@@ -75,6 +75,7 @@ def main():
     run([cmake,'-S',ROOT/'port/android','-B',native,'-G','Ninja',f'-DCMAKE_MAKE_PROGRAM={ninja}',
          f'-DCMAKE_TOOLCHAIN_FILE={ndk}/build/cmake/android.toolchain.cmake','-DANDROID_ABI='+args.abi,
          '-DANDROID_PLATFORM=android-21',f'-DSDL_SOURCE_DIR={sdl}','-DCMAKE_BUILD_TYPE=Release',
+         f'-DFREETYPE_SOURCE_DIR={ROOT.parent / "toolchain/freetype-2.14.3"}',
          '-DREGIONS='+';'.join(args.regions)])
     run([ninja,'-C',native,'-j',args.jobs])
     for region in args.regions:
@@ -131,6 +132,9 @@ android {
         source=native/('SDL/'+name if name=='libSDL3.so' else name)
         shutil.copy2(source,libs/name);run([strip,'--strip-unneeded',libs/name])
     notices=stage/'app/src/main/assets/licenses';notices.mkdir(parents=True,exist_ok=True)
+    shutil.copytree(ROOT/'port/assets/fonts',stage/'app/src/main/assets/fonts',dirs_exist_ok=True)
+    for name in ['FTL.TXT','GPLv2.TXT']:
+        shutil.copy2(ROOT.parent/'toolchain/freetype-2.14.3/docs'/name,notices/('FreeType-'+name))
     for source,name in [(sdl/'LICENSE.txt','SDL3.txt'),(ROOT/'LICENSE.md','ReKHCoM.md'),(ROOT/'port/android/assets/NOTICE.md','touch.md')]:shutil.copy2(source,notices/name)
     run([stage/'gradlew.bat','--no-daemon','--max-workers=2','clean','assembleDebug'],cwd=stage)
     apk=stage/'app/build/outputs/apk/debug/app-debug.apk'
@@ -143,12 +147,12 @@ android {
             assert member in z.namelist()
             assert hashlib.sha256(z.read(member)).digest()==hashlib.sha256((libs/name).read_bytes()).digest(), ('stale APK library',name)
     out=ROOT/'build/releases';out.mkdir(exist_ok=True)
-    target=out/f"ReKHCoM-v1.9-android-alpha3-{args.abi}{'-smoke' if args.smoke else ''}-debug.apk"
+    target=out/f"ReKHCoM-v1.9.2-android-alpha{'-smoke' if args.smoke else ''}.apk"
     shutil.copy2(apk,target)
     digest=hashlib.sha256(target.read_bytes()).hexdigest()
     target.with_suffix('.apk.sha256').write_text(f'{digest}  {target.name}\n')
     (out/('android-build-manifest'+suffix+'.json')).write_text(json.dumps({'apk':target.name,'sha256':digest,'regions':args.regions,
-        'abi':args.abi,'version':'1.9-android-alpha3','debug_signed':True,'test_only':args.smoke,'runtime_tested':False},indent=2))
+        'abi':args.abi,'version':'1.9.2-android-alpha','debug_signed':True,'test_only':args.smoke,'runtime_tested':False},indent=2))
     print('Built (runtime verification still required):',target,digest)
 
 
