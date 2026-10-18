@@ -1,10 +1,16 @@
 # Tareas de Codex — 18/10/2026
 
-Encargo del usuario: Codex hace las issues y mejoras de abajo; **Claude integra**.
+Encargo del usuario: Codex hace las issues y mejoras de abajo y puede integrarlas en main; Claude publica.
 
 ## Reglas
 
-- Codex **solo commitea**, nunca hace push ni publica (releases, Pages, issues).
+- **Actualización 18/10 (usuario): Codex también puede integrar.** Puede
+  llevar su propio trabajo a `main`: `git fetch`, rebase sobre `origin/main`,
+  compilar EU/US/JP sin errores, probar lo tocado y hacer push a `main`.
+  No reescribir historia ajena ni forzar pushes. Si `main` trae trabajo de
+  Claude en los mismos archivos, integrar con cuidado y avisar en este archivo.
+- Publicar releases, actualizar GitHub Pages y responder/cerrar issues lo sigue
+  haciendo Claude (las respuestas van redactadas en CODEX_RESPUESTAS.md).
 - Trabajar en un worktree nuevo desde `origin/main`, p. ej.
   `git -C khcom worktree add ../khcom-codex -b codex/issues origin/main`,
   con una rama por tarea si conviene (`codex/undub`, `codex/remap`...).
