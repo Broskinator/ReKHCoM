@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-18",
+  "build_commit": "ee753f7c1",
+  "review_scope": "Initial EU/Sora samples, 16:9 and 32:9; not full fights or all phases",
+  "initially_reviewed": 28,
+  "total_backgrounds": 28,
+  "preserve_user_accepted": ["HOOK", "MONSTRO"],
+  "improvements": [
+    {"arena": "GUARD_ARMOR", "name": "Guard Armor", "done": false, "plan": "Continuar patio y baldosas; eliminar cortes negros y copias completas del patio."},
+    {"arena": "DARKSIDE", "name": "Darkside", "done": false, "plan": "Extender playa/cielo y evitar cortes o repeticiones de la capa del jefe."},
+    {"arena": "OOGIE_BOOGIE", "name": "Oogie Boogie", "done": false, "plan": "Continuar paredes y suelo sin duplicar la ruleta, la puerta ni al jefe."},
+    {"arena": "JAFAR", "name": "Jafar", "done": false, "plan": "Extender lava y muros respetando los pilares móviles y sus colisiones."},
+    {"arena": "DRAGON_MALEFICENT", "name": "Maléfica dragón", "done": false, "plan": "Continuar salón y baldosas; impedir que se repita la capa del dragón."},
+    {"arena": "URSULA", "name": "Úrsula", "done": false, "plan": "Extender caverna y suelo manteniendo una sola Úrsula y un solo tridente."},
+    {"arena": "MARLUXIA_2", "name": "Marluxia final", "done": false, "plan": "Separar plataforma/jefe del fondo y revisar sus distintos modos y transiciones."},
+    {"arena": "TRICKMASTER", "name": "Trickmaster / Alicia", "done": false, "plan": "Solo continuar el patrón de ajedrez hacia abajo hasta cubrir el negro; conservar la habitación."}
+  ],
+  "evidence": {
+    "baseline": "build/codex-evidence/battle-scenery-audit-20261018",
+    "long": "build/codex-evidence/battle-scenery-long-20261018",
+    "baseline_runs_passed": 56,
+    "baseline_runs_total": 56,
+    "baseline_images": 168,
+    "long_runs_passed": 8,
+    "long_runs_total": 8,
+    "long_images": 24
+  }
+}

@@ -1,3 +1,21 @@
+## Actualización: auditoría de escenarios de combate — 18/10/2026
+
+Inventario y contador en [BATTLE_SCENERY_AUDIT.md](BATTLE_SCENERY_AUDIT.md),
+con estado estructurado en `BATTLE_SCENERY_AUDIT.json`.
+**28/28 escenarios distintos inspeccionados inicialmente; 0/8 mejoras terminadas.**
+56/56 ejecuciones cortas EU/Sora en 16:9 y 32:9 (168 capturas), más 8/8
+largas de Hook/Jafar/Oogie/Marluxia final (24 capturas). No se modificó el juego.
+El usuario considera que Hook y Monstro ya se ven bien: conservarlos.
+Alicia/Trickmaster: solo extender hacia abajo el ajedrez, sin rehacer la sala.
+Otros siete pendientes: Guard Armor, Darkside, Oogie, Jafar, Maléfica dragón,
+Úrsula y Marluxia final. No rellenar por defecto los vacíos de todos los mapas.
+Las capturas no certifican todas las fases, campañas ni regiones.
+
+La nightly `nightly-2026.10.18` ya está publicada como pre-release; la estable
+sigue en v1.9.2. #12 tiene respuesta pública con la limitación de gameplay
+pendiente. RetroAchievements sigue pendiente de implementación; esta auditoría
+no sustituye ese encargo.
+
 # Tareas de Codex — 18/10/2026
 
 Encargo del usuario: Codex hace las issues y mejoras de abajo y puede integrarlas en main; Claude prepara las releases.

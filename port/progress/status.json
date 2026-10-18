@@ -246,6 +246,11 @@
       "name": "HD HUD: full validation",
       "done": 0,
       "notes": "Pilot smoke passed EU/US/JP; complete-inventory region, geometry and performance gates pending."
+    },
+    {
+      "name": "Battle scenery: authored extensions",
+      "done": 0,
+      "notes": "0/8 improvements complete; 28/28 distinct backgrounds initially inspected in EU/Sora, 16:9 and 32:9. Hook and Monstro preserved per user feedback. See BATTLE_SCENERY_AUDIT.md and .json; initial sampling is not full fight validation."
     }
   ]
 }
