@@ -81,8 +81,7 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     festoneado (tira 24x4) se repite volteado arriba sobre muro liso.
     APROBADO TOTALMENTE por el usuario (18/10); activo por defecto (KHCOM_TOPCLOSE=0
     lo apaga). Lógica en LOGICA_APROBADOS.md.
-11. [~] **Claude:** #18. El savestate 3 a 16:9 y 32:9 muestra la banda completa;
-    falta que el usuario señale la zona exacta.
+11. [x] **Claude:** #18 Mapamundi: el usuario confirma que ya quedó arreglado (18/10).
 12. [~] **Codex:** 057 playa corregida para vistas amplias; código y capturas listos,
     falta revisión visual final de la nueva extensión.
 13. [~] **Codex:** 061 hielo corregida para vistas amplias; código y capturas listos,
