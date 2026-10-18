@@ -231,6 +231,7 @@ struct Setting {
 static const Setting kSettings[] = {
     { "undub", 0 },
     { "cheat_unlock_riku", 0 },
+    { "experimental_save_point_slot_select", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
@@ -345,6 +346,14 @@ static void SaveIni() {
     f << "# Kingdom Hearts: Chain of Memories (PC) settings\n";
     for (const Setting& s : kSettings)
         f << s.key << "=" << sIni[s.key] << "\n";
+    /* keys this launcher does not know (newer game options) are kept */
+    for (const auto& kv : sIni) {
+        bool known = false;
+        for (const Setting& s : kSettings)
+            known = known || kv.first == s.key;
+        if (!known)
+            f << kv.first << "=" << kv.second << "\n";
+    }
 }
 
 /* Language the European game starts in (the language screen's cursor):
@@ -1176,6 +1185,11 @@ static void PageExtras() {
                          T("Solo Sora: mantén V, pulsa el stick derecho o inclínalo hacia abajo durante medio segundo para cancelar la acumulación y devolver esas cartas a la mano. No cancela técnicas en curso. Desactivado por defecto.",
                            "Sora only: hold V, the right-stick button or right stick down for half a second to cancel the stock and return those cards to the hand. Cannot cancel a sleight in progress. Off by default."),
                          Ini("experimental_unstock"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Elegir ranura en los puntos de guardado", "Choose the file at save points"),
+                         T("En el cristal de guardado, arriba/abajo cambia entre las dos ranuras del personaje. Guardar en la otra la convierte en la partida actual. Desactivado por defecto.",
+                           "At the save crystal, up/down switches between the character's two files. Saving to the other one makes it the current game. Off by default."),
+                         Ini("experimental_save_point_slot_select"));
     ImGui::Separator();
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("En pruebas: pueden tener fallos visuales.", "Being tested: expect visual glitches."));

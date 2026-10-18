@@ -6448,24 +6448,28 @@ s32 MapSaveSlideInX(MapSaveWork* work) {
 
 #ifdef PLATFORM_PC
 static void MapSaveSelectTarget(MapSaveWork* work, u8 slot) {
-    u8 summarySlot;
+    int ok;
     sMapSaveTargetSlot = slot & 1;
+    /* the level, time and floor tiles (0x40-0x280) go back to the window's
+       own blank ones, so an empty file does not keep the other file's numbers */
+    RequestDma3Copy((u8*)gSaveSlotBgTiles + 0x40, (u8*)GetBgCharBase(0) + 0x40, 0x240);
+    work->textSlotCount = 0;
+    /* as when the window opens: the file's own summary, only if it holds a save */
     if (gGameState.flags & GAME_FLAG_RIKU) {
-        summarySlot = sMapSaveTargetSlot + 2;
         if (sMapSaveTargetSlot)
             LoadBgMap(0, gMapSaveRikuFile2Map, sizeof(gMapSaveRikuFile2Map));
         else
             LoadBgMap(0, gMapSaveRikuFile1Map, sizeof(gMapSaveRikuFile1Map));
-        if (SaveRepairFileSmall(sMapSaveTargetSlot) != SAVE_OK) work->textSlotCount = 0;
+        ok = SaveRepairFileSmall(sMapSaveTargetSlot) == SAVE_OK;
     } else {
-        summarySlot = sMapSaveTargetSlot;
         if (sMapSaveTargetSlot)
             LoadBgMap(0, gMapSaveSoraFile2Map, sizeof(gMapSaveSoraFile2Map));
         else
             LoadBgMap(0, gMapSaveSoraFile1Map, sizeof(gMapSaveSoraFile1Map));
-        if (SaveRepairFileLarge(sMapSaveTargetSlot) != SAVE_OK) work->textSlotCount = 0;
+        ok = SaveRepairFileLarge(sMapSaveTargetSlot) == SAVE_OK;
     }
-    MapSaveShowSummary(work, summarySlot);
+    if (ok)
+        MapSaveShowSummary(work, sMapSaveTargetSlot + ((gGameState.flags & GAME_FLAG_RIKU) ? 2 : 0));
 }
 #endif
 
@@ -6503,6 +6507,16 @@ s32 MapSaveInput(MapSaveWork* work) {
         DisableBg(0);
     } else if (GetKeysPressed() & A_BUTTON) {
         m4aSongNumStart(SONG_SYS_SAVELOAD);
+#ifdef PLATFORM_PC
+        /* Saving to the other file makes it the current one, as loading it
+           would: its summary and the header are written for that file only,
+           later automatic saves go there, and the crystal opens on it again
+           (the flag is stored in the save, so this lasts between sessions). */
+        if (targetSlot)
+            gGameState.flags |= GAME_FLAG_SECOND_FILE;
+        else
+            gGameState.flags &= ~GAME_FLAG_SECOND_FILE;
+#endif
 
         if (gGameState.flags & GAME_FLAG_RIKU) {
             SaveWriteFileSmall(targetSlot);
