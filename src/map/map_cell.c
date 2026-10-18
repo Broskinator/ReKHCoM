@@ -157,12 +157,22 @@ static int MapWorldTile(int bg, int tx, int ty) {
             return e;
         if (bg == 1)
             return sMapRoomDef->map[0x110];
-        /* behind the edge, plain wall rather than a piece of its ornaments:
-           the first cell below that continues unchanged into the next one */
+        /* behind the edge, plain wall (bare stripes: each tile column the
+           same in both rows of the cell), never a piece of its ornaments;
+           failing that, the first cell that continues unchanged into the next */
         {
-            int i, r;
+            int i, r, c;
             cell = MapGetCell(hx, 0);
-            for (r = 0; r < 6 && MapCellBareWall(MapGetCell(hx, r + 1)); r++) {
+            for (r = 0; r < 40 && MapCellBareWall(MapGetCell(hx, r)); r++) {
+                MapCell* a = MapGetCell(hx, r);
+                for (c = 0; c < 4 && a->bg2Map[c] == a->bg2Map[32 + c]; c++) {}
+                if (c == 4) {
+                    cell = a;
+                    r = -1;
+                    break;
+                }
+            }
+            for (r = r < 0 ? 99 : 0; r < 6 && MapCellBareWall(MapGetCell(hx, r + 1)); r++) {
                 MapCell* a = MapGetCell(hx, r);
                 MapCell* b = MapGetCell(hx, r + 1);
                 for (i = 0; i < 8 && a->bg2Map[(i >> 2) * 32 + (i & 3)] == b->bg2Map[(i >> 2) * 32 + (i & 3)]; i++) {}
