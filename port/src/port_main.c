@@ -757,7 +757,11 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                 bd = c;
             }
         }
-        SDL_FRect r = { x0, y, x1 - x0, GBA_SCREEN_H * scale };
+        /* Snap both boundaries, not just the width: truncating a
+           fractional x plus a fractional width left the final column
+           black in windows such as 1920x997 (software SDL renderer). */
+        float marginLeft = SDL_ceilf(x0 - 0.5f), marginRight = SDL_ceilf(x1 - 0.5f);
+        SDL_FRect r = { marginLeft, y, marginRight - marginLeft, GBA_SCREEN_H * scale };
         SDL_SetRenderDrawColor(sRenderer, (bd >> 16) & 255, (bd >> 8) & 255, bd & 255, 255);
         SDL_RenderFillRect(sRenderer, &r);
         /* Title bands use the same native row grid as the picture, at
@@ -766,7 +770,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
             uint32_t c = PortTitleBandPixel(side, i);
             if (c) {
                 float top = PixelEdge(y, i, scale), bottom = PixelEdge(y, i + 1, scale);
-                SDL_FRect bandRect = { x0, top, x1 - x0, bottom - top };
+                SDL_FRect bandRect = { marginLeft, top, marginRight - marginLeft, bottom - top };
                 SDL_SetRenderDrawColor(sRenderer, (c >> 16) & 255, (c >> 8) & 255, c & 255, 255);
                 SDL_RenderFillRect(sRenderer, &bandRect);
             }

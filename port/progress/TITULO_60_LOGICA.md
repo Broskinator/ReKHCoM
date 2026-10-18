@@ -21,3 +21,10 @@ Evidencia: build/title60-regression/{region}-{size}/{before,after}/out_*.png.
 Copia jugable separada: ReKHCoM-prueba-titulo-60 en la raíz; Probar titulo 60.bat
 y Comparar titulo 60 anterior.bat (KHCOM_TITLE_BANDS_OFF=1 solo diagnóstico).
 Aprobado visualmente por el usuario el 18/10/2026.
+
+Comprobación adicional pedida tras aprobar: 12 comparaciones / 24 ejecuciones
+EU/US/JP a 4K, vertical, 640x480 y 1920x997; 3 comparaciones / 6 ejecuciones
+al redimensionar 640x480 → 3840x2160 en caliente. El caso de altura impar
+reveló una columna negra final por truncar x y ancho fraccionarios en SDL
+software: ambos extremos se redondean en la misma cuadrícula. Las barras y
+el fondo ahora llegan al último píxel; el rectángulo original sigue idéntico.
