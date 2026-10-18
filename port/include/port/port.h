@@ -132,7 +132,7 @@ typedef struct PortConfig {
     int hideTouchControls;      /* hide gameplay panels; keep access to options */
     int cheatOneHit;            /* cheat: enemies fall to one hit */
     int cheatInfiniteHp;        /* cheat: the player loses no HP */
-    int moogleNotice;           /* field: show the moogle points picked up and the total */
+    int moogleNotice;           /* experimental, off: show the moogle points picked up and the total */
 } PortConfig;
 
 extern PortConfig gPortConfig;

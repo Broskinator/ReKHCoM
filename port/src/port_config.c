@@ -70,7 +70,6 @@ PortConfig gPortConfig = {
         SDL_GAMEPAD_BUTTON_DPAD_RIGHT, SDL_GAMEPAD_BUTTON_NORTH, SDL_GAMEPAD_BUTTON_WEST,
         SDL_GAMEPAD_BUTTON_RIGHT_STICK,
     },
-    .moogleNotice = 1,
 };
 
 #define CONFIG_VERSION PORT_ZOOM_CONFIG_VERSION
@@ -117,7 +116,7 @@ static const Key sKeys[] = {
     { "sfx_volume", &gPortConfig.sfxVolume, 0, 100 },
     { "dodge_button", &gPortConfig.dodgeButton, 0, 1 },
     { "stock_button", &gPortConfig.stockButton, 0, 1 },
-    { "moogle_notice", &gPortConfig.moogleNotice, 0, 1 },
+    { "experimental_moogle_notice", &gPortConfig.moogleNotice, 0, 1 },
     { "experimental_unstock", &gPortConfig.unstockButton, 0, 1 },
     { "hd_text", &gPortConfig.hdText, 0, 1 },
     { "card_hud_raise", &gPortConfig.cardHudRaise, 0, 16 },

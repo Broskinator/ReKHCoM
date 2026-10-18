@@ -247,7 +247,7 @@ static const Setting kSettings[] = {
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
-    { "dodge_button", 1 },   { "stock_button", 1 }, { "moogle_notice", 1 }, { "hd_text", 0 },
+    { "dodge_button", 1 },   { "stock_button", 1 }, { "experimental_moogle_notice", 0 }, { "hd_text", 0 },
     { "card_hud_raise", 8 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 }, { "experimental_unstock", 0 },
     { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
@@ -1199,11 +1199,6 @@ static void PageExtras() {
                            "Gamepad Y, keyboard D: stock cards or sleights without pressing L and R together."),
                          Ini("stock_button"));
     ImGui::Separator();
-    changed |= ToggleRow(T("Aviso de puntos moguri", "Moogle points notice"),
-                         T("Al recoger puntos moguri en el campo, muestra cuántos y el total.",
-                           "Picking up moogle points on the field shows how many and the total."),
-                         Ini("moogle_notice"));
-    ImGui::Separator();
     ImGui::EndChild();
     ImGui::Spacing();
     BeginCard("experimental");
@@ -1217,6 +1212,11 @@ static void PageExtras() {
                          T("En el cristal de guardado, arriba/abajo cambia entre las dos ranuras del personaje. Guardar en la otra la convierte en la partida actual. Desactivado por defecto.",
                            "At the save crystal, up/down switches between the character's two files. Saving to the other one makes it the current game. Off by default."),
                          Ini("experimental_save_point_slot_select"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Aviso de puntos moguri", "Moogle points notice"),
+                         T("Al recoger puntos moguri en el campo, muestra cuántos y el total. Desactivado por defecto.",
+                           "Picking up moogle points on the field shows how many and the total. Off by default."),
+                         Ini("experimental_moogle_notice"));
     ImGui::Separator();
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("En pruebas: pueden tener fallos visuales.", "Being tested: expect visual glitches."));

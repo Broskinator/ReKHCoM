@@ -53,7 +53,6 @@ enum {
     ITEM_FPS,
     ITEM_DODGE,
     ITEM_STOCK,
-    ITEM_MOOGLE_NOTICE,
     ITEM_SAVEBANK,
     ITEM_UNDUB,
     ITEM_MUSIC,
@@ -65,6 +64,7 @@ enum {
     ITEM_HD2D,
     ITEM_SMOOTHAUDIO,
     ITEM_SAVE_SLOT_EXPERIMENTAL,
+    ITEM_MOOGLE_NOTICE,
     ITEM_HIDE_TOUCH,
     ITEM_RECOM_EXTRAS, /* section heading, not selectable */
     ITEM_UNSTOCK,
@@ -160,6 +160,14 @@ static int ItemVisible(int item) {
     }
 }
 
+/* how many rows the items [from, to) take: hidden ones take none */
+static int VisibleBetween(int from, int to) {
+    int n = 0;
+    for (; from < to; from++)
+        n += ItemVisible(from) != 0;
+    return n;
+}
+
 /* Strings: UTF-8, one row per item, columns in LANG_* order. */
 static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "View", "Vue", "Ansicht", "Visuale", "Vista", "表示" },
@@ -183,8 +191,6 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
-    { "Moogle points notice", "Avis des points mog", "Mogry-Punkte anzeigen", "Avviso punti moguri",
-      "Aviso de puntos moguri", "モーグリポイント通知" },
     { "Save bank", "Banque de sauvegarde", "Speicherbank", "Banco di salvataggio", "Banco de partidas",
       "セーブバンク" },
     { "Japanese voices (restart)", "Voix japonaises (relancer)", "Japanische Stimmen (Neustart)",
@@ -200,6 +206,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Choose save slot at save points", "Choisir un emplacement aux points de sauvegarde",
       "Speicherplatz am Speicherpunkt wählen", "Scegli uno slot ai punti di salvataggio",
       "Elegir ranura en puntos de guardado", "セーブポイントでスロットを選択" },
+    { "Moogle points notice", "Avis des points mog", "Mogry-Punkte anzeigen", "Avviso punti moguri",
+      "Aviso de puntos moguri", "モーグリポイント通知" },
     { "Hide touch controls", "Masquer les commandes tactiles", "Touch-Steuerung ausblenden",
       "Nascondi controlli touch", "Ocultar controles táctiles", "タッチ操作を非表示" },
     { "Re:CoM improvements", "Améliorations Re:CoM", "Re:CoM-Verbesserungen", "Miglioramenti Re:CoM", "Mejoras de Re:CoM", "Re:CoMの改善" },
@@ -1893,7 +1901,7 @@ static void DrawMenu(int l, int width, int height) {
         valueW = SDL_max(valueW, TextWidth(value));
     }
     barW = SDL_min(labelW + valueW + 40, width - barX - 6);
-    rows = SDL_min(PageEnd() - PageFirst(), (height - top - 14) / rowH);
+    rows = SDL_min(VisibleBetween(PageFirst(), PageEnd()), (height - top - 14) / rowH);
     /* Keep the pad beneath the list and above help. Compact resolutions scroll
      * the list instead of overlapping it or drawing over the character art. */
     if (sPage == PAGE_CONTROLS && sControlPad && height - top - 14 >= rowH + 80)
@@ -1902,8 +1910,9 @@ static void DrawMenu(int l, int width, int height) {
         sScroll = PageFirst();
     if (sCursor < sScroll)
         sScroll = sCursor;
-    if (sCursor >= sScroll + rows)
-        sScroll = sCursor - rows + 1;
+    /* rows are visible items: the hidden ones take no room */
+    while (VisibleBetween(sScroll, sCursor + 1) > rows && sScroll < sCursor)
+        sScroll++;
 
     /* white, the picture at the bottom right */
     Fill(0, 0, width, height, 0xFFFFFFFFu);
@@ -1930,7 +1939,7 @@ static void DrawMenu(int l, int width, int height) {
     DrawText(sPage == PAGE_REMATCH ? sRematchTitle[l] : sPage == PAGE_CHEATS ? sCheatsTitle[l] : sPage == PAGE_PS2 ? sPs2Title[l] : sPage == PAGE_CONTROLS ? (l == LANG_ES ? (sControlPad ? "Controles - Mando" : "Controles - Teclado") : (sControlPad ? "Controls - Gamepad" : "Controls - Keyboard")) : sPage == PAGE_NEWGAME ? sNgTitle[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
     if (sScroll > PageFirst())
         DrawText("\xE2\x86\x91", barX + barW - 8, 2, MENU_INK, 0xFFD8D8D8u);
-    for (i = sScroll, y = top; i < sScroll + rows && i < PageEnd(); i++, y += rowH) {
+    for (i = sScroll, y = top; y < top + rows * rowH && i < PageEnd(); i++, y += rowH) {
         int on = ItemEnabled(i), sel = i == sCursor;
         if (!ItemVisible(i)) {
             y -= rowH;
@@ -1958,7 +1967,7 @@ static void DrawMenu(int l, int width, int height) {
         }
         DrawText(value, x, y - 2, face, 0xFFD8D8D8u);
     }
-    if (sScroll + rows < PageEnd())
+    if (VisibleBetween(i, PageEnd()) > 0)
         DrawText("\xE2\x86\x93", barX + barW - 8, top + rows * rowH - 2, MENU_INK, 0xFFD8D8D8u);
     if (sPage == PAGE_CONTROLS && sControlPad)
         DrawControlDiagram(barX, top + rows * rowH + 2, barW, height - 15 - (top + rows * rowH + 2));
