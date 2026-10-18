@@ -64,9 +64,7 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
    EU/US/JP compilan. Evidencia de Claude en CLAUDE_CIERRE_20261018.md.
 7. [x] **Claude:** persistencia del selector implementada en e9f053595;
    launcher registra la clave y conserva también claves desconocidas.
-8. [x] **Claude:** persistencia auditada: las claves del juego están todas en el
-   launcher, que conserva además las desconocidas; selector de ranura en
-   Experimental (juego y launcher). Regresión test_settings_keys.py. fbaa9ef16.
+
 9. [x] **Claude:** último slot corregido en e9f053595 mediante la bandera nativa
    guardada en la partida. Comprobación conjunta sigue en el punto 6.
 10. [~] **Claude:** #17. Sala exacta reproducida (roomType 18, semilla 138815524,
@@ -110,12 +108,7 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     transiciones; conservar lo ya resuelto y verificar variantes pendientes.
 29. [ ] **Codex:** revisar variantes de planta de Mapamundi y conservación de
     objetos de sala en transiciones, según PENDIENTES.md histórico.
-30. [x] **Claude:** Trucos en 2fdca4ca7: un golpe, vida infinita, nivel 99 con
-    todos los bonos, cartas de mapa (9 c/u, máximo del juego) y colección de
-    combate llena (999, 99 por carta). Detalle en CLAUDE_CIERRE_20261018.md.
-31. [x] **Claude:** mejoras Vita: aviso de puntos moguri 77e2eac4f (opcional);
-    revancha de jefes y tutoriales de combate 8ebdb493e (Opciones → Revancha de
-    jefes; estado guardado y restaurado, nada del combate se conserva).
+
 32. [ ] **Claude:** Linux real y Steam Deck: X11/XWayland, sonido, controles y
     rendimiento. Hay pruebas VM; no repetir la afirmación antigua de «sin binario».
 33. [ ] **Claude:** Anbernic RG34XX real: kernel/32 bits, framebuffer, orientación,
@@ -158,22 +151,11 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     6d0f33df1; pruebas de entrada, persistencia y controles Web correctas.
     Odin 2 y otros dispositivos físicos pendientes de validar (35/37).
 
-46. [x] **Claude (traspaso desde Codex, 18/10 11:56):** issue #16 cerrado en 4287b8053 (trabajo de Codex, 15/15 vistas EU/US/JP); respondido en el issue. Codex sin
-    commits desde 11:09 ni archivos tocados desde 11:14 (>40 min). Su WIP sin
-    commitear en khcom-codex (port_ppu.c: limpiar el mundo solo con sOverlay;
-    port/tools/test_door_views.py) se recoge tal cual, se verifica y se commitea
-    con crédito; no se rehace. Codex: al volver, no repitas este punto.
+## Publicado en Nightly 4 (18/10, v1.9.3-nightly.20261018.4)
 
-47. [x] **Claude:** pestaña «Editor de partidas» del launcher en b7d491ef5: aviso
-    y confirmación, versión/banco/archivo, nivel/HP/CP/AP/DP/moguri, cartas de
-    mapa y colección con sprites ×1 del cartucho, lista de cambios, copia en
-    backups/ y checksums; test_save_editor.py (el juego carga lo editado).
-
-48. [x] **Claude (traspaso desde Codex inactivo, 18/10 12:20):** diagrama de mando
-    estilo Xbox 360 en Controles del launcher (b3a0f1e7d), según CONTROLADOR_LOGICA.md:
-    rejilla 64x36 a escala entera sin suavizado; A/B/X/Y con letra y color; LB/RB/LT/RT
-    rotulados; contorno sobre la asignación de la acción enfocada y, al capturar, sobre
-    lo que se pulsa. Columna Mando con símbolos Xbox. Mando físico sin probar.
+Fuera de la cola: 8 persistencia de opciones, 30 trucos, 31 mejoras Vita
+(aviso moguri, revancha de jefes y tutoriales), 46 issue #16, 47 editor de
+partidas del launcher, 48 diagrama de mando. Detalle: NIGHTLY4_PUBLICACION.md.
 
 ## Qué bloquea la entrega inmediata
 
