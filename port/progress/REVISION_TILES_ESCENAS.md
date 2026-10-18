@@ -1,6 +1,6 @@
 # Revisión acumulativa de escenas con extensión de tiles
 
-Estado 18/10/2026: **4/44 candidatas aceptadas (057 mejorable)**. Son 44 eventos con cambios
+Estado 18/10/2026: **4/44 candidatas aceptadas**. Son 44 eventos con cambios
 potenciales en 33 fondos; los vacíos que forman un marco intencionado se
 descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
 
@@ -8,7 +8,7 @@ descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
 | --- | --- | --- |
 | 004 Leon | Aceptada previamente | Continuar diagonales y período propio, sin duplicar cajas. |
 | 061 Cristal | Mejorada aceptada | Perfiles distintos por capa; rombo entero en la unión; seleccionar tile de panel sin sombra ajena. |
-| 057 Playa | Aceptada, mejorable | Pared continua aprobada; completar pasto con las piezas originales del motivo entero. |
+| 057 Playa | Mejorada aprobada | Pared continua; pasto completo a ambos lados de la unión con piezas originales. |
 | 074 Monstruo | Mejorada aceptada | Paleta activa y tres capas; pieza inferior completada con el motivo izquierdo original. |
 
 ## Lógica que se acumula con cada ejemplo
@@ -56,6 +56,17 @@ histórico, solo ROM, snapshot de paleta y captura original sin extensión.
     ya visibles de BG2 coinciden con la pieza izquierda desplazada (+20,-1) tiles.
     Esto permite completar el extremo derecho con coordenadas fuente (x-20,y+1),
     sin inventar un nuevo fragmento ni volver a copiar el comienzo del adorno.
+    **Comprobación obligatoria antes de presentar**: aplicada y aprobada en
+    074 (adorno verde) y 057 (pasto). Buscar todas las mitades de cada motivo
+    que cruce la unión, incluso si las líneas de suelo y pared ya continúan bien.
+13. Revisar motivos a ambos lados de la unión, aunque la geometría estructural
+    ya encaje. En 057 la extensión izquierda dibuja media mancha de pasto y el
+    mapa original contiguo tiene arena; completarla exige continuar la misma
+    pieza unos tiles dentro del mapa original. A derecha ocurre el caso inverso:
+    la mitad original ya está y falta la mitad del añadido. No resolver ambos
+    casos con el período general de madera/arena; usar la copia completa que
+    coincida con las partes visibles de cada mancha. Mantener las capas de pared
+    encima y evitar modificar tiles estructurales de madera al rellenar suelo.
 
 Mejora 074 aprobada por el usuario: `py -3 port/tools/scene074_polish_preview.py`.
 El commit preliminar es `8cf93bc78`; permanece congelado. Solo BG2 destino
@@ -83,3 +94,11 @@ suelo y pared a izquierda con fuente (+8,-4), siguiendo su base ascendente a la
 derecha. Suelo a derecha (-8,+4); BG2 transparente ahí para no copiar el tronco
 único de la zona original. Paleta activa del snapshot camera057. Perfil nuevo
 aceptado como mejorable, base congelada en `accepted057/`. Salida `review057/057-before-after.png`.
+
+Mejora 057 aprobada: `py -3 port/tools/scene057_polish_preview.py`.
+Base aceptada `c924ff625`; se conserva. BG3 izquierda destino x0..4,y18..22
+fuente(x+8,y-4), para cerrar la mitad que cruza al lado original. Derecha BG3
+x32..35,y5..11 fuente(x-15,y+4): nueve tiles con pasto coinciden exactamente
+con el motivo completo del mapa. Cambian1590 píxeles, 600 en el encuadre GBA
+original por la continuación del pasto izquierdo. Ningún cambio de pared ni
+palmera. Salida privada `polish057/057-polish-before-after.png`.
