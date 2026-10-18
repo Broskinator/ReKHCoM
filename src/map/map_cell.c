@@ -9,6 +9,7 @@
 #include "map_runtime.h"
 #include "engine_math.h"
 #include <stdlib.h>
+
 #include "map_fixed_data.h"
 #include "world_types.h"
 #include "card_api.h"
@@ -66,6 +67,68 @@ static int MapCellBareWall(const MapCell* cell) {
     return 1;
 }
 
+/* BG1 entry of room tile (tx, ty); -1 outside the room */
+static int MapRoomBg1(int tx, int ty) {
+    MapCell* m = tx < 0 || ty < 0 ? NULL : MapGetCell(tx / 4, ty / 2);
+    return m == NULL || m->bg1Map == NULL ? -1 : m->bg1Map[(ty % 2) * 32 + tx % 4];
+}
+
+static int MapIsVoidTile(int e) {
+    int v = sMapRoomDef->map[0x110];
+    return e >= 0 && (e >> 12) == (v >> 12) && (e & 0x3ff) >= (v & 0x3ff) && (e & 0x3ff) < (v & 0x3ff) + 8;
+}
+
+/* The room's lower border is a bumpy strip, 4 tile rows high: rim pieces all
+   along its top row, the void right below it. Found once per room: the
+   first stretch of MAP_EDGE_STRIP tiles of it (*sx, *sy: its top-left tile). */
+#define MAP_EDGE_STRIP 24
+static int MapFindEdgeStrip(int* sx, int* sy) {
+    static const MapCell* sCells;
+    static u16 sRoomCols, sRoomRows;
+    static int sFound, sX, sY;
+    int tx, ty, i, j, W, H;
+
+    if (sCells != sMapCells || sRoomCols != sMapCols || sRoomRows != sMapRows) {
+        sCells = sMapCells;
+        sRoomCols = sMapCols;
+        sRoomRows = sMapRows;
+        sFound = 0;
+        W = sMapCols * 4;
+        H = sMapRows * 2;
+        for (ty = 0; ty + 5 <= H && !sFound; ty++)
+            for (tx = 0; tx + MAP_EDGE_STRIP <= W && !sFound; tx++) {
+                int ok = 1;
+                for (i = 0; i < MAP_EDGE_STRIP && ok; i++) {
+                    int e = MapRoomBg1(tx + i, ty);
+                    ok = e > 0 && !MapIsVoidTile(e) && MapIsVoidTile(MapRoomBg1(tx + i, ty + 4));
+                    for (j = 1; j < 4 && ok; j++)
+                        ok = MapRoomBg1(tx + i, ty + j) >= 0;
+                }
+                if (ok) {
+                    sFound = 1;
+                    sX = tx;
+                    sY = ty;
+                }
+            }
+    }
+    *sx = sX;
+    *sy = sY;
+    return sFound;
+}
+
+/* BG1 entry of tile (x, y < 0) of the room's own lower border turned upside
+   down along its top: the bumpy strip repeated, void above, the wall below. */
+static int MapTopEdgeTile(int bg, int x, int y) {
+    int sx, sy, e;
+
+    if (bg != 1 || !MapFindEdgeStrip(&sx, &sy))
+        return -1;
+    if (y < -4)
+        return sMapRoomDef->map[0x110];
+    e = MapRoomBg1(sx + ((x - sx) % MAP_EDGE_STRIP + MAP_EDGE_STRIP) % MAP_EDGE_STRIP, sy + 3 - (y + 4));
+    return e < 0 ? 0 : (e ^ 0x800);
+}
+
 /* Screen entry of world tile (tx, ty) for BG1-3 of a cell-built room: the
    same composition MapBuildBgColumn/Row stream into VRAM, so the wide view
    can show the room beyond the hardware's 32x32-tile window. */
@@ -83,30 +146,18 @@ static int MapWorldTile(int bg, int tx, int ty) {
     if (sMapTopClose < 0)
         sMapTopClose = getenv("KHCOM_TOPCLOSE") != NULL;
     cell = MapGetCell(hx, hy);
-    if (cell == NULL && y < 0 && x >= 0 && sMapTopClose) {
-        /* Above the room the wide view showed walls cut flat at the room's
-           top row. Where that row shows bare wall (nothing of BG1's void or
-           edge pieces over it), the wall carries on upward with its own top
-           tiles; columns closed by the void or an edge keep the void. */
-        MapCell* top = MapGetCell(hx, 0);
-        int i, r, bare = MapCellBareWall(top);
-        /* repeat plain wall, not a piece of its ornaments: the first cell
-           below that continues unchanged into the next one */
-        for (r = 0; bare && r < 6 && MapCellBareWall(MapGetCell(hx, r + 1)); r++) {
-            MapCell* a = MapGetCell(hx, r);
-            MapCell* b = MapGetCell(hx, r + 1);
-            for (i = 0; i < 8 && a->bg2Map[(i >> 2) * 32 + (i & 3)] == b->bg2Map[(i >> 2) * 32 + (i & 3)]; i++) {}
-            if (i == 8) {
-                top = a;
-                break;
-            }
-        }
-        if (bare) {
-            if (bg == 1)
-                return 0;
-            cell = top;
-            my = y & 1;
-        }
+    if (cell == NULL && y < 0 && x >= 0 && sMapTopClose && MapCellBareWall(MapGetCell(hx, 0))) {
+        /* Above the room the wide view showed the wall cut flat. Its top
+           closes with the room's own lower edge, turned upside down: the
+           stair of that edge rising then falling, void above, the wall
+           (clear tiles) below. */
+        int e = MapTopEdgeTile(bg, x, y);
+        if (e >= 0)
+            return e;
+        if (bg == 1)
+            return sMapRoomDef->map[0x110];
+        cell = MapGetCell(hx, 0);
+        my = y & 1;
     }
     if (cell == NULL) {
         switch (bg) {

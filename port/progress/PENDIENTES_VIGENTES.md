@@ -78,8 +78,10 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 9. [x] **Claude:** último slot corregido en e9f053595 mediante la bandera nativa
    guardada en la partida. Comprobación conjunta sigue en el punto 6.
 10. [~] **Claude:** #17. Sala exacta reproducida (roomType 18, semilla 138815524,
-    modos roomshape/roomseed). Continuación de pared en 249aceff5, apagada por
-    defecto (KHCOM_TOPCLOSE=1) hasta revisión visual del usuario.
+    modos roomshape/roomseed). Propuesta nueva (18/10): el borde inferior de la
+    sala (tira de 24x4 tiles con festones) se repite volteado arriba, vacío
+    por encima y muro por debajo; apagada por defecto (KHCOM_TOPCLOSE=1) hasta
+    revisión visual del usuario. Captura: build/evidence/top_edge_proposal_17.png.
 11. [~] **Claude:** #18. El savestate 3 a 16:9 y 32:9 muestra la banda completa;
     falta que el usuario señale la zona exacta.
 12. [~] **Codex:** 057 playa corregida para vistas amplias; código y capturas listos,
