@@ -1561,6 +1561,11 @@ static void Present(void) {
     }
     SDL_SetRenderViewport(sRenderer, NULL);
     {
+        int fullW = 0, fullH = 0;
+        SDL_GetCurrentRenderOutputSize(sRenderer, &fullW, &fullH);
+        PortAchievementToastDraw(sRenderer, fullW, fullH);
+    }
+    {
         /* KHCOM_RECORD="from-to:file.mov": frames from..to of the window piped
            straight to ffmpeg (KHCOM_FFMPEG, else ffmpeg on the PATH) as ProRes,
            one frame at a time, so a recording holds no frames in memory */
@@ -1883,6 +1888,7 @@ static void Quit(void) {
     void PortHdHudShutdown(void);
     PortSramSyncIfDirty();
     PortConfigSave();
+    PortAchievementsShutdown();
     PortAudioShutdown();
     PortHdHudShutdown();
     SDL_Quit();
@@ -2156,6 +2162,7 @@ void PortFrame(void) {
     PortWebWaitVisible();
 #endif
     PortStateService();
+    PortAchievementsFrame();
     {
         extern void PortRematchFrame(void);
         PortRematchFrame();
@@ -2245,6 +2252,7 @@ int main(int argc, char** argv) {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS))
         PortFatal("SDL_Init failed: %s", SDL_GetError());
     PortConfigLoad();
+    PortAchievementsInit();
     PortLog("KHCoM PC - SDL %d.%d.%d", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
 
     {

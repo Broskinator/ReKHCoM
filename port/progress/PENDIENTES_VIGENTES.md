@@ -110,13 +110,20 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
 25. [x] **Codex:** remapeo/gatillos implementado y comprobado con SDL virtual;
     EU/US/JP compilan. Mando físico: llegará como reporte (ver abajo).
     SDL3 enumera cero gamepads en este equipo; no hay validación física realizada.
+    Launcher: diagnóstico con botones/ejes/gatillos en vivo y exportación de
+    observaciones a controller_report.txt; apertura de mando corregida también
+    fuera de captura de remapeo. No confundir ese panel con una prueba física hecha.
 26. [~] **Codex:** #3 cerrado por su autor tras confirmar que se corrigió. #2
     sigue abierto: el autor pide una edición definitiva y enlazó Re:CoM; se le
     pidieron una o dos prioridades GBA concretas en el comentario
     6253397772. No prometer un remake completo mientras falta priorización.
-27. [~] **Codex:** primer lector acotado EWRAM/IWRAM y prueba de límites integrados
-    (`RETROACHIEVEMENTS.md`, `test_ra_memory.c`). Falta conectar rcheevos, comprobar
-    hash/carga del set base y Level 1; aún no hay logros jugables.
+27. [~] **Codex:** rcheevos 12.5.0 integrado en Windows; pestaña blanca de logros,
+    cuenta/catálogo experimental, token DPAPI y HTTPS asíncrono. 16 retos locales
+    propios del port para EU/US/JP, progreso por región, avisos animados centrados
+    arriba y prueba de vista previa. test_achievements.py PASS (puente nativo por
+    región y contrato con servidor sintético); builds EU/US/JP pasan. Falta login
+    real y validar la proyección de globals/punteros nativos contra el set oficial;
+    por ello el catálogo oficial no evalúa ni envía premios. Level 1 sigue pendiente.
 28. [x] **Codex:** revisión de submenús y transiciones completada en
     LOGICA_PENDIENTES_20261018.md: builds EU/US/JP; Sora 6/6 y Riku 6/6 por
     región (36/36). Incluye tutorial inicial de baraja Riku, capturas y regreso

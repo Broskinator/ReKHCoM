@@ -81,6 +81,7 @@ static int TryRom(const char* path) {
         return 0;
     }
     fclose(f);
+    PortAchievementsRomLoaded((const uint8_t*)(uintptr_t)GBA_ROM, GBA_ROM_SIZE);
     PortLog("ROM: %s", path);
     return 1;
 }

@@ -1,61 +1,88 @@
-# RetroAchievements: viabilidad para Re:Chain of Memories PC
+# Logros locales y RetroAchievements
 
-Fecha: 18-10-2026
+Estado al 18/10/2026. Responsable: Codex, punto 27 del reparto.
 
-## Conclusión
+## Implementación disponible
 
-Sí es técnicamente viable ejecutar el set oficial de Kingdom Hearts: Chain of Memories (GBA) desde este port, al menos en modo local durante una primera integración. RetroAchievements publica el juego GBA ID 768 con un set base de 90 logros y un set adicional «Subset - Level 1» de 39 desafíos de jefes sin subir de nivel. La página oficial de hashes indica que el set base admite la ROM europea (MD5 `d369f791d86a969778d2c3a5278d544c`); el subset reconoce un archivo parcheado concreto (MD5 `02c38fb19dab302379ece65724fb4e0f`). Así que identificar las ROM EU/US/JP del port para el set base no se puede dar por hecho: solo comprobé que la lista registra la EU, y el Level 1 requiere la variante parchada.
+- Windows: rcheevos v12.5.0, MIT, fijado al commit
+  1433173220a7eaede6a9ed7a18e94117be1821e0. Fuentes y licencia en
+  port/third_party/rcheevos; licencia incluida en paquetes Windows.
+- Launcher: pestaña Logros con el esquema blanco/negro/rojo existente, filtros,
+  búsqueda, selección EU/US/JP, progreso local, cuenta y catálogo oficial.
+- Cliente HTTPS WinHTTP en workers: los callbacks se entregan en el hilo dueño,
+  hasta cuatro peticiones simultáneas, límites de respuesta, sin redirecciones
+  de credenciales y sin guardar contraseñas. Recordar cuenta guarda exclusivamente
+  usuario/token cifrados con DPAPI para el usuario Windows. Cerrar sesión borra
+  ese token. La conexión es optativa y conserva su ajuste.
+- El catálogo oficial y los desbloqueos de cuenta se consultan por separado en
+  modo espectador, sin abrir sesión de juego ni enviar premios, puntuaciones o
+  presencia. La evaluación oficial en el juego está desactivada expresamente.
 
-El runtime `rcheevos` permite que el cliente entregue una función de lectura de memoria y obtenga el catálogo/sesión; no incluye transporte HTTP ni interfaz. El port reserva el espacio de direcciones GBA en el proceso y mantiene la RAM en `0x02000000` (EWRAM, 256 KiB) y `0x03000000` (IWRAM, 32 KiB), de modo que una función de lectura puede traducir las direcciones de logros GBA al mapeo del proceso.
+## Local: EU, US y JP
 
-La RAM accesible no basta por sí sola para reconocer un juego. El cliente debe calcular la huella de una ROM original soportada, iniciar una sesión y ofrecer el mismo mapa de memoria que espera rcheevos. Se debe validar que `rhash` identifique las copias EU/US/JP que use el port; una traducción de direcciones del huésped al mapa de memoria de rcheevos puede ser necesaria. Para no afectar la identificación, los logros se deben desactivar si se activan modificaciones que alteren datos/jugabilidad. El Undub que se está implementando cambia el contenido de la ROM en memoria, por lo que debe probarse expresamente y, por seguridad, excluirse inicialmente de Hardcore.
+16 retos propios del port, con nombres/descripciones ES/EN, usan directamente
+GameState y PlayerProgression nativos, sin depender de direcciones de la ROM EU.
+Incluyen niveles, HP/CP, moguri, amigos, clases de cartas, trucos, pisos de Sora y
+finales de Sora/Riku. No son una conversión de los 90 logros oficiales ni conceden
+puntos a una cuenta RA. Se guardan por región en achievements_eu.dat,
+achievements_us.dat y achievements_jp.dat mediante reemplazo atómico.
 
-El set de la web está diseñado para la versión GBA identificada por sus hashes, no para prometer compatibilidad oficial de esta aplicación. La ruta más sensata es primero un modo local/offline para verificar que se leen las banderas y el progreso, después la identificación y compatibilidad con servidor, y por último consultar el proceso oficial de RetroAchievements antes de anunciar logros online o Hardcore. No se contactó a nadie ni se publicó nada.
+La primera observación válida establece una base: un save previo no concede
+logros retroactivos. Se necesitan transiciones observadas durante el juego. Los
+trucos, revanchas, savestates y modificadores de gameplay deshabilitan nuevos
+premios hasta reiniciar el juego; apagar el truco no restaura integridad en esa
+sesión. Los harness de pruebas tampoco conceden premios. El ajuste local vive
+en achievements_local.ini y se aplica al iniciar el juego.
 
-## Referencia: RaceWave46
+## Avisos y resolución
 
-El proyecto que señaló el usuario es efectivamente [DomazinUS/RaceWave46](https://github.com/DomazinUS/RaceWave46), una recompilación de Wave Race 64 pública bajo GPL-3.0. Su implementación de RetroAchievements sirve como referencia de producto: integra el cliente `rcheevos`, muestra logros y avisos animados de desbloqueo, y tiene una capa de plataforma para comunicación con el servicio. La interfaz consultada usa sesión de cuenta y el flujo documentado funciona en Softcore; no debe describirse como logros completamente offline ni como soporte Hardcore.
+Cola de hasta 16 avisos, arriba al centro de toda la salida presentada. Blanco,
+negro, acento rojo y fuente original del juego. Entrada de 300 ms con desplazamiento
+y fundido, 3.9 segundos de lectura, salida de 300 ms. Se adaptan por escala entera
+a la altura de salida, independientemente del zoom de la escena; el texto largo
+se abrevia y una ventana pequeña conserva margen. No roban input ni se repiten.
+La pestaña permite probar una vista previa sin conceder un logro.
 
-Para KHCoMPC conviene conservar la idea general —tarjeta clara propia del juego, icono, nombre, descripción, puntos y una entrada/salida breve con sonido opcional— y no copiar recursos ni asumir que el código de Wave Race se puede trasladar tal cual. Antes de integrar una dependencia GPL-3.0 en este proyecto hay que revisar compatibilidad con la licencia y el empaquetado actuales. También hay que validar el set base y el set `Level 1` por separado: el segundo depende de una ROM parcheada con hash propio; no se puede activar por el mero hecho de que el juego original cargue.
+Capturas: 1080p con zoom x3, build/ra-toast1080. La variable de harness
+KHCOM_ACHIEVEMENT_PREVIEW=180 muestra un aviso claramente marcado VISTA PREVIA,
+sin escribir progreso. La presentación funciona también en los backends SDL
+portables; cliente de cuenta/HTTPS actual: Windows.
 
-## Capas necesarias
+## Corrección de la primera aproximación
 
-- `rcheevos`: evaluación de condiciones y lógica de runtime.
-- `rhash` / `rc_client`: identificación de la ROM y sesión del juego.
-- Adaptador de lectura: ventanas de memoria GBA del juego hacia las direcciones de consola que esperan las condiciones.
-- Cliente HTTP(S), callbacks asíncronos, autenticación y almacenamiento seguro del token; no los aporta la biblioteca.
-- Interfaz para login, lista/avisos de logros, pausa y errores.
-- Política de integridad para ROM, región, savestates, cheats y las funciones experimentales; probar cada caso antes de habilitar Hardcore.
+El primer lector solo leía direcciones de bus y no bastaba para integrar RA.
+Ahora PortRaReadMemory interpreta el mapa aplanado oficial GBA: 0x00000-0x07fff
+IWRAM, 0x08000-0x47fff EWRAM, 0x48000-0x57fff SRAM. Incluye cruces entre ventanas,
+rechazo de exceso y de overflow. Esto aún NO proyecta los globals del port: el
+juego compila muchas variables en khdata/khbss y algunos punteros/layouts no
+coinciden con la RAM del cartucho. Evaluar esas posiciones como si fueran
+correctas podría conceder premios falsos. El modo oficial seguirá sin evaluación
+hasta validar cada referencia y cadena de punteros del set contra el runtime.
 
-## Primer bloque integrado: lector acotado de RAM
+## Evidencia y límites
 
-`port/src/port_ra_memory.c` expone `PortRaReadMemory`, que lee únicamente
-EWRAM (`0x02000000–0x0203ffff`) e IWRAM (`0x03000000–0x03007fff`). Rechaza
-lecturas que cruzan el límite de una región o apuntan a MMIO/ROM/SRAM y pone a
-cero el buffer en caso de rechazo. Esto implementa la frontera de memoria que
-necesita el cliente; todavía **no** incorpora rcheevos, identificación/hash,
-sesión HTTP, interfaz ni logros verificables.
+python port/tools/test_achievements.py pasa: mapa GBA, límites y overflow;
+transiciones locales, no retroactividad, persistencia y corrupción; puente real
+PortAchievementsFrame en EU/US/JP; invalidación por modificadores; seis tamaños
+de layout del aviso (240x160 a 3840x2160); login rechazado, token cifrado,
+reconexión y logout; hash EU real y carga/evaluación de un catálogo sintético a
+través de rcheevos, sin envíos de premios ni sesión. Fixtures no son un login real.
+El informe reproducible queda en build/achievements-test/report.json.
 
-La prueba `port/tools/test_ra_memory.c` reserva esas ventanas en sus direcciones
-GBA reales y ejercita bytes de borde, lectura inicial, exceso de rango, MMIO y
-lectura vacía. Compilada con el toolchain i686 de SDL/MinGW, pasa con
-`PASS: RetroAchievements GBA RAM adapter bounds`. Siguiente paso: validar que el
-hash del juego y las definiciones oficiales carguen, y después conectar esta
-función al callback de lectura de `rc_client`.
+Builds Windows EU/US/JP y launcher: build/ra-{eu,us,jp}. La ROM EU local coincide
+con d369f791d86a969778d2c3a5278d544c, admitida por el juego 768. La lista oficial
+solo registra ese archivo y 02c38fb19dab302379ece65724fb4e0f para Level 1; US/JP
+usan los retos locales. No se fuerza el hash EU para otra región o una ROM modificada.
+La huella se calcula antes de aplicar relocaciones nativas a la ROM mapeada.
 
-También se comprobó por MD5 la ROM europea de 32 MiB que acompaña al Nightly
-2 local: coincide con `d369f791d86a969778d2c3a5278d544c`, el hash EU anotado
-para el juego 768. Las copias US/JP locales no coinciden con ese hash EU, como
-se espera; sus hashes admitidos aún deben verificarse con la lista oficial.
-La identificación futura debe calcularse desde la ROM original antes de que
-las relocaciones nativas modifiquen palabras en la región mapeada. No hay un
-parche Level 1 local disponible para verificar el MD5 `02c38fb19dab302379ece65724fb4e0f`.
+Pendientes reales: login con cuenta del usuario desde la interfaz; proyección y
+validación del set oficial; compatibilidad nativa del parche Level 1 y su hash;
+proceso de validación oficial antes de anunciar soporte online/Hardcore. Ninguno
+se considera cerrado por tener una interfaz, un mock o los retos locales.
 
 ## Fuentes primarias
 
-- README y API de rcheevos: https://github.com/RetroAchievements/rcheevos
-- Guía oficial `rc_client` (lectura de memoria, callbacks HTTP, autenticación y carga de sesión): https://github.com/RetroAchievements/rcheevos/wiki/rc_client-integration
-- Requisitos oficiales para nueva plataforma/set (emulación, memoria expuesta, identificación única y servidor): https://docs.retroachievements.org/orphaned/system-x-wen.html
-- Página oficial del set base de CoM para GBA, juego 768, 90 logros, y hashes compatibles: https://retroachievements.org/game/768 y https://retroachievements.org/game/768/hashes
-- Set adicional Subset - Level 1: 39 desafíos, más hash admitido: https://retroachievements.org/game/768?set=40403 y https://retroachievements.org/game/768/hashes?set=40403
-- Referencia abierta RaceWave46 (README y licencia GPL-3.0): https://github.com/DomazinUS/RaceWave46
+- https://github.com/RetroAchievements/rcheevos/tree/v12.5.0
+- https://github.com/RetroAchievements/rcheevos/wiki/rc_client-integration
+- https://retroachievements.org/game/768/hashes
+- https://retroachievements.org/game/768?set=40403

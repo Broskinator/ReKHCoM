@@ -51,6 +51,7 @@ int PortCheatMaxLevel(void) {
 
     if (!PortCheatActionsAvailable())
         return 0;
+    PortAchievementsInvalidate("Max level cheat");
     p->level = 1;
     p->nextExp = 0x19;
     for (level = 1; level < 99; level++) {
@@ -89,6 +90,7 @@ int PortCheatMapCards(void) {
 
     if (!PortCheatActionsAvailable())
         return 0;
+    PortAchievementsInvalidate("Map card cheat");
     for (i = 0; i < 220; i++)
         gMapCardCounts[i] = 9;
     return 1;
@@ -109,6 +111,7 @@ int PortCheatBattleCards(void) {
 
     if (!PortCheatActionsAvailable() || (gGameState.flags & GAME_FLAG_RIKU))
         return 0;
+    PortAchievementsInvalidate("Battle card cheat");
     gCardCount = 999;
     for (pass = 0; added && !IsCardCollectionFull(); pass++) {
         added = 0;

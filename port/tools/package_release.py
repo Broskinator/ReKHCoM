@@ -39,6 +39,7 @@ def main():
         "LICENSE.md": ROOT / "LICENSE.md",
         "SDL3-LICENSE.txt": args.sdl / "LICENSE.txt",
         "licenses/imgui-LICENSE.txt": ROOT / "port/decompui/third_party/imgui/LICENSE.txt",
+        "licenses/rcheevos-LICENSE.txt": ROOT / "port/third_party/rcheevos/LICENSE",
         "assets/boxart.jpg": ROOT / "port/decompui/assets/boxart.jpg",
         "assets/logo.png": ROOT / "port/decompui/assets/logo.png",
         "assets/NOTICE.md": ROOT / "port/decompui/assets/NOTICE.md",

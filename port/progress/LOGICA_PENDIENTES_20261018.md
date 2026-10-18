@@ -51,18 +51,21 @@ Controles: [`CONTROLADOR_LOGICA.md`](CONTROLADOR_LOGICA.md).
 
 ## 27 — RetroAchievements
 
-- Avanzar por etapas y no presentar investigación ni el callback aislado como
-  integración jugable. Primera etapa: una lectura acotada de EWRAM/IWRAM en las
-  direcciones GBA originales, rechazando MMIO, ROM, SRAM y rangos que excedan
-  una región. Probar código de producción con memoria reservada en esas
-  direcciones, incluidos bordes y cero del buffer ante rechazo.
-- La etapa siguiente integra una versión/licencia fijada de rcheevos, verifica
-  hash real contra juego 768 y subset 40403, conecta callback/identificación y
-  recorre RAM conocida del set. Mantener offline/Softcore separado de la
-  autorización oficial, login, integridad, cheats y Hardcore.
-- Avance 18/10: `PortRaReadMemory` y `test_ra_memory.c` pasan con el toolchain
-  i686. No existe todavía rcheevos ni soporte jugable; hash/ROM y Level 1 quedan
-  abiertos.
+- Estado vigente y evidencia: RETROACHIEVEMENTS.md. rcheevos 12.5.0 fijado,
+  cuenta/catálogo experimental en Windows y 16 retos locales propios en EU/US/JP.
+  Guardar por región, observar cambios reales en datos nativos, establecer base
+  al cargar saves previos y suspender concesiones por modificadores/savestates.
+- Corregida la primera aproximación: RA usa direcciones aplanadas IWRAM/EWRAM/
+  SRAM, y el port tiene globals relocados fuera de esas ventanas. El lector de
+  bus no permite prometer los logros oficiales. No evaluar ni enviar premios
+  oficiales hasta validar referencias y cadenas de punteros del set real.
+- UI blanca/negra/roja; avisos de logros centrados arriba, fundido/deslizamiento,
+  escala de salida independiente del zoom y cola. Probar vista previa marcada
+  sin alterar el progreso, a 1080p x3 y en ventanas pequeñas/ultrawide.
+- test_achievements.py pasa: puente nativo EU/US/JP, persistencia, no duplicados,
+  invalidación, layout en seis resoluciones y contrato rcheevos con servidor
+  sintético. Hash EU real comprobado. Login real, proyección oficial y Level 1
+  siguen pendientes; fixtures no son validación online ni de hardware físico.
 
 ## 26 — Issues #2 y #3
 

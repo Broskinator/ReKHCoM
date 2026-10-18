@@ -2,29 +2,28 @@
 
 #include "port/port.h"
 
-/* rcheevos sets address the original GBA RAM bus. The native port already
- * maps these windows at their hardware addresses; keep the adapter deliberately
- * narrow so reads cannot wander into game code, save RAM, or MMIO. */
+/* rcheevos uses a flattened GBA memory map, not hardware bus addresses:
+ * 00000-07fff IWRAM, 08000-47fff EWRAM, 48000-57fff SRAM.
+ * Native globals still need a separate projection before the official set can
+ * be evaluated: a bus window alone is not a native-state adapter. */
 int PortRaReadMemory(uint32_t address, uint8_t* buffer, uint32_t size) {
-    uint32_t offset;
+    uint32_t remaining = size;
 
     if (buffer == NULL)
         return 0;
 
-    if (address >= GBA_EWRAM && address - GBA_EWRAM <= GBA_EWRAM_SIZE
-        && size <= GBA_EWRAM_SIZE - (address - GBA_EWRAM)) {
-        offset = address - GBA_EWRAM;
-        memcpy(buffer, (const void*)(uintptr_t)(GBA_EWRAM + offset), size);
-        return 1;
+    if (address > 0x58000 || size > 0x58000 - address) {
+        memset(buffer, 0, size);
+        return 0;
     }
-
-    if (address >= GBA_IWRAM && address - GBA_IWRAM <= GBA_IWRAM_SIZE
-        && size <= GBA_IWRAM_SIZE - (address - GBA_IWRAM)) {
-        offset = address - GBA_IWRAM;
-        memcpy(buffer, (const void*)(uintptr_t)(GBA_IWRAM + offset), size);
-        return 1;
+    while (remaining) {
+        uint32_t base, offset, available, count;
+        if (address < 0x8000) { base = GBA_IWRAM; offset = address; available = 0x8000 - address; }
+        else if (address < 0x48000) { base = GBA_EWRAM; offset = address - 0x8000; available = 0x48000 - address; }
+        else { base = GBA_SRAM; offset = address - 0x48000; available = 0x58000 - address; }
+        count = remaining < available ? remaining : available;
+        memcpy(buffer, (const void*)(uintptr_t)(base + offset), count);
+        buffer += count; address += count; remaining -= count;
     }
-
-    memset(buffer, 0, size);
-    return 0;
+    return 1;
 }

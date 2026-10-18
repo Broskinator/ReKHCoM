@@ -1,0 +1,439 @@
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <winhttp.h>
+#include <wincrypt.h>
+#include <SDL3/SDL.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "ra_client.h"
+#include "rc_consoles.h"
+#include "rc_hash.h"
+#include "rc_api_user.h"
+
+typedef struct KhRaJob {
+    struct KhRaJob* next;
+    char *url, *post, *content_type, *body;
+    size_t body_size;
+    int status;
+    SDL_AtomicInt done;
+    SDL_Thread* thread;
+    rc_client_server_callback_t callback;
+    void* callback_data;
+} KhRaJob;
+
+struct KhRa {
+    rc_client_t* client;
+    KhRaRead read;
+    void* userdata;
+    KhRaTransport transport;
+    KhRaJob* jobs;
+    char directory[1024], hash[33], status[512], notice[512];
+    char username[128], token[128];
+    int enabled, busy, error, remember, closing, invalidated;
+    uint32_t *account_unlocks, account_unlock_count;
+    unsigned generation;
+    int account_progress_available;
+};
+
+static void SetStatus(KhRa* ra, const char* text, int error) {
+    snprintf(ra->status, sizeof(ra->status), "%s", text ? text : "Unknown error");
+    ra->error = error;
+}
+
+static wchar_t* Wide(const char* text) {
+    int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text, -1, NULL, 0);
+    wchar_t* result;
+    if (size <= 0) return NULL;
+    result = (wchar_t*)calloc((size_t)size, sizeof(wchar_t));
+    if (result) MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text, -1, result, size);
+    return result;
+}
+
+static FILE* DataFile(KhRa* ra, const char* name, const wchar_t* mode) {
+    char path[1200];
+    wchar_t* wide;
+    FILE* file;
+    snprintf(path, sizeof(path), "%s/%s", ra->directory, name);
+    wide = Wide(path);
+    if (!wide) return NULL;
+    file = _wfopen(wide, mode);
+    free(wide);
+    return file;
+}
+
+static void ForgetToken(KhRa* ra) {
+    FILE* file = DataFile(ra, "retroachievements.auth", L"wb");
+    if (file) fclose(file);
+    SecureZeroMemory(ra->token, sizeof(ra->token));
+    SecureZeroMemory(ra->username, sizeof(ra->username));
+}
+
+static int SaveToken(KhRa* ra) {
+    struct { char user[128], token[128]; } credentials;
+    DATA_BLOB in, out = {0};
+    FILE* file;
+    int ok = 0;
+    memset(&credentials, 0, sizeof(credentials));
+    snprintf(credentials.user, sizeof(credentials.user), "%s", ra->username);
+    snprintf(credentials.token, sizeof(credentials.token), "%s", ra->token);
+    in.pbData = (BYTE*)&credentials;
+    in.cbData = sizeof(credentials);
+    if (CryptProtectData(&in, L"ReKHCoM RetroAchievements", NULL, NULL, NULL,
+                         CRYPTPROTECT_UI_FORBIDDEN, &out)) {
+        file = DataFile(ra, "retroachievements.auth", L"wb");
+        if (file) { ok = fwrite(out.pbData, 1, out.cbData, file) == out.cbData; fclose(file); }
+        SecureZeroMemory(out.pbData, out.cbData);
+        LocalFree(out.pbData);
+    }
+    SecureZeroMemory(&credentials, sizeof(credentials));
+    return ok;
+}
+
+static void ReadToken(KhRa* ra) {
+    BYTE bytes[4096];
+    DATA_BLOB in, out = {0};
+    FILE* file = DataFile(ra, "retroachievements.auth", L"rb");
+    size_t size;
+    if (!file) return;
+    size = fread(bytes, 1, sizeof(bytes), file);
+    fclose(file);
+    in.pbData = bytes;
+    in.cbData = (DWORD)size;
+    if (size && size < sizeof(bytes) && CryptUnprotectData(&in, NULL, NULL, NULL, NULL,
+            CRYPTPROTECT_UI_FORBIDDEN, &out)) {
+        if (out.cbData == 256 && out.pbData[127] == 0 && out.pbData[255] == 0) {
+            memcpy(ra->username, out.pbData, 128);
+            memcpy(ra->token, out.pbData + 128, 128);
+            ra->remember = 1;
+        }
+        SecureZeroMemory(out.pbData, out.cbData);
+        LocalFree(out.pbData);
+    }
+    SecureZeroMemory(bytes, sizeof(bytes));
+}
+
+/* Workers only fill their response. rcheevos callbacks are dispatched by Pump
+ * on the owning thread, so UI access and frame evaluation cannot race. */
+static int HttpWorker(void* userdata) {
+    KhRaJob* job = (KhRaJob*)userdata;
+    wchar_t *url = Wide(job->url), *content_type = NULL;
+    HINTERNET session = NULL, connect = NULL, request = NULL;
+    URL_COMPONENTS parts;
+    wchar_t host[256], path[2048];
+    DWORD status_size = sizeof(DWORD), status = 0, redirect = WINHTTP_OPTION_REDIRECT_POLICY_NEVER;
+    job->status = RC_API_SERVER_RESPONSE_RETRYABLE_CLIENT_ERROR;
+    memset(&parts, 0, sizeof(parts));
+    parts.dwStructSize = sizeof(parts);
+    parts.lpszHostName = host; parts.dwHostNameLength = 255;
+    parts.lpszUrlPath = path; parts.dwUrlPathLength = 2047;
+    if (!url || !WinHttpCrackUrl(url, 0, 0, &parts) || parts.nScheme != INTERNET_SCHEME_HTTPS)
+        goto done;
+    host[parts.dwHostNameLength] = 0;
+    path[parts.dwUrlPathLength] = 0;
+    if (_wcsicmp(host, L"retroachievements.org") != 0 &&
+        _wcsicmp(host, L"media.retroachievements.org") != 0 &&
+        _wcsicmp(host, L"static.retroachievements.org") != 0) goto done;
+    session = WinHttpOpen(L"ReKHCoM/1.9.3 rcheevos/12.5", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
+                          WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+    if (!session) goto done;
+    WinHttpSetTimeouts(session, 5000, 5000, 5000, 5000);
+    connect = WinHttpConnect(session, host, parts.nPort, 0);
+    if (!connect) goto done;
+    request = WinHttpOpenRequest(connect, job->post ? L"POST" : L"GET", path, NULL,
+                  WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
+    if (!request) goto done;
+    WinHttpSetOption(request, WINHTTP_OPTION_REDIRECT_POLICY, &redirect, sizeof(redirect));
+    if (job->content_type) {
+        char header[256];
+        snprintf(header, sizeof(header), "Content-Type: %s\r\n", job->content_type);
+        content_type = Wide(header);
+    }
+    if (!WinHttpSendRequest(request, content_type ? content_type : WINHTTP_NO_ADDITIONAL_HEADERS,
+            content_type ? (DWORD)-1 : 0, job->post, job->post ? (DWORD)strlen(job->post) : 0,
+            job->post ? (DWORD)strlen(job->post) : 0, 0) || !WinHttpReceiveResponse(request, NULL)) goto done;
+    if (!WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+            WINHTTP_HEADER_NAME_BY_INDEX, &status, &status_size, WINHTTP_NO_HEADER_INDEX)) goto done;
+    for (;;) {
+        DWORD available = 0, read = 0;
+        char* grown;
+        if (!WinHttpQueryDataAvailable(request, &available)) goto done;
+        if (!available) break;
+        if (available > (8u << 20) || job->body_size + available > (8u << 20)) goto done;
+        grown = (char*)realloc(job->body, job->body_size + available + 1);
+        if (!grown) goto done;
+        job->body = grown;
+        if (!WinHttpReadData(request, job->body + job->body_size, available, &read)) goto done;
+        if (!read) break;
+        job->body_size += read;
+        job->body[job->body_size] = 0;
+    }
+    job->status = (int)status;
+done:
+    if (request) WinHttpCloseHandle(request);
+    if (connect) WinHttpCloseHandle(connect);
+    if (session) WinHttpCloseHandle(session);
+    free(content_type); free(url);
+    SDL_SetAtomicInt(&job->done, 1);
+    return 0;
+}
+
+static void ServerCall(const rc_api_request_t* request, rc_client_server_callback_t callback,
+                       void* callback_data, rc_client_t* client) {
+    KhRa* ra = (KhRa*)rc_client_get_userdata(client);
+    KhRaJob *job, **tail;
+    if (ra->transport && !ra->closing) { ra->transport(request, callback, callback_data); return; }
+    job = ra->closing ? NULL : (KhRaJob*)calloc(1, sizeof(*job));
+    if (!job) {
+        rc_api_server_response_t response = {"", 0, RC_API_SERVER_RESPONSE_CLIENT_ERROR};
+        callback(&response, callback_data);
+        return;
+    }
+    job->url = _strdup(request->url);
+    job->post = request->post_data ? _strdup(request->post_data) : NULL;
+    job->content_type = request->content_type ? _strdup(request->content_type) : NULL;
+    job->callback = callback; job->callback_data = callback_data;
+    if (!job->url || (request->post_data && !job->post)) {
+        job->status = RC_API_SERVER_RESPONSE_CLIENT_ERROR;
+        SDL_SetAtomicInt(&job->done, 1);
+    }
+    tail = &ra->jobs;
+    while (*tail) tail = &(*tail)->next;
+    *tail = job;
+}
+
+static uint32_t ReadMemory(uint32_t address, uint8_t* out, uint32_t size, rc_client_t* client) {
+    KhRa* ra = (KhRa*)rc_client_get_userdata(client);
+    return ra->read && !ra->invalidated ? ra->read(address, out, size, ra->userdata) : 0;
+}
+
+static void Event(const rc_client_event_t* event, rc_client_t* client) {
+    KhRa* ra = (KhRa*)rc_client_get_userdata(client);
+    if (event->type == RC_CLIENT_EVENT_ACHIEVEMENT_TRIGGERED && event->achievement)
+        snprintf(ra->notice, sizeof(ra->notice), "Local test: %s", event->achievement->title);
+    else if (event->type == RC_CLIENT_EVENT_SERVER_ERROR && event->server_error)
+        SetStatus(ra, event->server_error->error_message, 1);
+}
+
+typedef struct ProgressRequest { KhRa* ra; unsigned generation; } ProgressRequest;
+
+static void AccountProgress(const rc_api_server_response_t* response, void* userdata) {
+    ProgressRequest* request = (ProgressRequest*)userdata;
+    KhRa* ra = request->ra;
+    rc_api_fetch_user_unlocks_response_t progress;
+    memset(&progress, 0, sizeof(progress));
+    if (request->generation == ra->generation) {
+        int result = rc_api_process_fetch_user_unlocks_server_response(&progress, response);
+        if (result == RC_OK && progress.response.succeeded) {
+            free(ra->account_unlocks); ra->account_unlocks = NULL;
+            ra->account_unlock_count = progress.num_achievement_ids;
+            if (progress.num_achievement_ids) {
+                ra->account_unlocks = (uint32_t*)malloc(progress.num_achievement_ids * sizeof(uint32_t));
+                if (ra->account_unlocks) memcpy(ra->account_unlocks, progress.achievement_ids,
+                                               progress.num_achievement_ids * sizeof(uint32_t));
+                else ra->account_unlock_count = 0;
+            }
+            ra->account_progress_available = !progress.num_achievement_ids || ra->account_unlocks != NULL;
+        } else SetStatus(ra, "Catalog loaded; account progress could not be retrieved.", 1);
+    }
+    rc_api_destroy_fetch_user_unlocks_response(&progress);
+    free(request);
+}
+
+static void Loaded(int result, const char* error, rc_client_t* client, void* userdata) {
+    KhRa* ra = (KhRa*)userdata;
+    ra->busy = 0;
+    SetStatus(ra, result == RC_OK ? "Catalog loaded. Validation mode: online awards disabled." : error,
+              result != RC_OK);
+    if (result == RC_OK && !ra->closing) {
+        const rc_client_user_t* user = rc_client_get_user_info(client);
+        const rc_client_game_t* game = rc_client_get_game_info(client);
+        rc_api_request_t api_request;
+        rc_api_fetch_user_unlocks_request_t params;
+        ProgressRequest* request = (ProgressRequest*)calloc(1, sizeof(*request));
+        if (!user || !game || !request) { free(request); return; }
+        memset(&params, 0, sizeof(params));
+        params.username = user->username; params.api_token = user->token;
+        params.game_id = game->id; params.hardcore = 0;
+        request->ra = ra; request->generation = ra->generation;
+        if (rc_api_init_fetch_user_unlocks_request(&api_request, &params) == RC_OK)
+            ServerCall(&api_request, AccountProgress, request, client);
+        else free(request);
+        rc_api_destroy_request(&api_request);
+    }
+}
+
+static void LoadGame(KhRa* ra) {
+    if (!ra->enabled || !rc_client_get_user_info(ra->client) || !ra->hash[0] || ra->invalidated) return;
+    if (strcmp(ra->hash, "d369f791d86a969778d2c3a5278d544c") != 0) {
+        SetStatus(ra, "This ROM is not supported by the official set. Local achievements remain available.", 0);
+        return;
+    }
+    ra->busy = 1;
+    SetStatus(ra, "Loading official catalog...", 0);
+    rc_client_begin_load_game(ra->client, ra->hash, Loaded, ra);
+}
+
+static void LoggedIn(int result, const char* error, rc_client_t* client, void* userdata) {
+    KhRa* ra = (KhRa*)userdata;
+    ra->busy = 0;
+    if (result != RC_OK) { SetStatus(ra, error, 1); return; }
+    {
+        const rc_client_user_t* user = rc_client_get_user_info(client);
+        snprintf(ra->username, sizeof(ra->username), "%s", user->username);
+        snprintf(ra->token, sizeof(ra->token), "%s", user->token);
+        if (ra->remember && !SaveToken(ra))
+            SetStatus(ra, "Connected. Could not save the encrypted token.", 1);
+        else SetStatus(ra, "Connected to RetroAchievements.", 0);
+    }
+    LoadGame(ra);
+}
+
+KhRa* KhRaCreate(const char* directory, KhRaRead read, void* userdata, KhRaTransport transport) {
+    KhRa* ra = (KhRa*)calloc(1, sizeof(*ra));
+    FILE* file;
+    if (!ra) return NULL;
+    snprintf(ra->directory, sizeof(ra->directory), "%s", directory);
+    ra->read = read; ra->userdata = userdata; ra->transport = transport;
+    ra->client = rc_client_create(ReadMemory, ServerCall);
+    if (!ra->client) { free(ra); return NULL; }
+    rc_client_set_userdata(ra->client, ra);
+    rc_client_set_hardcore_enabled(ra->client, 0);
+    rc_client_set_spectator_mode_enabled(ra->client, 1);
+    /* All network completions run in Pump on the owning thread. Let loading
+     * finish there even for a catalog-only client that never calls do_frame. */
+    rc_client_set_allow_background_memory_reads(ra->client, 1);
+    rc_client_set_event_handler(ra->client, Event);
+    SetStatus(ra, "Not connected", 0);
+    file = DataFile(ra, "retroachievements.ini", L"r");
+    if (file) { int value = 0; if (fscanf(file, "enabled=%d", &value) == 1) ra->enabled = value == 1; fclose(file); }
+    ReadToken(ra);
+    if (ra->enabled && ra->token[0]) {
+        ra->busy = 1;
+        SetStatus(ra, "Signing in...", 0);
+        rc_client_begin_login_with_token(ra->client, ra->username, ra->token, LoggedIn, ra);
+    }
+    return ra;
+}
+
+void KhRaPump(KhRa* ra, int evaluate) {
+    KhRaJob **link, *ready = NULL;
+    int active = 0;
+    if (!ra) return;
+    link = &ra->jobs;
+    while (*link) {
+        KhRaJob* job = *link;
+        if (SDL_GetAtomicInt(&job->done)) { *link = job->next; job->next = ready; ready = job; }
+        else { if (job->thread) ++active; link = &job->next; }
+    }
+    while (ready) {
+        KhRaJob* job = ready;
+        rc_api_server_response_t response;
+        ready = ready->next;
+        if (job->thread) SDL_WaitThread(job->thread, NULL);
+        response.body = job->body ? job->body : "";
+        response.body_length = job->body_size; response.http_status_code = job->status;
+        job->callback(&response, job->callback_data);
+        if (job->post) { SecureZeroMemory(job->post, strlen(job->post)); free(job->post); }
+        if (job->body) { SecureZeroMemory(job->body, job->body_size); free(job->body); }
+        free(job->content_type); free(job->url); free(job);
+    }
+    for (link = &ra->jobs; *link && active < 4; link = &(*link)->next) {
+        KhRaJob* job = *link;
+        if (!job->thread && !SDL_GetAtomicInt(&job->done)) {
+            job->thread = SDL_CreateThread(HttpWorker, "RA HTTPS", job);
+            if (job->thread) ++active;
+            else { job->status = RC_API_SERVER_RESPONSE_CLIENT_ERROR; SDL_SetAtomicInt(&job->done, 1); }
+        }
+    }
+    if (evaluate && ra->enabled && !ra->invalidated) rc_client_do_frame(ra->client);
+    else rc_client_idle(ra->client);
+}
+
+void KhRaDestroy(KhRa* ra) {
+    if (!ra) return;
+    ra->closing = 1;
+    while (ra->jobs) {
+        KhRaJob* job;
+        for (job = ra->jobs; job; job = job->next) {
+            if (job->thread) { SDL_WaitThread(job->thread, NULL); job->thread = NULL; }
+            else { job->status = RC_API_SERVER_RESPONSE_CLIENT_ERROR; SDL_SetAtomicInt(&job->done, 1); }
+        }
+        KhRaPump(ra, 0);
+    }
+    rc_client_destroy(ra->client);
+    free(ra->account_unlocks);
+    SecureZeroMemory(ra, sizeof(*ra)); free(ra);
+}
+
+void KhRaSetEnabled(KhRa* ra, int enabled) {
+    FILE* file;
+    if (!ra || ra->busy) return;
+    ra->enabled = enabled != 0;
+    ++ra->generation; ra->account_progress_available = 0;
+    file = DataFile(ra, "retroachievements.ini", L"w");
+    if (file) { fprintf(file, "enabled=%d\n", ra->enabled); fclose(file); }
+    if (!ra->enabled) { rc_client_logout(ra->client); SetStatus(ra, "Not connected", 0); }
+    else if (ra->token[0]) {
+        ra->busy = 1; SetStatus(ra, "Signing in...", 0);
+        rc_client_begin_login_with_token(ra->client, ra->username, ra->token, LoggedIn, ra);
+    }
+}
+
+void KhRaLogin(KhRa* ra, const char* username, const char* password, int remember) {
+    if (!ra || !ra->enabled || ra->busy || !username[0] || !password[0]) return;
+    if (strlen(username) >= sizeof(ra->username)) { SetStatus(ra, "Username too long", 1); return; }
+    ra->remember = remember != 0;
+    if (!ra->remember) ForgetToken(ra);
+    ra->busy = 1; SetStatus(ra, "Signing in...", 0);
+    rc_client_begin_login_with_password(ra->client, username, password, LoggedIn, ra);
+}
+
+void KhRaLogout(KhRa* ra) {
+    if (!ra || ra->busy) return;
+    ++ra->generation; ra->account_progress_available = 0;
+    rc_client_logout(ra->client); ForgetToken(ra); SetStatus(ra, "Not connected", 0);
+}
+
+void KhRaSetRom(KhRa* ra, const uint8_t* rom, size_t size) {
+    rc_hash_iterator_t iterator;
+    if (!ra) return;
+    ++ra->generation; ra->account_progress_available = 0;
+    rc_client_unload_game(ra->client);
+    ra->hash[0] = 0;
+    if (!rom || !size) { SetStatus(ra, "Install the selected ROM to identify its catalog.", 0); return; }
+    rc_hash_initialize_iterator(&iterator, NULL, rom, size);
+    if (!rc_hash_generate(ra->hash, RC_CONSOLE_GAMEBOY_ADVANCE, &iterator))
+        SetStatus(ra, "Could not identify the ROM", 1);
+    rc_hash_destroy_iterator(&iterator);
+    LoadGame(ra);
+}
+
+void KhRaInvalidate(KhRa* ra, const char* reason) {
+    if (!ra || ra->invalidated) return;
+    ra->invalidated = 1;
+    rc_client_unload_game(ra->client);
+    SetStatus(ra, reason, 1);
+}
+
+rc_client_t* KhRaClient(KhRa* ra) { return ra ? ra->client : NULL; }
+const char* KhRaStatus(const KhRa* ra) { return ra ? ra->status : "Client unavailable"; }
+const char* KhRaHash(const KhRa* ra) { return ra ? ra->hash : ""; }
+int KhRaEnabled(const KhRa* ra) { return ra && ra->enabled; }
+int KhRaBusy(const KhRa* ra) { return ra && ra->busy; }
+int KhRaError(const KhRa* ra) { return !ra || ra->error; }
+int KhRaAccountProgressAvailable(const KhRa* ra) { return ra && ra->account_progress_available; }
+int KhRaAccountUnlocked(const KhRa* ra, uint32_t id) {
+    uint32_t i;
+    if (!ra || !ra->account_progress_available) return 0;
+    for (i = 0; i < ra->account_unlock_count; ++i) if (ra->account_unlocks[i] == id) return 1;
+    return 0;
+}
+int KhRaValidationMode(void) { return 1; }
+const char* KhRaTakeNotice(KhRa* ra) {
+    static char notice[512];
+    if (!ra || !ra->notice[0]) return NULL;
+    memcpy(notice, ra->notice, sizeof(notice)); ra->notice[0] = 0;
+    return notice;
+}

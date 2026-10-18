@@ -155,6 +155,7 @@ static int Load(const char* path) {
         PortLog("state: %s is from another build", path);
         return -1;
     }
+    PortAchievementsInvalidate("Save state loaded");
     VisitAll(VisitRead);
     fclose(sFile);
     PortAudioReset();

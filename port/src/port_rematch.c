@@ -31,6 +31,7 @@ int PortRematchActive(void) {
 int PortRematchStart(int i) {
     if (sState != REMATCH_IDLE || !PortRematchAvailable(i))
         return 0;
+    PortAchievementsInvalidate("Rematch started");
     sWhich = i;
     sState = REMATCH_SAVING;
     PortStateRequestQuiet(0, StatePath());

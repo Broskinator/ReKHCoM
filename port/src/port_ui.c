@@ -642,6 +642,26 @@ static int DrawText(const char* s, int x, int y, uint32_t face, uint32_t shadow)
     return x;
 }
 
+int PortUiTextWidth(const char* text) { return TextWidth(text); }
+
+int PortUiRenderTextLine(uint32_t* pixels, int width, int height, const char* text, uint32_t color) {
+    uint32_t* previous = sFb;
+    int previousW = sFbW, previousH = sFbH, x = 0;
+    if (!pixels || width <= 0 || height <= 0) return 0;
+    memset(pixels, 0, (size_t)width * height * sizeof(*pixels));
+    sFb = pixels; sFbW = width; sFbH = height;
+    while (*text) {
+        int code = NextChar(&text), advance = GlyphWidth(code);
+        if (x + advance > width - 10 && *text) {
+            DrawText("...", x, 0, color, color);
+            x += 9; break;
+        }
+        DrawGlyph(code, x, 0, color, color); x += advance;
+    }
+    sFb = previous; sFbW = previousW; sFbH = previousH;
+    return x;
+}
+
 /* ---- values ------------------------------------------------------------------ */
 
 static void RefreshModes(void) {

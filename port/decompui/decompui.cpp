@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
+#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -54,6 +55,9 @@ namespace fs = std::filesystem;
 #include "save_file.h"
 #include "save_editor.h"
 #include "card_table.h"
+#include "../achievements/ra_client.h"
+#include "../achievements/local_achievements.h"
+#include "../achievements/toast_layout.h"
 
 #ifndef REKHCOM_VERSION
 #define REKHCOM_VERSION "v1.9.3-nightly.20261018.4"
@@ -546,6 +550,7 @@ static void ApplyStyle() {
     s.FramePadding = ImVec2(Px(14), Px(9));
     s.ItemSpacing = ImVec2(Px(10), Px(10));
     s.ChildRounding = 0;
+    s.TabRounding = 0;
     s.FrameRounding = 0;
     s.GrabRounding = 0;
     s.ScrollbarRounding = 0;
@@ -578,6 +583,13 @@ static void ApplyStyle() {
     c[ImGuiCol_TableBorderStrong] = kBorder;
     c[ImGuiCol_TableRowBgAlt] = ImVec4(0, 0, 0, 0.025f);
     c[ImGuiCol_PopupBg] = kPanel;
+    c[ImGuiCol_Tab] = kControl;
+    c[ImGuiCol_TabHovered] = kControlHover;
+    c[ImGuiCol_TabSelected] = kPanelHover;
+    c[ImGuiCol_TabSelectedOverline] = kAccent;
+    c[ImGuiCol_TabDimmed] = kControl;
+    c[ImGuiCol_TabDimmedSelected] = kPanelHover;
+    c[ImGuiCol_TabDimmedSelectedOverline] = kAccent;
 }
 
 static void LoadFonts() {
@@ -623,9 +635,13 @@ static void Eyebrow(const char* text) {
     float h = ImGui::GetTextLineHeight();
     GameSquare(dl, ImVec2(p.x + h * 0.4f, p.y + h * 0.5f), h * 0.8f, true);
     float x = p.x + h * 1.1f;
-    char one[2] = { 0, 0 };
-    for (const char* q = text; *q; q++) {
-        one[0] = *q;
+    for (const char* q = text; *q;) {
+        char one[5] = {};
+        unsigned char lead = (unsigned char)*q;
+        int bytes = (lead < 0x80) ? 1 : (lead < 0xE0 ? 2 : (lead < 0xF0 ? 3 : 4));
+        int n = 0;
+        while (n < bytes && q[n]) { one[n] = q[n]; ++n; }
+        q += n;
         dl->AddText(ImVec2(x, p.y), ImGui::GetColorU32(kText), one);
         x += ImGui::CalcTextSize(one).x + Px(2.2f);
     }
@@ -781,7 +797,7 @@ static bool SliderRow(const char* label, int& value, int lo, int hi, const char*
 
 /* ---- pages ------------------------------------------------------------------- */
 
-enum Page { PAGE_HOME, PAGE_GRAPHICS, PAGE_SOUND, PAGE_EXTRAS, PAGE_CONTROLS, PAGE_EDITOR, PAGE_COUNT };
+enum Page { PAGE_HOME, PAGE_GRAPHICS, PAGE_SOUND, PAGE_EXTRAS, PAGE_CONTROLS, PAGE_EDITOR, PAGE_ACHIEVEMENTS, PAGE_COUNT };
 
 static int sPage;
 static GLuint sBoxArt;
@@ -1274,6 +1290,8 @@ static const char* PadName(int b) {
     return SDL_GetGamepadStringForButton((SDL_GamepadButton)b);
 }
 
+#include "controller_probe.inc"
+
 /* Event for the cell being captured: true when it was used. */
 static bool CaptureEvent(const SDL_Event& ev) {
     if (sCapture.empty())
@@ -1304,8 +1322,6 @@ static bool CaptureEvent(const SDL_Event& ev) {
         SaveIni();
         return true;
     }
-    if (ev.type == SDL_EVENT_GAMEPAD_ADDED)
-        SDL_OpenGamepad(ev.gdevice.which);
     return false;
 }
 
@@ -1359,6 +1375,8 @@ static void BindCell(const char* key, bool pad) {
 }
 
 static void PageControls() {
+    ControllerProbePanel();
+    ImGui::Spacing();
     struct Row {
         const char* es;
         const char* en;
@@ -1472,7 +1490,7 @@ static void Header() {
 
     const char* tabs[PAGE_COUNT] = { T("Inicio", "Home"), T("Gráficos", "Graphics"), T("Sonido", "Sound"),
                                      T("Mejoras", "Enhancements"), T("Controles", "Controls"),
-                                     T("Editor de partidas", "Save editor") };
+                                     T("Editor de partidas", "Save editor"), T("Logros", "Achievements") };
     ImGui::Spacing();
     for (int i = 0; i < PAGE_COUNT; i++) {
         bool active = sPage == i;
@@ -1483,14 +1501,17 @@ static void Header() {
         if (ImGui::Button(tabs[i]))
             sPage = i;
         ImGui::PopStyleColor(3);
-        if (i + 1 < PAGE_COUNT)
-            ImGui::SameLine(0, Px(6));
+        if (i + 1 < PAGE_COUNT && ImGui::GetItemRectMax().x + Px(6) +
+            ImGui::CalcTextSize(tabs[i + 1]).x + ImGui::GetStyle().FramePadding.x * 2 <
+            ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x)
+                ImGui::SameLine(0, Px(6));
     }
     ImGui::Spacing();
     ImGui::Spacing();
 }
 
 #include "save_editor_page.inc"
+#include "achievements_page.inc"
 
 static void Footer() {
     if (!sNotice.empty() && ImGui::GetTime() - sNoticeTime < 8.0) {
@@ -1501,6 +1522,8 @@ static void Footer() {
 }
 
 static void Frame(SDL_Window* window) {
+    KhRaPump(sRaUi, 0);
+    ControllerProbeTick();
     ImGuiIO& io = ImGui::GetIO();
     Background(io.DisplaySize);
     ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -1533,10 +1556,14 @@ static void Frame(SDL_Window* window) {
         case PAGE_EDITOR:
             PageEditor();
             break;
+        case PAGE_ACHIEVEMENTS:
+            PageAchievements();
+            break;
     }
     ImGui::EndChild();
     Footer();
     ImGui::End();
+    AchievementPreviewDraw();
 }
 
 /* ---- launching --------------------------------------------------------------- */
@@ -1628,6 +1655,9 @@ static bool ShotFrames(SDL_Window* window, const char* dir) {
     for (int page = 0; page < PAGE_COUNT; page++) {
         sPage = page;
         for (int i = 0; i < 3; i++) {
+            if (page == PAGE_ACHIEVEMENTS && SDL_getenv("DECOMPUI_TOAST_PREVIEW")) {
+                sAchievementPreview = true; sAchievementPreviewStart = SDL_GetTicks() - 1000;
+            }
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplSDL3_NewFrame();
             ImGui::NewFrame();
@@ -1679,11 +1709,23 @@ int main(int, char**) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    LocalAchievementSettings(false);
+    sRaUi = KhRaCreate(sRoot.u8string().c_str(), nullptr, nullptr, nullptr);
     sScale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
     if (sScale < 1.0f)
         sScale = 1.0f;
     const char* shotDir = SDL_getenv("DECOMPUI_SHOT");
-    SDL_Window* window = SDL_CreateWindow("ReKHCoM", (int)Px(1180), (int)Px(760),
+    int windowW = (int)Px(1180), windowH = (int)Px(760);
+    if (shotDir && SDL_getenv("DECOMPUI_WINDOW")) {
+        int w = 0, h = 0;
+        if (SDL_sscanf(SDL_getenv("DECOMPUI_WINDOW"), "%dx%d", &w, &h) == 2 && w >= 960 && h >= 640) {
+            windowW = w; windowH = h;
+        }
+    }
+    sRaAccountShot = shotDir && SDL_getenv("DECOMPUI_RA_ACCOUNT");
+    if (shotDir && SDL_getenv("DECOMPUI_ACHIEVEMENT_REGION"))
+        sSelected = std::clamp(SDL_atoi(SDL_getenv("DECOMPUI_ACHIEVEMENT_REGION")), 0, 2);
+    SDL_Window* window = SDL_CreateWindow("ReKHCoM", windowW, windowH,
                                           SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
                                               (shotDir != nullptr ? SDL_WINDOW_HIDDEN : 0));
     if (window == nullptr)
@@ -1752,6 +1794,11 @@ int main(int, char**) {
         }
     }
 
+    StopControllerProbe();
+    if (sControllerProbe.pad) SDL_CloseGamepad(sControllerProbe.pad);
+    KhRaDestroy(sRaUi);
+    sRaUi = nullptr;
+    SecureZeroMemory(sRaPassword, sizeof(sRaPassword));
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();

@@ -83,7 +83,8 @@ def main():
     port_cflags = (f"{opt} -std=gnu11 -Wall -Wno-unused-function -Wno-missing-braces -mno-ms-bitfields "
                    f"-DVERSION_{VERSION.upper()} -DPLATFORM_PC {quoted} -Iport/include -I{rel(sdl_arch / 'include')}"
                    + (" -DPORT_HD2D" if args.hd2d else ""))
-    ldflags = (f"-L{rel(sdl_arch / 'lib')} -lSDL3 -lgdi32 -Wl,--disable-dynamicbase -Wl,--large-address-aware "
+    port_cflags += " -DPORT_RETROACHIEVEMENTS -DRC_CLIENT_SUPPORTS_HASH -Iport/third_party/rcheevos/include"
+    ldflags = (f"-L{rel(sdl_arch / 'lib')} -lSDL3 -lgdi32 -lwinhttp -lcrypt32 -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic -Wl,--disable-dynamicbase -Wl,--large-address-aware "
                + ("" if args.debug else "-Wl,--subsystem,windows"))
 
     BUILD.mkdir(parents=True, exist_ok=True)
@@ -109,6 +110,17 @@ def main():
         n.newline()
 
         objs = []
+        ra_objs = []
+        ra_root = ROOT / "port/third_party/rcheevos/src"
+        ra_sources = [ra_root / name for name in ("rc_client.c", "rc_compat.c", "rc_util.c", "rc_version.c")]
+        for directory in ("rcheevos", "rapi", "rhash"):
+            ra_sources += sorted((ra_root / directory).glob("*.c"))
+        ra_sources += [ROOT / "port/achievements/ra_client.c"]
+        for src in ra_sources:
+            obj = "$builddir/ra/" + rel(src).replace("/", "_")[:-2] + ".o"
+            n.build(obj, "cc_port", rel(src))
+            ra_objs.append(obj)
+        objs += ra_objs
         for src in sorted((ROOT / "src").rglob("*.c")):
             obj = f"$builddir/game/{rel(src)[4:-2]}.o"
             n.build(obj, "cc_game", rel(src))
@@ -134,20 +146,20 @@ def main():
                 variables={"in_win": str(dll), "out_win": str(BUILD / "SDL3.dll")})
         targets = ["$builddir/khcom.exe", "$builddir/SDL3.dll"]
         if VERSION == "eu":
-            targets += decompui(n, toolchain, sdl_arch, args.debug)
+            targets += decompui(n, toolchain, sdl_arch, args.debug, ra_objs)
         n.default(targets)
     print(f"configured {rel(BUILD / 'build.ninja')} ({'debug' if args.debug else 'release'})")
 
 
-def decompui(n, toolchain, sdl_arch, debug):
+def decompui(n, toolchain, sdl_arch, debug, ra_objs):
     """The launcher (port/decompui): Dear ImGui on SDL3 + OpenGL, C++."""
     ui = ROOT / "port" / "decompui"
     imgui = ui / "third_party" / "imgui"
     cxx = toolchain / "bin" / "i686-w64-mingw32-clang++.exe"
     n.variable("cxx", "\"" + str(cxx).replace("\\", "/") + "\"")
     n.variable("ui_cxxflags", f"{'-O0 -g' if debug else '-O2'} -std=c++17 -I{rel(imgui)} -I{rel(ui / 'third_party')} "
-                              f"-I{rel(sdl_arch / 'include')}")
-    n.variable("ui_ldflags", f"-static-libstdc++ -static-libgcc -L{rel(sdl_arch / 'lib')} -lSDL3 -lopengl32 -lcomdlg32 -lbcrypt -lshell32 "
+                              f"-I{rel(sdl_arch / 'include')} -DRC_CLIENT_SUPPORTS_HASH -Iport/third_party/rcheevos/include")
+    n.variable("ui_ldflags", f"-static-libstdc++ -static-libgcc -L{rel(sdl_arch / 'lib')} -lSDL3 -lopengl32 -lcomdlg32 -lbcrypt -lshell32 -lwinhttp -lcrypt32 -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic "
                              + ("" if debug else "-mwindows"))
     n.rule("cxx_ui", "$cxx $ui_cxxflags -MD -MF $out.d -c $in -o $out", description="CXX $in",
            depfile="$out.d", deps="gcc")
@@ -162,6 +174,8 @@ def decompui(n, toolchain, sdl_arch, debug):
         n.build(obj, "cxx_ui", rel(src))
         objs.append(obj)
     objs.append("$builddir/port/rekhcom_rc.o")
+    n.build("$builddir/decompui/local_achievements.o", "cc_port", "port/achievements/local_achievements.c")
+    objs += ra_objs + ["$builddir/decompui/local_achievements.o"]
     n.build("$builddir/ReKHCoM.exe", "link_ui", objs)
     art = ui / "assets" / "boxart.jpg"
     n.rule("copy_asset", 'cmd /c (if not exist "$dir_win" mkdir "$dir_win") & copy /y "$in_win" "$out_win" >nul',

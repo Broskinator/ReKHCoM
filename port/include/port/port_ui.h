@@ -20,6 +20,9 @@ void PortUiHarnessToggle(void);
 void PortUiTitleHint(void);
 /* Short message in the corner of the screen (UTF-8). */
 void PortUiNotice(const char* text);
+/* Transparent single-line text using the cartridge font. Caller owns pixels. */
+int PortUiRenderTextLine(uint32_t* pixels, int width, int height, const char* text, uint32_t color);
+int PortUiTextWidth(const char* text);
 /* Opening movie: show or hide the "A again skips" prompt. */
 void PortUiSkipPrompt(int visible);
 /* Movies shown cropped and enlarged: the presenter draws the prompt itself

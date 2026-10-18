@@ -52,3 +52,13 @@ ninguno aparece ante SDL como gamepad y, por tanto, no se atribuye a ellos una
 prueba de mandos. El cierre físico sigue pendiente hasta conectar uno reconocido
 por SDL y registrar su nombre/VID/PID y los botones/ejes comprobados. Se conserva
 la prueba virtual existente para regresión de mapeos y gatillos.
+
+El launcher añade un panel de comprobación con identidad SDL/VID/PID, lecturas
+LT/RT, pulsación/liberación de botones, sticks/centrado y gatillos simultáneos.
+Durante la prueba desactiva navegación del mando para que los botones no cambien
+opciones por accidente; ratón/teclado siguen disponibles. Exporta únicamente
+observaciones a controller_report.txt, identifica mandos virtuales y no declara
+certificación física. Al desconectar detiene la prueba. La apertura del mando
+ya no depende de tener una celda de remapeo en captura: se enumera siempre y se
+cierra su handle al desconectar/salir. La prueba física sigue pendiente de un
+dispositivo conectado; el usuario fue consultado mientras continúa el trabajo.
