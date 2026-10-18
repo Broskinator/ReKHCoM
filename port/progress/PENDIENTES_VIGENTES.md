@@ -58,9 +58,12 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
    el inventario de sus workers. Conservar resultado y pendientes por separado.
 3. [x] **Claude/coordinación:** Claude no lanzó workers externos en esta tanda;
    nada que recoger (18/10).
-4. [ ] **Codex:** verificar el cierre del bug grave de sincorazones pequeños
-   que desaparecen sin animación, usando el savestate del usuario y el resultado
-   del chat actual; continuar su corrección si el cierre resulta incompleto.
+4. [x] **Codex:** regresión compilada desde macros y funciones de producción;
+   límites ±1, entrada/salida y `y + z` pasan en GBA/16:9/32:9.
+   Copia de `slot1.khst` corre en su build EU compatible y el Heartless aparece
+   y se mueve sin desaparición; main rechaza esa state por build ID distinto.
+   El defecto exacto no se reprodujo con este estado, así que reabrir si llega
+   un estado/captura que lo demuestre. Detalle en LOGICA_PENDIENTES_20261018.md, §4.
 5. [x] **Claude:** resumen al cambiar de slot, incluida ranura vacía; e9f053595,
    integrado aa8ef4434. Informe CLAUDE_CIERRE_20261018.md.
 6. [x] **Claude:** harness EU mapsave comprueba guardado en ambas ranuras,

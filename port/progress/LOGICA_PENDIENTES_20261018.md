@@ -6,6 +6,35 @@ la evidencia necesaria y el criterio para cambiar su estado. No sustituye códig
 capturas ni cierres verificables. Editor/cheats: [`SAVE_EDITOR_LOGICA.md`](SAVE_EDITOR_LOGICA.md).
 Controles: [`CONTROLADOR_LOGICA.md`](CONTROLADOR_LOGICA.md).
 
+## 4 — Sincorazones pequeños fuera de pantalla
+
+- La lógica de culling vive en `src/map/map_tasks.c`; usar sus límites
+  `MAP_ENM_OFF_*` basados en `VIEW_*` y los márgenes originales. No copiar la
+  fórmula en el test: extraer/compilar las funciones reales con stubs mínimos,
+  o probar el binario en runtime, para evitar que prueba y producto diverjan.
+- Hay tres comportamientos que validar por separado: familia 00 elimina y
+  desactiva collider al salir por X o por `y + z`; familias 01 y 04 guardan
+  `wasOnScreen`, sobreviven antes de entrar y solo se destruyen tras haber
+  estado visibles y salir por X. Comprobar límites exactos y ±1, entrada,
+  salida y regreso en GBA 240×160 y vistas PC 16:9/ultrawide.
+- Runtime: duplicar el savestate del usuario a una carpeta de prueba; jamás
+  escribir el original. Capturar estado antes/durante/después, distinguir que
+  el enemigo no esté cargado al iniciar combate de que desaparezca sin animación
+  estando en pantalla, y repetir en EU/US/JP. Mantener builds y estados locales.
+- Evidencia actual: la corrección de `MAP_ENM_OFF_*` está en main; el archivo
+  `fieldmaps_wide.txt` son capturas cuyo `mode_battle` ya había comenzado, así
+  que no demuestran por sí solas el culling. El parser de KHST no puede leer
+  ejecutables release sin símbolos `khdata`/`khbss`. `port/tools/test_field_enemy_culling.py`
+  extrae macros y tres funciones de producción sin duplicar su lógica, compila
+  con clang y pasa límites ±1, `y + z`, `wasOnScreen` y su transición en GBA,
+  16:9 y 32:9. Runtime del `slot1.khst` original, usando una copia y el
+  ejecutable EU Nightly 2 compatible: capturas 1/60/120/180/240 muestran el
+  Heartless entrando y moviéndose; no se reproduce la desaparición. El binario
+  de main rechaza ese estado por build ID distinto. Capturas y copia locales en
+  `build/codex-culling-runtime/`. Cerrar como corrección validada con el límite
+  de que esta sesión no reprodujo el defecto exacto del reporte; reabrir si se
+  obtiene una secuencia que lo reproduzca.
+
 ## 25 — Remapeo y gatillos
 
 - Lógica: traducir entradas SDL a acciones del juego sin confundir índice/signo
