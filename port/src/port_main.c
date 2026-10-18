@@ -2290,6 +2290,7 @@ int main(int argc, char** argv) {
 
     if (!PortRomLoad())
         return 1;
+    PortUndubApply();
     PortSramLoad();
     PortInputInit();
     PortAudioInit();

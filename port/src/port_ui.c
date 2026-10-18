@@ -15,6 +15,8 @@
 
 extern void* gMsgLatinFontFrames[];
 extern const uint8_t gMsgLatinFontTiles[];
+extern int PortDebugModeAvailable(void);
+extern void PortDebugModeEnter(void);
 #ifdef VERSION_EU
 extern uint32_t gLanguage;
 #endif
@@ -42,17 +44,20 @@ enum {
     ITEM_DODGE,
     ITEM_STOCK,
     ITEM_SAVEBANK,
+    ITEM_UNDUB,
     ITEM_MUSIC,
     ITEM_SFX,
     ITEM_MASTER,
     ITEM_EXPERIMENTAL, /* section heading, not selectable */
-    ITEM_UNSTOCK,
     ITEM_HDTEXT,
     ITEM_HDHUD,
     ITEM_HD2D,
     ITEM_SMOOTHAUDIO,
+    ITEM_RECOM_EXTRAS, /* section heading, not selectable */
+    ITEM_UNSTOCK,
     ITEM_PS2_MODE,
     ITEM_PS2_MENU,     /* opens the Re:CoM page */
+    ITEM_CONTROLS_MENU,
     ITEM_CHEATS_MENU,
     ITEM_CLOSE,
     /* the Re:Chain of Memories page */
@@ -65,24 +70,41 @@ enum {
     ITEM_NG_HDTEXT,
     ITEM_NG_QOL,
     ITEM_NG_START,
+    ITEM_CHEAT_DEBUG,
     ITEM_CHEAT_RIKU,
     ITEM_CHEATS_BACK,
+    ITEM_CONTROL_A,
+    ITEM_CONTROL_B,
+    ITEM_CONTROL_L,
+    ITEM_CONTROL_R,
+    ITEM_CONTROL_START,
+    ITEM_CONTROL_SELECT,
+    ITEM_CONTROL_UP,
+    ITEM_CONTROL_DOWN,
+    ITEM_CONTROL_LEFT,
+    ITEM_CONTROL_RIGHT,
+    ITEM_CONTROL_STOCK,
+    ITEM_CONTROL_DODGE,
+    ITEM_CONTROL_UNSTOCK,
+    ITEM_CONTROL_RESET,
+    ITEM_CONTROLS_BACK,
     ITEM_COUNT
 };
 
 /* Two pages, each a run of items: the options and the Re:CoM settings. */
-enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS };
+enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS, PAGE_CONTROLS };
 static int sPage;
+static int sControlPad, sControlCapture;
 static int sNgRecom; /* new game page: the Re:CoM version chosen */
 static int sNgQol;   /* the one-button controls as set before the new game page */
 enum { WIZ_VERSION, WIZ_DIFFICULTY, WIZ_OPTIONS };
 static int sWizStep, sWizCursor; /* the new game window's step and row */
 static void WizKey(int key);
 static int PageFirst(void) {
-    return sPage == PAGE_CHEATS ? ITEM_CHEAT_RIKU : sPage == PAGE_PS2 ? ITEM_PS2_DIFFICULTY : sPage == PAGE_NEWGAME ? ITEM_NG_VERSION : 0;
+    return sPage == PAGE_CHEATS ? ITEM_CHEAT_DEBUG : sPage == PAGE_CONTROLS ? ITEM_CONTROL_A : sPage == PAGE_PS2 ? ITEM_PS2_DIFFICULTY : sPage == PAGE_NEWGAME ? ITEM_NG_VERSION : 0;
 }
 static int PageEnd(void) {
-    return sPage == PAGE_CHEATS ? ITEM_CHEATS_BACK + 1 : sPage == PAGE_PS2 ? ITEM_PS2_BACK + 1 : sPage == PAGE_NEWGAME ? ITEM_NG_START + 1 : ITEM_CLOSE + 1;
+    return sPage == PAGE_CHEATS ? ITEM_CHEATS_BACK + 1 : sPage == PAGE_CONTROLS ? ITEM_CONTROLS_BACK + 1 : sPage == PAGE_PS2 ? ITEM_PS2_BACK + 1 : sPage == PAGE_NEWGAME ? ITEM_NG_START + 1 : ITEM_CLOSE + 1;
 }
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
@@ -99,8 +121,7 @@ static int ItemVisible(int item) {
         case ITEM_PS2_MENU: return 0;
         /* settings of our own, not the player's to tune */
         case ITEM_FILTER:
-        case ITEM_CARDS:
-        case ITEM_SAVEBANK: return 0;
+        case ITEM_CARDS: return 0;
         case ITEM_NG_VERSION: return 1;
         case ITEM_NG_DIFFICULTY: return sNgRecom;
         case ITEM_HDHUD: return 0; /* HD HUD pending: hidden and forced off (KHCOM_HD_HUD_DEV=1 for development) */
@@ -136,19 +157,23 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
     { "Save bank", "Banque de sauvegarde", "Speicherbank", "Banco di salvataggio", "Banco de partidas",
       "セーブバンク" },
+    { "Japanese voices (restart)", "Voix japonaises (relancer)", "Japanische Stimmen (Neustart)",
+      "Voci giapponesi (riavvia)", "Voces japonesas (reiniciar)", "日本語ボイス (再起動)" },
     { "Music volume", "Volume musique", "Musiklautstärke", "Volume musica", "Volumen música", "音楽の音量" },
     { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos", "効果音の音量" },
     { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general", "全体の音量" },
     { "Experimental", "Expérimental", "Experimentell", "Sperimentale", "Experimentales", "実験的機能" },
-    { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
-      "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "HD HUD (pilot)", "HUD HD (pilote)", "HD-HUD (Pilot)", "HUD HD (pilota)", "HUD HD (piloto)", "HD HUD (試験)" },
     { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
     { "Audio filter", "Filtre audio", "Audiofilter", "Filtro audio", "Filtro de audio", "オーディオフィルター" },
+    { "Re:CoM improvements", "Améliorations Re:CoM", "Re:CoM-Verbesserungen", "Miglioramenti Re:CoM", "Mejoras de Re:CoM", "Re:CoMの改善" },
+    { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
+      "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
     { "Re:CoM mode", "Mode Re:CoM", "Re:CoM-Modus", "Modalità Re:CoM", "Modo Re:CoM", "Re:CoMモード" },
     { "Re:CoM settings", "Réglages Re:CoM", "Re:CoM-Einstellungen", "Impostazioni Re:CoM", "Ajustes Re:CoM",
       "Re:CoM設定" },
+    { "Controls", "Commandes", "Steuerung", "Controlli", "Controles", "操作" },
     { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
     { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
@@ -161,17 +186,33 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "One-button dodge and stock", "Roulade et réserve en un bouton", "Ausweichen und Vorrat mit einer Taste",
       "Capriola e accumulo con un tasto", "Rodar y acumular con un botón", "ワンボタン操作" },
     { "Start", "Commencer", "Beginnen", "Inizia", "Comenzar", "はじめる" },
+    { "Enter debug mode", "Entrer en mode debug", "Debug-Modus starten", "Entra in modalità debug", "Entrar al modo debug", "デバッグモード" },
     { "Unlock Riku", "Débloquer Riku", "Riku freischalten", "Sblocca Riku", "Desbloquear a Riku", "リクを解放" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
+    { "A", "A", "A", "A", "A", "A" },
+    { "B", "B", "B", "B", "B", "B" },
+    { "L", "L", "L", "L", "L", "L" },
+    { "R", "R", "R", "R", "R", "R" },
+    { "Start", "Start", "Start", "Start", "Start", "Start" },
+    { "Select", "Select", "Select", "Select", "Select", "Select" },
+    { "Arriba", "Haut", "Oben", "Su", "Arriba", "上" },
+    { "Abajo", "Bas", "Unten", "Giù", "Abajo", "下" },
+    { "Izquierda", "Gauche", "Links", "Sinistra", "Izquierda", "左" },
+    { "Derecha", "Droite", "Rechts", "Destra", "Derecha", "右" },
+    { "Acumular", "Stock", "Stock", "Accumula", "Acumular", "ストック" },
+    { "Esquivar", "Esquive", "Ausweichen", "Schiva", "Esquivar", "ドッジ" },
+    { "Devolver cartas", "Rendre les cartes", "Karten zurückgeben", "Restituisci carte", "Devolver cartas", "カードを戻す" },
+    { "Restaurar valores predeterminados", "Restaurer les valeurs par défaut", "Standardwerte wiederherstellen", "Ripristina valori predefiniti", "Restaurar valores predeterminados", "初期設定に戻す" },
+    { "Volver", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
 };
 static const char* const sCheatsTitle[LANG_COUNT] = { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" };
 static const char* const sCheatsHelp[LANG_COUNT] = {
-    "Title: New Game: Riku starts Reverse/Rebirth.",
-    "Titre : Nouvelle partie : Riku lance Reverse/Rebirth.",
-    "Titel: Neues Spiel: Riku startet Reverse/Rebirth.",
-    "Titolo: Nuova partita: Riku avvia Reverse/Rebirth.",
-    "Título: Nueva partida: Riku inicia Reverse/Rebirth.",
-    "タイトルのリクで新しいゲームを開始。",
+    "The debug menu clears current play data; use only at the title screen.",
+    "Le menu debug efface la partie en cours ; utilisez-le depuis le titre.",
+    "Das Debug-Menü löscht den aktuellen Spielstand; nur im Titelbildschirm.",
+    "Il menu debug cancella i dati di gioco correnti; solo dal titolo.",
+    "El menú debug reinicia la partida en curso; úsalo desde el título.",
+    "デバッグメニューは進行中のデータを初期化します。タイトル画面で使用。",
 };
 static const char* const sNgTitle[LANG_COUNT] = { "New game", "Nouvelle partie", "Neues Spiel", "Nuova partita",
     "Nueva partida", "ニューゲーム" };
@@ -201,12 +242,12 @@ static const char* const sNgDescDifficulty[3][LANG_COUNT] = {
     { "As the original: the cartridge's damage.", "Comme l'original : les dégâts de la cartouche.",
       "Wie das Original: der Schaden des Moduls.", "Come l'originale: i danni della cartuccia.",
       "Como el original: el daño del cartucho.", "オリジナルと同じダメージ。" },
-    { "Sora takes half damage and deals a quarter more.", "Sora subit moitié moins de dégâts et en inflige un quart de plus.",
-      "Sora erleidet halben Schaden und teilt ein Viertel mehr aus.", "Sora subisce metà danni e ne infligge un quarto in più.",
-      "Sora recibe la mitad de daño y causa un cuarto más.", "ソラの被ダメージ半分、与ダメージ1.25倍。" },
-    { "Sora takes half again as much damage and deals less.", "Sora subit moitié plus de dégâts et en inflige moins.",
-      "Sora erleidet anderthalbfachen Schaden und teilt weniger aus.", "Sora subisce una volta e mezza i danni e ne infligge meno.",
-      "Sora recibe un 50 % más de daño y causa menos.", "ソラの被ダメージ1.5倍、与ダメージ減少。" },
+    { "Sora takes 50% damage; enemies take 125%.", "Sora subit 50 % des dégâts ; les ennemis en subissent 125 %.",
+      "Sora erleidet 50 % Schaden; Gegner 125 %.", "Sora subisce il 50% dei danni; i nemici il 125%.",
+      "Sora recibe un 50 % de daño; los enemigos, un 125 %.", "ソラの被ダメージは50%、敵は125%。" },
+    { "Sora takes 150% damage; enemies take 80%.", "Sora subit 150 % des dégâts ; les ennemis en subissent 80 %.",
+      "Sora erleidet 150 % Schaden; Gegner 80 %.", "Sora subisce il 150% dei danni; i nemici l'80%.",
+      "Sora recibe un 150 % de daño; los enemigos, un 80 %.", "ソラの被ダメージは150%、敵は80%。" },
 };
 static const char* const sNgDescHd[LANG_COUNT] = {
     "Dialogue drawn with a crisp font at the window's resolution.",
@@ -557,6 +598,8 @@ static int ModeIndex(void) {
 
 static int ItemEnabled(int item) {
     switch (item) {
+        case ITEM_UNDUB: return PortUndubAvailable();
+        case ITEM_CHEAT_DEBUG: return PortDebugModeAvailable();
         case ITEM_ZOOM:
         case ITEM_INTZOOM:
             return gPortConfig.viewMode == PORT_VIEW_AUTO;
@@ -659,6 +702,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_SAVEBANK:
             SDL_snprintf(out, size, "%d / %d", gPortConfig.saveBank, PORT_SAVE_BANKS);
             break;
+        case ITEM_UNDUB:
+            SDL_strlcpy(out, sOnOff[gPortConfig.undub != 0][l], size);
+            break;
         case ITEM_HD2D:
             SDL_strlcpy(out, sOnOff[gPortConfig.hd2d != 0][l], size);
             break;
@@ -674,7 +720,12 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_CHEAT_RIKU:
             SDL_strlcpy(out, sOnOff[gPortConfig.cheatUnlockRiku != 0][l], size);
             break;
+        case ITEM_CHEAT_DEBUG:
+        case ITEM_CONTROL_RESET:
+            SDL_strlcpy(out, "\xE2\x86\x92", size);
+            break;
         case ITEM_CHEATS_MENU:
+        case ITEM_CONTROLS_MENU:
         case ITEM_PS2_MENU:
             SDL_strlcpy(out, "\xE2\x86\x92", size);
             break;
@@ -704,7 +755,26 @@ static void ValueText(int item, char* out, size_t size) {
             SDL_snprintf(out, size, "%d%%", gPortConfig.masterVolume);
             break;
         default:
-            out[0] = 0;
+            if (item >= ITEM_CONTROL_A && item <= ITEM_CONTROL_UNSTOCK) {
+                int action = item - ITEM_CONTROL_A;
+                if (sControlCapture) SDL_strlcpy(out, "Press...", size);
+                else if (sControlPad) {
+                    int b = gPortConfig.pad[action];
+                    if (b >= PORT_PAD_AXIS_BASE) {
+                        int axis = (b - PORT_PAD_AXIS_BASE) / 2;
+                        static const char* const axes[] = { "Left X", "Left Y", "Right X", "Right Y", "LT", "RT" };
+                        SDL_snprintf(out, size, "%s %s", axis < SDL_GAMEPAD_AXIS_COUNT ? axes[axis] : "Axis", ((b - PORT_PAD_AXIS_BASE) & 1) ? "-" : "+");
+                    } else {
+                        const char* name = b < 0 ? "-" : SDL_GetGamepadStringForButton((SDL_GamepadButton)b);
+                        SDL_strlcpy(out, name ? name : "?", size);
+                    }
+                } else {
+                    int b = gPortConfig.keys[action][0];
+                    SDL_strlcpy(out, b ? SDL_GetKeyName((SDL_Keycode)b) : "-", size);
+                }
+            } else {
+                out[0] = 0;
+            }
             break;
     }
 }
@@ -714,6 +784,25 @@ static int Wrap(int v, int n) {
 }
 
 static void Close(void);
+
+static void ResetControlBindings(void) {
+    static const int keys[PORT_ACT_COUNT][2] = {
+        { SDLK_X, SDLK_K }, { SDLK_Z, SDLK_J }, { SDLK_A, 0 }, { SDLK_S, 0 },
+        { SDLK_RETURN, 0 }, { SDLK_BACKSPACE, SDLK_RSHIFT }, { SDLK_UP, SDLK_W },
+        { SDLK_DOWN, 0 }, { SDLK_LEFT, 0 }, { SDLK_RIGHT, 0 }, { SDLK_D, 0 },
+        { SDLK_C, 0 }, { SDLK_V, 0 },
+    };
+    static const int pad[PORT_ACT_COUNT] = {
+        SDL_GAMEPAD_BUTTON_SOUTH, SDL_GAMEPAD_BUTTON_EAST, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER,
+        SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER, SDL_GAMEPAD_BUTTON_START, SDL_GAMEPAD_BUTTON_BACK,
+        SDL_GAMEPAD_BUTTON_DPAD_UP, SDL_GAMEPAD_BUTTON_DPAD_DOWN, SDL_GAMEPAD_BUTTON_DPAD_LEFT,
+        SDL_GAMEPAD_BUTTON_DPAD_RIGHT, SDL_GAMEPAD_BUTTON_NORTH, SDL_GAMEPAD_BUTTON_WEST,
+        SDL_GAMEPAD_BUTTON_RIGHT_STICK,
+    };
+    memcpy(gPortConfig.keys, keys, sizeof(keys));
+    memcpy(gPortConfig.pad, pad, sizeof(pad));
+    PortConfigSave();
+}
 
 static void Change(int item, int dir) {
     if (!ItemEnabled(item))
@@ -782,6 +871,9 @@ static void Change(int item, int dir) {
             gPortConfig.saveBank = Wrap(gPortConfig.saveBank - 1 + dir, PORT_SAVE_BANKS) + 1;
             PortSramSwitchBank();
             break;
+        case ITEM_UNDUB:
+            gPortConfig.undub = !gPortConfig.undub;
+            break;
         case ITEM_HD2D:
             gPortConfig.hd2d = !gPortConfig.hd2d;
             break;
@@ -795,13 +887,38 @@ static void Change(int item, int dir) {
             gPortConfig.ps2Mode = !gPortConfig.ps2Mode;
             break;
         case ITEM_CHEATS_MENU:
-            if (dir > 0) { sPage = PAGE_CHEATS; sCursor = sScroll = ITEM_CHEAT_RIKU; }
+            if (dir > 0) { sPage = PAGE_CHEATS; sCursor = sScroll = ITEM_CHEAT_DEBUG; }
+            break;
+        case ITEM_CONTROLS_MENU:
+            if (dir > 0) {
+                sPage = PAGE_CONTROLS;
+                sControlPad = 0;
+                sCursor = sScroll = ITEM_CONTROL_A;
+            }
             break;
         case ITEM_CHEAT_RIKU:
             gPortConfig.cheatUnlockRiku = !gPortConfig.cheatUnlockRiku;
             break;
+        case ITEM_CHEAT_DEBUG:
+            if (PortDebugModeAvailable()) {
+                PortDebugModeEnter();
+                Close();
+            }
+            break;
         case ITEM_CHEATS_BACK:
             sPage = PAGE_MAIN; sCursor = ITEM_CHEATS_MENU; sScroll = 0;
+            break;
+        case ITEM_CONTROL_A: case ITEM_CONTROL_B: case ITEM_CONTROL_L: case ITEM_CONTROL_R:
+        case ITEM_CONTROL_START: case ITEM_CONTROL_SELECT: case ITEM_CONTROL_UP: case ITEM_CONTROL_DOWN:
+        case ITEM_CONTROL_LEFT: case ITEM_CONTROL_RIGHT: case ITEM_CONTROL_STOCK: case ITEM_CONTROL_DODGE:
+        case ITEM_CONTROL_UNSTOCK:
+            if (dir) { sControlPad = !sControlPad; sControlCapture = 0; } else sControlCapture = 1;
+            break;
+        case ITEM_CONTROL_RESET:
+            if (dir > 0) ResetControlBindings();
+            break;
+        case ITEM_CONTROLS_BACK:
+            PortConfigSave(); sPage = PAGE_MAIN; sCursor = ITEM_CONTROLS_MENU; sScroll = 0;
             break;
         case ITEM_PS2_MENU:
             if (dir > 0 && gPortConfig.ps2Mode) {
@@ -973,7 +1090,7 @@ static void Move(int dir) {
     do {
         int first = PageFirst(), n = PageEnd() - first;
         sCursor = first + Wrap(sCursor - first + dir, n);
-        if (sCursor == ITEM_EXPERIMENTAL)
+        if (sCursor == ITEM_EXPERIMENTAL || sCursor == ITEM_RECOM_EXTRAS)
             sCursor = first + Wrap(sCursor - first + dir, n);
     } while (!ItemEnabled(sCursor) || !ItemVisible(sCursor));
 }
@@ -1049,6 +1166,18 @@ int PortUiHandleEvent(const void* p) {
             WizKey(key);
         return 1;
     }
+    if (sPage == PAGE_CONTROLS && sControlCapture && sCursor >= ITEM_CONTROL_A && sCursor <= ITEM_CONTROL_UNSTOCK) {
+        int action = sCursor - ITEM_CONTROL_A;
+        if (ev->type == SDL_EVENT_KEY_DOWN && !ev->key.repeat) {
+            if (ev->key.key == SDLK_ESCAPE) sControlCapture = 0;
+            else if (!sControlPad) { gPortConfig.keys[action][0] = ev->key.key == SDLK_DELETE ? 0 : (int)ev->key.key; sControlCapture = 0; PortConfigSave(); }
+            else if (ev->key.key == SDLK_DELETE) { gPortConfig.pad[action] = -1; sControlCapture = 0; PortConfigSave(); }
+            return 1;
+        }
+        if (sControlPad && ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) { gPortConfig.pad[action] = ev->gbutton.button; sControlCapture = 0; PortConfigSave(); return 1; }
+        if (sControlPad && ev->type == SDL_EVENT_GAMEPAD_AXIS_MOTION && SDL_abs(ev->gaxis.value) > 16000) { gPortConfig.pad[action] = PORT_PAD_AXIS_BASE + ev->gaxis.axis * 2 + (ev->gaxis.value < 0); sControlCapture = 0; PortConfigSave(); return 1; }
+        return 1;
+    }
     if (ev->type == SDL_EVENT_KEY_DOWN) {
         switch (ev->key.key) {
             case SDLK_UP:
@@ -1075,6 +1204,8 @@ int PortUiHandleEvent(const void* p) {
                     Close();
                 else if (sCursor == ITEM_FS_RES)
                     ConfirmFsRes();
+                else if (sPage == PAGE_CONTROLS)
+                    Change(sCursor, sCursor == ITEM_CONTROL_RESET ? 1 : 0);
                 else
                     Change(sCursor, 1);
                 break;
@@ -1090,6 +1221,8 @@ int PortUiHandleEvent(const void* p) {
                         Change(ITEM_CHEATS_BACK, 1);
                     else if (sPage == PAGE_PS2)
                         Change(ITEM_PS2_BACK, 1);
+                    else if (sPage == PAGE_CONTROLS)
+                        Change(ITEM_CONTROLS_BACK, 1);
                     else
                         Close();
                 }
@@ -1116,6 +1249,8 @@ int PortUiHandleEvent(const void* p) {
                     Close();
                 else if (sCursor == ITEM_FS_RES)
                     ConfirmFsRes();
+                else if (sPage == PAGE_CONTROLS)
+                    Change(sCursor, sCursor == ITEM_CONTROL_RESET ? 1 : 0);
                 else
                     Change(sCursor, 1);
                 break;
@@ -1125,10 +1260,8 @@ int PortUiHandleEvent(const void* p) {
                     break;
                 }
                 if (sPage == PAGE_CHEATS) { Change(ITEM_CHEATS_BACK, 1); break; }
-                if (sPage == PAGE_PS2) {
-                    Change(ITEM_PS2_BACK, 1);
-                    break;
-                }
+                if (sPage == PAGE_PS2) { Change(ITEM_PS2_BACK, 1); break; }
+                if (sPage == PAGE_CONTROLS) { Change(ITEM_CONTROLS_BACK, 1); break; }
                 Close();
                 break;
             case SDL_GAMEPAD_BUTTON_START:
@@ -1549,7 +1682,7 @@ static void DrawMenu(int l, int width, int height) {
     if (barX + barW - 24 > artX + MENU_ART_X)
         Shade(artX + MENU_ART_X, 0, barX + barW - 24 - (artX + MENU_ART_X), top + rows * 16, 0xFFFFFFFFu, 230);
 
-    DrawText(sPage == PAGE_CHEATS ? sCheatsTitle[l] : sPage == PAGE_PS2 ? sPs2Title[l] : sPage == PAGE_NEWGAME ? sNgTitle[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
+    DrawText(sPage == PAGE_CHEATS ? sCheatsTitle[l] : sPage == PAGE_PS2 ? sPs2Title[l] : sPage == PAGE_CONTROLS ? (sControlPad ? "Controls - Gamepad" : "Controls - Keyboard") : sPage == PAGE_NEWGAME ? sNgTitle[l] : sTitle[l], barX, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
     if (sScroll > PageFirst())
         DrawText("\xE2\x86\x91", barX + barW - 8, 2, MENU_INK, 0xFFD8D8D8u);
     for (i = sScroll, y = top; i < sScroll + rows && i < PageEnd(); i++, y += 16) {
@@ -1560,7 +1693,7 @@ static void DrawMenu(int l, int width, int height) {
         }
         uint32_t face = on ? MENU_INK : MENU_DIM;
 
-        if (i == ITEM_EXPERIMENTAL) {
+        if (i == ITEM_EXPERIMENTAL || i == ITEM_RECOM_EXTRAS) {
             /* a section heading: red text and a thin line, no square */
             int end = DrawText(sLabels[i][l], barX, y - 1, MENU_RED_DARK, 0xFFD8D8D8u);
             Fill(end + 6, y + 4, barX + barW - end - 6, 1, MENU_GREY);
@@ -1568,7 +1701,7 @@ static void DrawMenu(int l, int width, int height) {
         }
         MenuBar(barX, y, barW, sel);
         DrawText(sLabels[i][l], barX + 16, y - 2, face, 0xFFD8D8D8u);
-        if (i == ITEM_CLOSE || i == ITEM_PS2_BACK || i == ITEM_CHEATS_BACK || i == ITEM_NG_START)
+        if (i == ITEM_CLOSE || i == ITEM_PS2_BACK || i == ITEM_CHEATS_BACK || i == ITEM_CONTROLS_BACK || i == ITEM_NG_START)
             continue;
         ShortValue(i, value, sizeof(value));
         x = barX + barW - 4 - TextWidth(value);
@@ -1585,7 +1718,7 @@ static void DrawMenu(int l, int width, int height) {
         /* a demanding zoom: say so where the help line is */
         MenuButton(barX, height - 15, sZoomHeavy[l], '!');
     else
-        DrawText(sPage == PAGE_CHEATS ? sCheatsHelp[l] : sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
+        DrawText(sPage == PAGE_CHEATS ? sCheatsHelp[l] : sPage == PAGE_CONTROLS ? "Left/right: keyboard or gamepad; confirm: bind; Delete: clear" : sPage == PAGE_NEWGAME ? sHelpNg[l] : sHelp[l], barX, height - 13, MENU_DIM, 0xFFFFFFFFu);
 }
 
 /* Test harness: KHCOM_OPTIONS_HOLD=n closes the menu n frames after it has
@@ -1639,7 +1772,7 @@ static int HarnessOptionsAction(void) {
         const char* dir = item ? SDL_strchr(item + 1, ':') : NULL;
         if (item && dir && (!comma || dir < comma) && SDL_atoi(route) == sHarnessTick) {
             int row = SDL_atoi(item + 1), direction = SDL_atoi(dir + 1);
-            if (row >= 0 && row < ITEM_COUNT && row != ITEM_EXPERIMENTAL && row != ITEM_CLOSE) {
+            if (row >= 0 && row < ITEM_COUNT && row != ITEM_EXPERIMENTAL && row != ITEM_RECOM_EXTRAS && row != ITEM_CLOSE) {
                 char before[128], after[128];
                 ValueText(row, before, sizeof(before));
                 sCursor = row;

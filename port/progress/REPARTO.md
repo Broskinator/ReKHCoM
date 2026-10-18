@@ -9,6 +9,22 @@ Claude sigue con los fondos de escenas en lotes de 10 con el usuario.
 
 ## Reparto vigente — 18/10/2026 (sustituye a los anteriores)
 
+### Actualización Codex — 18/10/2026
+
+La rama local `codex/issues` contiene el primer bloque de issues y mejoras del
+encargo en [CODEX_TAREAS.md](CODEX_TAREAS.md); el detalle de estado y pruebas
+está al final de ese archivo. Build Windows EU/US/JP PASS; launcher 11/11,
+Re:CoM 80 combinaciones, zoom 41 y aspecto 56 PASS. Undub está implementado
+pero falta comparar dumps de voz. #12 compila, falta validar el guardado en
+juego. La tira de las arenas y la integración de RetroAchievements siguen
+pendientes. No hay nada publicado desde esta rama.
+
+El usuario confirmó como referencia el repositorio abierto
+[RaceWave46](https://github.com/DomazinUS/RaceWave46) (GPL-3.0). La
+investigación y límites de los sets están en
+[RETROACHIEVEMENTS.md](RETROACHIEVEMENTS.md); no se debe presentar el diseño
+de popup como una integración funcional hasta que estén conectados los sets.
+
 Estable pública: **v1.9.2** (Windows + Android alpha + Web alpha, un archivo
 por plataforma). Todo lo demás en borrador. Issues #7, #8 y #9 cerradas.
 

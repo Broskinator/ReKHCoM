@@ -29,6 +29,36 @@ Encargo del usuario: Codex hace las issues y mejoras de abajo y puede integrarla
 - Al terminar cada tarea: compilar EU/US/JP, dejar capturas/evidencia en
   `build/codex-evidence/<tarea>/` y anotar aquí qué está hecho y verificado.
 
+## Estado de esta repartija — 18/10/2026
+
+- **Hecho en esta rama:** análisis de BPS del Undub sin generar ni guardar ROM
+  modificada; capa opcional de voces JP desde B8CJ validada, por región y OFF
+  por defecto. Falta comparar dumps de voz antes de marcar #14 completamente
+  verificada.
+- **Hecho:** remapeo de controles de juego en launcher y menú, incluidos ejes
+  de gatillos, las acciones de esquivar/acumular/devolver, restauración de
+  defaults y aviso rojo de asignaciones repetidas en el launcher. EU/US/JP
+  compilan; launcher pasa 11/11 pruebas. #13 queda listo para revisión manual
+  con mando.
+- **Hecho:** texto Orgulloso/Beginner actualizado; selector de guardado en
+  puntos de guardado permite File 1/2 con arriba/abajo sin cambiar la ranura
+  activa. El cambio de #12 compila; falta una prueba manual de guardado en juego.
+- **Hecho:** selector de opciones con estilo debug, acceso de modo debug bajo
+  Trucos y grupo propio para las mejoras Re:CoM. Unstock continúa opcional y
+  apagado por defecto.
+- **Redactado para Claude:** respuestas de #14, #13, #12, #6, #5, #4, #3 y #2
+  en `CODEX_RESPUESTAS.md`. No publicar desde esta rama.
+- **Pendiente:** corregir la tira de fondo en las arenas GBA y verificarla.
+- **RetroAchievements:** investigación en `RETROACHIEVEMENTS.md`. Confirmados
+  set base (90) y `Subset - Level 1` (39, ROM parchada con hash distinto), y
+  RaceWave46 como referencia pública GPL-3.0. Esta rama aún no integra el
+  cliente, la sesión online ni los popups; no anunciar los sets como jugables.
+  El siguiente bloque debe resolver `rc_client`/licencia/HTTP/ROM IDs y luego
+  implementar y probar notificaciones para ambos sets, no solo el diseño.
+- **Pruebas verificadas:** build Windows EU/US/JP; launcher 11/11; Re:CoM
+  80 combinaciones; zoom 41 casos; aspecto 56 combinaciones. La prueba de
+  opciones del juego se interrumpió por timeout y no cuenta como aprobada.
+
 ## 1. Issue #14 — Undub (PRIORIDAD)
 
 Petición: compatibilidad con la ROM "Undub" (voces japonesas en la versión

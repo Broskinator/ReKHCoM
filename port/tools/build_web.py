@@ -76,7 +76,7 @@ def main():
         common += ['-iquote', str(p)]
     common += ['-I', str(args.sdl_source.resolve() / 'include')]
     game = list((ROOT / 'src').rglob('*.c'))
-    excluded = {'port_memory', 'port_sections', 'port_state', 'port_hdtext', 'port_watchdog', 'port_biosfault'}
+    excluded = {'port_memory', 'port_sections', 'port_state', 'port_hdtext', 'port_watchdog', 'port_biosfault', 'port_undub'}
     port = [p for p in (ROOT / 'port/src').glob('*.c') if p.stem not in excluded]
     port += list((ROOT / 'port/web/native').glob('*.c'))
     port += [ROOT / 'port/android/native/touch_android.c', reloc_path]

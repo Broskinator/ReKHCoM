@@ -87,6 +87,10 @@ enum {
     PORT_ACT_COUNT
 };
 
+/* pad_<action> values 0..BUTTON_COUNT-1 are buttons; this range encodes an
+ * axis and sign so analog triggers can be captured and remapped. */
+#define PORT_PAD_AXIS_BASE 100
+
 typedef struct PortConfig {
     int viewMode;
     int zoom;             /* PORT_VIEW_AUTO: 1..6, the view as a multiple of the GBA's (1 Original, 2 Enhanced) */
@@ -121,8 +125,9 @@ typedef struct PortConfig {
     int aspect;          /* picture shape: 0 fills the window, 1 at most 16:9, 2 at most 21:9, 3 force 21:9, 4 force 32:9, 5 exact 4:3, 6 exact GBA 3:2 */
     int integerZoom;     /* 1: select only whole pixel scales (v1.4 numbering) */
     int keys[PORT_ACT_COUNT][2]; /* SDL keycodes, 0 = none */
-    int pad[PORT_ACT_COUNT];     /* SDL gamepad buttons, -1 = none */
+    int pad[PORT_ACT_COUNT];     /* SDL gamepad button or PORT_PAD_AXIS_BASE+axis*2+sign */
     int cheatUnlockRiku;         /* opt-in title access; never marks Sora cleared */
+    int undub;                  /* Japanese voices; applied when loading the ROM */
 } PortConfig;
 
 extern PortConfig gPortConfig;
@@ -167,6 +172,8 @@ const char* PortConfigPath(const char* name);
 
 int PortMemoryInit(void);
 int PortRomLoad(void);
+int PortUndubAvailable(void);
+void PortUndubApply(void);
 void PortSramLoad(void);
 void PortSramSyncIfDirty(void);
 /* Save banks: bank 1 is PORT_SAVE_NAME, bank n kh_com[_us|_jp]_bank<n>.sav. */
