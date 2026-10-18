@@ -158,7 +158,7 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     6d0f33df1; pruebas de entrada, persistencia y controles Web correctas.
     Odin 2 y otros dispositivos físicos pendientes de validar (35/37).
 
-46. [~] **Claude (traspaso desde Codex, 18/10 11:56):** issue #16. Codex sin
+46. [x] **Claude (traspaso desde Codex, 18/10 11:56):** issue #16 cerrado en 4287b8053 (trabajo de Codex, 15/15 vistas EU/US/JP); respondido en el issue. Codex sin
     commits desde 11:09 ni archivos tocados desde 11:14 (>40 min). Su WIP sin
     commitear en khcom-codex (port_ppu.c: limpiar el mundo solo con sOverlay;
     port/tools/test_door_views.py) se recoge tal cual, se verifica y se commitea
