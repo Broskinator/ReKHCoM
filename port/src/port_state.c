@@ -11,8 +11,20 @@
  * SRAM is deliberately not part of a state: loading one never touches the
  * player's real save file.
  */
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#define ImageStart() ((const uint8_t*)GetModuleHandleA(NULL) + 0x1000)
+#define MakeDir(path) CreateDirectoryA(path, NULL)
+#else
+/* Linux: the executable is linked at a fixed base (no PIE), like Windows. */
+#include <stdint.h>
+#include <sys/stat.h>
+#define MAX_PATH 1024
+extern const uint8_t __executable_start[];
+#define ImageStart() (__executable_start)
+#define MakeDir(path) mkdir(path, 0755)
+#endif
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <string.h>
@@ -57,7 +69,7 @@ static uint32_t BuildId(void) {
     if (sId)
         return sId;
     PortGameSections(&data, &dataSize, &bss, &bssSize);
-    for (p = (const uint8_t*)GetModuleHandleA(NULL) + 0x1000; p < end; p++)
+    for (p = ImageStart(); p < end; p++)
         h = (h ^ *p) * 16777619u;
     h ^= (uint32_t)(uintptr_t)data ^ (uint32_t)dataSize * 31u ^ (uint32_t)(uintptr_t)bss ^ (uint32_t)bssSize * 7u;
     sId = h ^ STATE_VERSION;
@@ -94,7 +106,7 @@ static void VisitAll(PortStateVisitor visit) {
 const char* PortStatePath(int slot) {
     static char path[MAX_PATH];
 
-    CreateDirectoryA(PortConfigPath("states"), NULL);
+    MakeDir(PortConfigPath("states"));
     SDL_snprintf(path, sizeof(path), "%s", PortConfigPath("states/slot0.khst"));
     path[strlen(path) - 6] = (char)('0' + slot % 10);
     return path;
@@ -110,7 +122,7 @@ static void MakeParentDir(const char* path) {
         slash = SDL_strrchr(dir, '\\');
     if (slash != NULL) {
         *slash = 0;
-        CreateDirectoryA(dir, NULL);
+        MakeDir(dir);
     }
 }
 

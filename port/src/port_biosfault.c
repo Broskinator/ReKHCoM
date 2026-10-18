@@ -23,8 +23,18 @@
  * remainder alike, where x86 raises an exception. The handler sets both to 0
  * and skips the instruction.
  */
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#else
+/* Linux i386: the same decoding, driven by SIGSEGV/SIGTRAP/SIGFPE. */
+#define _GNU_SOURCE
+#include <signal.h>
+#include <string.h>
+#include <stdint.h>
+#include <ucontext.h>
+typedef uint32_t DWORD;
+#endif
 
 #include "port/port.h"
 
@@ -39,13 +49,20 @@ typedef struct Pending {
     int reg;          /* CONTEXT register index, -1 when none */
     uint32_t delta;   /* added to it for the step */
     uint32_t target;  /* its value after the move */
+#ifdef _WIN32
     DWORD thread;
+#endif
 } Pending;
 
+#ifdef _WIN32
 static Pending sPending = { -1, 0, 0, 0 };
+#else
+static Pending sPending = { -1, 0, 0 };
+#endif
 static uint32_t sLogged[LOGGED_MAX];
 static int sLoggedCount;
 
+#ifdef _WIN32
 static DWORD* Reg(CONTEXT* c, int r) {
     switch (r) {
         case 0: return &c->Eax;
@@ -58,6 +75,12 @@ static DWORD* Reg(CONTEXT* c, int r) {
         default: return &c->Edi;
     }
 }
+#else
+static DWORD* Reg(mcontext_t* c, int r) {
+    static const int map[8] = { REG_EAX, REG_ECX, REG_EDX, REG_EBX, REG_ESP, REG_EBP, REG_ESI, REG_EDI };
+    return (DWORD*)&c->gregs[map[r & 7]];
+}
+#endif
 
 /* One-byte opcodes followed by a ModRM byte. */
 static int HasModRm1(uint8_t op) {
@@ -174,21 +197,6 @@ static int AddressRegister(const uint8_t* p, uint32_t shift, int* reg, uint32_t*
     return 0;
 }
 
-static void LogSite(const EXCEPTION_RECORD* r, uint32_t eip) {
-    int i;
-
-    for (i = 0; i < sLoggedCount; i++)
-        if (sLogged[i] == eip)
-            return;
-    if (sLoggedCount < LOGGED_MAX)
-        sLogged[sLoggedCount++] = eip;
-    if (r->ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO)
-        PortLog("bios: division by zero at eip %08lx", (unsigned long)eip);
-    else
-        PortLog("bios: %s %08lx at eip %08lx", r->ExceptionInformation[0] ? "write" : "read",
-                (unsigned long)r->ExceptionInformation[1], (unsigned long)eip);
-}
-
 /* Length of a DIV/IDIV (F6/F7 /6, /7) instruction, 0 if it is not one. */
 static int DivLength(const uint8_t* p, int* bytes) {
     const uint8_t* start = p;
@@ -222,27 +230,62 @@ static int DivLength(const uint8_t* p, int* bytes) {
     return (int)(p - start);
 }
 
+/* kind: 0 read, 1 write, 2 division by zero. */
+static void LogSite(int kind, uint32_t addr, uint32_t eip) {
+    int i;
+
+    for (i = 0; i < sLoggedCount; i++)
+        if (sLogged[i] == eip)
+            return;
+    if (sLoggedCount < LOGGED_MAX)
+        sLogged[sLoggedCount++] = eip;
+    if (kind == 2)
+        PortLog("bios: division by zero at eip %08lx", (unsigned long)eip);
+    else
+        PortLog("bios: %s %08lx at eip %08lx", kind ? "write" : "read", (unsigned long)addr, (unsigned long)eip);
+}
+
+/* Division by zero: quotient and remainder 0, as libgcc returns on the GBA.
+   Returns 0 when the instruction is not a DIV/IDIV. */
+static int SkipDivision(DWORD* eip, DWORD* eax, DWORD* edx) {
+    int bytes, len = DivLength((const uint8_t*)(uintptr_t)*eip, &bytes);
+
+    if (len == 0)
+        return 0;
+    LogSite(2, 0, *eip);
+    if (bytes == 1) {
+        *eax &= ~0xFFFFu; /* AL quotient, AH remainder */
+    } else if (bytes == 2) {
+        *eax &= ~0xFFFFu;
+        *edx &= ~0xFFFFu;
+    } else {
+        *eax = 0;
+        *edx = 0;
+    }
+    *eip += (DWORD)len;
+    return 1;
+}
+
+/* A bus access outside the GBA space: picks the register to move for one
+   instruction. Returns 0 when it must stay a real fault. */
+static int RedirectAccess(uint32_t fault, int write, DWORD eip, int* reg, uint32_t* delta) {
+    if (fault >= GBA_SPACE_LOW && fault < GBA_SPACE_HIGH)
+        return 0; /* only addresses outside the GBA space */
+    if (fault >= BIOS_AREA_SIZE && fault < GBA_SPACE_LOW)
+        return 0; /* the system's own address range */
+    if (!AddressRegister((const uint8_t*)(uintptr_t)eip, BusTarget(fault, write) - fault, reg, delta))
+        return 0;
+    LogSite(write, fault, eip);
+    return 1;
+}
+
+#ifdef _WIN32
 static LONG CALLBACK BiosFaultHandler(EXCEPTION_POINTERS* info) {
     EXCEPTION_RECORD* r = info->ExceptionRecord;
     CONTEXT* c = info->ContextRecord;
 
-    if (r->ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO) {
-        int bytes, len = DivLength((const uint8_t*)(uintptr_t)c->Eip, &bytes);
-        if (len == 0)
-            return EXCEPTION_CONTINUE_SEARCH;
-        LogSite(r, c->Eip);
-        if (bytes == 1) {
-            c->Eax &= ~0xFFFFu; /* AL quotient, AH remainder */
-        } else if (bytes == 2) {
-            c->Eax &= ~0xFFFFu;
-            c->Edx &= ~0xFFFFu;
-        } else {
-            c->Eax = 0;
-            c->Edx = 0;
-        }
-        c->Eip += (DWORD)len;
-        return EXCEPTION_CONTINUE_EXECUTION;
-    }
+    if (r->ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO)
+        return SkipDivision(&c->Eip, &c->Eax, &c->Edx) ? EXCEPTION_CONTINUE_EXECUTION : EXCEPTION_CONTINUE_SEARCH;
 
     if (r->ExceptionCode == EXCEPTION_SINGLE_STEP) {
         if (sPending.reg < 0 || sPending.thread != GetCurrentThreadId())
@@ -262,19 +305,11 @@ static LONG CALLBACK BiosFaultHandler(EXCEPTION_POINTERS* info) {
         || sPending.reg >= 0)
         return EXCEPTION_CONTINUE_SEARCH;
     {
-        uint32_t fault = (uint32_t)r->ExceptionInformation[1];
         int reg;
         uint32_t delta;
 
-        /* Only addresses outside the GBA space: anything else is a real fault. */
-        if (fault >= GBA_SPACE_LOW && fault < GBA_SPACE_HIGH)
+        if (!RedirectAccess((uint32_t)r->ExceptionInformation[1], r->ExceptionInformation[0] == 1, c->Eip, &reg, &delta))
             return EXCEPTION_CONTINUE_SEARCH;
-        if (fault >= BIOS_AREA_SIZE && fault < GBA_SPACE_LOW)
-            return EXCEPTION_CONTINUE_SEARCH; /* Windows' own address range */
-        if (!AddressRegister((const uint8_t*)(uintptr_t)c->Eip, BusTarget(fault, r->ExceptionInformation[0] == 1) - fault,
-                             &reg, &delta))
-            return EXCEPTION_CONTINUE_SEARCH;
-        LogSite(r, c->Eip);
         *Reg(c, reg) += delta;
         sPending.reg = reg;
         sPending.delta = delta;
@@ -288,3 +323,65 @@ static LONG CALLBACK BiosFaultHandler(EXCEPTION_POINTERS* info) {
 void PortBiosFaultInstall(void) {
     AddVectoredExceptionHandler(1, BiosFaultHandler);
 }
+#else
+/* The game runs on one thread; signals are only redirected for it. */
+static struct sigaction sPrevSegv, sPrevTrap, sPrevFpe;
+
+static void Chain(int sig, siginfo_t* si, void* uc) {
+    struct sigaction* prev = sig == SIGSEGV ? &sPrevSegv : sig == SIGTRAP ? &sPrevTrap : &sPrevFpe;
+
+    if (prev->sa_flags & SA_SIGINFO) {
+        prev->sa_sigaction(sig, si, uc);
+    } else if (prev->sa_handler != SIG_IGN && prev->sa_handler != SIG_DFL) {
+        prev->sa_handler(sig);
+    } else {
+        signal(sig, SIG_DFL);
+        raise(sig);
+    }
+}
+
+static void BiosSignal(int sig, siginfo_t* si, void* ucv) {
+    mcontext_t* c = &((ucontext_t*)ucv)->uc_mcontext;
+    DWORD* eip = (DWORD*)&c->gregs[REG_EIP];
+
+    if (sig == SIGFPE) {
+        if (si->si_code == FPE_INTDIV && SkipDivision(eip, Reg(c, 0), Reg(c, 2)))
+            return;
+    } else if (sig == SIGTRAP) {
+        if (sPending.reg >= 0) {
+            DWORD* v = Reg(c, sPending.reg);
+            /* Move it back unless the instruction loaded something new into it. */
+            if (*v - sPending.target + 0x10000u < 0x20000u)
+                *v -= sPending.delta;
+            sPending.reg = -1;
+            c->gregs[REG_EFL] &= ~0x100;
+            return;
+        }
+    } else if (sPending.reg < 0) {
+        int reg;
+        uint32_t delta;
+
+        if (RedirectAccess((uint32_t)(uintptr_t)si->si_addr, (c->gregs[REG_ERR] & 2) != 0, *eip, &reg, &delta)) {
+            *Reg(c, reg) += delta;
+            sPending.reg = reg;
+            sPending.delta = delta;
+            sPending.target = *Reg(c, reg);
+            c->gregs[REG_EFL] |= 0x100; /* trap after this one instruction */
+            return;
+        }
+    }
+    Chain(sig, si, ucv);
+}
+
+void PortBiosFaultInstall(void) {
+    struct sigaction sa;
+
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_sigaction = BiosSignal;
+    sa.sa_flags = SA_SIGINFO | SA_NODEFER;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGSEGV, &sa, &sPrevSegv);
+    sigaction(SIGTRAP, &sa, &sPrevTrap);
+    sigaction(SIGFPE, &sa, &sPrevFpe);
+}
+#endif
