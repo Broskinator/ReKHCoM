@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## v1.9.3-nightly.20261018.4 — 2026-10-18 (public test build)
+
+- Options → Cheats: enemies fall in one hit, infinite HP (both off by default and
+  remembered), level 99 with every level-up bonus (HP, CP and sleights; Riku AP/DP),
+  every map card at 9 (the most the game holds) and a full battle card collection
+  (999, up to 99 of a card). The actions work while walking a room.
+- Options → Boss rematches: refight Sora's bosses already beaten and the two battle
+  tutorials. You come back exactly where you were; nothing from the fight is kept.
+- Moogle points notice: picking up moogle points shows how many and the total
+  (on by default; optional in the game, the launcher and kh_com.ini).
+- Launcher: new Save editor tab (off until you accept a warning): level, HP, CP or
+  AP/DP, moogle points, map cards and battle cards with their own pictures from the
+  cartridge. Every change is listed first and the save is backed up before writing.
+- Launcher Controls: an Xbox 360-style controller drawing lights the button bound to
+  the selected action; the gamepad column shows Xbox symbols.
+- Fixed #16: the door card selection was a black screen in every view except Auto.
+- The launcher keeps settings it does not know, so newer game options are not lost.
+- Windows, Linux, Steam Deck, Anbernic alpha, Android alpha and Web alpha updated.
+  The PS5 alpha package is not rebuilt in this nightly (Nightly 3 package still applies).
+
 ## v1.9.3-nightly.20261018.3 — 2026-10-18 (public test build)
 
 - Android/Web: Options → Experimental → Hide touch controls, remembered across

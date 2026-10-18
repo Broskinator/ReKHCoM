@@ -56,7 +56,7 @@ namespace fs = std::filesystem;
 #include "card_table.h"
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.9.3-nightly.20261018.3"
+#define REKHCOM_VERSION "v1.9.3-nightly.20261018.4"
 #endif
 
 static bool sSpanish;
