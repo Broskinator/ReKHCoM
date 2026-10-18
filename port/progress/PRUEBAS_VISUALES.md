@@ -31,6 +31,5 @@ copia jugable aparte, nunca sobre sus carpetas ReKHCoM-vX (esas se conservan).
 ## 3. Referencia: borde superior de la sala de Riku (#17)
 
 `src/map/map_cell.c`: `MapFindEdgeStrip` (tira inferior de 24x4 tiles),
-`MapTopEdgeTile` (volteada arriba) y `MapPlainWallCell` (muro liso tras el
-borde: celda de rayas con los tiles más comunes de la sala). `KHCOM_TOPCLOSE=0`
-lo apaga.
+`MapTopEdgeTile` (volteada arriba) y `MapPlainBaseTile` (pared lisa de BG3).
+`KHCOM_TOPCLOSE=0` lo apaga. Ver LOGICA_APROBADOS.md y `port/tools/room_ascii.py`.

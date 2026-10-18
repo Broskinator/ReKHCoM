@@ -10,6 +10,7 @@
 #include "engine_math.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "map_fixed_data.h"
 #include "world_types.h"
@@ -96,6 +97,27 @@ static int MapFindEdgeStrip(int* sx, int* sy) {
         sFound = 0;
         W = sMapCols * 4;
         H = sMapRows * 2;
+        if (getenv("KHCOM_ROOMDUMP")) { /* harness: the room's BG1/BG2/BG3 entries, for port/tools/room_ascii.py */
+            FILE* f = fopen("roomdump.txt", "w");
+            int bgi;
+            if (f != NULL) {
+                fprintf(f, "cols %d rows %d void %x", sMapCols, sMapRows, sMapRoomDef->map[0x110]);
+                fputc(10, f);
+                for (bgi = 1; bgi <= 3; bgi++) {
+                    fprintf(f, "bg %d", bgi);
+                    fputc(10, f);
+                    for (ty = 0; ty < H; ty++) {
+                        for (tx = 0; tx < W; tx++) {
+                            MapCell* m = MapGetCell(tx / 4, ty / 2);
+                            const u16* map = m == NULL ? NULL : bgi == 1 ? m->bg1Map : bgi == 2 ? m->bg2Map : m->bg3Map;
+                            fprintf(f, "%04x ", map == NULL ? 0xffff : map[(ty & 1) * 32 + (tx & 3)]);
+                        }
+                        fputc(10, f);
+                    }
+                }
+                fclose(f);
+            }
+        }
         for (ty = 0; ty + 5 <= H && !sFound; ty++)
             for (tx = 0; tx + MAP_EDGE_STRIP <= W && !sFound; tx++) {
                 int ok = 1;
@@ -133,54 +155,43 @@ static int MapTopEdgeTile(int bg, int x, int y) {
 /* The cell of plain wall of column hx: of its bare-wall cells, the one whose
    tiles are the commonest in the whole room (ornaments, windows and frames
    are made of rarer tiles). Cached per room. */
-static MapCell* MapPlainWallCell(int hx) {
+/* BG3 entry of the plain wall for tile column tx: the one its top rows use most. */
+static int MapPlainBaseTile(int tx) {
     static const MapCell* sCells;
     static u16 sRoomCols, sRoomRows;
-    static u16 sCount[65536];
-    static MapCell* sPlain[128];
-    static u8 sDone[128];
-    int r, c, x, rows;
+    static u16 sTile[512];
+    static u8 sDone[512];
+    int ty, i, n, best = 0, bestCount = 0;
+    u16 seen[24];
 
-    if (hx < 0 || hx >= 128)
-        return MapGetCell(hx, 0);
+    if (tx < 0 || tx >= 512)
+        return 0;
     if (sCells != sMapCells || sRoomCols != sMapCols || sRoomRows != sMapRows) {
         sCells = sMapCells;
         sRoomCols = sMapCols;
         sRoomRows = sMapRows;
         memset(sDone, 0, sizeof(sDone));
-        memset(sCount, 0, sizeof(sCount));
-        for (x = 0; x < sMapCols; x++)
-            for (r = 0; r < sMapRows; r++) {
-                MapCell* m = MapGetCell(x, r);
-                if (m != NULL && m->bg2Map != NULL)
-                    for (c = 0; c < 8; c++) {
-                        u16 e = m->bg2Map[(c >> 2) * 32 + (c & 3)];
-                        if (sCount[e] < 0xFFFF)
-                            sCount[e]++;
-                    }
-            }
     }
-    if (!sDone[hx]) {
-        long bestScore = -1;
-        rows = sMapRows < 10 ? sMapRows : 10;
-        sPlain[hx] = MapGetCell(hx, 0);
-        for (r = 0; r < rows && MapCellBareWall(MapGetCell(hx, r)); r++) {
-            MapCell* a = MapGetCell(hx, r);
-            long score = 0;
-            /* plain wall is the same in both rows of its cell */
-            for (c = 0; c < 4 && a->bg2Map[c] == a->bg2Map[32 + c]; c++) {}
-            if (c < 4)
-                continue;
-            for (c = 0; c < 8; c++)
-                score += sCount[a->bg2Map[(c >> 2) * 32 + (c & 3)]];
-            if (score > bestScore) {
-                bestScore = score;
-                sPlain[hx] = a;
+    if (!sDone[tx]) {
+        for (ty = 0, n = 0; ty < 24 && ty < sMapRows * 2; ty++) {
+            MapCell* m = MapGetCell(tx / 4, ty / 2);
+            if (m == NULL || m->bg3Map == NULL)
+                break;
+            seen[n++] = m->bg3Map[(ty & 1) * 32 + (tx & 3)];
+        }
+        for (ty = 0; ty < n; ty++) {
+            int count = 0;
+            for (i = 0; i < n; i++)
+                count += seen[i] == seen[ty];
+            if (count > bestCount) {
+                bestCount = count;
+                best = seen[ty];
             }
         }
-        sDone[hx] = 1;
+        sTile[tx] = best;
+        sDone[tx] = 1;
     }
-    return sPlain[hx];
+    return sTile[tx];
 }
 
 /* Screen entry of world tile (tx, ty) for BG1-3 of a cell-built room: the
@@ -203,17 +214,15 @@ static int MapWorldTile(int bg, int tx, int ty) {
     cell = MapGetCell(hx, hy);
     if (cell == NULL && y < 0 && x >= 0 && sMapTopClose && MapCellBareWall(MapGetCell(hx, 0)) && MapFindEdgeStrip(&edgeX, &edgeY)) {
         /* Above the room the wide view showed the wall cut flat. Its top
-           closes with the room's own lower edge, turned upside down: the
-           stair of that edge rising then falling, void above, the wall
-           (clear tiles) below. */
-        int e = MapTopEdgeTile(bg, x, y);
-        if (e >= 0)
-            return e;
-        if (bg == 1)
-            return sMapRoomDef->map[0x110];
-        /* behind the edge, the column's plain wall, not a piece of its ornaments */
-        cell = MapPlainWallCell(hx);
-        my = y & 1;
+           closes with the room's own lower edge turned upside down (BG1:
+           void above, clear below). The wall behind is BG3's plain tile of
+           each column; BG2 (ornaments, window frames) stays empty so no
+           ornament is repeated or cut in half. */
+        if (bg == 1) {
+            int e = MapTopEdgeTile(bg, x, y);
+            return e >= 0 ? e : sMapRoomDef->map[0x110];
+        }
+        return bg == 2 ? 0 : MapPlainBaseTile(x);
     }
     if (cell == NULL) {
         switch (bg) {

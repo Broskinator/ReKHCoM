@@ -79,8 +79,8 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
    guardada en la partida. Comprobación conjunta sigue en el punto 6.
 10. [x] **Claude:** #17. Borde superior de la sala de Riku: el borde inferior
     festoneado (tira 24x4) se repite volteado arriba sobre muro liso.
-    APROBADA MEJORABLE por el usuario (18/10); activa por defecto
-    (KHCOM_TOPCLOSE=0 la apaga). Mejora pendiente: afinar esquinas/muro bajo el borde.
+    APROBADO TOTALMENTE por el usuario (18/10); activo por defecto (KHCOM_TOPCLOSE=0
+    lo apaga). Lógica en LOGICA_APROBADOS.md.
 11. [~] **Claude:** #18. El savestate 3 a 16:9 y 32:9 muestra la banda completa;
     falta que el usuario señale la zona exacta.
 12. [~] **Codex:** 057 playa corregida para vistas amplias; código y capturas listos,
