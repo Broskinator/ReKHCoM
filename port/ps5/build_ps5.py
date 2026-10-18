@@ -126,7 +126,7 @@ def build_guest(region, jobs):
     game_flags = [*common_flags(), '-w', '-std=gnu89', '-include', ROOT / 'port/include/port/game_prefix.h',
                   f'-DPLATFORM_PC', f'-DVERSION_{upper}', *includes]
     port_flags = [*common_flags(), '-Wall', '-Wno-unused-function', '-Wno-unused-variable', '-Wno-unused-but-set-variable',
-                  '-Wno-unused-parameter', '-Wno-sign-compare', '-std=gnu11', '-DSTBI_NO_THREAD_LOCALS', f'-I{HERE / "third_party/stb"}', '-DPLATFORM_PC', f'-DVERSION_{upper}', *includes]
+                  '-Wno-unused-parameter', '-Wno-sign-compare', '-std=gnu11', '-DSTBI_NO_THREAD_LOCALS', f'-I{HERE / "third_party/stb"}', f'-I{ROOT / "port/src"}', '-DPLATFORM_PC', f'-DVERSION_{upper}', *includes]
     units = []
     for src in sorted((ROOT / 'src').rglob('*.c')):
         units.append((src, out / 'game' / src.relative_to(ROOT / 'src').with_suffix('.o'), game_flags))

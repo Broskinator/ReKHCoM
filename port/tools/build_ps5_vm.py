@@ -67,7 +67,7 @@ def main():
     args.out.mkdir(parents=True, exist_ok=True)
     fetched = args.out / 'ps5-fetch'
     command = [sys.executable, str(ROOT / 'port/tools/linux_vm_test.py'), '--share', str(SHARE),
-               '--disk', str(IMAGE), '--net', '--mem', args.mem, '--cpus', args.cpus,
+               '--disk', str(IMAGE), '--net', '--run-timeout', '10800', '--mem', args.mem, '--cpus', args.cpus,
                '--run', 'bash /root/share/build-release.sh; code=$?; tail -40 /root/ps5-release.log; exit $code',
                '--fetch', '/root/rk-release/port/ps5/dist/PPSA98511.zip', '--out', str(fetched)]
     # Git Bash rewrites /root/... arguments into Windows paths unless told not to.

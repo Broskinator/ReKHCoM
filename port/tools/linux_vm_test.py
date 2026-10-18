@@ -83,6 +83,7 @@ def main():
     ap.add_argument('--disk', type=Path, help='persistent qcow2 overlay (created from the image, kept between runs)')
     ap.add_argument('--disk-size', default='40G')
     ap.add_argument('--net', action='store_true', help='user-mode network (apt, downloads)')
+    ap.add_argument('--run-timeout', type=int, default=1800, help='seconds allowed for each --run command')
     ap.add_argument('--mem', default='2048')
     ap.add_argument('--cpus', default='2')
     args = ap.parse_args()
@@ -132,7 +133,7 @@ def main():
             out, code = con.run(step, 300)
             print(f'# {step} [exit {code}]\n{out.strip()[-600:]}', flush=True)
         for c in args.run:
-            out, code = con.run(c, 1800)
+            out, code = con.run(c, args.run_timeout)
             print(f'$ {c}\n{out.strip()}\n[exit {code}]', flush=True)
         args.out.mkdir(parents=True, exist_ok=True)
         for f in args.fetch:
