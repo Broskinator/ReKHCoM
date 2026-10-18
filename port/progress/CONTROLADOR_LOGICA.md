@@ -62,3 +62,12 @@ certificación física. Al desconectar detiene la prueba. La apertura del mando
 ya no depende de tener una celda de remapeo en captura: se enumera siempre y se
 cierra su handle al desconectar/salir. La prueba física sigue pendiente de un
 dispositivo conectado; el usuario fue consultado mientras continúa el trabajo.
+
+### Dispositivo conectado por el usuario
+
+El 18/10/2026 el usuario conectó su 8BitDo Ultimate 2C por dongle. Una nueva
+enumeración SDL devolvió `gamepads=1`, `XInput Controller #1`, VID `2dc8`,
+PID `310a`. Esto sustituye el resultado anterior de cero mandos para el estado
+actual del equipo. Se abrió el launcher de revisión y se pidió al usuario
+ejecutar el diagnóstico y exportar `controller_report.txt`. Hasta recibir ese
+informe no se dan por comprobados botones, ejes, gatillos ni reconexión física.

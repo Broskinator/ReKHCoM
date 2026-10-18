@@ -109,7 +109,9 @@ final de 057/061/074: solo 004 León permanece aprobada (1/44).
     Guard Armor de los casos que aún quedan, en especial Maléfica dragón.
 25. [x] **Codex:** remapeo/gatillos implementado y comprobado con SDL virtual;
     EU/US/JP compilan. Mando físico: llegará como reporte (ver abajo).
-    SDL3 enumera cero gamepads en este equipo; no hay validación física realizada.
+    18/10: usuario conecta 8BitDo Ultimate 2C por dongle; SDL3 detecta
+    XInput Controller #1, VID 2DC8 / PID 310A. Entradas físicas pendientes
+    del informe del diagnóstico abierto al usuario; detección sola no las valida.
     Launcher: diagnóstico con botones/ejes/gatillos en vivo y exportación de
     observaciones a controller_report.txt; apertura de mando corregida también
     fuera de captura de remapeo. No confundir ese panel con una prueba física hecha.
