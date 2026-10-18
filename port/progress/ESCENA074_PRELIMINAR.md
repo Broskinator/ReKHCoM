@@ -1,5 +1,14 @@
 # 074 Monstruo: preliminar aceptada
 
+**Actualización: mejora aprobada por el usuario.** Receta vigente:
+`py -3 port/tools/scene074_polish_preview.py`. Header de integración actualizado.
+La forma izquierda es una copia completa del mismo motivo que aparece cortado
+a la derecha: 19 entradas originales ya visibles coinciden con desplazamiento
+(+20,-1) tiles. Para completar la cola y eliminar el fragmento repetido, BG2
+destino x32..34, y17..21 usa fuente (x-20,y+1). Cambian 507 píxeles del añadido,
+sin alterar la parte original del encuadre. Esta regla se documentó en el punto12
+de REVISION_TILES_ESCENAS.md para reutilizar el método, no sus coordenadas.
+
 Usuario aprueba el layout y la corrección de paleta activa; pide guardar esta
 base antes de intentar reparar la pieza verde del suelo abajo a la derecha,
 usando como referencia la pieza dibujada abajo a la izquierda.
@@ -22,4 +31,5 @@ estático: el efecto de aclarado cambia durante la escena. Los registros de
 blending están desactivados en esta captura; el efecto está en la paleta viva.
 
 Todavía no hay hook nuevo en `port_ppu.c`: main está integrando ese archivo.
-La nueva prueba inferior no reemplaza este perfil hasta revisión del usuario.
+La sustitución inferior aprobada sí forma parte del perfil vigente; el commit
+preliminar `8cf93bc78` conserva la versión anterior para comparación.
