@@ -107,7 +107,7 @@ def configure(version, arch, base, out):
             objs.append(obj)
         skip = WINDOWS_ONLY | ({'port_biosfault'} if arch != 'i386' else set())  # x86 decoder
         port_sources = [p for p in sorted((ROOT / 'port/src').glob('*.c')) if p.stem not in skip]
-        port_sources += [ROOT / 'port/linux/platform_linux.c', ROOT / 'port/android/native/port_memory_android.c',
+        port_sources += [ROOT / 'port/linux/platform_linux.c', ROOT / 'port/linux/fbdev_linux.c', ROOT / 'port/android/native/port_memory_android.c',
                          ROOT / 'port/portable/hdtext_freetype.c', glue / 'rom_relocs.c']
         for src in port_sources:
             obj = f'$builddir/port/{src.stem}.o'
@@ -165,7 +165,9 @@ def bundle(arch, base, versions, dest):
         shutil.copyfile(src, dest / 'lib' / name)
         todo += needed(src)
     subprocess.check_call(['llvm-strip', '--strip-unneeded', str(dest / 'lib' / 'libSDL3.so.0')])
-    shutil.copyfile(ROOT / 'port/linux/ReKHCoM.sh', dest / 'ReKHCoM.sh')
+    # The loader runs the game, so the process is named after its file.
+    (dest / 'lib' / LOADER[arch]).rename(dest / 'lib' / 'rekhcom')
+    (dest / 'ReKHCoM.sh').write_bytes((ROOT / 'port/linux/ReKHCoM.sh').read_bytes().replace(b'\r\n', b'\n'))
     for name in ('KHMenu.otf', 'ComicHearts.otf', 'NOTICE.md'):
         (dest / 'assets/fonts').mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'port/assets/fonts' / name, dest / 'assets/fonts' / name)
@@ -182,6 +184,78 @@ def bundle(arch, base, versions, dest):
     return sorted(done)
 
 
+def executable(name):
+    return name.endswith('.sh') or '/bin/' in name or '/lib/' in name
+
+
+def make_tar(src, archive, top):
+    import tarfile
+    with tarfile.open(archive, 'w:gz', compresslevel=9) as t:
+        for f in sorted(src.rglob('*')):
+            name = f'{top}/{f.relative_to(src).as_posix()}'
+            info = t.gettarinfo(f, name)
+            info.uid = info.gid = 0
+            info.uname = info.gname = ''
+            info.mode = 0o755 if f.is_dir() or executable(name) else 0o644
+            if f.is_file():
+                with open(f, 'rb') as fh:
+                    t.addfile(info, fh)
+            else:
+                t.addfile(info)
+
+
+def make_zip(src, archive):
+    import zipfile
+    with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+        for f in sorted(src.rglob('*')):
+            name = f.relative_to(src).as_posix()
+            if f.is_dir():
+                continue
+            info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = ((0o100755 if executable('/' + name) else 0o100644) << 16)
+            info.create_system = 3  # Unix: keep the permission bits
+            z.writestr(info, f.read_bytes())
+
+
+def package(version, base_i386, base_armhf):
+    """One file per Linux platform in build/releases."""
+    import shutil
+    import re
+    out = ROOT / 'build/releases'
+    out.mkdir(parents=True, exist_ok=True)
+    stage = ROOT / 'build/linux-stage'
+    if stage.exists():
+        shutil.rmtree(stage)
+    cfg = re.search(r'PORT_ZOOM_CONFIG_VERSION\s+(\d+)', (ROOT / 'port/include/port/port_zoom.h').read_text()).group(1)
+    made = []
+    # Linux PC: self-contained x86 folder.
+    pc = stage / 'pc'
+    bundle('i386', base_i386, ['eu', 'us', 'jp'], pc)
+    shutil.copyfile(ROOT / 'port/linux/LINUX.md', pc / 'LINUX.md')
+    archive = out / f'ReKHCoM-{version}-linux-x86.tar.gz'
+    make_tar(pc, archive, f'ReKHCoM-{version}-linux-x86')
+    made.append(archive)
+    # Steam Deck: the same build, fullscreen from the first launch.
+    deck = stage / 'deck'
+    shutil.copytree(pc, deck)
+    (deck / 'kh_com.ini').write_text(f'# Steam Deck preset\nconfig_version={cfg}\nfullscreen=1\n')
+    archive = out / f'ReKHCoM-{version}-steamdeck.tar.gz'
+    make_tar(deck, archive, f'ReKHCoM-{version}-steamdeck')
+    made.append(archive)
+    # Anbernic (PortMaster layout): launcher + rekhcom/ with the armhf build.
+    arm = stage / 'anbernic'
+    bundle('armhf', base_armhf, ['eu', 'us', 'jp'], arm / 'rekhcom')
+    shutil.copyfile(ROOT / 'port/linux/LINUX.md', arm / 'rekhcom' / 'LINUX.md')
+    (arm / 'ReKHCoM.sh').write_bytes((ROOT / 'port/linux/anbernic/ReKHCoM.sh').read_bytes().replace(b'\r\n', b'\n'))
+    archive = out / f'ReKHCoM-{version}-anbernic-alpha.zip'
+    make_zip(arm, archive)
+    made.append(archive)
+    for a in made:
+        print('package', rel(a), a.stat().st_size)
+    return made
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--arch', choices=ARCHES, default='i386')
@@ -189,7 +263,18 @@ def main():
     ap.add_argument('--base', type=Path, help='prepared sysroot/SDL/FreeType folder (default D:/ReKHCoM-build/linux/<arch>)')
     ap.add_argument('--jobs', type=int, default=os.cpu_count())
     ap.add_argument('--bundle', type=Path, help='also assemble a self-contained folder here')
+    ap.add_argument('--package', metavar='VERSION', help='build i386 and armhf, all regions, and write '
+                    'build/releases/ReKHCoM-VERSION-{linux-x86.tar.gz,steamdeck.tar.gz,anbernic-alpha.zip}')
     args = ap.parse_args()
+    if args.package:
+        bases = {a: Path('D:/ReKHCoM-build/linux') / a for a in ARCHES}
+        for arch in ARCHES:
+            for version in ('eu', 'us', 'jp'):
+                out = ROOT / 'build' / f'linux-{arch}-{version}'
+                configure(version, arch, bases[arch], out)
+                subprocess.check_call(['ninja', '-f', str(out / 'build.ninja'), '-j', str(args.jobs)], cwd=ROOT)
+        package(args.package, bases['i386'], bases['armhf'])
+        return
     base = args.base or Path('D:/ReKHCoM-build/linux') / args.arch
     for version in args.versions:
         out = ROOT / 'build' / f'linux-{args.arch}-{version}'

@@ -43,5 +43,6 @@ fi
 # libraries. The system's 64-bit GPU driver cannot be loaded into this 32-bit
 # process, so SDL draws with its software renderer.
 cd "$DIR" || exit 1
-exec "$DIR/lib/ld-linux.so.2" --library-path "$DIR/lib" "$DIR/bin/khcom_$REGION" \
+LOADER="$DIR/lib/rekhcom" # the bundled ld-linux, named after the game
+exec "$LOADER" --library-path "$DIR/lib" "$DIR/bin/khcom_$REGION" \
     --data-dir "$DIR" --rom "$ROM" "$@"

@@ -102,7 +102,9 @@ def main():
                '-drive', f'file={IMAGES["x86_64"]},if=virtio,snapshot=on',
                '-drive', f'file={share},format=raw,if=virtio,readonly=on', '-nographic', '-nic', 'none']
     else:
+        # cortex-a53 like the H700; virtio-gpu gives the kernel a /dev/fb0.
         cmd = [str(QEMU / 'qemu-system-aarch64.exe'), '-M', 'virt', '-cpu', 'cortex-a53', '-m', '1024', '-smp', '2',
+               '-device', 'virtio-gpu-pci',
                '-bios', str(QEMU / 'share/edk2-aarch64-code.fd'),
                '-drive', f'file={IMAGES["aarch64"]},if=virtio,snapshot=on',
                '-drive', f'file={share},format=raw,if=virtio,readonly=on', '-nographic', '-nic', 'none']
