@@ -6,6 +6,8 @@
 
 #include "port/port.h"
 #include "game_state.h"
+#include "map_types.h"
+MapFloorState gMapFloorState;
 GameState gGameState;
 Deck gDecks[3];
 uint16_t gCardCollection[999], gCardCount;

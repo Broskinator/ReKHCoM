@@ -67,7 +67,7 @@ comparan el lector nativo (PortRaReadMemory y proyección de globals reales)
 con una ventana GBA de referencia independiente. Una finalización válida
 produce una activación; medidor vacío y dos recargas producen cero. El test
 usa la biblioteca rcheevos fijada, no reimplementa las condiciones.
-Comando: python port/tools/test_ra71_pooh.py. Hash de la definición comprobada:
+Comando: python port/tools/test_ra71_scalars.py --achievement 160372. Hash de la definición comprobada:
 51613738a01ad0a544eb6327a69b61554c85d72db4e6249c20ac9bfa5bd40855.
 La identidad/dirección de gPoohGauge se comprobó en EU/US/JP por código de ROM;
 la activación oficial solo se añade para EU, como el resto del set admitido.
@@ -76,3 +76,18 @@ Se incorpora 160372 a sOfficialVerified. Total 22 activos de 90, quedan 68.
 No se presenta el test como un premio real obtenido, una partida completa en
 Bosque de los Cien Acres ni una prueba física: son condiciones reales con
 snapshots controlados y memoria nativa. US/JP mantienen retos locales.
+
+## Activado 15582: 23/90 oficiales (25,6 %)
+
+0x0203CB86 es gMapFloorState.room (byte +6), no el número de piso. En las tres
+ROM SetCurrentMapRoom carga la base de gMapFloorState y ejecuta STRB r0,[r4,#6].
+Bases EU 0x0203CB80, US 0x0203C590, JP 0x0203C500. La proyección copia solo el
+byte room y sus tests verifican que no toca los vecinos.
+
+El mismo runner de escalares prueba 15582 con su definición oficial real:
+500 comparaciones de frames. Una transición válida activa; sala incorrecta,
+mundo anterior incorrecto, bandera excluyente y estado incorrecto no activan.
+Comando: python port/tools/test_ra71_scalars.py --achievement 15582.
+También conserva las 300 comparaciones de Pooh. No se publican los datos
+privados ni se envían premios. Se añade 15582 a la lista EU, total 23/90.
+Quedan 67 oficiales; cadenas de batalla/heap continúan pendientes de paridad real.

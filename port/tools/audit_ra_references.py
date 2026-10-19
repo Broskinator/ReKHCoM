@@ -42,7 +42,7 @@ addresses = collections.Counter(int(row['address']) for row in rows if row['refe
 # by this root inventory. Keep these ranges aligned with port_ra_state.c (EU).
 ranges = [(0x421C0, 0x42200), (0x422B8, 0x423D0), (0x423F0, 0x42690),
           (0x42690, 0x42E5E), (0x42E68, 0x42E6A), (0x42ED0, 0x42FDE)]
-covered = lambda a: a in (0x3CACC, 0x3C000, 0x3C001, 0x6C68, 0x749C) or any(start <= a and a + 4 <= end for start, end in ranges)
+covered = lambda a: a in (0x3CACC, 0x3C000, 0x3C001, 0x6C68, 0x749C, 0x3D088, 0x449D4, 0x44B86) or any(start <= a and a + 4 <= end for start, end in ranges)
 pointer_roots = (0x3CA28, 0x423E4)
 scalar_covered = covered
 covered = lambda a: a in pointer_roots or scalar_covered(a)
@@ -54,6 +54,6 @@ report = dict(achievement_graphs=len({r['achievement'] for r in rows}), referenc
     remaining_direct_addresses=remaining,
     modified_reference_operands=sum(r['reference_type'] == '1' for r in rows),
     coverage_scope='direct roots only; indirect target layouts and trigger semantics remain unvalidated',
-    official_evaluation='DISABLED', awards_submitted=False)
+    official_evaluation='NOT PERFORMED by this audit', awards_submitted=False)
 (out / 'summary.json').write_text(json.dumps(report, indent=2))
 print(json.dumps(report, indent=2))

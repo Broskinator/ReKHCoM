@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "game_state.h"
+#include "map_types.h"
+MapFloorState gMapFloorState;
 GameState gGameState;
 Deck gDecks[3];
 uint16_t gCardCollection[999], gCardCount;
@@ -44,7 +46,19 @@ int main(void) {
 #else
         0x44354u;
 #endif
+    const uint32_t roomAddress =
+#if defined(VERSION_EU)
+        0x44B86u;
+#elif defined(VERSION_US)
+        0x44596u;
+#else
+        0x44506u;
+#endif
     unsigned i;
+    gMapFloorState.room = 7;
+    memset(bytes, 0xA5, sizeof(bytes));
+    PortRaOverlayState(roomAddress - 1, bytes, 3);
+    assert(bytes[0] == 0xA5 && bytes[1] == 7 && bytes[2] == 0xA5);
     gPoohGauge = 0x0203;
     memset(bytes, 0xA5, sizeof(bytes));
     PortRaOverlayState(poohGauge - 1, bytes, 4);

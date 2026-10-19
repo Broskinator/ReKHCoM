@@ -18,13 +18,13 @@ static uint32_t Peek(uint32_t address, uint32_t size, void* ud) {
     return value;
 }
 int main(int argc, char** argv) {
-    FILE* f; char definition[8192]; int size,scenario,step,successes[3]={0};
-    assert(argc==2);f=fopen(argv[1],"rb");assert(f);
+    FILE* f; char definition[8192]; int size,scenario,step,successes[5]={0}, roomMode = argc == 3;
+    assert(argc==2 || argc==3);f=fopen(argv[1],"rb");assert(f);
     size=(int)fread(definition,1,sizeof(definition)-1,f);definition[size]=0;fclose(f);
     size=rc_trigger_size(definition);assert(size>0);
     assert(VirtualAlloc((void*)0x02000000,0x40000,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE)==(void*)0x02000000);
     assert(VirtualAlloc((void*)0x03000000,0x8000,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE)==(void*)0x03000000);
-    for(scenario=0;scenario<3;scenario++) {
+    for(scenario=0;scenario<(roomMode?5:3);scenario++) {
         void* a=malloc(size);void* b=malloc(size);
         rc_trigger_t* native=rc_parse_trigger(a,definition,NULL,0);
         rc_trigger_t* ref=rc_parse_trigger(b,definition,NULL,0);
@@ -33,14 +33,23 @@ int main(int argc, char** argv) {
             unsigned char* state=(unsigned char*)&gGameState;
             int ns,rs;
             memset(&gGameState,0,sizeof(gGameState));
-            gGameState.world=step<10||step>=80?0:13;
-            state[0x186]=10;state[0x146]=step>=40?2:0;
-            gPoohGauge=3;
-            if(scenario==1&&step>=20) gPoohGauge=0;
-            if(scenario==2&&step>=10) gPoohGauge=(step==20||step>=22)?2:1;
-            memcpy(original+0x421c0,&gGameState,sizeof(gGameState));
-            original[0x449d4]=(unsigned char)gPoohGauge;
-            original[0x449d5]=(unsigned char)(gPoohGauge>>8);
+            if (roomMode) {
+                gGameState.world = step < 10 ? (scenario == 2 ? 9 : 10) : 0;
+                state[0x186] = scenario == 4 ? 8 : 10;
+                state[0x145] = scenario == 3 ? 1 : 0;
+                gMapFloorState.room = scenario == 1 ? 6 : 7;
+                memcpy(original+0x421c0,&gGameState,sizeof(gGameState));
+                original[0x44b86] = gMapFloorState.room;
+            } else {
+                gGameState.world=step<10||step>=80?0:13;
+                state[0x186]=10;state[0x146]=step>=40?2:0;
+                gPoohGauge=3;
+                if(scenario==1&&step>=20) gPoohGauge=0;
+                if(scenario==2&&step>=10) gPoohGauge=(step==20||step>=22)?2:1;
+                memcpy(original+0x421c0,&gGameState,sizeof(gGameState));
+                original[0x449d4]=(unsigned char)gPoohGauge;
+                original[0x449d5]=(unsigned char)(gPoohGauge>>8);
+            }
             ns=rc_evaluate_trigger(native,Peek,NULL,NULL);
             rs=rc_evaluate_trigger(ref,Peek,(void*)1,NULL);
             assert(ns==rs);
@@ -50,6 +59,7 @@ int main(int argc, char** argv) {
         free(a);free(b);
     }
     assert(successes[0] == 1 && successes[1] == 0 && successes[2] == 0);
-    puts("PASS native projected RAM matches the official Pooh graph: completion, empty gauge, two refills");
+    if (roomMode) assert(successes[3] == 0 && successes[4] == 0);
+    puts("PASS native scalar RAM matches the real official graph: valid completion and negative controls");
     return 0;
 }
