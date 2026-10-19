@@ -5,6 +5,12 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "game_state.h"
+GameState gGameState;
+Deck gDecks[3];
+uint16_t gCardCollection[999], gCardCount;
+uint8_t gMapCardCounts[270];
+uint8_t GetActiveDeckIndex(void) { return 0; }
 
 static int check(int ok, const char* label) {
     if (!ok) fprintf(stderr, "FAIL: %s\n", label);

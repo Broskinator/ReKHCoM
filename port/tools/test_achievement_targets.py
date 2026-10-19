@@ -29,6 +29,12 @@ subprocess.run([str(EMCC), '-O2', 'port/achievements/local_achievements.c',
 subprocess.run([shutil.which('node'), str(OUT / 'local.cjs')], cwd=OUT, check=True)
 report.append(dict(target='wasm32', execution='PASS: all 16 trigger boundaries, persistence, guards',
                    hardware='Node Wasm runtime; browser UI checked separately'))
+for region in ('eu', 'us', 'jp'):
+    script = OUT / ('state-' + region + '.cjs')
+    subprocess.run([str(EMCC), '-O2', '-DPLATFORM_PC', '-DVERSION_' + region.upper(), *quotes,
+                    'port/src/port_ra_state.c', 'port/tools/test_ra_state.c', '-sENVIRONMENT=node',
+                    '-o', str(script)], cwd=ROOT, check=True)
+    subprocess.run([shutil.which('node'), str(script)], cwd=OUT, check=True)
 
 targets = [
     ('linux-i386', CC, ['--target=i686-linux-gnu', '--sysroot=D:/ReKHCoM-build/linux/i386/sysroot', '-DPORT_LINUX', f'-I{SDL}']),
@@ -43,7 +49,7 @@ for target, compiler, flags in targets:
     for region in ('eu', 'us', 'jp'):
         folder = OUT / target / region
         folder.mkdir(parents=True, exist_ok=True)
-        for source in ('port_achievements.c', 'port_achievement_toast.c', 'port_ui.c'):
+        for source in ('port_achievements.c', 'port_achievement_toast.c', 'port_ui.c', 'port_ra_state.c'):
             subprocess.run([str(compiler), '-std=gnu11', '-O2', '-DPLATFORM_PC',
                 '-DVERSION_' + region.upper(), *quotes, *flags, '-c',
                 str(ROOT / 'port/src' / source), '-o', str(folder / (source + '.o'))], check=True)

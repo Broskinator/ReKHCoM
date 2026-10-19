@@ -65,3 +65,9 @@ ni crea una partida. No necesita VM ni emulador.
 
 Durante la sesión de juego de 2 horas pedida por el usuario: compilar con -j1,
 prioridad BelowNormal y no iniciar VM/AVD/navegadores con motores Wasm cargados.
+
+
+19/10: añadido test de progreso CRLF generado por Windows, lectura de snapshot
+oficial truncado como desconocido, proyección escalar de GameState en tres
+regiones (incluyendo Wasm) y comprobación de sus bases contra los LDR de los
+cartuchos. Es una proyección parcial; no habilita premios oficiales.

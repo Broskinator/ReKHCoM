@@ -70,6 +70,13 @@ int main(void) {
     assert(KhLocalLoad(&loaded, "local-test.dat"));
     assert(loaded.unlocked == state.unlocked && loaded.when[0] == 10 && loaded.when[13] == 20);
     assert(!loaded.initialized && !KhLocalObserve(&loaded, &s, 30));
+    /* Windows text-mode saves contain CRLF; consoles and Wasm must read them. */
+    { FILE* f = fopen("local-crlf.dat", "wb"); assert(f);
+      fputs("KHLOCAL1\r\n1\r\n", f);
+      for (i = 0; i < KH_LOCAL_COUNT; ++i) fputs("0\r\n", f);
+      fclose(f);
+      assert(KhLocalLoad(&loaded, "local-crlf.dat") && loaded.unlocked == 1);
+    }
     { FILE* f = fopen("local-test.dat", "w"); assert(f); fputs("KHLOCAL1\nffffffff\n", f); fclose(f); }
     assert(!KhLocalLoad(&loaded, "local-test.dat") && !loaded.unlocked);
     assert(!KhLocalSave(&state, "missing-parent/local-test.dat"));

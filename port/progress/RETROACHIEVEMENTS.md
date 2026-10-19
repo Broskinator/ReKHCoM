@@ -60,7 +60,7 @@ animación capturada; durante el juego normal se usa tiempo real SDL.
 El primer lector solo leía direcciones de bus y no bastaba para integrar RA.
 Ahora PortRaReadMemory interpreta el mapa aplanado oficial GBA: 0x00000-0x07fff
 IWRAM, 0x08000-0x47fff EWRAM, 0x48000-0x57fff SRAM. Incluye cruces entre ventanas,
-rechazo de exceso y de overflow. Esto aún NO proyecta los globals del port: el
+rechazo de exceso y de overflow. La revisión inicial no proyectaba los globals del port: el
 juego compila muchas variables en khdata/khbss y algunos punteros/layouts no
 coinciden con la RAM del cartucho. Evaluar esas posiciones como si fueran
 correctas podría conceder premios falsos. El modo oficial seguirá sin evaluación
@@ -125,3 +125,43 @@ pruebas locales ni por mostrar desbloqueos obtenidos previamente en otra aplicac
 filtros. Cuenta/login permanecen exclusivamente en launcher. El catálogo público
 y una instantánea mínima del último progreso consultado alimentan la lista
 official; los estados locales se leen del runtime. Ver LOGROS_27_VALIDACION.md.
+
+
+## Proyección escalar de GameState (19/10)
+
+La raíz del bloqueo oficial es que RAM mapeada y globals nativos son memorias
+distintas. port_ra_state.c superpone los tramos de GameState sin punteros al mapa
+aplanado que lee RA. Las bases originales se verifican en las instrucciones LDR r4
+de InitGameState de cada cartucho: EU 0x0203A1C0, US 0x02039BB0, JP 0x02039B20.
+Se proyecta el prefijo escalar y desde progression hasta el final; se excluye
+explícitamente enemyCache y su pool, que contienen punteros nativos.
+
+Pruebas: test_ra_state_addresses.py verifica las bases contra ROM privada;
+test_ra_state.c verifica bytes, límites, lecturas parciales, overflow y exclusión
+de punteros en x86 y Wasm por región. Puente y menú siguen pasando compilación en
+Linux/Android/PS5. El parser local acepta LF y CRLF también fuera de Windows.
+
+Esto no completa la proyección del estado de batalla, las cadenas de punteros ni
+la validación de los retos oficiales. Siguen desactivados evaluación oficial,
+premios online y Hardcore; no se afirma compatibilidad por añadir este primer
+tramo de memoria. El cliente no envía sesiones ni premios durante las pruebas.
+
+
+La misma proyección incorpora barajas, colección de cartas, cantidad, cartas de
+mapa e índice de baraja activa. Son datos sin punteros; sus seis bases por región
+se verifican en los LDR de InitGameState, GetActiveDeck, InitCardCollection,
+CountOwnedMapCardKinds y GetActiveDeckIndex. Deck mantiene sizeof == 0xE0.
+
+Auditoría real del set: audit_ra_references.py --data-dir <copia conectada>
+--rom <ROM EU> exporta referencias públicas de las condiciones usando la cuenta
+ya conectada, en modo espectador y sin evaluar frames. --offline resume un CSV
+existente sin red. No exporta usuario, token, contraseña, desbloqueos ni valores
+RAM. Depende de la revisión fijada de rcheevos para recorrer sus estructuras.
+
+Resultado privado de esta revisión: 91 entradas de catálogo (90 grafos con
+referencias y un aviso del sistema); 26.120 referencias recorridas, 157 direcciones
+directas distintas y 139 dentro de los tramos escalares proyectados. Quedan 18
+direcciones directas y la validación de las referencias modificadas/indirectas.
+Estos números no son porcentaje de logros funcionando: ningún logro oficial se
+habilita hasta validar el grafo completo y los objetos apuntados. El informe
+build/ra-reference-audit/summary.json marca official_evaluation=DISABLED.

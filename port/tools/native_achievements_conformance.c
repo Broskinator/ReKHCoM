@@ -93,6 +93,14 @@ int main(int argc, char** argv) {
     PortAchievementsFrame();
     assert(notices == 1 && KhLocalLoad(&state, file) && state.unlocked == 1);
     PortAchievementsShutdown();
+    {
+        PortAchievementInfo info;
+        FILE* corrupt = fopen("cache/achievement-unlocks.dat", "wb"); assert(corrupt);
+        fputs("KHRAPRG1", corrupt); fclose(corrupt);
+        PortAchievementsListRefresh();
+        assert(PortAchievementsListGet(1, 0, 0, &info) && info.state == -1);
+        assert(PortAchievementsListGet(1, 1, 0, &info) && info.state == -1);
+    }
     SDL_Quit();
     puts("PASS native bridge: local award, durable region file, no duplicate, modifier invalidation survives toggle off");
     return 0;

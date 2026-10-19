@@ -46,10 +46,13 @@ def run(name, sources, flags=(), args=()):
     if name.startswith('native-'):
         subprocess.run([str(exe), 'invalidate'], cwd=folder, check=True)
 
-run('memory', ['port/src/port_ra_memory.c', 'port/tools/test_ra_memory.c'])
-run('local', ['port/achievements/local_achievements.c', 'port/tools/local_achievements_conformance.c'])
 includes = [ROOT / 'include'] + [p for p in (ROOT / 'include').iterdir() if p.is_dir() and p.name != 'gba']
+game_flags = ['-DPLATFORM_PC', *['-iquote' + str(p) for p in includes]]
+run('memory', ['port/src/port_ra_memory.c', 'port/src/port_ra_state.c', 'port/tools/test_ra_memory.c'], game_flags)
+run('local', ['port/achievements/local_achievements.c', 'port/tools/local_achievements_conformance.c'])
 for version in ['eu', 'us', 'jp']:
+    run('state-' + version, ['port/src/port_ra_state.c', 'port/tools/test_ra_state.c'],
+        [*game_flags, '-DVERSION_' + version.upper()])
     run('native-' + version, ['port/src/port_achievements.c', 'port/tools/native_achievements_conformance.c'],
         ['-DPLATFORM_PC', '-DVERSION_' + version.upper(), *['-iquote' + str(p) for p in includes]])
 
@@ -60,6 +63,8 @@ run('ra-client', ['port/tools/ra_client_conformance.c'],
 (OUT / 'report.json').write_text(json.dumps({
     'memory': 'PASS', 'local': 'PASS', 'native_regions': ['eu', 'us', 'jp'],
     'local_triggers_per_region': 16,
+    'scalar_game_state_projection': ['eu', 'us', 'jp'],
+    'windows_crlf_progress_on_portable_parser': 'PASS',
     'physical_console_execution': 'NOT TESTED: requires each device',
     'ra_contract': 'PASS', 'eu_rom_hash_and_synthetic_catalog': 'PASS' if rom.exists() else 'SKIPPED: ROM absent',
     'real_account_login': 'NOT TESTED', 'official_set_native_mapping': 'PENDING',

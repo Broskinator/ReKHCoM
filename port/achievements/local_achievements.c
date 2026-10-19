@@ -98,7 +98,8 @@ int KhLocalLoad(KhLocalState* state, const char* path) {
     memset(state, 0, sizeof(*state));
     if (!file) return 0;
     memset(&loaded, 0, sizeof(loaded));
-    if (!fgets(header, sizeof(header), file) || strcmp(header, "KHLOCAL1\n") != 0 ||
+    if (!fgets(header, sizeof(header), file) ||
+        (strcmp(header, "KHLOCAL1\n") != 0 && strcmp(header, "KHLOCAL1\r\n") != 0) ||
         !ReadNumber(file, 16, &mask) || mask >> KH_LOCAL_COUNT) ok = 0;
     for (i = 0; ok && i < KH_LOCAL_COUNT; ++i) {
         if (!ReadNumber(file, 10, &loaded.when[i])) ok = 0;
