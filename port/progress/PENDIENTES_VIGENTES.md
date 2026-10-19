@@ -16,14 +16,14 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos (orden) |
 |---|---|
-| **Claude (Opus)** | 1) 68 crash de Riku en Android (ANTES de publicar); 2) v1.9.8 estable con #21; 3) 44 limpieza (con permiso); 4) 51–54 consolas (el usuario cerró el otro chat el 19/10: pasan a Claude); 6) 39 rutas |
+| **Claude (Opus)** | 1) 68 crash de Riku en Android: causa corregida (d79640b01), falta confirmar en emulador; 2) 44 limpieza (con permiso); 3) 51–54 consolas (el usuario cerró el otro chat el 19/10: pasan a Claude); 4) 39 rutas; v1.9.8: solo cuando el usuario lo diga (sin builds completas antes) |
 | **ChatGPT/Codex** | el resto: 1) issue #21 (entra en v1.9.8); 2) 27 logros (memoria/set oficial, Level 1); 3) 55 web (espera revisión visual); 4) 70 rediseño web y launcher (asignado a Codex por el usuario, 19/10); 5) 61–62 escenas de Ciudad de Paso; 6) 16–24 arte de jefes |
 
 Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora y evidencia.
 
 ## 1. Por publicar
 
-- **v1.9.8 estable (19/10, en curso):** todo lo de main + #21 de Codex; Windows, Linux,
+- **v1.9.8 estable (19/10, EN ESPERA hasta que el usuario diga; quedan mejoras):** todo lo de main + #21 de Codex; Windows, Linux,
   Steam Deck, Anbernic, Android y Web. Las demás releases quedan solo como tags.
   Al publicar: responder #20 (Android) y #21.
 
