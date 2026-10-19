@@ -138,6 +138,8 @@ static int MenuSoundPlayers(int save) {
         const MusicPlayer* mp = &gMPlayTable[i];
         if (t + mp->numTracks > ARRAY_COUNT(sMenuSound.tracks))
             return 0;
+        if (mp->info == NULL || mp->track == NULL)
+            continue; /* entries 13-15 of gMPlayTable have no player (m4a2.c) */
         if (save) {
             sMenuSound.info[i] = *mp->info;
             memcpy(&sMenuSound.tracks[t], mp->track, mp->numTracks * sizeof(MusicPlayerTrack));
@@ -171,6 +173,8 @@ void PortMenuSoundBegin(void) {
     SoundClear(); /* PSG channels off too: no tone held under the menu */
     PortAudioPsgOff();
     PortM4aMixHold(1); /* and no reverb tail */
+    if (gSoundInfoPtr != NULL)
+        gSoundInfoPtr->reverb = 0; /* scenes run with echo: the click must sound once */
 }
 
 void PortMenuSoundClick(void) {
@@ -178,6 +182,15 @@ void PortMenuSoundClick(void) {
         return;
     m4aSongNumStart(SONG_SYS_CLICK);
     m4aMPlayVolumeControl(MenuClickPlayer()->info, 0xFFFF, MENU_CLICK_VOLUME);
+}
+
+/* confirm (1) and cancel (0) as the game's menus sound them */
+void PortMenuSoundDecide(int confirm) {
+    u16 song = confirm ? SONG_SYS_KETTEI : SONG_SYS_CANSEL;
+    if (!sMenuSound.held)
+        return;
+    m4aSongNumStart(song);
+    m4aMPlayVolumeControl(gMPlayTable[gSongTable[song].ms].info, 0xFFFF, MENU_CLICK_VOLUME);
 }
 
 /* the mixer for one menu frame (the port then sends it out) */

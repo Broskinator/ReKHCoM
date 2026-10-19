@@ -23,7 +23,6 @@ extern int PortDebugModeAvailable(void);
 extern int PortCheatActionsAvailable(void);
 extern int PortCheatMaxLevel(void);
 extern int PortCheatMapCards(void);
-extern int PortCheatBattleCards(void);
 extern unsigned PortGameFlags(void);
 extern int PortRematchAvailable(int i);
 extern int PortRematchStart(int i);
@@ -92,7 +91,6 @@ enum {
     ITEM_CHEAT_INFHP,
     ITEM_CHEAT_MAXLEVEL,
     ITEM_CHEAT_MAPCARDS,
-    ITEM_CHEAT_BATTLECARDS,
     ITEM_CHEAT_DEBUG_HEADING, /* section heading, not selectable */
     ITEM_CHEAT_GBA_MAP,
     ITEM_CHEATS_BACK,
@@ -246,8 +244,6 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Livello 99 con tutti i bonus", "Nivel 99 con todos los bonos", "全ボーナス付きレベル99" },
     { "Every map card (9 each)", "Toutes les cartes de salle (9)", "Alle Raumkarten (je 9)",
       "Tutte le carte stanza (9)", "Todas las cartas de mapa (9 c/u)", "全マップカード (各9枚)" },
-    { "Fill battle card collection", "Remplir la collection de cartes", "Kampfkartensammlung füllen",
-      "Riempi la collezione di carte", "Llenar colección de cartas", "バトルカードを満たす" },
     { "Debug mode", "Mode debug", "Debug-Modus", "Modalità debug", "Modo debug", "デバッグモード" },
     { "[ReKHCoM] GBA map logic", "[ReKHCoM] Logique carte GBA", "[ReKHCoM] GBA-Kartenlogik",
       "[ReKHCoM] Logica mappa GBA", "[ReKHCoM] Lógica Mapa GBA", "[ReKHCoM] GBAマップロジック" },
@@ -717,7 +713,6 @@ static int ItemEnabled(int item) {
         case ITEM_REMATCH_MENU: return 1;
         case ITEM_CHEAT_MAXLEVEL:
         case ITEM_CHEAT_MAPCARDS: return PortCheatActionsAvailable();
-        case ITEM_CHEAT_BATTLECARDS: return PortCheatActionsAvailable() && !(PortGameFlags() & 8 /* Riku */);
         case ITEM_ZOOM:
         case ITEM_INTZOOM:
             return gPortConfig.viewMode == PORT_VIEW_AUTO;
@@ -863,7 +858,6 @@ static void ValueText(int item, char* out, size_t size) {
             break;
         case ITEM_CHEAT_MAXLEVEL:
         case ITEM_CHEAT_MAPCARDS:
-        case ITEM_CHEAT_BATTLECARDS:
             SDL_strlcpy(out, "→", size);
             break;
         case ITEM_CHEAT_DEBUG:
@@ -1076,9 +1070,8 @@ static void Change(int item, int dir) {
             break;
         case ITEM_CHEAT_MAXLEVEL:
         case ITEM_CHEAT_MAPCARDS:
-        case ITEM_CHEAT_BATTLECARDS:
-            if (dir > 0 && (item == ITEM_CHEAT_MAXLEVEL ? PortCheatMaxLevel()
-                            : item == ITEM_CHEAT_MAPCARDS ? PortCheatMapCards() : PortCheatBattleCards())) {
+            /* (the battle card collection is filled from the launcher's save editor) */
+            if (dir > 0 && (item == ITEM_CHEAT_MAXLEVEL ? PortCheatMaxLevel() : PortCheatMapCards())) {
                 Close();
                 PortUiNotice(sCheatDone[Lang()]);
             }
@@ -2282,6 +2275,7 @@ static void ScenePauseClose(int skip) {
 /* 0 up, 1 down, 2 confirm, 3 back, 4 START (resume) */
 static void ScenePauseKey(int key) {
     extern void PortMenuSoundClick(void);
+    extern void PortMenuSoundDecide(int confirm);
     if (key == 0 || key == 1) {
         int next = key == 0 ? 0 : 1;
         if (sSceneStep == 0 && next == 1 && !sSceneSkippable)
@@ -2291,7 +2285,7 @@ static void ScenePauseKey(int key) {
             PortMenuSoundClick();
         }
     } else if (key == 2) {
-        PortMenuSoundClick();
+        PortMenuSoundDecide(1);
         if (sSceneStep == 0) {
             if (sSceneCursor == 0)
                 ScenePauseClose(0);
@@ -2306,7 +2300,7 @@ static void ScenePauseKey(int key) {
             sSceneCursor = 1;
         }
     } else if (key == 3) {
-        PortMenuSoundClick();
+        PortMenuSoundDecide(0);
         if (sSceneStep == 1) {
             sSceneStep = 0;
             sSceneCursor = 1;
