@@ -94,6 +94,10 @@ void PortAchievementsFrame(void) {
     if (SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW") &&
         sPreviewFrame == (unsigned)SDL_atoi(SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW")))
         PortAchievementToast("Primeros recuerdos", "Alcanza el nivel 10.", "VISTA PREVIA - LOGRO LOCAL");
+    /* Invalidate before this frame can evaluate or submit an official award. */
+    if (gPortConfig.cheatOneHit || gPortConfig.cheatInfiniteHp || gPortConfig.cheatUnlockRiku ||
+        gPortConfig.ps2Mode)
+        PortAchievementsInvalidate("Gameplay modifiers enabled");
 #ifdef PORT_RETROACHIEVEMENTS
     KhRaPump(sRa, !sInvalidated && (gCurrentMode == &gModeMapFld || gCurrentMode == &gModeBattle ||
                                      gCurrentMode == &gModeTitle || sStarted));
@@ -107,9 +111,6 @@ void PortAchievementsFrame(void) {
         }
     }
 #endif
-    if (gPortConfig.cheatOneHit || gPortConfig.cheatInfiniteHp || gPortConfig.cheatUnlockRiku ||
-        gPortConfig.ps2Mode)
-        PortAchievementsInvalidate("Gameplay modifiers enabled");
     if (!sLocalEnabled || sInvalidated) return;
     if (gCurrentMode == &gModeTitle) {
         sStarted = 0; sLocal.initialized = 0; sLocal.previous = 0;
