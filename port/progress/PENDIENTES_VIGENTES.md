@@ -41,8 +41,8 @@ Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora
 - **70 (Codex, tras 27):** mejorar web y launcher con criterio estético, guías de diseño web,
   referencias de diseño, recrear desde captura y verificación con navegador
   (plugins sugeridos: audit-suite, playwright, designs-drift, Design).
-- **61:** escenas de León en la plaza a zoom x3/1080p: falta completar a la derecha.
-- **62:** casa de Ciudad de Paso (Yuffie, Aerith, León): faltan las puntas y arriba.
+- **61 (pendiente, sin aprobación):** plaza de León; captura actual 19/10 a x3/1080p confirma cortes de extremos.
+- **62 (pendiente, sin aprobación):** casa de Ciudad de Paso; captura actual 19/10 a x3/1080p confirma corte derecho y puntas sin completar.
 - **16–24 (al final, de a uno con antes/después):** arte de jefes y escenas: Darkside
   (WIP en wip/darkside-backdrop-20261018), Oogie, Jafar, Maléfica dragón, Úrsula,
   Marluxia final, Alicia/Trickmaster, resto de candidatas, tira de arenas GBA.
@@ -92,3 +92,8 @@ LOGICA_APROBADOS.md, PRUEBAS_VISUALES.md, CONTROLADOR_LOGICA.md,
 MENU_TRANSICIONES_LOGICA.md, ESCENAS_REVISION_AMPLIA.md, CODEX_TAREAS.md,
 CODEX_RESPUESTAS.md, LINUX.md, WEB_PENDIENTES.md. Pruebas e imágenes en build/;
 no versionar ROM, saves ni savestates.
+
+19/10, instrucción del usuario: dejar los fondos de lado; Codex retoma 27 y
+commitea avances comprobables aproximadamente cada tres minutos. Las capturas
+actuales de 61/62 están en build/revision-61-62-actual; no hay nueva solución
+ni aprobación visual. No confundir estos pendientes con las escenas 061/062.
