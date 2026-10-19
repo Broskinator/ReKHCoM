@@ -71,3 +71,20 @@ prioridad BelowNormal y no iniciar VM/AVD/navegadores con motores Wasm cargados.
 oficial truncado como desconocido, proyección escalar de GameState en tres
 regiones (incluyendo Wasm) y comprobación de sus bases contra los LDR de los
 cartuchos. Es una proyección parcial; no habilita premios oficiales.
+
+
+Integración 19/10: el listado usa el clic del menú debug incorporado por Claude
+(58) en navegación de teclado y mando. El harness ahora envía eventos por
+PortUiHandleEvent, incluida la ruta de gamepad; seis casos de región/tamaño/input
+comprueban desplazarse hasta el último logro, filtros, cambio de grupo y volver.
+La voz japonesa, texto HD y zoom se prueban activados en los 48 disparos locales:
+son preferencias de presentación y no bloquean la progresión. Undub dejaba los
+retos locales invalidados por error y ya no se incluye en ese bloqueo. Los
+trucos y modificadores de combate siguen invalidando la sesión.
+
+La conexión oficial en la web está aún fuera del soporte actual: una consulta
+anónima al endpoint oficial desde Origin localhost devolvió 401 sin cabeceras
+CORS. No se introduce un proxy para credenciales. Cuenta y consulta oficiales
+siguen en Windows; los retos locales y la lista in-game comparten implementación
+en los ports disponibles. PS4/Switch/Vita/PS3 no se anuncian comprobados: sus
+ports son trabajo separado del otro chat (51–54).

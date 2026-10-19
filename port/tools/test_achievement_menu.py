@@ -14,9 +14,10 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'build/achievement-menu'
 OUT.mkdir(parents=True, exist_ok=True)
 report = []
-for region, width, height in [('eu', 240, 160), ('eu', 640, 360), ('eu', 1920, 1080),
-                               ('us', 1920, 1080), ('jp', 1920, 1080)]:
-    work = OUT / f'{region}-{width}x{height}'; work.mkdir(exist_ok=True)
+for region, width, height, controls in [('eu', 240, 160, 'keyboard'), ('eu', 640, 360, 'keyboard'),
+        ('eu', 1920, 1080, 'keyboard'), ('us', 1920, 1080, 'keyboard'),
+        ('jp', 1920, 1080, 'keyboard'), ('us', 640, 360, 'gamepad')]:
+    work = OUT / (f'{region}-{width}x{height}' + ('-pad' if controls == 'gamepad' else '')); work.mkdir(exist_ok=True)
     cache = work / 'cache'; cache.mkdir(exist_ok=True)
     catalog = b'KHRACAT1' + struct.pack('<I', 2)
     for id, title in [(101, 'Locked fixture'), (102, 'Earned fixture')]:
@@ -35,6 +36,7 @@ for region, width, height in [('eu', 240, 160), ('eu', 640, 360), ('eu', 1920, 1
         KHCOM_WINDOW=f'{width}x{height}', KHCOM_OPTIONS_TOGGLE='100', KHCOM_OPTIONS_SHOT='999999',
         KHCOM_OPTIONS_HOLD='15', KHCOM_ACHIEVEMENTS_SHOT='1', KHCOM_QUIT='101',
         KHCOM_ACHIEVEMENT_KEYS='1:1073741905,2:1073741906,3:1073741906,4:1073741903,5:1073741903,6:9,7:1073741905,8:8')
+    if controls == 'gamepad': env['KHCOM_ACHIEVEMENT_KEYS'] = '1:-13,2:-12,3:-12,4:-15,5:-15,6:-4,7:-13,8:-2'
     rom = ROOT / ('roms/' + {'eu': 'B8CP', 'us': 'B8CE', 'jp': 'B8CJ'}[region] + '.gba')
     subprocess.run([str(ROOT / f'build/ra-{region}/khcom.exe'), '--rom', str(rom), '--data-dir', str(work),
                     '--language', 'es'], cwd=work, env=env, check=True, timeout=60)
@@ -47,6 +49,6 @@ for region, width, height in [('eu', 240, 160), ('eu', 640, 360), ('eu', 1920, 1
         with Image.open(shot) as im: im.save(shot.with_suffix('.png'))
     assert local.read_bytes() == original, 'Browsing must not change awards'
     assert not list(work.glob('*.sav')), 'Browsing must not create a game save'
-    report.append(dict(region=region, output=[width, height], navigation='PASS', readonly='PASS'))
+    report.append(dict(region=region, output=[width, height], controls=controls, navigation='PASS', readonly='PASS'))
 (OUT / 'report.json').write_text(json.dumps(report, indent=2))
-print('PASS read-only achievement menu navigation/filters/groups/back at five region/size pairs')
+print('PASS read-only achievement menu: six region/size/control pairs, scrolling, filters, groups and back')

@@ -1362,7 +1362,21 @@ int PortUiHandleEvent(const void* p) {
         return 0;
     }
 
-    if (sPage == PAGE_ACHIEVEMENTS) return AchievementMenuInput(ev);
+    if (sPage == PAGE_ACHIEVEMENTS) {
+        int click = 0;
+        if (ev->type == SDL_EVENT_KEY_DOWN) {
+            SDL_Keycode key = ev->key.key;
+            click = key == SDLK_UP || key == SDLK_DOWN || key == SDLK_LEFT || key == SDLK_RIGHT ||
+                    key == SDLK_W || key == SDLK_S || key == SDLK_A || key == SDLK_D || key == '\t';
+        } else if (ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
+            int button = ev->gbutton.button;
+            click = button == SDL_GAMEPAD_BUTTON_DPAD_UP || button == SDL_GAMEPAD_BUTTON_DPAD_DOWN ||
+                    button == SDL_GAMEPAD_BUTTON_DPAD_LEFT || button == SDL_GAMEPAD_BUTTON_DPAD_RIGHT ||
+                    button == SDL_GAMEPAD_BUTTON_NORTH;
+        }
+        if (click) { extern void PortMenuSoundClick(void); PortMenuSoundClick(); }
+        return AchievementMenuInput(ev);
+    }
     if (sPage == PAGE_NEWGAME && (ev->type == SDL_EVENT_KEY_DOWN || ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)) {
         int key = -1;
         if (ev->type == SDL_EVENT_KEY_DOWN) {
@@ -2128,9 +2142,10 @@ static int HarnessOptionsAction(void) {
             const char* comma = SDL_strchr(p, ',');
             const char* colon = SDL_strchr(p, ':');
             if (colon && (!comma || colon < comma) && SDL_atoi(p) == sHarnessTick) {
-                SDL_Event event = {0}; event.type = SDL_EVENT_KEY_DOWN;
-                event.key.key = (SDL_Keycode)SDL_atoi(colon + 1);
-                AchievementMenuInput(&event); changed = 1;
+                SDL_Event event = {0}; int key = SDL_atoi(colon + 1);
+                if (key < 0) { event.type = SDL_EVENT_GAMEPAD_BUTTON_DOWN; event.gbutton.button = -(key + 1); }
+                else { event.type = SDL_EVENT_KEY_DOWN; event.key.key = (SDL_Keycode)key; }
+                PortUiHandleEvent(&event); changed = 1;
                 PortLog("achievement-menu-test: group=%d filter=%d choice=%d", sAchievementGroup, sAchievementView, sAchievementChoice);
             }
             p = comma ? comma + 1 : NULL;

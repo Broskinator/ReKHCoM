@@ -47,6 +47,8 @@ int main(int argc, char** argv) {
         assert(PortAchievementsListGet(0, 0, 1, &info) && info.state == 0 && info.title[0]);
     }
     gCurrentMode = &gModeMapFld;
+    /* Voices, presentation and input preferences do not change progression. */
+    gPortConfig.undub = 1; gPortConfig.hdText = 1; gPortConfig.zoom = 6;
     gGameState.progression.level = 1; gGameState.progression.maxHp = 80;
     PortAchievementsFrame();
     gGameState.progression.level = 10;

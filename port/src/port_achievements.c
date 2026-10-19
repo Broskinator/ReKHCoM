@@ -83,7 +83,7 @@ void PortAchievementsFrame(void) {
     KhRaPump(sRa, 0);
 #endif
     if (gPortConfig.cheatOneHit || gPortConfig.cheatInfiniteHp || gPortConfig.cheatUnlockRiku ||
-        gPortConfig.ps2Mode || gPortConfig.undub)
+        gPortConfig.ps2Mode)
         PortAchievementsInvalidate("Gameplay modifiers enabled");
     if (!sLocalEnabled || sInvalidated) return;
     if (gCurrentMode == &gModeTitle) {
