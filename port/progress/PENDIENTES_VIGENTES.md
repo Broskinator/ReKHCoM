@@ -16,8 +16,8 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos (orden) |
 |---|---|
-| **Claude (Opus)** | 1) 68 crash de Riku en Android (ANTES de publicar); 2) v1.9.8 estable con #21; 3) 70 rediseño web/launcher; 4) 44 limpieza (con permiso); 5) 51–54 consolas (el usuario cerró el otro chat el 19/10: pasan a Claude); 6) 39 rutas |
-| **ChatGPT/Codex** | el resto: 1) issue #21 (entra en v1.9.8); 2) 27 logros (memoria/set oficial, Level 1); 3) 55 web (espera revisión visual); 4) 61–62 escenas de Ciudad de Paso; 5) 16–24 arte de jefes |
+| **Claude (Opus)** | 1) 68 crash de Riku en Android (ANTES de publicar); 2) v1.9.8 estable con #21; 3) 44 limpieza (con permiso); 4) 51–54 consolas (el usuario cerró el otro chat el 19/10: pasan a Claude); 6) 39 rutas |
+| **ChatGPT/Codex** | el resto: 1) issue #21 (entra en v1.9.8); 2) 27 logros (memoria/set oficial, Level 1); 3) 55 web (espera revisión visual); 4) 70 rediseño web y launcher (asignado a Codex por el usuario, 19/10); 5) 61–62 escenas de Ciudad de Paso; 6) 16–24 arte de jefes |
 
 Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora y evidencia.
 
@@ -38,6 +38,9 @@ Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora
   validar memoria/set oficial y Level 1.
 - **55 web:** opciones del launcher en pestañas y estética del juego; commiteada, espera
   revisión visual (WEB_55_REVISION.md).
+- **70 (Codex, tras 27):** mejorar web y launcher con criterio estético, guías de diseño web,
+  referencias de diseño, recrear desde captura y verificación con navegador
+  (plugins sugeridos: audit-suite, playwright, designs-drift, Design).
 - **61:** escenas de León en la plaza a zoom x3/1080p: falta completar a la derecha.
 - **62:** casa de Ciudad de Paso (Yuffie, Aerith, León): faltan las puntas y arriba.
 - **16–24 (al final, de a uno con antes/después):** arte de jefes y escenas: Darkside
@@ -49,9 +52,6 @@ Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora
 - **68:** Android, Riku: crash al iniciar partida nueva (con texto HD). Replicar con el
   APK x86 de prueba en el emulador (AVD en D:/ReKHCoM-build/android-avd), sin la sesión
   de juego del usuario abierta.
-- **70 (tras 27):** mejorar web y launcher con criterio estético, guías de diseño web,
-  referencias de diseño, recrear desde captura y verificación con navegador
-  (plugins sugeridos: audit-suite, playwright, designs-drift, Design).
 - **44:** limpieza de worktrees y carpetas build viejas (preguntar antes de borrar).
 - **39 (al final):** rutas completas Sora y Reverse/Rebirth con el .vbm como guía por
   tramos y el bot (KHCOM_BOT).
