@@ -59,3 +59,20 @@ El estado original USA conserva gauge=3 en esa dirección. La prueba del
 cartucho valida el literal y su propietario C; la suite nativa sigue pasando.
 El logro 160372 sigue fuera de sOfficialVerified hasta cerrar su grafo completo;
 no se contabiliza como desbloqueo ni se envían premios en estas comprobaciones.
+
+## Activado 160372: 22/90 oficiales (24,4 %)
+
+Cerrado el grafo de Pooh con su definición pública real descargada: 300 frames
+comparan el lector nativo (PortRaReadMemory y proyección de globals reales)
+con una ventana GBA de referencia independiente. Una finalización válida
+produce una activación; medidor vacío y dos recargas producen cero. El test
+usa la biblioteca rcheevos fijada, no reimplementa las condiciones.
+Comando: python port/tools/test_ra71_pooh.py. Hash de la definición comprobada:
+51613738a01ad0a544eb6327a69b61554c85d72db4e6249c20ac9bfa5bd40855.
+La identidad/dirección de gPoohGauge se comprobó en EU/US/JP por código de ROM;
+la activación oficial solo se añade para EU, como el resto del set admitido.
+
+Se incorpora 160372 a sOfficialVerified. Total 22 activos de 90, quedan 68.
+No se presenta el test como un premio real obtenido, una partida completa en
+Bosque de los Cien Acres ni una prueba física: son condiciones reales con
+snapshots controlados y memoria nativa. US/JP mantienen retos locales.

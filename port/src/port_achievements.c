@@ -20,7 +20,7 @@ static uint32_t PortRaRead(uint32_t address, uint8_t* out, uint32_t size, void* 
     return PortRaReadMemory(address, out, size) ? size : 0;
 }
 /* Official achievements whose reads are all verified (build/ra-reference-audit/enable.json). */
-static const uint32_t sOfficialVerified[] = { 15580u, 15584u, 15585u, 15587u, 15588u, 15590u, 15592u, 15595u, 15597u, 15598u, 15599u, 15600u, 15612u, 156793u, 160403u, 160404u, 160405u, 160406u, 160407u, 160408u, 160409u };
+static const uint32_t sOfficialVerified[] = { 15580u, 15584u, 15585u, 15587u, 15588u, 15590u, 15592u, 15595u, 15597u, 15598u, 15599u, 15600u, 15612u, 156793u, 160372u, 160403u, 160404u, 160405u, 160406u, 160407u, 160408u, 160409u };
 #endif
 
 #ifdef PORT_RETROACHIEVEMENTS

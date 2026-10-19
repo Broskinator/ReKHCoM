@@ -17,10 +17,10 @@ conservada para poder rastrear. Reglas del usuario:
 | Quién | Puntos |
 |---|---|
 | **Claude** | 1) 72 cristal del primer cuarto tras el tutorial (en el original sale SIEMPRE igual: semilla 0x90FAECF1 con SRAM limpia en el .vbm; el port no); 2) v1.9.9 estable con release_check.py; 3) 51–54 alphas de consolas |
-| **ChatGPT/Codex** | 1) 71 logros oficiales restantes (69/90): validar con BizHawk las cadenas gBtlWork/gCardBattleState→heap, Pooh 0x0203C9D4, piso 0x0203CB86, IWRAM 0x03002D00 y activarlos en sOfficialVerified (port_achievements.c); herramientas ra_layout.py, ra_layout_check.py, ra_witness.py, bizhawk_*.lua; 2) 61–62 escenas de Ciudad de Paso; 3) 39 rutas completas; 4) 16–24 arte de jefes |
+| **ChatGPT/Codex** | 1) 71 logros oficiales restantes (68/90): validar con BizHawk las cadenas gBtlWork/gCardBattleState→heap, Pooh 0x0203C9D4, piso 0x0203CB86, IWRAM 0x03002D00 y activarlos en sOfficialVerified (port_achievements.c); herramientas ra_layout.py, ra_layout_check.py, ra_witness.py, bizhawk_*.lua; 2) 61–62 escenas de Ciudad de Paso; 3) 39 rutas completas; 4) 16–24 arte de jefes |
 
 Hecho del 19/10 (madrugada/mañana): v1.9.8 publicada y pasada a prerelease (no aprobada
-como estable); 21/90 logros oficiales activos; menú de Opciones ya no lee reproductores
+como estable); 22/90 logros oficiales activos; menú de Opciones ya no lee reproductores
 nulos (crash en Android); confirmar/cancelar en la pausa de escenas con los sonidos del
 juego; truco «llenar colección» quitado (rompía el menú); PS5 vuelve a compilar
 (estados silenciosos para las revanchas); la web publica logo y portada; release_check.py
@@ -28,8 +28,8 @@ bloquea publicaciones incompletas (web, PS5, versiones).
 
 ## Pendientes para el futuro
 
-- **71 RetroAchievements:** 21/90 oficiales activos (los que solo leen GameState,
-  teclas, modo y el estado del título). Faltan 69: dependen de cadenas desde
+- **71 RetroAchievements:** 22/90 oficiales activos (los que solo leen GameState,
+  teclas, modo y el estado del título; añadido 160372 de Pooh por Codex). Faltan 68: dependen de cadenas desde
   gBtlWork/gCardBattleState hacia el heap (48+7), heap fijo 0x02033BC8 (3), Pooh
   0x0203C9D4, piso 0x0203CB86, IWRAM 0x03002D00 y 0x0203A6xx. Validar comparando la
   RAM del port con el original (BizHawk) en las mismas situaciones y activarlos en
@@ -72,3 +72,7 @@ no versionar ROM, saves ni savestates.
 commitea avances comprobables aproximadamente cada tres minutos. Las capturas
 actuales de 61/62 están en build/revision-61-62-actual; no hay nueva solución
 ni aprobación visual. No confundir estos pendientes con las escenas 061/062.
+
+71, Codex 19/10: corregido el anclaje sBgFx (era gBtlWork por error) y activado
+160372 tras validar su grafo completo en 300 frames controlados. 22/90 = 24,4 %.
+Evidencia: RETROACHIEVEMENTS_71_VALIDACION.md. No es un premio real enviado.
