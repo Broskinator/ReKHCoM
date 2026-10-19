@@ -20,8 +20,9 @@ static uint32_t PortRaRead(uint32_t address, uint8_t* out, uint32_t size, void* 
     return PortRaReadMemory(address, out, size) ? size : 0;
 }
 #ifdef VERSION_EU
-/* Official achievements whose reads are all verified (build/ra-reference-audit/enable.json). */
-static const uint32_t sOfficialVerified[] = { 15580u, 15582u, 15584u, 15585u, 15587u, 15588u, 15590u, 15592u, 15595u, 15597u, 15598u, 15599u, 15600u, 15612u, 156793u, 160363u, 160365u, 160367u, 160369u, 160372u, 160376u, 160403u, 160404u, 160405u, 160406u, 160407u, 160408u, 160409u };
+/* Official achievements whose reads are all verified (build/ra-reference-audit/enable.json;
+   the battle ones by ra_battle_dryrun.py: won triggers, lost never). */
+static const uint32_t sOfficialVerified[] = { 15580u, 15582u, 15583u, 15584u, 15585u, 15587u, 15588u, 15590u, 15591u, 15592u, 15594u, 15595u, 15596u, 15597u, 15598u, 15599u, 15600u, 15601u, 15602u, 15603u, 15604u, 15611u, 15612u, 15619u, 15651u, 15652u, 15653u, 15654u, 15655u, 15656u, 15657u, 15658u, 15659u, 15660u, 15661u, 15662u, 15663u, 15664u, 15665u, 156793u, 160363u, 160364u, 160365u, 160367u, 160369u, 160371u, 160372u, 160373u, 160376u, 160377u, 160383u, 160385u, 160387u, 160390u, 160391u, 160392u, 160393u, 160394u, 160395u, 160396u, 160397u, 160398u, 160400u, 160403u, 160404u, 160405u, 160406u, 160407u, 160408u, 160409u };
 #endif
 #endif
 

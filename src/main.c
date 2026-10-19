@@ -428,6 +428,31 @@ int PortHarnessMode(const char* name, int arg) {
         SetCardKindObtained(arg);
         return 1;
     }
+    /* deckuse:DECK|COUNT<<2|CARD<<9 - the collection holds COUNT copies of one
+       card, all of them in deck DECK, which becomes the active deck (the
+       official challenge achievements check the deck a battle is won with) */
+    if (strcmp(name, "deckuse") == 0) {
+        extern u16 gCardCount;
+        extern Deck gDecks[3];
+        extern void SetActiveDeckIndex(u8 index);
+        int deck = arg & 3, count = (arg >> 2) & 0x7F, card = (arg >> 9) & CARD_ID_MASK, i;
+        if (deck > 2 || count < 1 || count > DECK_SIZE)
+            return 0;
+        for (i = 0; i < count; i++) {
+            gCardCollection[i] = (u16)(card | (CARD_FLAG_IN_DECK_1 << deck));
+            gDecks[deck].cards[i] = (u16)i;
+        }
+        gCardCount = (u16)count;
+        gDecks[deck].cardCount = (u16)count;
+        SetActiveDeckIndex((u8)deck);
+        return 1;
+    }
+    /* noharm: the player cannot be hurt for the rest of the battle (the
+       no-damage challenges), as the game's own invincibility frames do */
+    if (strcmp(name, "noharm") == 0 && gBtlWork != NULL && gBtlWork->actor != NULL) {
+        gBtlWork->actor->invincibleTimer = 0x7FFF;
+        return 1;
+    }
     /* battleid:ID|WORLD<<8 - any battle in a given world, as PortRematchBegin
        starts one (official achievement validation, ra_battle_dryrun.py) */
     if (strcmp(name, "battleid") == 0) {
