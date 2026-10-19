@@ -24,3 +24,17 @@ piso e IWRAM contra el original. No se amplía sOfficialVerified por pasar un
 mock o compilar. La ampliación requiere evidencia de los campos reales.
 Fondos 61/62 y 16–24 apartados por el usuario. Commits de avances comprobables
 aproximadamente cada cinco minutos (última instrucción, sustituye tres minutos).
+
+## Estado original sin abrir BizHawk
+
+ra_bizhawk_state.py lee Core.bin.zst del savestate privado existente con la
+biblioteca Zstandard ya instalada. Valida longitud, revisión, código y CRC32
+contra la ROM exacta antes de extraer los 32 KiB IWRAM y 256 KiB EWRAM.
+No toca el savestate ni SRAM del usuario. Salida privada limitada a build/.
+Comprobado con el savestate USA del usuario (revisión mGBA 9).
+Esto aporta RAM original reproducible; no demuestra por sí solo paridad con
+el port ni valida las condiciones que requieren estar en combate.
+
+Fuentes del formato: MGBAHawk.IStatable.cs de TASEmulators/BizHawk y
+https://github.com/mgba-emu/mgba/blob/master/include/mgba/internal/gba/serialize.h
+La extracción requiere --rom y --zstd explícitos; no copia datos privados al repo.
