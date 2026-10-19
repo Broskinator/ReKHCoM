@@ -111,8 +111,9 @@ completas al final.
   del juego (lo pregunta el cartucho europeo); abajo, un enlace discreto cambia el
   idioma de la interfaz (Español/English; por defecto el del teléfono). Java compila;
   el APK se arma con v1.9.6 (no durante la sesión de juego del usuario).
-- **67 (18/10):** launcher de PC: banderas de los idiomas en la página principal
-  de elegir versión (EU/US/JP).
+- **67 (19/10, visual, espera aprobación):** launcher de PC, página Inicio: cada
+  versión muestra sus idiomas con bandera (Europa: Reino Unido, Francia, Alemania,
+  España, Italia; América: EE. UU.; Japón), dibujadas sin imágenes externas.
 - **65 (18/10, nuevo):** menú de pausa en las escenas habladas («cinemáticas»):
   centrado, con el estilo de botón del menú (la luz), dos opciones: Volver al
   juego y Saltar escena; Saltar pide confirmación. Implementar el salto de escena

@@ -77,13 +77,13 @@ struct Version {
     const char* sha1;
     const char* regionEs;
     const char* regionEn;
-    const char* languages;
+    const char* languages; /* flag:code pairs, e.g. "gb:EN fr:FR" */
 };
 
 static const Version kVersions[] = {
-    { "eu", "B8CP", "8db73586cdb11b3795907edebf43228dbcd3e6b2", "Europa", "Europe", "EN  FR  DE  ES  IT" },
-    { "us", "B8CE", "10729bd884f8fdca7a310b6d606c52e46657aa48", "América", "USA", "EN" },
-    { "jp", "B8CJ", "59ec0a0a4ccd1e6acb3bbd7bfb21d63988958cfa", "Japón", "Japan", "JA" },
+    { "eu", "B8CP", "8db73586cdb11b3795907edebf43228dbcd3e6b2", "Europa", "Europe", "gb:EN fr:FR de:DE es:ES it:IT" },
+    { "us", "B8CE", "10729bd884f8fdca7a310b6d606c52e46657aa48", "América", "USA", "us:EN" },
+    { "jp", "B8CJ", "59ec0a0a4ccd1e6acb3bbd7bfb21d63988958cfa", "Japón", "Japan", "jp:JA" },
 };
 static const int kVersionCount = 3;
 static const size_t kRomSize = 32u << 20;
@@ -527,6 +527,42 @@ static const ImVec4 kBad(0.800f, 0.063f, 0.0f, 1.0f);
 static const ImVec4 kFocus(0.031f, 0.031f, 0.031f, 1.0f);
 
 /* The debug menu's cursor square: black with red inside (on), or grey. */
+/* A small flag beside each language of a version (h tall, 3:2), drawn with
+   plain shapes: no image files, sharp at every scale. */
+static void LanguageFlag(ImDrawList* dl, ImVec2 p, float h, const char* id) {
+    const float w = h * 1.5f;
+    const ImU32 white = IM_COL32(255, 255, 255, 255), red = IM_COL32(206, 17, 38, 255);
+    auto band = [&](float x0, float y0, float x1, float y1, ImU32 c) {
+        dl->AddRectFilled(ImVec2(p.x + w * x0, p.y + h * y0), ImVec2(p.x + w * x1, p.y + h * y1), c);
+    };
+    if (!std::strncmp(id, "fr", 2)) {
+        band(0, 0, 1.f / 3, 1, IM_COL32(0, 85, 164, 255)); band(1.f / 3, 0, 2.f / 3, 1, white); band(2.f / 3, 0, 1, 1, IM_COL32(239, 65, 53, 255));
+    } else if (!std::strncmp(id, "it", 2)) {
+        band(0, 0, 1.f / 3, 1, IM_COL32(0, 146, 70, 255)); band(1.f / 3, 0, 2.f / 3, 1, white); band(2.f / 3, 0, 1, 1, red);
+    } else if (!std::strncmp(id, "de", 2)) {
+        band(0, 0, 1, 1.f / 3, IM_COL32(0, 0, 0, 255)); band(0, 1.f / 3, 1, 2.f / 3, IM_COL32(221, 0, 0, 255)); band(0, 2.f / 3, 1, 1, IM_COL32(255, 206, 0, 255));
+    } else if (!std::strncmp(id, "es", 2)) {
+        band(0, 0, 1, 1, IM_COL32(170, 21, 27, 255)); band(0, .25f, 1, .75f, IM_COL32(241, 191, 0, 255));
+    } else if (!std::strncmp(id, "jp", 2)) {
+        band(0, 0, 1, 1, white);
+        dl->AddCircleFilled(ImVec2(p.x + w * .5f, p.y + h * .5f), h * .3f, IM_COL32(188, 0, 45, 255));
+    } else if (!std::strncmp(id, "us", 2)) {
+        for (int i = 0; i < 7; i++)
+            band(0, i / 7.f, 1, (i + 1) / 7.f, i % 2 ? white : IM_COL32(178, 34, 52, 255));
+        band(0, 0, .42f, 4 / 7.f, IM_COL32(60, 59, 110, 255));
+    } else { /* gb */
+        const ImU32 blue = IM_COL32(1, 33, 105, 255);
+        band(0, 0, 1, 1, blue);
+        dl->AddLine(ImVec2(p.x, p.y), ImVec2(p.x + w, p.y + h), white, h * .2f);
+        dl->AddLine(ImVec2(p.x + w, p.y), ImVec2(p.x, p.y + h), white, h * .2f);
+        dl->AddLine(ImVec2(p.x, p.y), ImVec2(p.x + w, p.y + h), IM_COL32(200, 16, 46, 255), h * .07f);
+        dl->AddLine(ImVec2(p.x + w, p.y), ImVec2(p.x, p.y + h), IM_COL32(200, 16, 46, 255), h * .07f);
+        band(.4f, 0, .6f, 1, white); band(0, .33f, 1, .67f, white);
+        band(.45f, 0, .55f, 1, IM_COL32(200, 16, 46, 255)); band(0, .4f, 1, .6f, IM_COL32(200, 16, 46, 255));
+    }
+    dl->AddRect(p, ImVec2(p.x + w, p.y + h), IM_COL32(0, 0, 0, 70));
+}
+
 static void GameSquare(ImDrawList* dl, ImVec2 c, float size, bool on) {
     float h = size * 0.5f, in = size * 0.25f, edge = size * 0.08f;
     if (!on) {
@@ -908,9 +944,26 @@ static void PageHome(SDL_Window* window) {
         float tx = rowMin.x + Px(44);
         dl->AddText(sFontBody, sFontBody->FontSize, ImVec2(tx, rowMin.y + Px(10)), ImGui::GetColorU32(kText),
                     T(ver.regionEs, ver.regionEn));
-        char sub[64];
-        std::snprintf(sub, sizeof(sub), "%s   %s", ver.code, ver.languages);
-        dl->AddText(sFontSmall, sFontSmall->FontSize, ImVec2(tx, rowMin.y + Px(36)), ImGui::GetColorU32(kMuted), sub);
+        {
+            /* the code, then each language with its flag */
+            float fs = sFontSmall->FontSize, y = rowMin.y + Px(36), x = tx;
+            dl->AddText(sFontSmall, fs, ImVec2(x, y), ImGui::GetColorU32(kMuted), ver.code);
+            x += sFontSmall->CalcTextSizeA(fs, FLT_MAX, 0, ver.code).x + Px(14);
+            for (const char* l = ver.languages; *l; ) {
+                const char* colon = std::strchr(l, ':');
+                const char* end = std::strchr(l, ' ');
+                if (!colon)
+                    break;
+                if (!end)
+                    end = l + std::strlen(l);
+                float fh = fs * 0.72f;
+                LanguageFlag(dl, ImVec2(x, y + (fs - fh) * 0.5f), fh, l);
+                x += fh * 1.5f + Px(4);
+                dl->AddText(sFontSmall, fs, ImVec2(x, y), ImGui::GetColorU32(kMuted), colon + 1, end);
+                x += sFontSmall->CalcTextSizeA(fs, FLT_MAX, 0, colon + 1, end).x + Px(10);
+                l = *end ? end + 1 : end;
+            }
+        }
         /* status */
         const char* status;
         ImVec4 color;
