@@ -4,6 +4,7 @@
  * no credentials, networking or award submission belongs to this interface. */
 typedef struct PortAchievementInfo {
     char title[192], description[768];
+    char badge[8]; /* validated public cache basename; empty for local */
     int state; /* -1 account not queried, 0 locked, 1 unlocked */
 } PortAchievementInfo;
 void PortAchievementsListRefresh(void);

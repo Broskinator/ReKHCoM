@@ -22,7 +22,7 @@ static int AchievementReadString(FILE* file, char* out, size_t capacity) {
 }
 void PortAchievementsListRefresh(void) {
     FILE* file;
-    char signature[8], ignored[40];
+    char signature[8], badge[40];
     uint32_t count, points, known, id;
     int i, j;
     sOfficialCount = 0;
@@ -35,7 +35,11 @@ void PortAchievementsListRefresh(void) {
         if (!AchievementReadU32(file, &sOfficialList[i].id) || !AchievementReadU32(file, &points) ||
             !AchievementReadString(file, info->title, sizeof(info->title)) ||
             !AchievementReadString(file, info->description, sizeof(info->description)) ||
-            !AchievementReadString(file, ignored, sizeof(ignored))) { fclose(file); return; }
+            !AchievementReadString(file, badge, sizeof(badge))) { fclose(file); return; }
+        if (strlen(badge) < sizeof(info->badge)) SDL_strlcpy(info->badge, badge, sizeof(info->badge));
+        else info->badge[0] = 0;
+        /* Only numeric names can become cache paths. */
+        for (j = 0; info->badge[j]; ++j) if (info->badge[j] < '0' || info->badge[j] > '9') { info->badge[0] = 0; break; }
         info->state = -1;
     }
     fclose(file); sOfficialCount = (int)count;
@@ -63,6 +67,7 @@ int PortAchievementsListGet(int official, int index, int spanish, PortAchievemen
     def = &gKhLocalDefinitions[index];
     SDL_strlcpy(out->title, spanish ? def->title_es : def->title_en, sizeof(out->title));
     SDL_strlcpy(out->description, spanish ? def->description_es : def->description_en, sizeof(out->description));
+    out->badge[0] = 0;
     out->state = (sLocal.unlocked & (1u << index)) != 0;
     return 1;
 }

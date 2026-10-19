@@ -88,3 +88,16 @@ CORS. No se introduce un proxy para credenciales. Cuenta y consulta oficiales
 siguen en Windows; los retos locales y la lista in-game comparten implementación
 en los ports disponibles. PS4/Switch/Vita/PS3 no se anuncian comprobados: sus
 ports son trabajo separado del otro chat (51–54).
+
+19/10 — imágenes en Opciones > Logros: el pie reserva 64×64 píxeles a la
+derecha para el logro seleccionado. Locales usan las mismas cartas de ROM del
+launcher/web (16×32 a ×2); oficiales leen únicamente PNG públicos de la caché
+del launcher. Gris para pendiente/sin consultar, color para conseguido. No hay
+login ni descargas en el juego. Solo se retiene una miniatura de 16 KiB; se
+limita el PNG de entrada a 1 MiB y 256×256 y se valida el nombre numérico.
+Si falta la imagen se muestra «?». Descripción ocupa el espacio restante.
+Pruebas: seis casos EU/US/JP con teclado/gamepad simulado y tamaños de salida
+240×160, 640×360 y 1920×1080; PNG sintético prueba color y gris por píxel.
+Las capturas son del lienzo interno del menú, no del tamaño físico de ventana.
+No se modifican SRAM ni progreso. Compilación de las 15 parejas destino/región
+y ejecución Wasm de condiciones pasan; no es ejecución física en consolas.

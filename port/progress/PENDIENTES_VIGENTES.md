@@ -20,7 +20,7 @@ conservada para poder rastrear. Reglas del usuario:
 | **ChatGPT/Codex** | 27 listado de logros in-game terminado y en comprobación final; 55 web commiteada (espera revisión visual); 61–62 necesitan la asistencia del usuario indicada antes; después 16–24 | 1) cerrar entrega 27/55, 2) memoria/set oficial y Level 1 de 27, 3) 61–62 al tener asistencia, 4) 16–24 |
 | **Otro chat** | 51–54 consolas (Vita, PS4, Switch; PS5 por VM) | según su propio plan |
 
-Codex activo 19/10 01:43: 55 y listado in-game de 27 commiteados; integrando y
+Codex activo 19/10: 55 y listado in-game de 27 commiteados; integrando y
 pusheando. No tomar su WIP mientras siga activo. Login confirmado, 16 disparos por
 región y menú con filtros pasan pruebas. Sigue pendiente memoria/set oficial y
 Level 1. Claude integró el primer commit de logros en 09f27f3b9. Hechos de Claude:
@@ -50,7 +50,7 @@ completas al final.
 - **26:** CERRADO 18/10: issue #2 (funciones del remake) cerrado por el usuario como
   mod muy específico, fuera de alcance por ahora.
 - **27:** RetroAchievements: hay logros locales y catálogo oficial experimental;
-  login real confirmado por el usuario. Catálogo directo con imágenes (gris/color), caché y copia «Probar logros 27.bat» listos para revisión. 16 disparos × EU/US/JP pasan en el puente nativo; Wasm ejecuta las condiciones; Android/Linux/PS5 compilan el puente y avisos. No equivale a ejecución física. Proyección parcial escalar y de cartas comprobada en EU/US/JP (incluye Wasm); auditoría real: 143/157 raíces directas cubiertas. Quedan 14 raíces, objetos indirectos, validación de los 90 grafos oficiales y Level 1. No equivale a 139 logros ni habilita premios online. Web: catálogo local directo y editor/opciones en 9b819a7ae. Lista in-game de locales y catálogo oficial cacheado, con filtros y estados de última consulta; cuenta/login solo en launcher. Prueba «Probar logros ingame 27.bat». Evidencia: RETROACHIEVEMENTS.md y LOGROS_27_VALIDACION.md.
+  login real confirmado por el usuario. Catálogo directo con imágenes (gris/color), caché y copia «Probar logros 27.bat» listos para revisión. 16 disparos × EU/US/JP pasan en el puente nativo; Wasm ejecuta las condiciones; Android/Linux/PS5 compilan el puente y avisos. No equivale a ejecución física. Proyección parcial escalar y de cartas comprobada en EU/US/JP (incluye Wasm); auditoría real: 143/157 raíces directas cubiertas. Quedan 14 raíces, objetos indirectos, validación de los 90 grafos oficiales y Level 1. No equivale a 139 logros ni habilita premios online. Web: catálogo local directo y editor/opciones en 9b819a7ae. Lista in-game de locales y catálogo oficial cacheado, con filtros y estados de última consulta; cuenta/login solo en launcher. Imagen del seleccionado abajo a la derecha: cartas originales locales y PNG oficiales de caché, gris/color; una sola miniatura en RAM. Prueba «Probar logros ingame 27.bat». Evidencia: RETROACHIEVEMENTS.md y LOGROS_27_VALIDACION.md.
 - **55 (implementado, pendiente aprobación visual, 19/10):** commit 9b819a7ae; prueba local web55-preview y evidencia WEB_55_REVISION.md. Página web: llevar las opciones del launcher a sus
   pestañas (gráficos, sonido, mejoras, controles, editor) y rehacer la estética
   general para que calce con el arte del juego (estilo del menú debug ya usado en
