@@ -107,9 +107,10 @@ completas al final.
   según la vista ancha (v1.9.1): el usuario decidió mantenerlo (18/10).
 - **68 (bug, 18/10):** Android (APK de prueba v1.9.6): iniciar partida con texto HD
   activado crashea. Replicar en el emulador (AVD en D:/ReKHCoM-build/android-avd).
-- **66 (18/10):** Android: la app aún pregunta el idioma del juego al empezar, pero
-  se elige dentro del juego. Quitar esa pregunta; dejar más escondida una opción
-  solo para cambiar el idioma de la interfaz/launcher.
+- **66 (19/10) — hecho, falta APK:** el launcher de Android ya no pregunta el idioma
+  del juego (lo pregunta el cartucho europeo); abajo, un enlace discreto cambia el
+  idioma de la interfaz (Español/English; por defecto el del teléfono). Java compila;
+  el APK se arma con v1.9.6 (no durante la sesión de juego del usuario).
 - **67 (18/10):** launcher de PC: banderas de los idiomas en la página principal
   de elegir versión (EU/US/JP).
 - **65 (18/10, nuevo):** menú de pausa en las escenas habladas («cinemáticas»):

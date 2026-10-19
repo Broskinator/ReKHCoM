@@ -10,7 +10,8 @@ public class GameActivity extends SDLActivity {
     }
     @Override protected String[] getLibraries() { return new String[]{"SDL3","rekhcom_"+region()}; }
     @Override protected String[] getArguments() {
+        /* No --language: the European cartridge asks for it itself. */
         return new String[]{"--data-dir",getFilesDir().getAbsolutePath(),"--rom",
-            getIntent().getStringExtra("rom"),"--language",getIntent().getStringExtra("language")};
+            getIntent().getStringExtra("rom")};
     }
 }
