@@ -65,6 +65,9 @@ $('rom').addEventListener('change',async()=>{
     if(!region)throw Error(t('region'));
     const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-1',buffer)),n=>n.toString(16).padStart(2,'0')).join('');
     if(hash!==region.sha)throw Error(t('romHash'));
+    for(const row of document.querySelectorAll('.version')){const on=row.dataset.region===region.id;row.classList.toggle('loaded',on);
+      const state=row.querySelector('.version-state');state.dataset.en=on?'Loaded · verified':'No ROM';state.dataset.es=on?'Cargada · verificada':'Sin ROM';
+      state.textContent=document.documentElement.lang==='es'?state.dataset.es:state.dataset.en;}
     status('loading');core=await loadEngine();
     core.HEAPU8.set(new Uint8Array(buffer),0x08000000);buffer=null;
     if(!core._PortWebRomReady(file.size))throw Error(t('romHash'));
