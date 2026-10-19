@@ -16,9 +16,8 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos (orden) |
 |---|---|
-| **Claude (Opus)** | 1) v1.9.8 estable (en curso); 2) 68 crash de Riku en Android; 3) 70 rediseño web/launcher (tras 27); 4) 44 limpieza (con permiso); 5) 39 rutas completas |
-| **ChatGPT/Codex** | 1) issue #21 (crash al ver la carta de jefe de Marluxia; entra en v1.9.8); 2) 27 logros (memoria/set oficial, Level 1); 3) 55 web (espera revisión visual); 4) 61–62 escenas de Ciudad de Paso; 5) 16–24 arte de jefes |
-| **Otro chat** | 51–54 consolas (PS5 por VM, Vita, PS4, Switch) |
+| **Claude (Opus)** | 1) 68 crash de Riku en Android (ANTES de publicar); 2) v1.9.8 estable con #21; 3) 70 rediseño web/launcher; 4) 44 limpieza (con permiso); 5) 51–54 consolas (el usuario cerró el otro chat el 19/10: pasan a Claude); 6) 39 rutas |
+| **ChatGPT/Codex** | el resto: 1) issue #21 (entra en v1.9.8); 2) 27 logros (memoria/set oficial, Level 1); 3) 55 web (espera revisión visual); 4) 61–62 escenas de Ciudad de Paso; 5) 16–24 arte de jefes |
 
 Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora y evidencia.
 
@@ -58,7 +57,7 @@ Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora
   tramos y el bot (KHCOM_BOT).
 - **43:** mantener esta cola tras cada cierre.
 
-## 4. Otro chat: consolas
+## 4. Claude: consolas (antes del otro chat, cerrado 19/10)
 
 - **51 PS Vita:** de ggdrn/KH_COM_VITA solo la forma de compilar (VitaSDK + vitaGL); el
   resto es nuestro. Fases: referencia en Vita3K → punteros reubicables → .vpk alpha.
