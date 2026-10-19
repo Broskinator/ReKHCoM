@@ -38,10 +38,14 @@ tar -xf /root/share/source.tar -C /root/gba
 mkdir -p roms && cp /root/share/roms/B8C?.gba roms/
 # agbcc (old_agbcc) into tools/agbcc, kept on the VM disk between runs
 if [ ! -x /root/gba-cache/agbcc/bin/old_agbcc ]; then
-  rm -rf /root/gba-cache/agbcc-src
-  git clone --quiet https://github.com/pret/agbcc /root/gba-cache/agbcc-src
-  git -C /root/gba-cache/agbcc-src checkout --quiet AGBCC_REVISION
-  (cd /root/gba-cache/agbcc-src && ./build.sh && ./install.sh /root/gba-cache/install)
+  if [ ! -x /root/gba-cache/agbcc-src/old_agbcc ]; then
+    rm -rf /root/gba-cache/agbcc-src
+    git clone --quiet https://github.com/pret/agbcc /root/gba-cache/agbcc-src
+    git -C /root/gba-cache/agbcc-src checkout --quiet AGBCC_REVISION
+    (cd /root/gba-cache/agbcc-src && ./build.sh)
+  fi
+  rm -rf /root/gba-cache/install && mkdir -p /root/gba-cache/install
+  (cd /root/gba-cache/agbcc-src && ./install.sh /root/gba-cache/install)
   rm -rf /root/gba-cache/agbcc && cp -a /root/gba-cache/install/tools/agbcc /root/gba-cache/agbcc
 fi
 rm -rf tools/agbcc && cp -a /root/gba-cache/agbcc tools/agbcc
