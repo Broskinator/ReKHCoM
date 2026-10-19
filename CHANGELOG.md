@@ -1,26 +1,21 @@
 # Changelog
 
-## Unreleased
+## v1.9.8 — 2026-10-19
 
-- Fix crash when highlighting the boss-only Marluxia card after the all-cards cheat
-  (#21); existing saves remain browsable and cheats/editors exclude that internal card.
+Stable, on every platform again (Windows, Linux, Steam Deck, Anbernic, Android, Web).
 
-- Achievements: direct catalog with cached badges (grey when locked, colour when earned);
-  account login remains in the launcher. Official online awards/Hardcore remain disabled.
-- Options → Achievements: read-only local progress and the launcher's last official
-  snapshot, with scrolling and locked/unlocked filters; keyboard and gamepad support.
-- Local achievements accept Windows/portable progress files; Japanese voices and
-  presentation settings no longer invalidate local challenges.
-- Web launcher: matching graphics/sound/enhancement/control tabs, optional save-copy
-  editor with card limits and backups, and a direct list of the 16 local challenges.
-- Dialogue portraits no longer show early or uncovered in wide views (Codex, #59).
-- Android: the GBA memory is reserved region by region when the whole range is not free (#20).
-- Save crystals, gimmicks and the room's map icon follow the game's own lifetime through
-  menus again (no more port-made copies); fixes the crystal that vanished (#63).
-- Options: the debug menu's click sounds as the light moves; the music pauses and comes back on the same note.
-- Story scenes: a short tap of START pauses them (back to the game, or skip the scene after confirming); holding START still skips as on the GBA.
-- Options → Cheats → Debug mode: "[ReKHCoM] GBA map logic" brings back the cartridge's
-  240x160 bounds for field Heartless, with an in-menu note explaining the change.
+- Achievements: 16 local challenges per region, official catalog with badges, an
+  Achievements page in Options and in the launcher. Official awards stay off for now.
+- New web page and launcher look: the three versions with their flags, box art and
+  the steps to start; web options in tabs and an optional save-copy editor.
+- Story scenes: tap START to pause (back to the game or skip the scene).
+- Options: the debug menu's click sound; Cheats → Debug mode → "[ReKHCoM] GBA map
+  logic" for purists.
+- Fixes: Riku's new game on Android (#68), the Marluxia boss card crash (#21), Android
+  memory reservation (#20), save crystals that vanished (#63), early dialogue
+  portraits in wide views (#59), title bars in every resolution.
+- Android launcher: no game-language question (the game asks it); interface in
+  Spanish or English.
 
 ## v1.9.5 — 2026-10-18
 
