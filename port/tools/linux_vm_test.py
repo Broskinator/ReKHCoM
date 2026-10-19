@@ -43,9 +43,12 @@ class Console:
     def expect(self, pattern, timeout):
         end = time.time() + timeout
         while time.time() < end:
-            m = re.search(pattern, self.buf)
+            # Only the recent output can hold the prompt or marker: searching the
+            # whole buffer on every byte made long outputs quadratic.
+            base = max(0, len(self.buf) - 4096)
+            m = re.search(pattern, self.buf[base:])
             if m:
-                out, self.buf = self.buf[:m.end()], self.buf[m.end():]
+                out, self.buf = self.buf[:base + m.end()], self.buf[base + m.end():]
                 return out
             try:
                 c = self.q.get(timeout=0.5)
@@ -78,6 +81,11 @@ def main():
     ap.add_argument('--machine', choices=IMAGES, default='x86_64')
     ap.add_argument('--share', type=Path, required=True)
     ap.add_argument('--run', action='append', default=[])
+    ap.add_argument('--bg-run', action='append', default=[],
+                    help='run in the background inside the VM, printing its log every --poll seconds; '
+                         'abort when the log stops changing for --stall seconds')
+    ap.add_argument('--poll', type=int, default=30)
+    ap.add_argument('--stall', type=int, default=900)
     ap.add_argument('--fetch', action='append', default=[])
     ap.add_argument('--out', type=Path, default=Path('.'))
     ap.add_argument('--accel', default='whpx,kernel-irqchip=off')
@@ -141,6 +149,26 @@ def main():
         for c in args.run:
             out, code = con.run(c, args.run_timeout)
             print(f'$ {c}\n{out.strip()}\n[exit {code}]', flush=True)
+        for c in args.bg_run:
+            # In the background, so its progress can be watched and a hang seen.
+            con.run(f'rm -f /root/.bgexit; ( ( {c} ) > /root/.bglog 2>&1; echo $? > /root/.bgexit ) &', 30)
+            last, since, started = None, time.time(), time.time()
+            while True:
+                time.sleep(args.poll)
+                out, _ = con.run('echo EXIT=$(cat /root/.bgexit 2>/dev/null); tail -c 400 /root/.bglog | tail -2', 60)
+                code = re.search(r'EXIT=(\d+)', out)
+                tail = re.sub(r'EXIT=\d*', '', out.rsplit('__DONE_', 1)[0]).strip()
+                print(f'[{int(time.time() - started)} s] {tail[-200:]}', flush=True)
+                if code:
+                    out, _ = con.run('tail -40 /root/.bglog', 60)
+                    print(f'$ {c}\n{out.strip()}\n[exit {code.group(1)}]', flush=True)
+                    break
+                if tail != last:
+                    last, since = tail, time.time()
+                elif time.time() - since > args.stall:
+                    out, _ = con.run('tail -60 /root/.bglog; ps aux --sort=-%cpu | head -15', 60)
+                    print(f'STALLED (no new output for {args.stall} s):\n{out}', flush=True)
+                    break
         args.out.mkdir(parents=True, exist_ok=True)
         if args.fetch:
             names = ' '.join(f.lstrip('/') for f in args.fetch)

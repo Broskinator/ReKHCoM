@@ -61,7 +61,8 @@ def main():
         shutil.copyfile(ROOT / 'roms' / f'{code}.gba', SHARE / 'roms' / f'{code}.gba')
     script = '\n'.join([
         '#!/bin/bash',
-        'exec > /root/ps5-release.log 2>&1',
+        # output goes to the runner's background log (--bg-run), watched for stalls
+        'set -x',
         'set -eo pipefail',
         'rm -rf /root/rk-release && mkdir -p /root/rk-release',
         'tar -xf /root/share/source.tar -C /root/rk-release',
@@ -82,7 +83,7 @@ def main():
     fetched = args.out / 'ps5-fetch'
     command = [sys.executable, str(ROOT / 'port/tools/linux_vm_test.py'), '--share', str(SHARE),
                '--disk', str(IMAGE), '--net', '--run-timeout', '10800', '--mem', args.mem, '--cpus', args.cpus,
-               '--run', 'bash /root/share/build-release.sh; code=$?; tail -40 /root/ps5-release.log; exit $code',
+               '--bg-run', 'bash /root/share/build-release.sh', '--poll', '30', '--stall', '900',
                '--fetch', '/root/rk-release/port/ps5/dist/PPSA98511.zip', '--out', str(fetched)]
     # Git Bash rewrites /root/... arguments into Windows paths unless told not to.
     subprocess.run(command, cwd=ROOT, check=True, env=dict(os.environ, MSYS_NO_PATHCONV='1', PYTHONUTF8='1'))
