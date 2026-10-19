@@ -134,6 +134,7 @@ typedef struct PortConfig {
     int cheatInfiniteHp;        /* cheat: the player loses no HP */
     int moogleNotice;           /* experimental, off: show the moogle points picked up and the total */
     int gbaMapLogic;            /* cheats > debug mode, off: field enemies leave at the GBA screen's edges */
+    int invertCardScroll;      /* off by default: reverse L/R and right-stick card scrolling in battle */
 } PortConfig;
 
 extern PortConfig gPortConfig;

@@ -161,7 +161,7 @@ u8 UpdateCardMsgwinLoadText(CardMsgWinWork* work, void* task) {
 #ifdef VERSION_JP
     work->charCount = LayoutCardMsgGlyphsPageSjis(gMsgwinTextX[work->messageDef->positionIndex],
                                gMsgwinTextY[work->messageDef->positionIndex],
-                               (TextChar*)work->messageDef->text,
+                               CARD_MSG_TEXT(work),
                                &work->nextText);
 #else
     TextChar** nextText;
@@ -175,7 +175,7 @@ u8 UpdateCardMsgwinLoadText(CardMsgWinWork* work, void* task) {
     } else {
         work->charCount = LayoutCardMsgGlyphsPage(gMsgwinTextX[work->messageDef->positionIndex],
                                    gMsgwinTextY[work->messageDef->positionIndex] - 0x200,
-                                   (TextChar*)LANGSTR(work->messageDef->text), nextText);
+                                   CARD_MSG_TEXT(work), nextText);
     }
 #endif
 
@@ -524,7 +524,7 @@ u8 UpdateCardMsgwinPersistent(CardMsgWinWork* work, void* task) {
 #ifdef VERSION_JP
         work->charCount = LayoutCardMsgGlyphsPageSjis(gMsgwinTextX[work->messageDef->positionIndex],
                                    gMsgwinTextY[work->messageDef->positionIndex],
-                                   (TextChar*)work->messageDef->text, &work->nextText);
+                                   CARD_MSG_TEXT(work), &work->nextText);
 #else
         nextText = &work->nextText;
 
@@ -534,7 +534,7 @@ u8 UpdateCardMsgwinPersistent(CardMsgWinWork* work, void* task) {
         } else {
             work->charCount = LayoutCardMsgGlyphsPage(gMsgwinTextX[work->messageDef->positionIndex],
                                        gMsgwinTextY[work->messageDef->positionIndex] - 0x200,
-                                       (TextChar*)LANGSTR(work->messageDef->text), nextText);
+                                       CARD_MSG_TEXT(work), nextText);
         }
 #endif
 

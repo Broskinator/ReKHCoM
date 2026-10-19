@@ -248,6 +248,7 @@ static const Setting kSettings[] = {
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "experimental_moogle_notice", 0 }, { "hd_text", 0 },
+    { "invert_card_scroll", 0 },
     { "card_hud_raise", 8 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 }, { "experimental_unstock", 0 },
     { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
@@ -1265,6 +1266,11 @@ static void PageExtras() {
                          T("Y en el mando, D en el teclado: acumula cartas o trucos sin pulsar L y R a la vez.",
                            "Gamepad Y, keyboard D: stock cards or sleights without pressing L and R together."),
                          Ini("stock_button"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Invertir selección de cartas", "Invert card scrolling"),
+                         T("Invierte L/R y el movimiento horizontal del stick derecho al seleccionar cartas en combate. Los menús y L+R no cambian.",
+                           "Reverses L/R and right-stick horizontal card scrolling in battle. Menus and L+R combinations stay unchanged."),
+                         Ini("invert_card_scroll"));
     ImGui::Separator();
     ImGui::EndChild();
     ImGui::Spacing();
