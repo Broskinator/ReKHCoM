@@ -7,6 +7,7 @@ GameState gGameState;
 Deck gDecks[3];
 uint16_t gCardCollection[999], gCardCount;
 uint8_t gMapCardCounts[270];
+uint16_t gPoohGauge;
 uint8_t GetActiveDeckIndex(void) { return 2; }
 uint16_t GetKeysHeld(void) { return 0x0201; }
 volatile uint32_t gVBlankCounter;
@@ -35,7 +36,22 @@ int main(void) {
 #else
         0x34928u, cardRoot = 0x41D44u;
 #endif
+    const uint32_t poohGauge =
+#if defined(VERSION_EU)
+        0x449D4u;
+#elif defined(VERSION_US)
+        0x443E4u;
+#else
+        0x44354u;
+#endif
     unsigned i;
+    gPoohGauge = 0x0203;
+    memset(bytes, 0xA5, sizeof(bytes));
+    PortRaOverlayState(poohGauge - 1, bytes, 4);
+    assert(bytes[0] == 0xA5 && bytes[1] == 3 && bytes[2] == 2 && bytes[3] == 0xA5);
+    PortRaOverlayState(poohGauge + 1, bytes, 1);
+    assert(bytes[0] == 2 && bytes[1] == 3);
+
     sBgFxForTest = (const void*)(uintptr_t)0x02033F00u;
     gCardBattleState = (struct CardBattleState*)(uintptr_t)0x03006700u;
     memset(bytes, 0xA5, sizeof(bytes));

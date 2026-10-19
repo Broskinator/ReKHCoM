@@ -10,6 +10,7 @@ GameState gGameState;
 Deck gDecks[3];
 uint16_t gCardCollection[999], gCardCount;
 uint8_t gMapCardCounts[270];
+uint16_t gPoohGauge;
 uint8_t GetActiveDeckIndex(void) { return 0; }
 uint16_t GetKeysHeld(void) { return 0; }
 volatile uint32_t gVBlankCounter;

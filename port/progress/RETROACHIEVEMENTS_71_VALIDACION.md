@@ -49,3 +49,13 @@ modificar su vida ni lógica. Se conserva la restricción a punteros de heaps GB
 Los tests atan explícitamente el testigo Thumb a su propietario C para evitar
 regresar a la confusión entre ambas variables. Dirección y bytes parciales se
 comprueban en EU/US/JP. No amplía por sí sola los 21 logros oficiales activos.
+
+## Medidor de Pooh: campo escalar, no puntero
+
+GetPooGaugeFrame lee gPoohGauge como u16. Los literales ROM dan EU
+0x0203C9D4, US 0x0203C3E4 y JP 0x0203C354. Se proyectan ahora sus dos bytes,
+con pruebas de lecturas parciales y protección de bytes vecinos por región.
+El estado original USA conserva gauge=3 en esa dirección. La prueba del
+cartucho valida el literal y su propietario C; la suite nativa sigue pasando.
+El logro 160372 sigue fuera de sOfficialVerified hasta cerrar su grafo completo;
+no se contabiliza como desbloqueo ni se envían premios en estas comprobaciones.
