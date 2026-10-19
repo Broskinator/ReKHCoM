@@ -8,6 +8,10 @@ Stable. Everything from v1.9.8 (published as a test build), plus:
 - Scene pause: confirm and cancel use the game's own decision sounds.
 - Cheats: "Fill battle card collection" removed; use the launcher's save editor.
 - The web version is updated with the new look on every release.
+- RetroAchievements: 28 of the 90 official achievements active, now including the Guard Armor, Jafar, Hades, Ursula and Parasite Cage bosses.
+- Crystal rooms: checked against the original on several seeds; the crystal appears in the same place.
+- Windows executables carry file details (fewer antivirus false positives).
+- Releases work with Quiver Launcher: one download per platform; PS5 has its own release.
 
 ## v1.9.8 — 2026-10-19 (test build)
 
