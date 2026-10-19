@@ -134,3 +134,9 @@ int PortCheatBattleCards(void) {
 unsigned PortGameFlags(void) {
     return gGameState.flags;
 }
+
+/* Debug mode (Cheats page): field enemies leave at the cartridge's 240x160
+   screen instead of the wide view's edges, where they pop out of sight. */
+int PortGbaMapLogic(void) {
+    return gPortConfig.gbaMapLogic != 0;
+}

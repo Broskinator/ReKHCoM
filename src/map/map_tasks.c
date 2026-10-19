@@ -422,12 +422,19 @@ TaskDesc gTaskDescMapGmk00 = {
 /*
  * Field enemies are removed once they leave the screen (plus a small margin).
  * The PC wide view shows more than 240x160, so the bounds follow the visible
- * area; otherwise enemies vanish in plain sight and respawn elsewhere.
+ * area; otherwise enemies vanish in plain sight and respawn elsewhere. The
+ * debug option "GBA map logic" keeps the cartridge's 240x160 bounds.
  */
-#define MAP_ENM_OFF_LEFT (gFieldState->x + VIEW_LEFT * 0x100 - 0x1800)
-#define MAP_ENM_OFF_RIGHT (gFieldState->x + (VIEW_RIGHT - DISPLAY_WIDTH) * 0x100 + 0x10800)
-#define MAP_ENM_OFF_TOP (gFieldState->y + VIEW_TOP * 0x100 - 0x800)
-#define MAP_ENM_OFF_BOTTOM (gFieldState->y + (VIEW_BOTTOM - DISPLAY_HEIGHT) * 0x100 + 0xC000)
+#ifdef PLATFORM_PC
+int PortGbaMapLogic(void);
+#define MAP_ENM_VIEW(view, gba) (PortGbaMapLogic() ? (gba) : (view))
+#else
+#define MAP_ENM_VIEW(view, gba) (gba)
+#endif
+#define MAP_ENM_OFF_LEFT (gFieldState->x + MAP_ENM_VIEW(VIEW_LEFT, 0) * 0x100 - 0x1800)
+#define MAP_ENM_OFF_RIGHT (gFieldState->x + MAP_ENM_VIEW(VIEW_RIGHT - DISPLAY_WIDTH, 0) * 0x100 + 0x10800)
+#define MAP_ENM_OFF_TOP (gFieldState->y + MAP_ENM_VIEW(VIEW_TOP, 0) * 0x100 - 0x800)
+#define MAP_ENM_OFF_BOTTOM (gFieldState->y + MAP_ENM_VIEW(VIEW_BOTTOM - DISPLAY_HEIGHT, 0) * 0x100 + 0xC000)
 
 s32 MapEnm00CheckOffscreen(MapEnmWork* work) {
     FldPos* pos = &work->obj.fieldPosition;

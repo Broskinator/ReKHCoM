@@ -99,6 +99,10 @@ completas al final.
   Revisión de todo el mapa contra el decomp original: el icono del mapa de la sala
   también vuelve a su ciclo original. Los Heartless del campo siguen desapareciendo
   según la vista ancha (v1.9.1): el usuario decidió mantenerlo (18/10).
+- **69 (19/10, visual, espera aprobación):** Trucos → Modo debug → "[ReKHCoM] Lógica
+  Mapa GBA" (apagado por defecto): los Heartless del campo vuelven a los límites de
+  240x160 del cartucho. Al ponerse sobre la opción, un panel sobre el arte de Sora la
+  explica con dos diagramas (ReKHCoM / GBA), en los 6 idiomas.
 - **68 (bug, 18/10):** Android (APK de prueba v1.9.6): iniciar partida con texto HD
   activado crashea. Replicar en el emulador (AVD en D:/ReKHCoM-build/android-avd).
 - **66 (18/10):** Android: la app aún pregunta el idioma del juego al empezar, pero

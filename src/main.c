@@ -281,6 +281,24 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
 
+    /* the room's first field enemy to arg pixels right of the GBA screen, on
+       Sora's row: the wide view still shows it (debug option illustration) */
+    if (strcmp(name, "enmside") == 0 && gFieldState != NULL) {
+        Task* task = ListPoolFirst(&gFieldState->tasks4.head);
+        if (task == NULL)
+            return 0;
+        ((MapEnmWork*)task->work)->obj.fieldPosition.x = gFieldState->x + ((DISPLAY_WIDTH + arg) << 8);
+        ((MapEnmWork*)task->work)->obj.fieldPosition.y = gFieldState->actor.fieldPosition.y;
+        return 1;
+    }
+    /* field enemies left in every room of the floor (after roomshape) */
+    if (strcmp(name, "roomenemies") == 0) {
+        int i;
+        for (i = 0; i < 32; i++)
+            gMapFloorState.rooms[i].enemiesLeft = (u8)arg;
+        return 1;
+    }
+
     /* rematches: obtain:N marks OBTAINED_CARD_N; rematch:N starts row N as
        the options menu does */
     if (strcmp(name, "obtain") == 0) {
@@ -425,8 +443,16 @@ int PortHarnessMode(const char* name, int arg) {
     }
     if (strcmp(name, "poslog") == 0 && gFieldState != NULL) {
         extern void PortLog(const char* format, ...);
-        PortLog("harness: sora at %d,%d,%d", (int)gFieldState->actor.fieldPosition.x,
-                (int)gFieldState->actor.fieldPosition.y, (int)gFieldState->actor.fieldPosition.z);
+        Task* enm = ListPoolFirst(&gFieldState->tasks4.head);
+        int enemies = 0;
+        for (; enm != NULL; enm = ListPoolNext(&enm->node)) {
+            enemies++;
+            PortLog("harness: enemy %s at %d (screen %d)", enm->desc->name,
+                    (int)((MapEnmWork*)enm->work)->obj.fieldPosition.x >> 8,
+                    (int)(((MapEnmWork*)enm->work)->obj.fieldPosition.x - gFieldState->x) >> 8);
+        }
+        PortLog("harness: sora at %d,%d,%d enemies=%d", (int)gFieldState->actor.fieldPosition.x,
+                (int)gFieldState->actor.fieldPosition.y, (int)gFieldState->actor.fieldPosition.z, enemies);
         return 1;
     }
     if (strcmp(name, "doorselect") == 0 && gFieldState != NULL) {

@@ -4,6 +4,10 @@
 
 - Dialogue portraits no longer show early or uncovered in wide views (Codex, #59).
 - Android: the GBA memory is reserved region by region when the whole range is not free (#20).
+- Save crystals, gimmicks and the room's map icon follow the game's own lifetime through
+  menus again (no more port-made copies); fixes the crystal that vanished (#63).
+- Options → Cheats → Debug mode: "[ReKHCoM] GBA map logic" brings back the cartridge's
+  240x160 bounds for field Heartless, with an in-menu note explaining the change.
 
 ## v1.9.5 — 2026-10-18
 

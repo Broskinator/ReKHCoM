@@ -133,6 +133,7 @@ typedef struct PortConfig {
     int cheatOneHit;            /* cheat: enemies fall to one hit */
     int cheatInfiniteHp;        /* cheat: the player loses no HP */
     int moogleNotice;           /* experimental, off: show the moogle points picked up and the total */
+    int gbaMapLogic;            /* cheats > debug mode, off: field enemies leave at the GBA screen's edges */
 } PortConfig;
 
 extern PortConfig gPortConfig;

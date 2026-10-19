@@ -91,6 +91,8 @@ enum {
     ITEM_CHEAT_MAXLEVEL,
     ITEM_CHEAT_MAPCARDS,
     ITEM_CHEAT_BATTLECARDS,
+    ITEM_CHEAT_DEBUG_HEADING, /* section heading, not selectable */
+    ITEM_CHEAT_GBA_MAP,
     ITEM_CHEATS_BACK,
     ITEM_REMATCH_0, /* PortRematchCount() rows: the bosses, then the two tutorials */
     ITEM_REMATCH_LAST = ITEM_REMATCH_0 + 13,
@@ -241,6 +243,9 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Tutte le carte stanza (9)", "Todas las cartas de mapa (9 c/u)", "全マップカード (各9枚)" },
     { "Fill battle card collection", "Remplir la collection de cartes", "Kampfkartensammlung füllen",
       "Riempi la collezione di carte", "Llenar colección de cartas", "バトルカードを満たす" },
+    { "Debug mode", "Mode debug", "Debug-Modus", "Modalità debug", "Modo debug", "デバッグモード" },
+    { "[ReKHCoM] GBA map logic", "[ReKHCoM] Logique carte GBA", "[ReKHCoM] GBA-Kartenlogik",
+      "[ReKHCoM] Logica mappa GBA", "[ReKHCoM] Lógica Mapa GBA", "[ReKHCoM] GBAマップロジック" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
     { "Guard Armor", "Guard Armor", "Guard Armor", "Guard Armor", "Guard Armor", "Guard Armor" },
     { "Trickmaster", "Trickmaster", "Trickmaster", "Trickmaster", "Trickmaster", "Trickmaster" },
@@ -848,6 +853,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_CHEAT_INFHP:
             SDL_strlcpy(out, sOnOff[gPortConfig.cheatInfiniteHp != 0][l], size);
             break;
+        case ITEM_CHEAT_GBA_MAP:
+            SDL_strlcpy(out, sOnOff[gPortConfig.gbaMapLogic != 0][l], size);
+            break;
         case ITEM_CHEAT_MAXLEVEL:
         case ITEM_CHEAT_MAPCARDS:
         case ITEM_CHEAT_BATTLECARDS:
@@ -1054,6 +1062,9 @@ static void Change(int item, int dir) {
         case ITEM_CHEAT_INFHP:
             gPortConfig.cheatInfiniteHp = !gPortConfig.cheatInfiniteHp;
             break;
+        case ITEM_CHEAT_GBA_MAP:
+            gPortConfig.gbaMapLogic = !gPortConfig.gbaMapLogic;
+            break;
         case ITEM_CHEAT_MAXLEVEL:
         case ITEM_CHEAT_MAPCARDS:
         case ITEM_CHEAT_BATTLECARDS:
@@ -1183,6 +1194,8 @@ void PortUiOpenOptions(void) {
     sHarnessTick = 0;
     if (SDL_getenv("KHCOM_OPTIONS_CURSOR")) /* test harness: shot of a lower row */
         sCursor = SDL_clamp(SDL_atoi(SDL_getenv("KHCOM_OPTIONS_CURSOR")), 0, ITEM_COUNT - 1);
+    if (sCursor >= ITEM_CHEAT_DEBUG && sCursor <= ITEM_CHEATS_BACK) /* a row of the Cheats page */
+        sPage = PAGE_CHEATS;
     RefreshModes();
 }
 
@@ -1284,7 +1297,7 @@ static void Move(int dir) {
     do {
         int first = PageFirst(), n = PageEnd() - first;
         sCursor = first + Wrap(sCursor - first + dir, n);
-        if (sCursor == ITEM_EXPERIMENTAL || sCursor == ITEM_RECOM_EXTRAS)
+        if (sCursor == ITEM_EXPERIMENTAL || sCursor == ITEM_RECOM_EXTRAS || sCursor == ITEM_CHEAT_DEBUG_HEADING)
             sCursor = first + Wrap(sCursor - first + dir, n);
     } while (!ItemEnabled(sCursor) || !ItemVisible(sCursor));
 }
@@ -1878,6 +1891,93 @@ static void DrawWizard(int l, int width, int height) {
 
 #include "port_control_diagram.inc"
 
+/* Cheats > Debug mode > GBA map logic: while it is the current row a note
+   over the picture explains the ReKHCoM change it turns off, with a diagram
+   of each: the wide view, the GBA's 240x160 screen dashed inside it, and a
+   field Heartless in the margin (kept by ReKHCoM, gone with the GBA logic). */
+static const char* const sGbaMapNote[LANG_COUNT] = {
+    "ReKHCoM keeps field Heartless active while the wide view shows them. On: the GBA logic is back and they "
+    "vanish once past the original 240x160 screen, so in the wide view they pop out of sight. For purists.",
+    "ReKHCoM garde les Heartless du terrain actifs tant que la vue large les montre. Activé : la logique GBA "
+    "revient et ils disparaissent hors de l'écran 240x160 d'origine ; dans la vue large, ils s'effacent d'un coup. Pour les puristes.",
+    "ReKHCoM lässt Herzlose auf dem Feld aktiv, solange die Breitbild-Ansicht sie zeigt. An: die GBA-Logik kehrt "
+    "zurück und sie verschwinden außerhalb des 240x160-Bildschirms, in der Breitbild-Ansicht schlagartig. Für Puristen.",
+    "ReKHCoM mantiene attivi gli Heartless sul campo finché la vista larga li mostra. Attivo: torna la logica GBA "
+    "e spariscono fuori dallo schermo 240x160 originale, quindi nella vista larga svaniscono di colpo. Per i puristi.",
+    "ReKHCoM mantiene activos a los sincorazón del campo mientras la vista ancha los muestra. Activado: vuelve la "
+    "lógica del GBA y desaparecen al salir de la pantalla original de 240x160, así que en la vista ancha se esfuman "
+    "de golpe. Para puristas.",
+    "ReKHCoMでは ワイド表示に見える間 フィールドのハートレスが 動き続けます。 オンにすると GBAのロジックに戻り "
+    "元の240x160画面の外で 消えるため ワイド表示では 突然消えて見えます。 こだわりたい人に。",
+};
+static const char* const sGbaMapNoteCaption[2][LANG_COUNT] = {
+    { "ReKHCoM", "ReKHCoM", "ReKHCoM", "ReKHCoM", "ReKHCoM", "ReKHCoM" },
+    { "GBA", "GBA", "GBA", "GBA", "GBA", "GBA" },
+};
+
+/* A field Heartless, 5x7 drawn at 2x: black, two yellow eyes; only a faint
+   outline once it popped. */
+static void NoteHeartless(int x, int y, int gone) {
+    static const char* const rows[7] = { " # # ", "#####", "#o#o#", "#####", " ### ", "## ##", "#   #" };
+    int r, c;
+    for (r = 0; r < 7; r++)
+        for (c = 0; c < 5; c++) {
+            char k = rows[r][c];
+            if (k == ' ')
+                continue;
+            if (gone)
+                Shade(x + c * 2, y + r * 2, 2, 2, 0xFFFFFFFFu, 120);
+            else
+                Fill(x + c * 2, y + r * 2, 2, 2, k == 'o' ? 0xFFF8D020u : 0xFF181018u);
+        }
+}
+
+static void NoteDiagram(int x, int y, int w, int h, int gba, int l) {
+    int gw = w * 240 / 320, gh = h * 160 / 180, gx = x + (w - gw) / 2, gy = y + (h - gh) / 2, i;
+    int hx = gx + gw + (x + w - gx - gw - 10) / 2, hy = gy + gh / 2 - 7;
+    Fill(x - 1, y - 1, w + 2, h + 2, MENU_GREY);
+    Fill(x, y, w, h, 0xFF987050u);      /* the wide view's margins */
+    Fill(gx, gy, gw, gh, 0xFFC8A078u);  /* the GBA's own picture */
+    for (i = 0; i < gw; i += 4) {       /* its edge, dashed red */
+        Fill(gx + i, gy, 2, 1, MENU_RED);
+        Fill(gx + i, gy + gh - 1, 2, 1, MENU_RED);
+    }
+    for (i = 0; i < gh; i += 4) {
+        Fill(gx, gy + i, 1, 2, MENU_RED);
+        Fill(gx + gw - 1, gy + i, 1, 2, MENU_RED);
+    }
+    Fill(gx + gw / 2 - 3, gy + gh / 2 - 6, 6, 12, 0xFFC82818u); /* Sora */
+    NoteHeartless(hx, hy, gba);
+    if (gba) { /* the pop: a small burst where it was */
+        Fill(hx + 4, hy - 3, 2, 2, 0xFFFFFFFFu);
+        Fill(hx - 3, hy + 6, 2, 2, 0xFFFFFFFFu);
+        Fill(hx + 11, hy + 6, 2, 2, 0xFFFFFFFFu);
+        Fill(hx + 4, hy + 15, 2, 2, 0xFFFFFFFFu);
+    }
+    DrawText(sGbaMapNoteCaption[gba][l], x + (w - TextWidth(sGbaMapNoteCaption[gba][l])) / 2, y + h + 2,
+             MENU_INK, 0xFFD8D8D8u);
+}
+
+static void DrawGbaMapNote(int l, int width, int height, int left) {
+    int panelW = SDL_min(190, width - left - 6), x0, y0, h, textW, dw, dh, lines;
+    if (panelW < 120)
+        return; /* no room beside the list: the label says enough */
+    x0 = width - panelW - 6;
+    textW = panelW - 16;
+    lines = DrawWrapped(sGbaMapNote[l], 0, 0, textW, 0, 0);
+    dw = (panelW - 24) / 2;
+    dh = dw * 9 / 16;
+    h = 22 + lines * 11 + 8 + dh + 16;
+    y0 = SDL_max(MENU_TOP, (height - h) / 2 - 6);
+    Fill(x0 - 2, y0 - 2, panelW + 4, h + 4, MENU_GREY);
+    Fill(x0, y0, panelW, h, 0xFFFFFFFFu);
+    DrawText(sLabels[ITEM_CHEAT_GBA_MAP][l], x0 + 8, y0 + 4, MENU_RED_DARK, 0xFFD8D8D8u);
+    Fill(x0 + 8, y0 + 17, panelW - 16, 1, MENU_GREY);
+    DrawWrapped(sGbaMapNote[l], x0 + 8, y0 + 21, textW, MENU_INK, 1);
+    NoteDiagram(x0 + 8, y0 + 22 + lines * 11 + 8, dw, dh, 0, l);
+    NoteDiagram(x0 + panelW - 8 - dw, y0 + 22 + lines * 11 + 8, dw, dh, 1, l);
+}
+
 static void DrawMenu(int l, int width, int height) {
     int rows, i, x, y, labelW = 0, valueW = 0, barX = 10, barW, top = MENU_TOP, artX;
     int rowH = sPage == PAGE_CONTROLS && sControlPad ? 14 : 16;
@@ -1947,7 +2047,7 @@ static void DrawMenu(int l, int width, int height) {
         }
         uint32_t face = on ? MENU_INK : MENU_DIM;
 
-        if (i == ITEM_EXPERIMENTAL || i == ITEM_RECOM_EXTRAS) {
+        if (i == ITEM_EXPERIMENTAL || i == ITEM_RECOM_EXTRAS || i == ITEM_CHEAT_DEBUG_HEADING) {
             /* a section heading: red text and a thin line, no square */
             int end = DrawText(sLabels[i][l], barX, y - 1, MENU_RED_DARK, 0xFFD8D8D8u);
             Fill(end + 6, y + 4, barX + barW - end - 6, 1, MENU_GREY);
@@ -1971,6 +2071,8 @@ static void DrawMenu(int l, int width, int height) {
         DrawText("\xE2\x86\x93", barX + barW - 8, top + rows * rowH - 2, MENU_INK, 0xFFD8D8D8u);
     if (sPage == PAGE_CONTROLS && sControlPad)
         DrawControlDiagram(barX, top + rows * rowH + 2, barW, height - 15 - (top + rows * rowH + 2));
+    if (sPage == PAGE_CHEATS && sCursor == ITEM_CHEAT_GBA_MAP)
+        DrawGbaMapNote(l, width, height, barX + barW + 8);
     if (sPage == PAGE_MAIN && sCursor == ITEM_ZOOM && ItemEnabled(ITEM_ZOOM) && PortConfigZoomHeavy(gPortConfig.zoom))
         /* a demanding zoom: say so where the help line is */
         MenuButton(barX, height - 15, sZoomHeavy[l], '!');
@@ -2029,7 +2131,7 @@ static int HarnessOptionsAction(void) {
         const char* dir = item ? SDL_strchr(item + 1, ':') : NULL;
         if (item && dir && (!comma || dir < comma) && SDL_atoi(route) == sHarnessTick) {
             int row = SDL_atoi(item + 1), direction = SDL_atoi(dir + 1);
-            if (row >= 0 && row < ITEM_COUNT && row != ITEM_EXPERIMENTAL && row != ITEM_RECOM_EXTRAS && row != ITEM_CLOSE) {
+            if (row >= 0 && row < ITEM_COUNT && row != ITEM_EXPERIMENTAL && row != ITEM_RECOM_EXTRAS && row != ITEM_CHEAT_DEBUG_HEADING && row != ITEM_CLOSE) {
                 char before[128], after[128];
                 ValueText(row, before, sizeof(before));
                 sCursor = row;
