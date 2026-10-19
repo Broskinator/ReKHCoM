@@ -15,6 +15,7 @@ function warning(key){warningKeys.add(key);$('storage-status').textContent=Array
 function fail(error){log(error.stack||error);$('status').textContent=t('error')+error.message;}
 function sync(populate=false){return new Promise((resolve,reject)=>core.FS.syncfs(populate,error=>error?reject(error):resolve()));}
 function canvasSize(){
+  if($('panel-game')?.hidden)return;
   const canvas=$('canvas'),full=document.fullscreenElement===canvas,rect=canvas.getBoundingClientRect();
   const width=full?innerWidth:rect.width||Math.min(innerWidth-28,1052);
   const size=ReKHWeb.fitSize(width,full?innerHeight:expanded?rect.height:width*9/16);
@@ -27,8 +28,8 @@ function scheduleResize(){
 }
 function visibility(){
   if(!started)return;
-  core._PortWebSetVisible(!document.hidden&&!paused?1:0);
-  if(document.hidden||paused)store.flush();
+  core._PortWebSetVisible(!document.hidden&&!paused&&!window.ReKHOptions?.paused?1:0);
+  if(document.hidden||paused||window.ReKHOptions?.paused)store.flush();
 }
 function clearInput(){if(started)core._PortWebClearInput();}
 function canShareFile(file){
@@ -70,7 +71,12 @@ $('rom').addEventListener('change',async()=>{
     core.FS.mkdir('/saves');core.FS.mount(core.IDBFS,{},'/saves');
     store=ReKHWeb.persistence(sync,error=>{log(error);warning('storage');});
     try{await sync(true);}catch(error){store.disable();log(error);warning('storage');}
+    let savedOptions='';
+    try{savedOptions=core.FS.readFile('/saves/kh_com.ini',{encoding:'utf8'});}catch{}
+    window.ReKHOptions?.load(savedOptions);
     core.persistSoon=()=>store.request();
+    core.onAchievementsChanged=()=>window.ReKHAchievements?.render();
+    window.ReKHAchievements?.render();
     core.saveBeforeReset=async()=>{
       status('reset');pendingSave=true;
       try{const ok=await store.flush();if(!ok)status('resetFailed');return ok?1:0;}
@@ -108,7 +114,9 @@ $('save').addEventListener('change',async()=>{
 });
 $('play').addEventListener('click',()=>{
   if(!core||started)return;
+  window.ReKHOptions?.beforeStart();
   $('setup').hidden=true;$('game').hidden=false;canvasSize();started=true;$('canvas').focus();status('');
+  window.ReKHOptions?.refresh();
   try{core.callMain(['--data-dir','/saves','--rom',':browser:']);scheduleResize();}catch(error){fail(error);}
 });
 $('touch').addEventListener('change',()=>{

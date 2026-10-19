@@ -2,13 +2,23 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light">
 <title>ReKHCoM · Web v1.9.6 Alpha</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="web.css">
 <main>
   <header><a href="https://github.com/MatyMeatBoy/ReKHCoM">ReKHCoM</a><label><span>Web · v1.9.6 Alpha</span><select id="interface-language" aria-label="Website language"><option value="en">English</option><option value="es">Español</option></select></label></header>
+  <nav class="tabs" role="tablist" aria-label="Launcher">
+    <button role="tab" id="tab-game" aria-controls="panel-game" aria-selected="true" data-panel="game" data-en="Play" data-es="Juego">Play</button>
+    <button role="tab" id="tab-graphics" aria-controls="panel-graphics" aria-selected="false" tabindex="-1" data-panel="graphics" data-en="Graphics" data-es="Gráficos">Graphics</button>
+    <button role="tab" id="tab-sound" aria-controls="panel-sound" aria-selected="false" tabindex="-1" data-panel="sound" data-en="Sound" data-es="Sonido">Sound</button>
+    <button role="tab" id="tab-improvements" aria-controls="panel-improvements" aria-selected="false" tabindex="-1" data-panel="improvements" data-en="Enhancements" data-es="Mejoras">Enhancements</button>
+    <button role="tab" id="tab-controls" aria-controls="panel-controls" aria-selected="false" tabindex="-1" data-panel="controls" data-en="Controls" data-es="Controles">Controls</button>
+    <button role="tab" id="tab-editor" aria-controls="panel-editor" aria-selected="false" tabindex="-1" data-panel="editor" data-en="Save editor" data-es="Editor">Save editor</button>
+    <button role="tab" id="tab-achievements" aria-controls="panel-achievements" aria-selected="false" tabindex="-1" data-panel="achievements" data-en="Achievements" data-es="Logros">Achievements</button>
+  </nav>
+  <div id="panel-game" role="tabpanel" aria-labelledby="tab-game">
   <section id="setup">
     <h1 data-i18n="heading">Your adventure, in your browser.</h1>
     <p data-i18n="intro">Choose your Kingdom Hearts: Chain of Memories GBA ROM. It stays on your device and is never uploaded.</p>
@@ -31,9 +41,48 @@
     <p class="hint" data-i18n="keys">Arrows: move · X: A · Z: B · A/S: L/R · C: dodge · D: stock · Enter: START · Backspace: SELECT · Escape: options · F11 / Alt+Enter: fullscreen. Gamepads supported.</p>
     <p class="hint" data-i18n="saveHint">Save inside the game, then export a backup. Clearing browser data can erase saves. Quick states are not available in this alpha.</p>
   </section>
+  </div>
+  <section id="panel-graphics" role="tabpanel" aria-labelledby="tab-graphics" hidden><h1 data-en="Graphics" data-es="Gráficos">Graphics</h1><div id="options-graphics" class="option-grid"></div></section>
+  <section id="panel-sound" role="tabpanel" aria-labelledby="tab-sound" hidden><h1 data-en="Sound" data-es="Sonido">Sound</h1><div id="options-sound" class="option-grid"></div></section>
+  <section id="panel-improvements" role="tabpanel" aria-labelledby="tab-improvements" hidden><h1 data-en="Enhancements" data-es="Mejoras">Enhancements</h1><div id="options-improvements" class="option-grid"></div></section>
+  <section id="panel-controls" role="tabpanel" aria-labelledby="tab-controls" hidden><h1 data-en="Controls" data-es="Controles">Controls</h1><p class="hint" data-en="Select a key to remap it. Xbox button names also apply to compatible 8BitDo controllers." data-es="Selecciona una tecla para reasignarla. Los nombres Xbox también corresponden a los mandos 8BitDo compatibles.">Select a key to remap it. Xbox button names also apply to compatible 8BitDo controllers.</p><div class="controls-layout"><div id="options-controls"></div><figure class="controller"><img src="controller.png" width="208" height="144" alt="8BitDo Ultimate 2C"><figcaption data-en="Keyboard & gamepad" data-es="Teclado y mando">Keyboard & gamepad</figcaption></figure></div></section>
+  <section id="panel-editor" role="tabpanel" aria-labelledby="tab-editor" hidden>
+    <h1 data-en="Save editor" data-es="Editor de partidas">Save editor</h1>
+    <p class="hint" data-en="Edit a copy of a normal .sav file. Your original file stays untouched." data-es="Edita una copia de una partida .sav. El archivo original se conserva intacto.">Edit a copy of a normal .sav file. Your original file stays untouched.</p>
+    <button id="editor-enable" data-en="Enable save editor" data-es="Activar editor">Enable save editor</button>
+    <div id="editor-workspace" hidden>
+      <label class="file"><span data-en="Open .sav copy" data-es="Abrir copia .sav">Open .sav copy</span><input type="file" id="editor-file" accept=".sav"></label>
+      <label><span data-en="File" data-es="Archivo">File</span><select id="editor-slot"><option value="0">Sora 1</option><option value="1">Sora 2</option><option value="2">Riku 1</option><option value="3">Riku 2</option></select></label>
+      <p id="editor-status" role="status"></p><div id="editor-fields" class="option-grid"></div>
+      <div id="editor-cards" hidden>
+        <h2 data-en="Map cards" data-es="Cartas de mapa">Map cards</h2><div class="card-row"><select id="editor-map-kind" aria-label="Map card"></select><label><span data-en="Value" data-es="Valor">Value</span><select id="editor-map-value"></select></label><label><span data-en="Copies (0–9)" data-es="Copias (0–9)">Copies (0–9)</span><input id="editor-map-count" type="number" min="0" max="9"></label></div>
+        <div id="battle-cards"><h2 data-en="Battle cards" data-es="Cartas de combate">Battle cards</h2><p class="hint" data-en="Up to 99 per card and 999 in total. Cards in decks cannot be removed." data-es="Hasta 99 por carta y 999 en total. No se quitan cartas que estén en barajas.">Up to 99 per card and 999 in total. Cards in decks cannot be removed.</p><div class="card-row"><canvas id="card-sprite" width="16" height="32" aria-label="Card sprite"></canvas><select id="editor-card-kind" aria-label="Battle card"></select><label><span data-en="Value" data-es="Valor">Value</span><select id="editor-card-value"></select></label><label><span data-en="Copies" data-es="Copias">Copies</span><input id="editor-card-count" type="number" min="1" max="99" value="1"></label><label><input id="editor-premium" type="checkbox">Premium</label><button id="editor-add" data-en="Add" data-es="Añadir">Add</button><button id="editor-remove" data-en="Remove" data-es="Quitar">Remove</button><output id="editor-total"></output></div></div>
+        <h2 data-en="Changes to this file" data-es="Cambios de este archivo">Changes to this file</h2><ul id="editor-changes"></ul>
+        <button id="editor-backup" data-en="Download original backup" data-es="Descargar respaldo original">Download original backup</button><button id="editor-download" data-en="Download edited copy" data-es="Descargar copia editada">Download edited copy</button>
+      </div>
+    </div>
+  </section>
+  <p id="preferences-status" class="hint" role="status"></p>
+  <section id="panel-achievements" role="tabpanel" aria-labelledby="tab-achievements" hidden>
+    <h1 data-en="Achievements" data-es="Logros">Achievements</h1>
+    <p class="hint" data-en="16 local challenges · EU, US and JP. Progress is stored in this browser. These challenges do not award RetroAchievements account points." data-es="16 retos locales · EU, US y JP. El progreso se guarda en este navegador. Estos retos no conceden puntos en tu cuenta RetroAchievements.">16 local challenges · EU, US and JP. Progress is stored in this browser. These challenges do not award RetroAchievements account points.</p>
+    <label class="achievement-setting"><input id="achievement-local-enabled" type="checkbox" checked disabled><span data-en="Enable local achievements (before starting)" data-es="Activar logros locales (antes de iniciar)">Enable local achievements (before starting)</span></label>
+    <p id="achievement-progress" role="status"></p><progress id="achievement-meter" max="16" value="0" aria-label="Achievements / Logros"></progress>
+    <div class="achievement-filters"><input type="search" id="achievement-search" aria-label="Search achievements / Buscar logros"><select id="achievement-filter" aria-label="Filter achievements / Filtrar logros"><option value="all" data-en="All" data-es="Todos">All</option><option value="locked" data-en="Locked" data-es="Pendientes">Locked</option><option value="unlocked" data-en="Unlocked" data-es="Conseguidos">Unlocked</option></select></div>
+    <div id="achievement-grid" class="achievement-grid"></div>
+    <p class="hint" data-en="RetroAchievements account access is currently available in the Windows launcher. Official unlock submissions and Hardcore are still under validation." data-es="La conexión con tu cuenta RetroAchievements está disponible por ahora en el launcher Windows. Los desbloqueos oficiales y Hardcore siguen en validación.">RetroAchievements account access is currently available in the Windows launcher. Official unlock submissions and Hardcore are still under validation.</p>
+  </section>
   <details><summary data-i18n="diagnostics">Diagnostics</summary><pre id="log"></pre></details>
+  <footer>ReKHCoM <span aria-hidden="true">◆</span> <span data-en="A new way to play your own cartridge." data-es="Otra forma de jugar tu propio cartucho.">A new way to play your own cartridge.</span></footer>
 </main>
+<dialog id="editor-warning" aria-labelledby="editor-warning-title"><h2 id="editor-warning-title" data-en="Keep an original backup." data-es="Conserva un respaldo original.">Keep an original backup.</h2><p data-en="Changing stats or cards may alter progression and achievements. This editor only downloads copies; keep your original save before importing an edited file into the game." data-es="Cambiar estadísticas o cartas puede alterar el progreso y los logros. Este editor solo descarga copias; conserva tu partida original antes de importar un archivo editado al juego.">Changing stats or cards may alter progression and achievements. This editor only downloads copies; keep your original save before importing an edited file into the game.</p><button id="editor-cancel" data-en="Cancel" data-es="Cancelar">Cancel</button><button id="editor-confirm" data-en="Enable editor" data-es="Activar editor">Enable editor</button></dialog>
 <script src="runtime.js" defer></script>
 <script src="i18n.js" defer></script>
 <script src="web.js" defer></script>
+<script src="settings.js" defer></script>
+<script src="cards.js" defer></script>
+<script src="save-editor.js" defer></script>
+<script src="editor-ui.js" defer></script>
+<script src="achievement-data.js" defer></script>
+<script src="achievements.js" defer></script>
 </html>

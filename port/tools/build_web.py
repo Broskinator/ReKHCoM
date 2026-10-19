@@ -130,15 +130,15 @@ def main():
                '-sINITIAL_MEMORY=268435456', '-sALLOW_MEMORY_GROWTH=1', '-sMAXIMUM_MEMORY=536870912',
                '-sSTACK_SIZE=1048576', '-sMODULARIZE=1', '-sEXPORT_NAME=createReKHCoM',
                '-sENVIRONMENT=web', '-sFORCE_FILESYSTEM=1', '-lidbfs.js',
-               '-sEXPORTED_FUNCTIONS=["_main","_PortWebRomReady","_PortWebSetVisible","_PortWebClearInput","_PortWebTouchEnable","_PortWebTouchPersist","_PortWebResize","_PortWebFlushSave","_PortWebActiveBank","_PortWebSetHdReady"]',
-               '-sEXPORTED_RUNTIME_METHODS=["FS","IDBFS","HEAPU8","callMain"]', '-o', str(output)]
+               '-sEXPORTED_FUNCTIONS=["_main","_PortWebRomReady","_PortWebSetVisible","_PortWebClearInput","_PortWebTouchEnable","_PortWebTouchPersist","_PortWebResize","_PortWebFlushSave","_PortWebActiveBank","_PortWebSetHdReady","_PortWebOption"]',
+               '-sEXPORTED_RUNTIME_METHODS=["FS","IDBFS","HEAPU8","callMain","ccall"]', '-o', str(output)]
     # A response file avoids Windows' command-line length limit.
     response = work / 'link.rsp'
     response.write_text('\n'.join(json.dumps(str(p)) for p in objects) + '\n' +
                         json.dumps(str(args.sdl_build.resolve() / 'libSDL3.a')) + '\n' +
                         '\n'.join(json.dumps(p) for p in options))
     subprocess.run([str(emcc), '@' + str(response)], check=True)
-    for name in ['index.html', 'web.css', 'web.js', 'runtime.js', 'i18n.js']:
+    for name in ['index.html', 'web.css', 'web.js', 'runtime.js', 'i18n.js', 'settings.js', 'save-editor.js', 'editor-ui.js', 'achievement-data.js', 'achievements.js', 'cards.js', 'controller.png']:
         shutil.copy2(ROOT / 'port/web' / name, out / name)
     shutil.copytree(ROOT / 'port/assets/fonts', out / 'fonts', dirs_exist_ok=True)
     print(f'Built {output}', flush=True)
