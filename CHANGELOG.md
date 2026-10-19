@@ -1,8 +1,17 @@
 # Changelog
 
-## v1.9.8 — 2026-10-19
+## v1.9.9 — 2026-10-19
 
-Stable, on every platform again (Windows, Linux, Steam Deck, Anbernic, Android, Web).
+Stable. Everything from v1.9.8 (published as a test build), plus:
+
+- Options no longer reads a missing music player when it opens (a crash on Android).
+- Scene pause: confirm and cancel use the game's own decision sounds.
+- Cheats: "Fill battle card collection" removed; use the launcher's save editor.
+- The web version is updated with the new look on every release.
+
+## v1.9.8 — 2026-10-19 (test build)
+
+On every platform again (Windows, Linux, Steam Deck, Anbernic, Android, Web).
 
 - Achievements: 16 local challenges per region; RetroAchievements (EU cartridge, softcore)
   with 21 of the 90 official achievements active, the rest listed and enabled as their

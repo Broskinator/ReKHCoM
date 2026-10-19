@@ -2,7 +2,7 @@
 
 python port/tools/build_all.py --dry-run
 python port/tools/build_all.py --package --release-version v1.8.3
-python port/tools/build_all.py --platform all --package --release-version v1.9.8
+python port/tools/build_all.py --platform all --package --release-version v1.9.9
 
 --platform all runs windows, linux, android and web in turn (web uses the
 D:/ReKHCoM-build folders unless --emsdk/--web-sdl-build/--web-work are given).
