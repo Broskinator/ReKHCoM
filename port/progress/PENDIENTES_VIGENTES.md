@@ -12,15 +12,18 @@ conservada para poder rastrear. Reglas del usuario:
 - Nunca borrar carpetas ReKHCoM-vX sin pedirlo el usuario (18/10: autorizó borrar
   las antiguas dejando 3; respaldo de guardados en backups/).
 
-## Reparto actual (19/10, madrugada)
+## Reparto actual (19/10, madrugada — lo corto primero)
 
-| Quién | Puntos | Orden sugerido |
+| Quién | Puntos | Orden |
 |---|---|---|
-| **Claude (Opus)** | 69 lógica mapa GBA (espera aprobación); 68 crash de Riku en Android; 58 sonidos del modo debug; 65 pausa y saltar escena; 66 idioma en Android; 67 banderas en el launcher; franjas negras de salas del castillo (find_blank_margins); 44 limpieza; 43 cola; 39 rutas (al final) | 1) 68, 2) 58, 3) 65, 4) 66–67, 5) franjas, 6) 44 con permiso, 7) 39 |
-| **ChatGPT/Codex** | 55 página web; 27 logros; después 61–62 y 16–24 | **55 → 27.** 19/10 01:15: Codex sin actividad desde 18/10 21:11; Claude integró su commit local de logros (556b43129 → main). Queda WIP suyo sin commitear en khcom-codex (12 archivos: logros y web); lo retoma él o Claude si sigue inactivo. |
+| **Claude (Opus)** | 66 idioma en Android; 67 banderas en el launcher; 58 sonidos del modo debug; 65 pausa y saltar escena; 68 crash de Riku en Android (emulador, cuando el usuario no esté jugando); franjas negras en salas del castillo (find_blank_margins); 44 limpieza; 43 cola; 39 rutas | 1) 66, 2) 67, 3) 58, 4) 65, 5) 68, 6) franjas, 7) 44 con permiso, 8) 39 |
+| **ChatGPT/Codex** | 27 logros (terminar su WIP sin commitear en khcom-codex); 61 y 62 escenas de Ciudad de Paso incompletas en la vista ancha; 55 página web; después 16–24 arte de jefes | 1) 27 (WIP), 2) 61, 3) 62, 4) 55, 5) 16–24 |
+| **Otro chat** | 51–54 consolas (Vita, PS4, Switch; PS5 por VM) | según su propio plan |
 
-Hechos 18–19/10 (Claude): 56/56b, 57, 63 (cristales y gimmicks con la lógica del
-juego), 64. Sesión de 2 h del usuario jugando: builds con -j2, sin emuladores.
+Codex: sin actividad desde 18/10 21:11. Claude integró su commit local de logros
+(556b43129 → main, 09f27f3b9). Si sigue inactivo más de 10 min cuando Claude termine
+lo suyo, Claude toma sus puntos anotando hora y evidencia. Hechos 18–19/10 (Claude):
+56/56b, 57, 63, 64, 69. Mientras el usuario juega: builds con -j2, sin emuladores.
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
@@ -102,10 +105,6 @@ completas al final.
   Revisión de todo el mapa contra el decomp original: el icono del mapa de la sala
   también vuelve a su ciclo original. Los Heartless del campo siguen desapareciendo
   según la vista ancha (v1.9.1): el usuario decidió mantenerlo (18/10).
-- **69 (19/10, visual, espera aprobación):** Trucos → Modo debug → "[ReKHCoM] Lógica
-  Mapa GBA" (apagado por defecto): los Heartless del campo vuelven a los límites de
-  240x160 del cartucho. Al ponerse sobre la opción, un panel sobre el arte de Sora la
-  explica con dos diagramas (ReKHCoM / GBA), en los 6 idiomas.
 - **68 (bug, 18/10):** Android (APK de prueba v1.9.6): iniciar partida con texto HD
   activado crashea. Replicar en el emulador (AVD en D:/ReKHCoM-build/android-avd).
 - **66 (18/10):** Android: la app aún pregunta el idioma del juego al empezar, pero
@@ -148,7 +147,7 @@ completas al final.
 
 ## Cerrados hoy (referencia)
 
-Márgenes sin pintar en las escenas del tutorial (56/56b) en f5ddc75b9, sale en v1.9.6. Menú de Opciones a toda la altura (57) y aviso moguri a Experimental (64), publicados en v1.9.5. 29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
+Lógica Mapa GBA en Trucos → Modo debug, con panel explicativo (69): APROBADO 19/10, en main (8a74f004b), sale en v1.9.6. Márgenes sin pintar en las escenas del tutorial (56/56b) en f5ddc75b9, sale en v1.9.6. Menú de Opciones a toda la altura (57) y aviso moguri a Experimental (64), publicados en v1.9.5. 29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
 y 074 Monstro (13–14), remapeo y gatillos (25), submenús (28), fuente CJK Linux
 (34), PS5 (38), táctil (45), transición de Opciones (50), regresión sincorazones (4).
 Publicado en Nightly 5 (18/10, v1.9.3-nightly.20261018.5): #17 borde de Riku, logros locales,
