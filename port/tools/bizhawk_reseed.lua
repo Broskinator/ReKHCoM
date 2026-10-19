@@ -12,7 +12,7 @@ local every = tonumber(os.getenv("KHCOM_BH_EVERY") or "60")
 local finish = tonumber(os.getenv("KHCOM_BH_END") or "600")
 local out = os.getenv("KHCOM_BH_OUT") or "."
 pcall(client.speedmode, 800)
-savestate.loadslot(slot)
+if slot > 0 then savestate.loadslot(slot) end
 if seed ~= 0 then
     memory.write_u32_le(0x0003C5C0, seed, "EWRAM")
     memory.write_u32_le(0x00017768, seed, "EWRAM")

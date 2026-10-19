@@ -16,7 +16,7 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos |
 |---|---|
-| **Claude** | 1) 72 cristal del primer cuarto tras el tutorial (en el original sale SIEMPRE igual: semilla 0x90FAECF1 con SRAM limpia en el .vbm; el port no); 2) v1.9.9 estable con release_check.py; 3) 51–54 alphas de consolas |
+| **Claude** | 1) v1.9.9 estable con release_check.py; 2) 51–54 alphas de consolas |
 | **ChatGPT/Codex** | 1) 71 logros oficiales restantes (67/90): validar con BizHawk las cadenas gBtlWork/gCardBattleState→heap, Pooh 0x0203C9D4, piso 0x0203CB86, IWRAM 0x03002D00 y activarlos en sOfficialVerified (port_achievements.c); herramientas ra_layout.py, ra_layout_check.py, ra_witness.py, bizhawk_*.lua; 2) 61–62 escenas de Ciudad de Paso; 3) 39 rutas completas; 4) 16–24 arte de jefes |
 
 Hecho del 19/10 (madrugada/mañana): v1.9.8 publicada y pasada a prerelease (no aprobada
@@ -42,7 +42,15 @@ bloquea publicaciones incompletas (web, PS5, versiones).
 
 ## Cerrados hoy (referencia)
 
-Cristales y faroles en otra posición que el emulador (reporte del 19/10): la lógica es la
+72 cristal/faroles (prueba definitiva en el GBA, 19/10): con la partida del usuario y solo la
+semilla de la sala cambiada a la de su prueba del port (0x2242C2F1, save_reseed.py), el
+cartucho original (BizHawk) pone el cristal en (57344, 61440), exactamente donde el port; la
+posición anterior desaparece. El código máquina del cartucho (CreateMapRoom en 0x080DF66E)
+carga 0x03007480 dos veces, MUL y lo guarda como semilla: depende del momento de usar la
+carta, también en el GBA. Las pruebas previas con el .vbm estaban contaminadas por la SRAM del
+usuario (BizHawk identifica el juego por hash). Salas fijas (halls, historia) usan tablas de la
+ROM. El port no genera salas imposibles en GBA. Partida BizHawk del usuario respaldada y
+restaurada (sha1 verificado). Cristales y faroles en otra posición que el emulador (reporte del 19/10): la lógica es la
 del cartucho. En la RAM del original (BizHawk) gFrameCounter (0x03007480, el que lee
 CreateMapRoom según la ROM) valía 56129 y la semilla de la sala 0x90FAECF1 = 49319²: la
 sala se creó en el fotograma 49319 de esa partida. En la prueba del port el usuario entró
