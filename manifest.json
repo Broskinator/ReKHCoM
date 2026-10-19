@@ -1,8 +1,8 @@
 {
   "version": "v1.9.9-web-alpha",
-  "source_commit": "4fd4b5251ca862224cf8a195571decc86a698dd7",
+  "source_commit": "262c9e43c29fd6186b9f6ebdfb7d86eb5b90e56c",
   "source_dirty": false,
-  "built_utc": "2026-10-19T12:50:20.833052+00:00",
+  "built_utc": "2026-10-19T13:41:15.374580+00:00",
   "files": {
     "index.html": {
       "bytes": 16068,
@@ -97,24 +97,24 @@
       "sha256": "91781be9ce344ed697f977f142b85cbf4e27c93c9a8f4acae64257e17cc62722"
     },
     "rekhcom-eu.wasm": {
-      "bytes": 4453951,
-      "sha256": "364c747958ca8986a8a776b97654126325ca4cc390743ab434b37f0e8ecdea1e"
+      "bytes": 4454118,
+      "sha256": "6c30575acafa0aad6805dfbcb54218ee0e44976057c63675dd7dc9ebc98d8cfc"
     },
     "rekhcom-us.js": {
       "bytes": 205255,
       "sha256": "d3101245e3026100e146a21b675c5f9ab7dac477e70e9bf6e63c6986204ca024"
     },
     "rekhcom-us.wasm": {
-      "bytes": 4600263,
-      "sha256": "324a3880adce7c1a26e7be3c92e65b73985ef39fa1111100b8da2384081c3b20"
+      "bytes": 4600429,
+      "sha256": "9bed35cb5b03ec56f75eba57b1518b8b09b95cab35b6b66ae261a3af2cb8e59f"
     },
     "rekhcom-jp.js": {
       "bytes": 205255,
-      "sha256": "a59cee1aee5fec279568b10952d852f6d64dd9f28c2c38b9fb28abb8e4fd5545"
+      "sha256": "3483b76d7961b417ffa13b83c7c884f378c7e6b3b9da89700c86d322ee5edaeb"
     },
     "rekhcom-jp.wasm": {
-      "bytes": 4477180,
-      "sha256": "e9478f0b0e54db9b852c0bd5cf823a9b30345bde4c09cc8bc005768577930398"
+      "bytes": 4477359,
+      "sha256": "74a69e1f6c901e7559378e166ad5a91cc55d719c851dbc4fcba78da82b0a9a46"
     }
   }
 }
