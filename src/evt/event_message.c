@@ -2890,13 +2890,50 @@ u8 UpdateEventSeqSkip() {
     return result;
 }
 
+#ifdef PLATFORM_PC
+/* The scene pause (port_ui.c): a short tap of START (not the hold that skips,
+   not an answer to a yes/no choice) opens it; its "skip scene" ends the scene
+   exactly as holding START does, where the game allows that. */
+void PortUiOpenScenePause(int skippable);
+static u8 sPortStartFrames, sPortStartChoice, sPortSkipRequest;
+
+void PortEventSkipScene(void) {
+    sPortSkipRequest = TRUE;
+}
+
+static int PortEventSkippable(u16 eventId) {
+    return eventId != EVENT_068_13F_CASTLE_OBLIVION_LAST3 && eventId != EVENT_083_MONSTORO_E3_FAILURE_1 &&
+           eventId != EVENT_084_MONSTORO_E3_FAILURE_2;
+}
+#endif
+
 u8 UpdateEventSeq(EventSeqWork* work, void* task) {
     const EventSequenceDef* seqDef;
     u8 i;
+#ifdef PLATFORM_PC
+    u8 portSkip = FALSE;
+#endif
 
     if (gEventState == NULL) {
         return 0;
     }
+
+#ifdef PLATFORM_PC
+    if (GetKeysHeld() & START_BUTTON) {
+        if (sPortStartFrames == 0)
+            sPortStartChoice = gEventState->msgWaitActive && gEventState->askedYesNo;
+        if (sPortStartFrames < 255)
+            sPortStartFrames++;
+    } else {
+        if (sPortStartFrames > 0 && sPortStartFrames <= 32 && !sPortStartChoice && !work->ending)
+            PortUiOpenScenePause(PortEventSkippable(work->eventId));
+        sPortStartFrames = 0;
+    }
+    if (sPortSkipRequest) {
+        sPortSkipRequest = FALSE;
+        portSkip = PortEventSkippable(work->eventId) && !work->ending;
+    }
+#endif
 
     if ((GetKeysHeld() & START_BUTTON) != 0) {
         switch (work->eventId) {
@@ -2912,7 +2949,11 @@ u8 UpdateEventSeq(EventSeqWork* work, void* task) {
         gEventState->skipHoldTime = 0;
     }
 
+#ifdef PLATFORM_PC
+    if (gEventState->skipHoldTime > 64 || gEventState->endRequest == TRUE || portSkip) {
+#else
     if (gEventState->skipHoldTime > 64 || gEventState->endRequest == TRUE) {
+#endif
         gEventState->skipHoldTime = 64;
         work->ending = TRUE;
         gEventState->ending = TRUE;

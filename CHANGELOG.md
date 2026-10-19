@@ -15,6 +15,7 @@
 - Save crystals, gimmicks and the room's map icon follow the game's own lifetime through
   menus again (no more port-made copies); fixes the crystal that vanished (#63).
 - Options: the debug menu's click sounds as the light moves; the music pauses and comes back on the same note.
+- Story scenes: a short tap of START pauses them (back to the game, or skip the scene after confirming); holding START still skips as on the GBA.
 - Options → Cheats → Debug mode: "[ReKHCoM] GBA map logic" brings back the cartridge's
   240x160 bounds for field Heartless, with an in-menu note explaining the change.
 

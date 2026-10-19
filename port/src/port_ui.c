@@ -1167,8 +1167,9 @@ static void ConfirmFsRes(void) {
 void PortUiInit(void) {
 }
 
+static int sScenePause;
 int PortUiActive(void) {
-    return sOpen;
+    return sOpen || sScenePause; /* the scene pause holds the game too */
 }
 
 /* Fades: the picture goes to black, the menu comes in from black, and the
@@ -1314,8 +1315,12 @@ static void Move(int dir) {
     } while (!ItemEnabled(sCursor) || !ItemVisible(sCursor));
 }
 
+static int ScenePauseEvent(const SDL_Event* ev);
 int PortUiHandleEvent(const void* p) {
     const SDL_Event* ev = (const SDL_Event*)p;
+
+    if (sScenePause)
+        return ScenePauseEvent(ev);
 
     if (sOpen && (sClosing > 0 || sFade < MENU_FADE)) /* fading: the menu takes no input */
         return ev->type == SDL_EVENT_KEY_DOWN || ev->type == SDL_EVENT_KEY_UP ||
@@ -2237,6 +2242,133 @@ static void HarnessOptionsShot(uint32_t* frame, int width, int height) {
     SDL_DestroySurface(surface);
 }
 
+/* ---- scene pause (65) -------------------------------------------------------
+   A short tap of START in a story scene (event_message.c) pauses it under a
+   small window over the scene: back to the game, or skip the scene, which
+   asks first and then ends it by the game's own skip (holding START). */
+static const char* const sScenePauseTitle[LANG_COUNT] = { "Pause", "Pause", "Pause", "Pausa", "Pausa", "ポーズ" };
+static const char* const sScenePauseRows[2][LANG_COUNT] = {
+    { "Back to the game", "Retour au jeu", "Zurück zum Spiel", "Torna al gioco", "Volver al juego", "ゲームに戻る" },
+    { "Skip scene", "Passer la scène", "Szene überspringen", "Salta scena", "Saltar escena", "シーンをスキップ" },
+};
+static const char* const sScenePauseAsk[LANG_COUNT] = {
+    "Skip this scene?", "Passer cette scène ?", "Diese Szene überspringen?", "Saltare questa scena?",
+    "¿Saltar esta escena?", "このシーンをスキップしますか？",
+};
+static const char* const sScenePauseYesNo[2][LANG_COUNT] = {
+    { "Yes", "Oui", "Ja", "Sì", "Sí", "はい" },
+    { "No", "Non", "Nein", "No", "No", "いいえ" },
+};
+static int sSceneSkippable, sSceneStep, sSceneCursor;
+
+void PortUiOpenScenePause(int skippable) {
+    if (sOpen || sScenePause)
+        return;
+    sScenePause = 1;
+    sSceneSkippable = skippable;
+    sSceneStep = 0;
+    sSceneCursor = 0;
+}
+
+static void ScenePauseClose(int skip) {
+    extern void PortInputSuppressUntilRelease(void);
+    extern void PortEventSkipScene(void);
+    sScenePause = 0;
+    PortInputSuppressUntilRelease(); /* the closing press does not reach the scene */
+    if (skip)
+        PortEventSkipScene();
+}
+
+/* 0 up, 1 down, 2 confirm, 3 back, 4 START (resume) */
+static void ScenePauseKey(int key) {
+    extern void PortMenuSoundClick(void);
+    if (key == 0 || key == 1) {
+        int next = key == 0 ? 0 : 1;
+        if (sSceneStep == 0 && next == 1 && !sSceneSkippable)
+            return;
+        if (next != sSceneCursor) {
+            sSceneCursor = next;
+            PortMenuSoundClick();
+        }
+    } else if (key == 2) {
+        PortMenuSoundClick();
+        if (sSceneStep == 0) {
+            if (sSceneCursor == 0)
+                ScenePauseClose(0);
+            else {
+                sSceneStep = 1;
+                sSceneCursor = 1; /* "No" first: a skip is never one press away */
+            }
+        } else if (sSceneCursor == 0) {
+            ScenePauseClose(1);
+        } else {
+            sSceneStep = 0;
+            sSceneCursor = 1;
+        }
+    } else if (key == 3) {
+        PortMenuSoundClick();
+        if (sSceneStep == 1) {
+            sSceneStep = 0;
+            sSceneCursor = 1;
+        } else {
+            ScenePauseClose(0);
+        }
+    } else if (key == 4 && sSceneStep == 0) {
+        ScenePauseClose(0);
+    }
+}
+
+static int ScenePauseEvent(const SDL_Event* ev) {
+    int key = -1;
+    if (ev->type == SDL_EVENT_KEY_DOWN && !ev->key.repeat) {
+        int i;
+        for (i = 0; i < 2; i++)
+            if (gPortConfig.keys[PORT_ACT_START][i] != 0 && ev->key.key == (SDL_Keycode)gPortConfig.keys[PORT_ACT_START][i]
+                && ev->key.key != SDLK_RETURN)
+                key = 4;
+        switch (ev->key.key) {
+            case SDLK_UP: case SDLK_W: key = 0; break;
+            case SDLK_DOWN: case SDLK_S: key = 1; break;
+            case SDLK_RETURN: case SDLK_SPACE: case SDLK_X: case SDLK_K: key = 2; break;
+            case SDLK_ESCAPE: case SDLK_BACKSPACE: case SDLK_Z: case SDLK_J: key = 3; break;
+        }
+    } else if (ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
+        switch (ev->gbutton.button) {
+            case SDL_GAMEPAD_BUTTON_DPAD_UP: key = 0; break;
+            case SDL_GAMEPAD_BUTTON_DPAD_DOWN: key = 1; break;
+            case SDL_GAMEPAD_BUTTON_SOUTH: key = 2; break;
+            case SDL_GAMEPAD_BUTTON_EAST: key = 3; break;
+            case SDL_GAMEPAD_BUTTON_START: key = 4; break;
+        }
+    }
+    if (key >= 0)
+        ScenePauseKey(key);
+    return ev->type == SDL_EVENT_KEY_DOWN || ev->type == SDL_EVENT_KEY_UP ||
+           ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || ev->type == SDL_EVENT_GAMEPAD_BUTTON_UP;
+}
+
+static void DrawScenePause(int l, int width, int height) {
+    const char* title = sSceneStep == 0 ? sScenePauseTitle[l] : sScenePauseAsk[l];
+    const char* rows[2];
+    int i, panelW, h = 22 + 2 * 16 + 6, x0, y0, y;
+    for (i = 0; i < 2; i++)
+        rows[i] = sSceneStep == 0 ? sScenePauseRows[i][l] : sScenePauseYesNo[i][l];
+    panelW = SDL_max(TextWidth(title) + 16, SDL_max(TextWidth(rows[0]), TextWidth(rows[1])) + 48);
+    panelW = SDL_min(SDL_max(panelW, 120), width - 8);
+    x0 = (width - panelW) / 2;
+    y0 = (height - h) / 2;
+    Shade(0, 0, width, height, 0xFF000000u, 120); /* the paused scene stays behind */
+    Fill(x0 - 2, y0 - 2, panelW + 4, h + 4, MENU_GREY);
+    Fill(x0, y0, panelW, h, 0xFFFFFFFFu);
+    DrawText(title, x0 + 8, y0 + 4, MENU_RED_DARK, 0xFFD8D8D8u);
+    Fill(x0 + 8, y0 + 17, panelW - 16, 1, MENU_GREY);
+    for (i = 0, y = y0 + 22; i < 2; i++, y += 16) {
+        int on = sSceneStep == 1 || i == 0 || sSceneSkippable;
+        MenuBar(x0 + 8, y + 2, panelW - 16, i == sSceneCursor);
+        DrawText(rows[i], x0 + 24, y, on ? MENU_INK : MENU_DIM, 0xFFD8D8D8u);
+    }
+}
+
 void PortUiDraw(uint32_t* frame, int width, int height) {
     int l = Lang();
     int harnessShot = 0;
@@ -2245,6 +2377,16 @@ void PortUiDraw(uint32_t* frame, int width, int height) {
     sFb = frame;
     sFbW = width;
     sFbH = height;
+    if (sScenePause) {
+        static int shotStep = -1;
+        DrawScenePause(l, width, height);
+        if (SDL_getenv("KHCOM_SCENEPAUSE_SHOT") && shotStep != sSceneStep * 2 + sSceneCursor) {
+            shotStep = sSceneStep * 2 + sSceneCursor; /* harness: one shot per state */
+            sHarnessTick = 100 + shotStep;
+            HarnessOptionsShot(frame, width, height);
+        }
+        return;
+    }
 
     if (!sOpen && sReturn > 0) {
         /* The presenter fades the complete output, including HUD/text layers. */

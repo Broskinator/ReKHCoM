@@ -16,7 +16,7 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos | Orden |
 |---|---|---|
-| **Claude (Opus)** | 65 pausa y saltar escena; 68 crash de Riku en Android (emulador, cuando el usuario no esté jugando); 44 limpieza; 43 cola; 39 rutas | 1) 65, 2) 68, 3) 44 con permiso, 4) 39 |
+| **Claude (Opus)** | 68 crash de Riku en Android (emulador, cuando el usuario no esté jugando); 44 limpieza; 43 cola; 39 rutas | 1) 68, 2) 70 (tras 27), 3) 44 con permiso, 4) 39 |
 | **ChatGPT/Codex** | 27 listado de logros in-game terminado y en comprobación final; 55 web commiteada (espera revisión visual); 61–62 necesitan la asistencia del usuario indicada antes; después 16–24 | 1) cerrar entrega 27/55, 2) memoria/set oficial y Level 1 de 27, 3) 61–62 al tener asistencia, 4) 16–24 |
 | **Otro chat** | 51–54 consolas (Vita, PS4, Switch; PS5 por VM) | según su propio plan |
 
@@ -109,11 +109,12 @@ completas al final.
   del juego (lo pregunta el cartucho europeo); abajo, un enlace discreto cambia el
   idioma de la interfaz (Español/English; por defecto el del teléfono). Java compila;
   el APK se arma con v1.9.6 (no durante la sesión de juego del usuario).
-- **65 (18/10, nuevo):** menú de pausa en las escenas habladas («cinemáticas»):
-  centrado, con el estilo de botón del menú (la luz), dos opciones: Volver al
-  juego y Saltar escena; Saltar pide confirmación. Implementar el salto de escena
-  sin romper nada (estado, banderas de historia, música, ruta Sora y Riku).
-
+- **70 (19/10, después de que Codex cierre 27 logros):** mejorar la interfaz web
+  y el launcher en general con: Taste Skill (criterio estético), guías de diseño
+  web (auditar contra ellas), Awesome Design (referencias de tipografía, color,
+  espaciado y componentes), Image to Code (recrear desde captura) y Playwright CLI
+  (abrir, interactuar y capturar para comprobar). Primero ver cuáles están
+  disponibles como skill/plugin; integrar los logros de Codex antes de empezar.
 - **39 (al final):** rutas completas Sora y Reverse/Rebirth. Método aprobado:
   speedrun (.vbm USA en la raíz) como guía por tramos, comparar con el emulador
   en puntos de control (sala, mundo, HP, escena), corregir el desfase por lag,
@@ -144,7 +145,7 @@ completas al final.
 
 ## Cerrados hoy (referencia)
 
-Franjas lisas en los bordes de escenas (barrido find_blank_margins, 78 tomas): revisadas, son el fin real de la sala (vacío/color de fondo del juego, lógica aprobada en 56); sin cambios. Clic del modo debug en Opciones con el sonido del juego restaurado exacto (58, 55e1e30f0) y banderas de idiomas en el launcher (67, 4a5c89ef5): el usuario delegó la aprobación en Claude (19/10), verificados por medición y captura; salen en v1.9.6. Lógica Mapa GBA en Trucos → Modo debug, con panel explicativo (69): APROBADO 19/10, en main (8a74f004b), sale en v1.9.6. Márgenes sin pintar en las escenas del tutorial (56/56b) en f5ddc75b9, sale en v1.9.6. Menú de Opciones a toda la altura (57) y aviso moguri a Experimental (64), publicados en v1.9.5. 29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
+Pausa en escenas (65): toque corto de START → Volver al juego / Saltar escena (con confirmación, «No» preseleccionado); el salto usa el mismo camino que mantener START (respeta las 3 escenas no saltables; recompensas y banderas intactas, probado en EVENT 0:5); mantener START sigue saltando como el original. Franjas lisas en los bordes de escenas (barrido find_blank_margins, 78 tomas): revisadas, son el fin real de la sala (vacío/color de fondo del juego, lógica aprobada en 56); sin cambios. Clic del modo debug en Opciones con el sonido del juego restaurado exacto (58, 55e1e30f0) y banderas de idiomas en el launcher (67, 4a5c89ef5): el usuario delegó la aprobación en Claude (19/10), verificados por medición y captura; salen en v1.9.6. Lógica Mapa GBA en Trucos → Modo debug, con panel explicativo (69): APROBADO 19/10, en main (8a74f004b), sale en v1.9.6. Márgenes sin pintar en las escenas del tutorial (56/56b) en f5ddc75b9, sale en v1.9.6. Menú de Opciones a toda la altura (57) y aviso moguri a Experimental (64), publicados en v1.9.5. 29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
 y 074 Monstro (13–14), remapeo y gatillos (25), submenús (28), fuente CJK Linux
 (34), PS5 (38), táctil (45), transición de Opciones (50), regresión sincorazones (4).
 Publicado en Nightly 5 (18/10, v1.9.3-nightly.20261018.5): #17 borde de Riku, logros locales,
