@@ -420,7 +420,8 @@ static void OutputRect(int outW, int outH, SDL_FRect* dst) {
     dst->y = (float)(int)((outH - dst->h) / 2);
 }
 
-static void DrawScanlines(const SDL_FRect* dst) {
+/* Side margins share the picture's scanline spacing and vertical phase. */
+static void DrawScanlines(const SDL_FRect* dst, int outW) {
     float step = dst->h / gPortScreen.height;
     float y;
 
@@ -429,7 +430,7 @@ static void DrawScanlines(const SDL_FRect* dst) {
     SDL_SetRenderDrawBlendMode(sRenderer, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, (Uint8)(gPortConfig.scanlines * 255 / 100 / 2));
     for (y = dst->y + step - SDL_max(1.0f, step / 3.0f); y < dst->y + dst->h; y += step) {
-        SDL_FRect r = { dst->x, y, dst->w, SDL_max(1.0f, step / 3.0f) };
+        SDL_FRect r = { 0, y, (float)outW, SDL_max(1.0f, step / 3.0f) };
         SDL_RenderFillRect(sRenderer, &r);
     }
 }
@@ -1550,7 +1551,7 @@ static void Present(void) {
         if (!menuCanvas) PortHdTextHudDigits(sRenderer, hd.x, hd.y, (float)gPortHudScale);
         PortHdTextDraw(sRenderer, 1, hd.x, hd.y, (float)gPortHudScale);
     }
-    DrawScanlines(&dst);
+    DrawScanlines(&dst, outW);
     {
         /* state / slot notices: topmost, at the window's scale */
         static uint32_t sNoticeBuf[256 * 14];
