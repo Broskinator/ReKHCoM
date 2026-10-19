@@ -151,7 +151,7 @@ def main():
             print(f'$ {c}\n{out.strip()}\n[exit {code}]', flush=True)
         for c in args.bg_run:
             # In the background, so its progress can be watched and a hang seen.
-            con.run(f'rm -f /root/.bgexit; ( ( {c} ) > /root/.bglog 2>&1; echo $? > /root/.bgexit ) &', 30)
+            con.run(f'rm -f /root/.bgexit; ( ( {c} ) > /root/.bglog 2>&1; echo $? > /root/.bgexit ) & :', 30)
             last, since, started = None, time.time(), time.time()
             while True:
                 time.sleep(args.poll)
