@@ -67,3 +67,9 @@ de proponer algo nuevo; ante un caso nuevo, derivar la solución de ellas.
   del pie de brillo, con paleta viva, mezcla alpha y alineación PixelEdge.
   No tocar letras, ilustración ni píxeles del rectángulo GBA. Detalle:
   TITULO_60_LOGICA.md; commit `6039fc04d`.
+
+- 69 lógica mapa GBA: aprobado el 19/10. Las mejoras propias de ReKHCoM que
+  cambian lógica del juego van como opción en Trucos → Modo debug, apagadas por
+  defecto, con prefijo "[ReKHCoM]" y un panel sobre el arte de Sora que las
+  explica con diagrama, en los 6 idiomas. Fuera de eso, la lógica del juego no
+  se toca (63: nada de copias propias de objetos). Commit `8a74f004b`.
