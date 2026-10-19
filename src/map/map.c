@@ -62,7 +62,6 @@ extern int PortSaveSlotSelectEnabled(void);
 #include "save_types.h"
 #include "task_descriptors.h"
 #include "taskpool.h"
-#include <stdlib.h>
 #include "text.h"
 #include "text_types.h"
 #include "types.h"
@@ -1767,92 +1766,10 @@ void MapGmkInitRoom() {
     MapGmkCreateTasks();
 }
 
-#ifdef PLATFORM_PC
-void PortLog(const char* fmt, ...);
-/* Room gimmicks (save point, barrels, jumps) end their tasks while a menu
-   interrupts the field, and MapGmkCreateTasks makes them again afterwards.
-   The wide view shows the field around the menus, where they would vanish
-   and pop back: they are kept (not updated) while the field is interrupted
-   and replaced when they are made again. */
-static const TaskDesc* sPortKeptGmkDesc; /* test harness: one more kind to keep */
-
-void PortMapKeepGmkDesc(const TaskDesc* desc) {
-    sPortKeptGmkDesc = desc;
-}
-
-static int IsRoomGmkTask(const Task* task) {
-    s32 i;
-
-    if (gMapRoomState->flags & ROOM_FLAG_FIXED_ROOM)
-        return task->desc == &gTaskDescMapGmk00 || task->desc == &gTaskDescMapGmk04 ||
-               task->desc == &gTaskDescMapGmk06;
-    if (task->desc == &gTaskDescMapGmkJump || task->desc == &gTaskDescMapGmkDmy)
-        return 1;
-    for (i = 0; i < sMapGmkCount; i++) {
-        if (task->desc == gMapGmkPlacements[i].def->desc)
-            return 1;
-    }
-    return 0;
-}
-
-static void UpdateFieldTasks(void) {
-    TaskPool* pool = &gFieldState->tasks;
-    Task* task = ListPoolFirst(&pool->head);
-    /* Only the save menu: the pause menu's list needs the sprite memory
-       these objects hold, so there they are recreated as the game does. */
-    int saveMenu = (gMapRoomState->flags & ROOM_FLAG_SAVE_MENU_OPEN) != 0;
-
-    while (task != NULL) {
-        int keep = saveMenu && (IsRoomGmkTask(task) || task->desc == sPortKeptGmkDesc);
-        if (task->update != NULL && !keep && task->update(task->work, task) == 0)
-            task = TaskDestroy(pool, task);
-        else
-            task = ListPoolNext(&task->node);
-    }
-}
-
-static void DestroyRoomGmkTasks(void) {
-    TaskPool* pool = &gFieldState->tasks;
-    Task* task = ListPoolFirst(&pool->head);
-
-    while (task != NULL) {
-        if (IsRoomGmkTask(task)) {
-            if (getenv("KHCOM_GMKLOG"))
-                PortLog("gmk: replace %s", task->desc->name);
-            task = TaskDestroy(pool, task);
-        }
-        else
-            task = ListPoolNext(&task->node);
-    }
-}
-
-void PortMapUpdateFieldTasks(void) {
-    UpdateFieldTasks();
-}
-
-void PortMapReplaceFixedGimmicks(void) {
-    TaskPool* pool = &gFieldState->tasks;
-    Task* task = ListPoolFirst(&pool->head);
-    /* Fixed rooms recreate these after a menu too. Retained tasks must
-       release their tiles, colliders and object registrations first. */
-    while (task != NULL) {
-        if (task->desc == &gTaskDescMapGmk00 || task->desc == &gTaskDescMapGmk04 ||
-            task->desc == &gTaskDescMapGmk06)
-            task = TaskDestroy(pool, task);
-        else
-            task = ListPoolNext(&task->node);
-    }
-}
-#endif
-
 void MapGmkCreateTasks() {
     s32 i;
     MapPlatform* platform;
     const MapGmkDef* def;
-
-#ifdef PLATFORM_PC
-    DestroyRoomGmkTasks(); /* still there when kept through a menu */
-#endif
 
     for (i = 0; i < 12; i++) {
         platform = GetMapPlatform(i);

@@ -88,10 +88,14 @@ completas al final.
   `claude-58-menu-click-music-regression`: el clic suena, pero pausar la música con
   m4aMPlayStop corta las notas largas (al volver suena más baja) y deja un tono
   sostenido del PSG con el menú abierto. Falta pausar sin soltar notas.
-- **63 (18/10, colisión):** savestate 2: detrás del cristal, al presionar
-  izquierda Sora queda atascado salvo que se presione arriba. Savestate 3:
-  caminando a la derecha queda atrapado y luego no puede salir a la izquierda.
-  Replicar y comparar con el juego original antes de tocar nada.
+- **63 (18/10, colisión) — hecho, falta tu prueba:** se quitó la lógica propia del
+  port que conservaba y recreaba cristales/gimmicks en los menús (4e6bb4aad,
+  d3c5f41e2) y el cristal de prueba del harness; ahora siguen el flujo del juego.
+  Con la semilla de tu partida original (0x90faecf1, RAM de BizHawk) el port pone el
+  cristal en el mismo lugar que el original (73728,65536, junto al farol): la
+  posición depende de la semilla de la sala (fotograma al usar la carta), igual que
+  en el GBA. Detrás del cristal, izquierda avanza; 8 ciclos de menú de guardado y 6
+  de pausa: el cristal sigue (sala aleatoria y castillo). Confirmar con una partida.
 - **68 (bug, 18/10):** Android (APK de prueba v1.9.6): iniciar partida con texto HD
   activado crashea. Replicar en el emulador (AVD en D:/ReKHCoM-build/android-avd).
 - **66 (18/10):** Android: la app aún pregunta el idioma del juego al empezar, pero

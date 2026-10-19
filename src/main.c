@@ -81,9 +81,7 @@ extern int gPortStartupLanguage;
 
 #ifdef PLATFORM_PC
 /* Test harness (KHCOM_MODE): switch to one of these modes by name. */
-extern const MapGmkDef gMapGmk04Def;
 extern TaskDesc gTaskDescMapGmk04, gTaskDescMapSave;
-void PortMapKeepGmkDesc(const TaskDesc* desc);
 extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, gModeWorldinspect,
     gModeWorldselect, gModeWORLDSELECT, gModeWorldwarp, gModeMsTop, gModePremire,
     gModeSioBtlOption, gModeDebug;
@@ -408,16 +406,27 @@ int PortHarnessMode(const char* name, int arg) {
         int count = 0;
         while (task != NULL) {
             count += task->desc == &gTaskDescMapGmk04;
+            if (task->desc == &gTaskDescMapGmk04)
+                PortLog("harness: save crystal at %d,%d,%d room=%u seed=%08x", (int)((MapGmk04Work*)task->work)->obj.fieldPosition.x,
+                        (int)((MapGmk04Work*)task->work)->obj.fieldPosition.y, (int)((MapGmk04Work*)task->work)->obj.fieldPosition.z,
+                        (unsigned)gMapFloorState.room, (unsigned)GetMapFloorRoom(gMapFloorState.room)->seed);
             if (task->desc == &gTaskDescMapGmk04 && strcmp(name, "crystalview") == 0) {
                 MapGmk04Work* crystal = task->work;
                 gFieldState->actor.fieldPosition = crystal->obj.fieldPosition;
-                gFieldState->actor.fieldPosition.x -= 0x1200;
-                gFieldState->actor.fieldPosition.y += 0x1C00;
+                /* arg 1: behind it, where issue 63's savestate stood */
+                gFieldState->actor.fieldPosition.x -= arg == 1 ? 4457 : 0x1200;
+                gFieldState->actor.fieldPosition.y += arg == 1 ? -2212 : 0x1C00;
                 MapSetCameraTarget(gFieldState->actor.fieldPosition.x, gFieldState->actor.fieldPosition.y);
             }
             task = ListPoolNext(&task->node);
         }
         PortLog("harness: save crystals %d", count);
+        return 1;
+    }
+    if (strcmp(name, "poslog") == 0 && gFieldState != NULL) {
+        extern void PortLog(const char* format, ...);
+        PortLog("harness: sora at %d,%d,%d", (int)gFieldState->actor.fieldPosition.x,
+                (int)gFieldState->actor.fieldPosition.y, (int)gFieldState->actor.fieldPosition.z);
         return 1;
     }
     if (strcmp(name, "doorselect") == 0 && gFieldState != NULL) {
@@ -429,16 +438,6 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
 
-    /* a save point beside Sora */
-    if (strcmp(name, "crystal") == 0 && gFieldState != NULL) {
-        static MapGmkPlacement sCrystal;
-        sCrystal.pos = gFieldState->actor.fieldPosition;
-        sCrystal.pos.x += (arg ? arg : 40) << 8;
-        sCrystal.def = &gMapGmk04Def;
-        PortMapKeepGmkDesc(&gTaskDescMapGmk04); /* kept like the room's own */
-        TaskCreate(&gFieldState->tasks, &gTaskDescMapGmk04, &sCrystal);
-        return 1;
-    }
     /* the level-up screen, as the end of a battle opens it */
     /* the card-break mosaic over every layer (battle_runtime.c) */
     if (strcmp(name, "mosaic") == 0) {
