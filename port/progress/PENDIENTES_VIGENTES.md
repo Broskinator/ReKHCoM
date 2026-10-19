@@ -48,6 +48,13 @@ bloquea publicaciones incompletas (web, PS5, versiones).
 
 ## Cerrados hoy (referencia)
 
+v1.9.10 publicada como ESTABLE Latest (19/10, aprobada por el usuario): arreglos 73 (ventana de
+guardado corrida) y 74 (#26, crash al cerrar el editor de barajas). Windows, Linux, Steam Deck,
+Anbernic, Android y Web; release_check OK antes y después. La v1.9.9 queda intacta (Quiver).
+Sin PS5: la VM de PS5 del build de la v1.9.9 (lanzada 10:34) quedó colgada más de 2 h; no se mató
+para no corromper ps5env.qcow2. Pendiente: apagarla de forma limpia y sacar v1.9.10-ps5.
+Copia de prueba: «Probar ReKHCoM v1.9.10.bat» (partidas y opciones de la v1.9.9).
+
 72 cristal de la primera sala (19/10, tarde): CERRADO, el cartucho también cambia la sala según
 el fotograma de entrada (prueba limpia desde el encendido en BizHawk: 34286² y 34322² dan salas
 distintas; código máquina: la puerta del tutorial llama a CreateMapRoom con gFrameCounter²).
