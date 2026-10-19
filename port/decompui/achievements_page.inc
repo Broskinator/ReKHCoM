@@ -204,6 +204,7 @@ static void PageOfficialAchievements() {
         if (live) rc_client_destroy_achievement_list(live);
     }
     BeginCard("ra-catalog");
+    RememberAchievementProgress();
     Eyebrow(T("CATÁLOGO OFICIAL · EUROPA", "OFFICIAL CATALOG · EUROPE"));
     ImGui::PushFont(sFontSmall);
     ImGui::TextWrapped("%s", T("Los premios oficiales están en validación. Los retos locales de EU, US y JP están más abajo.",

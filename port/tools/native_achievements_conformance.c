@@ -7,6 +7,7 @@
 #include "game_state.h"
 #include "mode.h"
 #include "../achievements/local_achievements.h"
+#include "port/port_achievement_list.h"
 
 GameState gGameState;
 PortConfig gPortConfig;
@@ -36,6 +37,15 @@ int main(int argc, char** argv) {
     assert(SDL_Init(0));
     remove(file);
     PortAchievementsInit();
+    {
+        PortAchievementInfo info;
+        PortAchievementsListRefresh();
+        assert(PortAchievementsListCount(0) == 16 && PortAchievementsListCount(1) == 2);
+        assert(PortAchievementsListGet(1, 0, 0, &info) && info.state == 0 && !strcmp(info.title, "Locked test"));
+        assert(PortAchievementsListGet(1, 1, 0, &info) && info.state == 1 && !strcmp(info.title, "Earned test"));
+        assert(!PortAchievementsListGet(1, 2, 0, &info));
+        assert(PortAchievementsListGet(0, 0, 1, &info) && info.state == 0 && info.title[0]);
+    }
     gCurrentMode = &gModeMapFld;
     gGameState.progression.level = 1; gGameState.progression.maxHp = 80;
     PortAchievementsFrame();
@@ -69,6 +79,7 @@ int main(int argc, char** argv) {
             assert(notices == (int)id + 1);
             assert(KhLocalLoad(&state, file) && state.unlocked == (1u << (id + 1)) - 1);
             PortAchievementsFrame(); assert(notices == (int)id + 1);
+            { PortAchievementInfo info; assert(PortAchievementsListGet(0, id, 0, &info) && info.state == 1); }
         }
         PortAchievementsShutdown(); SDL_Quit();
         puts("PASS native bridge: all 16 triggers, battle/map modes, region persistence, no duplicates");

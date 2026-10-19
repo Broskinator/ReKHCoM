@@ -1,6 +1,9 @@
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 #if __has_include(<time.h>)
 #include <time.h>
 #define KH_LOCAL_WALL_CLOCK 1
@@ -22,6 +25,7 @@ static int sLocalEnabled = 1, sInvalidated, sStarted;
 static uint32_t sPendingNotices;
 static unsigned sPreviewFrame;
 static char sLocalPath[1200];
+#include "port_achievement_list.inc"
 
 void PortAchievementsInit(void) {
     FILE* config;
@@ -108,6 +112,10 @@ void PortAchievementsFrame(void) {
         uint32_t added = KhLocalObserve(&sLocal, &snapshot, now);
         if (added) {
             if (!KhLocalSave(&sLocal, sLocalPath)) PortLog("achievements: could not save local progress");
+#ifdef __EMSCRIPTEN__
+            else EM_ASM({ if (Module.persistSoon) Module.persistSoon();
+                          if (Module.onAchievementsChanged) Module.onAchievementsChanged(); });
+#endif
             sPendingNotices |= added;
         }
     }

@@ -43,7 +43,7 @@ for target, compiler, flags in targets:
     for region in ('eu', 'us', 'jp'):
         folder = OUT / target / region
         folder.mkdir(parents=True, exist_ok=True)
-        for source in ('port_achievements.c', 'port_achievement_toast.c'):
+        for source in ('port_achievements.c', 'port_achievement_toast.c', 'port_ui.c'):
             subprocess.run([str(compiler), '-std=gnu11', '-O2', '-DPLATFORM_PC',
                 '-DVERSION_' + region.upper(), *quotes, *flags, '-c',
                 str(ROOT / 'port/src' / source), '-o', str(folder / (source + '.o'))], check=True)

@@ -53,3 +53,21 @@ static void RememberAchievementCatalog(rc_client_achievement_list_t* list) {
         CatalogString(out, a.title); CatalogString(out, a.description); CatalogString(out, a.badge);
     }
 }
+static void RememberAchievementProgress() {
+    static uint64_t previous;
+    std::vector<uint32_t> ids;
+    uint32_t known = KhRaAccountProgressAvailable(sRaUi) ? 1u : 0u;
+    uint64_t hash = 1469598103934665603ull ^ known;
+    for (const auto& a : sAchievementCatalog) if (known && KhRaAccountUnlocked(sRaUi, a.id)) {
+        ids.push_back(a.id); hash ^= a.id; hash *= 1099511628211ull;
+    }
+    if (hash == previous) return;
+    std::error_code error; fs::create_directories(AchievementCatalogPath().parent_path(), error);
+    fs::path path = sRoot / "cache" / "achievement-unlocks.dat", temp = path; temp += ".tmp";
+    std::ofstream out(temp, std::ios::binary);
+    uint32_t count = (uint32_t)ids.size();
+    out.write("KHRAPRG1", 8); out.write((const char*)&known, 4); out.write((const char*)&count, 4);
+    if (count) out.write((const char*)ids.data(), count * 4);
+    out.close();
+    if (out && MoveFileExW(temp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) previous = hash;
+}

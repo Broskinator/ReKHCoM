@@ -8,6 +8,7 @@ import json
 import shutil
 import subprocess
 import sys
+import struct
 
 ROOT = Path(__file__).resolve().parents[2]
 TC = next((ROOT.parent / 'toolchain').glob('llvm-mingw-*'))
@@ -18,11 +19,20 @@ OUT.mkdir(parents=True, exist_ok=True)
 
 subprocess.run([sys.executable, 'port/configure_pc.py', '--version', 'eu', '--out', 'build/ra-eu'], cwd=ROOT, check=True)
 subprocess.run([str(ROOT.parent / 'toolchain/bin/ninja.exe'), '-f', 'build/ra-eu/build.ninja',
-                '-j', '6', 'build/ra-eu/ReKHCoM.exe'], cwd=ROOT, check=True)
+                '-j', '1', 'build/ra-eu/ReKHCoM.exe'], cwd=ROOT, check=True)
 
 def run(name, sources, flags=(), args=()):
     folder = OUT / name
     folder.mkdir(exist_ok=True)
+    if name.startswith('native-'):
+        cache = folder / 'cache'; cache.mkdir(exist_ok=True)
+        data = b'KHRACAT1' + struct.pack('<I', 2)
+        for id, title in [(101, 'Locked test'), (102, 'Earned test')]:
+            data += struct.pack('<II', id, 5)
+            for value in (title, 'Fixture description', '12345'):
+                encoded = value.encode(); data += struct.pack('<I', len(encoded)) + encoded
+        (cache / 'achievements-768.dat').write_bytes(data)
+        (cache / 'achievement-unlocks.dat').write_bytes(b'KHRAPRG1' + struct.pack('<III', 1, 1, 102))
     exe = folder / (name + '.exe')
     shutil.copy2(SDL / 'bin/SDL3.dll', folder / 'SDL3.dll')
     command = [str(CC), '-O2', '-std=gnu11', '-Wall', '-mno-ms-bitfields',

@@ -119,3 +119,9 @@ Prueba separada: `../Probar logros 27.bat`. No incorpora credenciales en release
 Capturas privadas: build/ra27-review y build/ra27-earned. Matriz de comprobación:
 LOGROS_27_VALIDACION.md. No se declara compatibilidad oficial online por pasar
 pruebas locales ni por mostrar desbloqueos obtenidos previamente en otra aplicación.
+
+
+19/10: Opciones > Logros añade una consulta in-game de pendientes/conseguidos y
+filtros. Cuenta/login permanecen exclusivamente en launcher. El catálogo público
+y una instantánea mínima del último progreso consultado alimentan la lista
+official; los estados locales se leen del runtime. Ver LOGROS_27_VALIDACION.md.

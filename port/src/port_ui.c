@@ -12,6 +12,7 @@
 #include "port/port.h"
 #include "port/port_aspect.h"
 #include "port/port_ui.h"
+#include "port/port_achievement_list.h"
 #if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
 #include "port/port_android.h"
 #endif
@@ -73,6 +74,7 @@ enum {
     ITEM_CONTROLS_MENU,
     ITEM_CHEATS_MENU,
     ITEM_REMATCH_MENU,
+    ITEM_ACHIEVEMENTS_MENU,
     ITEM_CLOSE,
     /* the Re:Chain of Memories page */
     ITEM_PS2_DIFFICULTY,
@@ -116,8 +118,10 @@ enum {
 };
 
 /* Two pages, each a run of items: the options and the Re:CoM settings. */
-enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS, PAGE_CONTROLS, PAGE_REMATCH };
+enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS, PAGE_CONTROLS, PAGE_REMATCH, PAGE_ACHIEVEMENTS };
 static int sPage;
+static void AchievementMenuOpen(void);
+static int AchievementMenuInput(const SDL_Event* ev);
 static int sControlPad, sControlCapture;
 static void ControlBindingName(int binding, int l, char* out, size_t size);
 static int sNgRecom; /* new game page: the Re:CoM version chosen */
@@ -221,6 +225,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Controls", "Commandes", "Steuerung", "Controlli", "Controles", "操作" },
     { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" },
     { "Boss rematches", "Revanches de boss", "Boss-Revanchen", "Rivincite coi boss", "Revancha de jefes", "ボス再戦" },
+    { "Achievements", "Succès", "Erfolge", "Obiettivi", "Logros", "実績" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
     { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
     { "Fast dialogue", "Dialogues rapides", "Schnelle Dialoge", "Dialoghi veloci", "Diálogos rápidos",
@@ -867,6 +872,7 @@ static void ValueText(int item, char* out, size_t size) {
             break;
         case ITEM_CHEATS_MENU:
         case ITEM_REMATCH_MENU:
+        case ITEM_ACHIEVEMENTS_MENU:
         case ITEM_CONTROLS_MENU:
         case ITEM_PS2_MENU:
             SDL_strlcpy(out, "\xE2\x86\x92", size);
@@ -1040,6 +1046,9 @@ static void Change(int item, int dir) {
         case ITEM_CHEATS_MENU:
             if (dir > 0) { sPage = PAGE_CHEATS; sCursor = sScroll = ITEM_CHEAT_DEBUG; }
             break;
+        case ITEM_ACHIEVEMENTS_MENU:
+            if (dir > 0) AchievementMenuOpen();
+            return;
         case ITEM_REMATCH_MENU:
             if (dir > 0) { sPage = PAGE_REMATCH; sCursor = sScroll = ITEM_REMATCH_0; }
             break;
@@ -1197,6 +1206,7 @@ void PortUiOpenOptions(void) {
     if (sCursor >= ITEM_CHEAT_DEBUG && sCursor <= ITEM_CHEATS_BACK) /* a row of the Cheats page */
         sPage = PAGE_CHEATS;
     RefreshModes();
+    if (SDL_getenv("KHCOM_ACHIEVEMENTS_SHOT")) AchievementMenuOpen();
 }
 
 /* map.c: a new game was confirmed. Original preselected, with its presets
@@ -1350,6 +1360,7 @@ int PortUiHandleEvent(const void* p) {
         return 0;
     }
 
+    if (sPage == PAGE_ACHIEVEMENTS) return AchievementMenuInput(ev);
     if (sPage == PAGE_NEWGAME && (ev->type == SDL_EVENT_KEY_DOWN || ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)) {
         int key = -1;
         if (ev->type == SDL_EVENT_KEY_DOWN) {
@@ -1977,6 +1988,7 @@ static void DrawGbaMapNote(int l, int width, int height, int left) {
     NoteDiagram(x0 + 8, y0 + 22 + lines * 11 + 8, dw, dh, 0, l);
     NoteDiagram(x0 + panelW - 8 - dw, y0 + 22 + lines * 11 + 8, dw, dh, 1, l);
 }
+#include "port_achievement_menu.inc"
 
 static void DrawMenu(int l, int width, int height) {
     int rows, i, x, y, labelW = 0, valueW = 0, barX = 10, barW, top = MENU_TOP, artX;
@@ -1988,6 +2000,7 @@ static void DrawMenu(int l, int width, int height) {
         sMenuLightStart = MenuLightNow();
     }
 
+    if (sPage == PAGE_ACHIEVEMENTS) { DrawAchievementMenu(l, width, height); return; }
     if (sPage == PAGE_NEWGAME) {
         DrawWizard(l, width, height);
         return;
@@ -2106,6 +2119,22 @@ static void HarnessFadeShot(int width, int height) {
 static int HarnessOptionsAction(void) {
     const char* route = SDL_getenv("KHCOM_OPTIONS_ACTIONS");
     int changed = 0;
+    if (sPage == PAGE_ACHIEVEMENTS && SDL_getenv("KHCOM_ACHIEVEMENT_KEYS")) {
+        const char* p = SDL_getenv("KHCOM_ACHIEVEMENT_KEYS");
+        ++sHarnessTick;
+        while (p && *p) {
+            const char* comma = SDL_strchr(p, ',');
+            const char* colon = SDL_strchr(p, ':');
+            if (colon && (!comma || colon < comma) && SDL_atoi(p) == sHarnessTick) {
+                SDL_Event event = {0}; event.type = SDL_EVENT_KEY_DOWN;
+                event.key.key = (SDL_Keycode)SDL_atoi(colon + 1);
+                AchievementMenuInput(&event); changed = 1;
+                PortLog("achievement-menu-test: group=%d filter=%d choice=%d", sAchievementGroup, sAchievementView, sAchievementChoice);
+            }
+            p = comma ? comma + 1 : NULL;
+        }
+        return changed;
+    }
     if (sPage == PAGE_NEWGAME && SDL_getenv("KHCOM_WIZARD_KEYS")) {
         const char* w = SDL_getenv("KHCOM_WIZARD_KEYS");
         sHarnessTick++;

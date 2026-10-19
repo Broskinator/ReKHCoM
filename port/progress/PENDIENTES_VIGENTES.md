@@ -17,13 +17,16 @@ conservada para poder rastrear. Reglas del usuario:
 | Quién | Puntos | Orden |
 |---|---|---|
 | **Claude (Opus)** | 66 idioma en Android; 67 banderas en el launcher; 58 sonidos del modo debug; 65 pausa y saltar escena; 68 crash de Riku en Android (emulador, cuando el usuario no esté jugando); franjas negras en salas del castillo (find_blank_margins); 44 limpieza; 43 cola; 39 rutas | 1) 66, 2) 67, 3) 58, 4) 65, 5) 68, 6) franjas, 7) 44 con permiso, 8) 39 |
-| **ChatGPT/Codex** | 27 logros (terminar su WIP sin commitear en khcom-codex); 61 y 62 escenas de Ciudad de Paso incompletas en la vista ancha; 55 página web; después 16–24 arte de jefes | 1) 27 (WIP), 2) 61, 3) 62, 4) 55, 5) 16–24 |
+| **ChatGPT/Codex** | 27 listado de logros in-game terminado y en comprobación final; 55 web commiteada (espera revisión visual); 61–62 necesitan la asistencia del usuario indicada antes; después 16–24 | 1) cerrar entrega 27/55, 2) memoria/set oficial y Level 1 de 27, 3) 61–62 al tener asistencia, 4) 16–24 |
 | **Otro chat** | 51–54 consolas (Vita, PS4, Switch; PS5 por VM) | según su propio plan |
 
-Codex: sin actividad desde 18/10 21:11. Claude integró su commit local de logros
-(556b43129 → main, 09f27f3b9). Si sigue inactivo más de 10 min cuando Claude termine
-lo suyo, Claude toma sus puntos anotando hora y evidencia. Hechos 18–19/10 (Claude):
-56/56b, 57, 63, 64, 69. Mientras el usuario juega: builds con -j2, sin emuladores.
+Codex activo 19/10 01:43: 55 y listado in-game de 27 commiteados; integrando y
+pusheando. No tomar su WIP mientras siga activo. Login confirmado, 16 disparos por
+región y menú con filtros pasan pruebas. Sigue pendiente memoria/set oficial y
+Level 1. Claude integró el primer commit de logros en 09f27f3b9. Hechos de Claude:
+56/56b, 57, 63, 64, 69, 66 y 67. Mientras el usuario juega durante esta sesión de
+2 h: Codex usa -j1, prioridad baja, sin VM/AVD ni motores de navegador abiertos.
+Claude usa -j2 según su reparto.
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
@@ -47,8 +50,8 @@ completas al final.
 - **26:** CERRADO 18/10: issue #2 (funciones del remake) cerrado por el usuario como
   mod muy específico, fuera de alcance por ahora.
 - **27:** RetroAchievements: hay logros locales y catálogo oficial experimental;
-  login real confirmado por el usuario. Catálogo directo con imágenes (gris/color), caché y copia «Probar logros 27.bat» listos para revisión. 16 disparos × EU/US/JP pasan en el puente nativo; Wasm ejecuta las condiciones; Android/Linux/PS5 compilan el puente y avisos. No equivale a ejecución física. Falta validar memoria/set oficial y Level 1. Web: catálogo local directo y persistencia al desbloquear en preparación. Evidencia: RETROACHIEVEMENTS.md y LOGROS_27_VALIDACION.md.
-- **55 (nuevo, 18/10):** página web: llevar las opciones del launcher a sus
+  login real confirmado por el usuario. Catálogo directo con imágenes (gris/color), caché y copia «Probar logros 27.bat» listos para revisión. 16 disparos × EU/US/JP pasan en el puente nativo; Wasm ejecuta las condiciones; Android/Linux/PS5 compilan el puente y avisos. No equivale a ejecución física. Falta validar memoria/set oficial y Level 1. Web: catálogo local directo y editor/opciones en ea5824552. Lista in-game de locales y catálogo oficial cacheado, con filtros y estados de última consulta; cuenta/login solo en launcher. Prueba «Probar logros ingame 27.bat». Evidencia: RETROACHIEVEMENTS.md y LOGROS_27_VALIDACION.md.
+- **55 (implementado, pendiente aprobación visual, 19/10):** commit ea5824552; prueba local web55-preview y evidencia WEB_55_REVISION.md. Página web: llevar las opciones del launcher a sus
   pestañas (gráficos, sonido, mejoras, controles, editor) y rehacer la estética
   general para que calce con el arte del juego (estilo del menú debug ya usado en
   el launcher y en Opciones). Entrega visual: capturas antes/después y aprobación.
