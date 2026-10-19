@@ -41,7 +41,7 @@ completas al final.
 - **26:** CERRADO 18/10: issue #2 (funciones del remake) cerrado por el usuario como
   mod muy específico, fuera de alcance por ahora.
 - **27:** RetroAchievements: hay logros locales y catálogo oficial experimental;
-  falta login real y validar memoria/set; Level 1 pendiente.
+  login real confirmado por el usuario. Catálogo directo con imágenes (gris/color), caché y copia «Probar logros 27.bat» listos para revisión. 16 disparos × EU/US/JP pasan en el puente nativo; Wasm ejecuta las condiciones; Android/Linux/PS5 compilan el puente y avisos. No equivale a ejecución física. Falta validar memoria/set oficial y Level 1. Web: catálogo local directo y persistencia al desbloquear en preparación. Evidencia: RETROACHIEVEMENTS.md y LOGROS_27_VALIDACION.md.
 - **55 (nuevo, 18/10):** página web: llevar las opciones del launcher a sus
   pestañas (gráficos, sonido, mejoras, controles, editor) y rehacer la estética
   general para que calce con el arte del juego (estilo del menú debug ya usado en

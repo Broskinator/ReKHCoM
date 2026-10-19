@@ -11,6 +11,9 @@ typedef struct KhRa KhRa;
 typedef uint32_t (*KhRaRead)(uint32_t address, uint8_t* out, uint32_t size, void* userdata);
 /* Optional transport for deterministic integration tests. NULL uses HTTPS. */
 typedef void (*KhRaTransport)(const rc_api_request_t*, rc_client_server_callback_t, void*);
+typedef void (*KhRaImageCallback)(const uint8_t* bytes, size_t size, int status, void* userdata);
+/* Public badge images use the same bounded HTTPS queue; no account token. */
+int KhRaFetchImage(KhRa* ra, const char* url, KhRaImageCallback callback, void* userdata);
 
 KhRa* KhRaCreate(const char* directory, KhRaRead read, void* userdata, KhRaTransport transport);
 void KhRaDestroy(KhRa* ra);

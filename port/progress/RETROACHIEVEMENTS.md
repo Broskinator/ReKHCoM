@@ -89,7 +89,9 @@ solo registra ese archivo y 02c38fb19dab302379ece65724fb4e0f para Level 1; US/JP
 usan los retos locales. No se fuerza el hash EU para otra región o una ROM modificada.
 La huella se calcula antes de aplicar relocaciones nativas a la ROM mapeada.
 
-Pendientes reales: login con cuenta del usuario desde la interfaz; proyección y
+El usuario confirmó el login real desde la interfaz el 18/10. La captura nueva recupera la cuenta recordada y consulta el catálogo y su progreso sin enviar premios.
+
+Pendientes reales: proyección y
 validación del set oficial; compatibilidad nativa del parche Level 1 y su hash;
 proceso de validación oficial antes de anunciar soporte online/Hardcore. Ninguno
 se considera cerrado por tener una interfaz, un mock o los retos locales.
@@ -100,3 +102,20 @@ se considera cerrado por tener una interfaz, un mock o los retos locales.
 - https://github.com/RetroAchievements/rcheevos/wiki/rc_client-integration
 - https://retroachievements.org/game/768/hashes
 - https://retroachievements.org/game/768?set=40403
+
+
+## Revisión del 18/10: catálogo directo e imágenes
+
+La página Logros presenta el catálogo completo con desplazamiento, búsqueda y
+filtro, sin entrar a submenús. Cuenta/inicio de sesión queda en un desplegable.
+Las imágenes oficiales se descargan con el cliente HTTPS y se cachean; se generan
+texturas gris/color de la misma imagen y el estado procede del progreso real de
+cuenta. El catálogo público también se conserva sin conexión; sin consulta de
+cuenta se indica progreso desconocido. La captura de revisión recibió 91 entradas
+(el catálogo es dinámico; el número anterior era 90). Los 16 retos locales usan
+sprites de cartas del cartucho instalado, sin distribuirlos con el programa.
+
+Prueba separada: `../Probar logros 27.bat`. No incorpora credenciales en releases.
+Capturas privadas: build/ra27-review y build/ra27-earned. Matriz de comprobación:
+LOGROS_27_VALIDACION.md. No se declara compatibilidad oficial online por pasar
+pruebas locales ni por mostrar desbloqueos obtenidos previamente en otra aplicación.

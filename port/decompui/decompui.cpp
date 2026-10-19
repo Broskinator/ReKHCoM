@@ -1653,8 +1653,14 @@ static bool ShotFrames(SDL_Window* window, const char* dir) {
     attach(0x8D40, 0x8CE0 /* GL_COLOR_ATTACHMENT0 */, 0x8D41, rb);
     std::vector<unsigned char> px((size_t)w * h * 4);
     for (int page = 0; page < PAGE_COUNT; page++) {
+        if (SDL_getenv("DECOMPUI_ACHIEVEMENTS_ONLY") && page != PAGE_ACHIEVEMENTS) continue;
         sPage = page;
-        for (int i = 0; i < 3; i++) {
+        if (page == PAGE_ACHIEVEMENTS && SDL_getenv("DECOMPUI_ACHIEVEMENT_FILTER"))
+            sAchievementFilter = std::clamp(SDL_atoi(SDL_getenv("DECOMPUI_ACHIEVEMENT_FILTER")), 0, 2);
+        Uint64 until = SDL_GetTicks();
+        if (page == PAGE_ACHIEVEMENTS && SDL_getenv("DECOMPUI_ACHIEVEMENT_WAIT"))
+            until += std::clamp(SDL_atoi(SDL_getenv("DECOMPUI_ACHIEVEMENT_WAIT")), 0, 30000);
+        for (int i = 0; i < 3 || SDL_GetTicks() < until; i++) {
             if (page == PAGE_ACHIEVEMENTS && SDL_getenv("DECOMPUI_TOAST_PREVIEW")) {
                 sAchievementPreview = true; sAchievementPreviewStart = SDL_GetTicks() - 1000;
             }
@@ -1669,6 +1675,7 @@ static bool ShotFrames(SDL_Window* window, const char* dir) {
             glClearColor(kInk.x, kInk.y, kInk.z, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            if (SDL_GetTicks() < until) SDL_Delay(10);
         }
         glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, px.data());
         SDL_Surface* s = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_ABGR8888);
@@ -1798,6 +1805,7 @@ int main(int, char**) {
     if (sControllerProbe.pad) SDL_CloseGamepad(sControllerProbe.pad);
     KhRaDestroy(sRaUi);
     sRaUi = nullptr;
+    AchievementBadgesDestroy();
     SecureZeroMemory(sRaPassword, sizeof(sRaPassword));
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();

@@ -11,6 +11,8 @@ static int sLocalReadRegion = -1;
 static bool sAchievementPreview;
 static Uint64 sAchievementPreviewStart;
 static bool sRaAccountShot;
+#include "achievement_badges.inc"
+#include "achievement_catalog.inc"
 
 static void AchievementPreviewDraw() {
     if (!sAchievementPreview) return;
@@ -65,12 +67,12 @@ static bool AchievementMatches(const char* title, const char* description, bool 
 }
 
 static void AchievementRow(int id, const char* title, const char* description, bool unlocked,
-                           const char* detail = nullptr) {
+                           const char* detail = nullptr, GLuint badge = 0) {
     ImGui::PushID(id);
     ImVec2 origin = ImGui::GetCursorScreenPos();
     float width = ImGui::GetContentRegionAvail().x;
     ImGui::BeginGroup();
-    ImGui::Dummy(ImVec2(Px(42), 0));
+    ImGui::Dummy(ImVec2(Px(42), Px(42)));
     ImGui::SameLine(0, Px(12));
     ImGui::BeginGroup();
     ImGui::TextColored(unlocked ? kAccentDim : kText, "%s", title);
@@ -83,7 +85,9 @@ static void AchievementRow(int id, const char* title, const char* description, b
     ImGui::PopFont();
     ImGui::EndGroup();
     ImGui::EndGroup();
-    GameSquare(ImGui::GetWindowDrawList(), ImVec2(origin.x + Px(20), origin.y + Px(21)), Px(28), unlocked);
+    if (badge) ImGui::GetWindowDrawList()->AddImage((ImTextureID)(intptr_t)badge, origin,
+        ImVec2(origin.x + Px(42), origin.y + Px(42)));
+    else GameSquare(ImGui::GetWindowDrawList(), ImVec2(origin.x + Px(20), origin.y + Px(21)), Px(28), unlocked);
     ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
     ImGui::PopID();
 }
@@ -137,7 +141,7 @@ static void PageLocalAchievements() {
         bool unlocked = (sLocalProgress.unlocked & (1u << i)) != 0;
         if (!AchievementMatches(title, description, unlocked)) continue;
         if (table) ImGui::TableNextColumn();
-        AchievementRow(i, title, description, unlocked);
+        AchievementRow(i, title, description, unlocked, nullptr, LocalAchievementBadge(i, unlocked));
         ++shown;
     }
     if (table) ImGui::EndTable();
@@ -145,7 +149,7 @@ static void PageLocalAchievements() {
     ImGui::EndChild();
 }
 
-static void PageOfficialAchievements() {
+static void PageAchievementAccount() {
     BeginCard("ra-account");
     Eyebrow("RETROACHIEVEMENTS");
     ImGui::TextWrapped("%s", T("Conexión experimental para consultar el catálogo y el progreso de tu cuenta."
@@ -188,66 +192,75 @@ static void PageOfficialAchievements() {
         ImGui::PopFont();
     }
     ImGui::EndChild();
-    ImGui::Spacing();
-    BeginCard("ra-catalog");
-    Eyebrow(T("CATÁLOGO OFICIAL", "OFFICIAL CATALOG"));
-    ImGui::TextWrapped("%s", T("El set base reconoce la ROM europea. US y JP disponen de los retos locales de la otra pestaña.",
-        "The base set recognizes the European ROM. US and JP have local challenges in the other tab."));
-    ImGui::PushFont(sFontSmall);
-    ImGui::TextWrapped("%s", T("Level 1 utiliza su propio parche de compatibilidad; el ejecutable nativo actual aún no lo valida.",
-        "Level 1 uses its own compatibility patch; the current native executable does not yet validate it."));
-    ImGui::PopFont();
-    if (ImGui::Button(T("Ver ROMs compatibles y parche Level 1", "Supported ROMs and Level 1 patch")))
-        SDL_OpenURL("https://retroachievements.org/game/768/hashes");
+}
+
+static void PageOfficialAchievements() {
+    ReadAchievementCatalog();
+    rc_client_t* client = KhRaClient(sRaUi);
     if (client && rc_client_is_game_loaded(client)) {
-        rc_client_achievement_list_t* list = rc_client_create_achievement_list(client,
+        rc_client_achievement_list_t* live = rc_client_create_achievement_list(client,
             RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE, RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_LOCK_STATE);
-        unsigned total = 0, earned = 0;
-        if (list) for (uint32_t b = 0; b < list->num_buckets; ++b)
-            for (uint32_t a = 0; a < list->buckets[b].num_achievements; ++a) {
-                ++total;
-                if (KhRaAccountUnlocked(sRaUi, list->buckets[b].achievements[a]->id)) ++earned;
-            }
-        char progress[100];
-        std::snprintf(progress, sizeof(progress), "%u / %u", earned, total);
-        ImGui::Spacing();
-        if (KhRaAccountProgressAvailable(sRaUi)) ImGui::ProgressBar(total ? (float)earned / total : 0, ImVec2(-1, Px(24)), progress);
-        else ImGui::TextDisabled("%s", T("Progreso de cuenta todavía no disponible.", "Account progress is not available yet."));
+        RememberAchievementCatalog(live);
+        if (live) rc_client_destroy_achievement_list(live);
+    }
+    BeginCard("ra-catalog");
+    Eyebrow(T("CATÁLOGO OFICIAL · EUROPA", "OFFICIAL CATALOG · EUROPE"));
+    ImGui::PushFont(sFontSmall);
+    ImGui::TextWrapped("%s", T("Los premios oficiales están en validación. Los retos locales de EU, US y JP están más abajo.",
+        "Official awards are under validation. Local challenges for EU, US and JP are listed below."));
+    ImGui::PopFont();
+    unsigned earned = 0;
+    for (const auto& a : sAchievementCatalog) if (KhRaAccountUnlocked(sRaUi, a.id)) ++earned;
+    char progress[100];
+    std::snprintf(progress, sizeof(progress), "%u / %u", earned, (unsigned)sAchievementCatalog.size());
+    if (KhRaAccountProgressAvailable(sRaUi)) ImGui::ProgressBar(sAchievementCatalog.empty() ? 0.0f : (float)earned / sAchievementCatalog.size(), ImVec2(-1, Px(24)), progress);
+    else ImGui::TextDisabled("%s", T("Progreso de cuenta sin consultar; las imágenes permanecen en gris.", "Account progress not retrieved; images remain grey."));
+    if (sAchievementCatalog.empty()) {
+        ImGui::TextWrapped("%s", T("Conecta tu cuenta para cargar el catálogo. Después quedará disponible aquí incluso sin conexión.",
+            "Connect your account to load the catalog. It will remain available here when offline."));
+        ImGui::TextColored(KhRaError(sRaUi) ? kBad : kMuted, "%s", KhRaStatus(sRaUi));
+    } else {
         AchievementFilters();
-        if (list) {
-            int shown = 0;
-            for (uint32_t b = 0; b < list->num_buckets; ++b) for (uint32_t a = 0; a < list->buckets[b].num_achievements; ++a) {
-                const rc_client_achievement_t* achievement = list->buckets[b].achievements[a];
-                bool unlocked = KhRaAccountUnlocked(sRaUi, achievement->id) != 0;
-                if (!AchievementMatches(achievement->title, achievement->description, unlocked)) continue;
-                char detail[120];
-                std::snprintf(detail, sizeof(detail), T("%u puntos · %s", "%u points · %s"), achievement->points,
-                              !KhRaAccountProgressAvailable(sRaUi) ? T("Progreso sin consultar", "Progress not retrieved") :
-                              unlocked ? T("Conseguido en tu cuenta", "Earned on your account") : T("Pendiente", "Locked"));
-                AchievementRow((int)achievement->id, achievement->title, achievement->description, unlocked, detail);
-                ++shown;
-            }
-            if (!shown) ImGui::TextDisabled("%s", T("No hay logros con ese filtro.", "No achievements match this filter."));
-            rc_client_destroy_achievement_list(list);
+        bool table = ImGui::BeginTable("official-achievement-grid", ImGui::GetContentRegionAvail().x >= Px(850) ? 2 : 1,
+            ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_PadOuterX);
+        int shown = 0;
+        for (const auto& a : sAchievementCatalog) {
+            bool unlocked = KhRaAccountUnlocked(sRaUi, a.id) != 0;
+            if (!AchievementMatches(a.title.c_str(), a.description.c_str(), unlocked)) continue;
+            char detail[120];
+            std::snprintf(detail, sizeof(detail), T("%u puntos · %s", "%u points · %s"), a.points,
+                !KhRaAccountProgressAvailable(sRaUi) ? T("Progreso sin consultar", "Progress not retrieved") :
+                unlocked ? T("Conseguido en tu cuenta", "Earned on your account") : T("Pendiente", "Locked"));
+            rc_client_achievement_t image = {};
+            image.id = a.id; std::snprintf(image.badge_name, sizeof(image.badge_name), "%s", a.badge.c_str());
+            if (table) ImGui::TableNextColumn();
+            AchievementRow((int)a.id, a.title.c_str(), a.description.c_str(), unlocked, detail, OfficialAchievementBadge(&image, unlocked));
+            ++shown;
         }
+        if (table) ImGui::EndTable();
+        if (!shown) ImGui::TextDisabled("%s", T("No hay logros con ese filtro.", "No achievements match this filter."));
     }
     ImGui::EndChild();
 }
 
 static void PageAchievements() {
+    Eyebrow(T("LOGROS · KINGDOM HEARTS: CHAIN OF MEMORIES", "ACHIEVEMENTS · KINGDOM HEARTS: CHAIN OF MEMORIES"));
     const char* regions[] = {"EU · B8CP", "US · B8CE", "JP · B8CJ"};
     ImGui::SetNextItemWidth(Px(190));
-    ImGui::Combo(T("Región", "Region"), &sSelected, regions, 3);
-    if (sRaRomRegion != sSelected && !KhRaBusy(sRaUi)) {
+    ImGui::Combo(T("Progreso local", "Local progress"), &sSelected, regions, 3);
+    /* Browsing the EU catalog does not pretend that another cartridge is EU.
+       It uses the installed EU cartridge, independently of the local region. */
+    int catalogRegion = sState[0].installed ? 0 : sSelected;
+    if (sRaRomRegion != catalogRegion && !KhRaBusy(sRaUi)) {
         std::vector<unsigned char> rom;
-        if (ReadFile(RomPath(sSelected), rom)) KhRaSetRom(sRaUi, rom.data(), rom.size());
+        if (ReadFile(RomPath(catalogRegion), rom)) KhRaSetRom(sRaUi, rom.data(), rom.size());
         else KhRaSetRom(sRaUi, nullptr, 0);
-        sRaRomRegion = sSelected;
+        sRaRomRegion = catalogRegion;
     }
-    if (ImGui::BeginTabBar("achievement-modes")) {
-        if (ImGui::BeginTabItem(T("Logros locales", "Local achievements"))) { PageLocalAchievements(); ImGui::EndTabItem(); }
-        if (ImGui::BeginTabItem(T("Cuenta RetroAchievements", "RetroAchievements account"), nullptr,
-            sRaAccountShot ? ImGuiTabItemFlags_SetSelected : 0)) { PageOfficialAchievements(); ImGui::EndTabItem(); }
-        ImGui::EndTabBar();
-    }
+    if (sRaAccountShot) ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if (ImGui::CollapsingHeader(T("Cuenta RetroAchievements / iniciar sesión", "RetroAchievements account / sign in")))
+        PageAchievementAccount();
+    PageOfficialAchievements();
+    ImGui::Spacing();
+    PageLocalAchievements();
 }

@@ -33,6 +33,8 @@ def run(name, sources, flags=(), args=()):
                 '-Wl,-Bstatic', '-lwinpthread', '-Wl,-Bdynamic', '-o', str(exe)]
     subprocess.run(command, cwd=ROOT, check=True)
     subprocess.run([str(exe), *map(str, args)], cwd=folder, check=True)
+    if name.startswith('native-'):
+        subprocess.run([str(exe), 'invalidate'], cwd=folder, check=True)
 
 run('memory', ['port/src/port_ra_memory.c', 'port/tools/test_ra_memory.c'])
 run('local', ['port/achievements/local_achievements.c', 'port/tools/local_achievements_conformance.c'])
@@ -47,6 +49,8 @@ run('ra-client', ['port/tools/ra_client_conformance.c'],
     ['-DRC_CLIENT_SUPPORTS_HASH', *map(str, objects)], [rom] if rom.exists() else [])
 (OUT / 'report.json').write_text(json.dumps({
     'memory': 'PASS', 'local': 'PASS', 'native_regions': ['eu', 'us', 'jp'],
+    'local_triggers_per_region': 16,
+    'physical_console_execution': 'NOT TESTED: requires each device',
     'ra_contract': 'PASS', 'eu_rom_hash_and_synthetic_catalog': 'PASS' if rom.exists() else 'SKIPPED: ROM absent',
     'real_account_login': 'NOT TESTED', 'official_set_native_mapping': 'PENDING',
     'physical_controller': 'NOT TESTED',

@@ -10,6 +10,44 @@ int main(void) {
     KhToastLayout box, entering, leaving;
     const int sizes[][2] = {{240,160}, {640,360}, {1280,720}, {1920,1080}, {2560,1080}, {3840,2160}};
     unsigned i;
+    /* Exercise every condition independently, including its exact boundary.
+     * A high save loaded first must never produce a retroactive award. */
+    for (i = 0; i < KH_LOCAL_COUNT; ++i) {
+        KhLocalState fresh = {0}, baseline = {0};
+        KhLocalSnapshot below = {0}, above;
+        below.playing = 1; below.level = 1; below.max_hp = 80;
+        above = below;
+        switch (i) {
+        case 0: below.level = 9; above.level = 10; break;
+        case 1: below.level = 24; above.level = 25; break;
+        case 2: below.level = 49; above.level = 50; break;
+        case 3: below.level = 98; above.level = 99; break;
+        case 4: below.max_hp = 199; above.max_hp = 200; break;
+        case 5: below.cp = 499; above.cp = 500; break;
+        case 6: below.moogle_points = 999; above.moogle_points = 1000; break;
+        case 7: below.moogle_points = 9999; above.moogle_points = 10000; break;
+        case 8: below.friends = 3; above.friends = 4; break;
+        case 9: below.learned = 0x1ff; above.learned = 0x1ff; above.learned2 = 1; break;
+        case 10: below.card_kinds = (1ull << 19) - 1; above.card_kinds = (1ull << 20) - 1; break;
+        case 11: above.flags = 0x20; break;
+        case 12: above.flags = 0x808; below.flags = 8; break;
+        case 13: below.floor = 3; above.floor = 4; break;
+        case 14: below.floor = 7; above.floor = 8; break;
+        case 15: below.floor = 11; above.floor = 12; break;
+        }
+        assert(!KhLocalObserve(&fresh, &below, 1));
+        assert(KhLocalObserve(&fresh, &above, 2) == (1u << i));
+        assert(fresh.when[i] == 2 && !KhLocalObserve(&fresh, &above, 3));
+        assert(!KhLocalObserve(&baseline, &above, 4) && !baseline.unlocked);
+        assert(!KhLocalObserve(&baseline, &below, 5));
+        assert(!KhLocalObserve(&baseline, &above, 6));
+        if (i == 5 || i == 8 || i == 9 || i == 10 || i >= 13) {
+            memset(&fresh, 0, sizeof(fresh));
+            below.flags |= 8; above.flags |= 8;
+            assert(!KhLocalObserve(&fresh, &below, 1));
+            assert(!KhLocalObserve(&fresh, &above, 2));
+        }
+    }
     s.level = 99;
     assert(KhLocalObserve(&state, &s, 1) == 0 && !state.initialized);
     s.playing = 1;
@@ -45,6 +83,6 @@ int main(void) {
         assert(entering.y < box.y && entering.alpha > 0 && entering.alpha < 1);
         assert(leaving.y < box.y && leaving.alpha > 0 && leaving.alpha < 1);
     }
-    puts("PASS local achievements: transitions, no retroactive grants, persistence, corrupt data, six toast resolutions");
+    puts("PASS all 16 local triggers: exact boundaries, no duplicates/retroactive grants, Sora-only guards, persistence, corrupt data, six toast resolutions");
     return 0;
 }

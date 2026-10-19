@@ -208,6 +208,25 @@ static uint32_t ReadMemory(uint32_t address, uint8_t* out, uint32_t size, rc_cli
     return ra->read && !ra->invalidated ? ra->read(address, out, size, ra->userdata) : 0;
 }
 
+typedef struct KhRaImageRequest { KhRaImageCallback callback; void* userdata; } KhRaImageRequest;
+static void ImageResponse(const rc_api_server_response_t* response, void* userdata) {
+    KhRaImageRequest* request = (KhRaImageRequest*)userdata;
+    request->callback((const uint8_t*)response->body, response->body_length,
+                      response->http_status_code, request->userdata);
+    free(request);
+}
+int KhRaFetchImage(KhRa* ra, const char* url, KhRaImageCallback callback, void* userdata) {
+    rc_api_request_t api;
+    KhRaImageRequest* request;
+    if (!ra || !ra->enabled || ra->closing || !url || !callback) return 0;
+    request = (KhRaImageRequest*)calloc(1, sizeof(*request));
+    if (!request) return 0;
+    memset(&api, 0, sizeof(api)); api.url = url;
+    request->callback = callback; request->userdata = userdata;
+    ServerCall(&api, ImageResponse, request, ra->client);
+    return 1;
+}
+
 static void Event(const rc_client_event_t* event, rc_client_t* client) {
     KhRa* ra = (KhRa*)rc_client_get_userdata(client);
     if (event->type == RC_CLIENT_EVENT_ACHIEVEMENT_TRIGGERED && event->achievement)
