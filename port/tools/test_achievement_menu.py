@@ -34,15 +34,15 @@ for region, width, height in [('eu', 240, 160), ('eu', 640, 360), ('eu', 1920, 1
     env.update(SDL_VIDEO_DRIVER='dummy', SDL_AUDIO_DRIVER='dummy', KHCOM_FAST='1',
         KHCOM_WINDOW=f'{width}x{height}', KHCOM_OPTIONS_TOGGLE='100', KHCOM_OPTIONS_SHOT='999999',
         KHCOM_OPTIONS_HOLD='15', KHCOM_ACHIEVEMENTS_SHOT='1', KHCOM_QUIT='101',
-        KHCOM_ACHIEVEMENT_KEYS='1:1073741905,2:1073741903,3:1073741903,4:9,5:1073741905,6:8')
+        KHCOM_ACHIEVEMENT_KEYS='1:1073741905,2:1073741906,3:1073741906,4:1073741903,5:1073741903,6:9,7:1073741905,8:8')
     rom = ROOT / ('roms/' + {'eu': 'B8CP', 'us': 'B8CE', 'jp': 'B8CJ'}[region] + '.gba')
     subprocess.run([str(ROOT / f'build/ra-{region}/khcom.exe'), '--rom', str(rom), '--data-dir', str(work),
                     '--language', 'es'], cwd=work, env=env, check=True, timeout=60)
     log = (work / 'kh_com.log').read_text(encoding='utf-8', errors='replace')
-    for state in ['group=0 filter=0 choice=1', 'group=0 filter=1 choice=0',
+    for state in ['group=0 filter=0 choice=1', 'group=0 filter=0 choice=15', 'group=0 filter=1 choice=0',
                   'group=0 filter=2 choice=0', 'group=1 filter=2 choice=0']:
         assert state in log, (region, state)
-    shots = sorted(work.glob('options_*.bmp')); assert len(shots) >= 6
+    shots = sorted(work.glob('options_*.bmp')); assert len(shots) >= 8
     for shot in shots:
         with Image.open(shot) as im: im.save(shot.with_suffix('.png'))
     assert local.read_bytes() == original, 'Browsing must not change awards'

@@ -165,3 +165,12 @@ direcciones directas y la validación de las referencias modificadas/indirectas.
 Estos números no son porcentaje de logros funcionando: ningún logro oficial se
 habilita hasta validar el grafo completo y los objetos apuntados. El informe
 build/ra-reference-audit/summary.json marca official_evaluation=DISABLED.
+
+
+El ejecutable de auditoría también puede conservar las definiciones públicas
+para repetir validaciones sin red: el linker envuelve exclusivamente la función
+parseadora de game sets dentro de ese ejecutable de herramientas. Solo exporta
+ID y definición, con escape JSON; no se cambia el cliente usado en el juego.
+Se verificaron 91 definiciones y sus claves exactas, sin campos de cuenta. Los
+90 grafos que leen memoria producen el inventario de referencias; el aviso de
+sistema no contiene referencias RAM. No se versionan esos datos descargados.

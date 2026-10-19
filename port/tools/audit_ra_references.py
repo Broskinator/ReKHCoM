@@ -31,7 +31,8 @@ if not args.offline:
         '-I' + str(ROOT / 'port/third_party/rcheevos/include'),
         str(ROOT / 'port/tools/audit_ra_references.c'), *map(str, objects),
         '-L' + str(sdl / 'lib'), '-lSDL3', '-lwinhttp', '-lcrypt32',
-        '-Wl,-Bstatic', '-lwinpthread', '-Wl,-Bdynamic', '-o', str(out / 'audit.exe')], check=True)
+        '-Wl,-Bstatic', '-lwinpthread', '-Wl,-Bdynamic',
+        '-Wl,--wrap=rc_api_process_fetch_game_sets_server_response', '-o', str(out / 'audit.exe')], check=True)
     shutil.copy2(sdl / 'bin/SDL3.dll', out / 'SDL3.dll')
     subprocess.run([str(out / 'audit.exe'), str(args.data_dir.resolve()), str(args.rom.resolve()),
                     str(out / 'references.csv')], cwd=out, check=True, timeout=45)
