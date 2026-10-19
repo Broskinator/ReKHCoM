@@ -2184,6 +2184,10 @@ void DisableBg(s32 bg) {
 void SetupBg(s32 bg, u8 charBase, u8 screenBase, u8 palette) {
     vu16* control = sBgControl[bg];
 
+#ifdef PLATFORM_PC
+    /* a new owner sets the layer up: no docking left over from the last one */
+    PortSetBgShiftX(bg, 0);
+#endif
     *control = (*control & ~BGCNT_CHARBASE_MASK) | BGCNT_CHARBASE(charBase);
     *control = (*control & ~BGCNT_SCREENBASE_MASK) | BGCNT_SCREENBASE(screenBase);
     gBgPaletteBank[bg] = palette;

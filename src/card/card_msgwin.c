@@ -274,6 +274,11 @@ static void msgwin_2(CardMsgWinWork* work) {
 }
 
 static void msgwin_3(CardMsgWinWork* work) {
+#ifdef PLATFORM_PC
+    /* the window is gone: its layer is no longer docked beside the portrait
+       (a save window drawn on it later would sit shifted by the margin) */
+    PortSetBgShiftX(work->args.bg, 0);
+#endif
     FreeCardMsgGlyphSprites();
 
     if (work->tiles3 != NULL) {
