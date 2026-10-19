@@ -155,6 +155,22 @@ static void DryRunFrame(void) {
     if (sDryReady == 1) {
         ++sDryFrame;
         rc_runtime_do_frame(&sDryRuntime, DryEvent, DryPeek, NULL, NULL);
+        /* KHCOM_RA_WATCH=1: the battle graphs' operands, logged when they change
+           (mode argument, world, card battle root and its +0xCC, the effect
+           root's -0x330 and -0x174 neighbours as the official AddAddress reads) */
+        if (SDL_getenv("KHCOM_RA_WATCH")) {
+            static char last[160];
+            char line[160];
+            uint32_t fx = DryPeek(0x3CA28, 3, NULL), cbs = DryPeek(0x423E4, 3, NULL);
+            SDL_snprintf(line, sizeof(line), "arg=%u world=%u cbs=%06x cbs+cc=%u fx=%06x fx-330=%u fx-174=%u",
+                         (unsigned)DryPeek(0x749C, 2, NULL), (unsigned)DryPeek(0x42346, 1, NULL), (unsigned)cbs,
+                         (unsigned)(cbs ? DryPeek(cbs + 0x80CC, 2, NULL) : 0), (unsigned)fx,
+                         (unsigned)(fx ? DryPeek(fx + 0x7CD0, 2, NULL) : 0), (unsigned)(fx ? DryPeek(fx + 0x7E8C, 2, NULL) : 0));
+            if (SDL_strcmp(line, last) != 0) {
+                SDL_strlcpy(last, line, sizeof(last));
+                PortLog("ra-watch: frame %u %s", sDryFrame, line);
+            }
+        }
     }
 }
 #endif

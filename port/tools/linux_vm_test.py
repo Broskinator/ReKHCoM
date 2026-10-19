@@ -157,7 +157,8 @@ def main():
                 time.sleep(args.poll)
                 out, _ = con.run('echo EXIT=$(cat /root/.bgexit 2>/dev/null); tail -c 400 /root/.bglog | tail -2', 60)
                 code = re.search(r'EXIT=(\d+)', out)
-                tail = re.sub(r'EXIT=\d*', '', out.rsplit('__DONE_', 1)[0]).strip()
+                tail = re.sub(r'\x1b\[[0-9;?]*[A-Za-z]|EXIT=\d*', '', out.rsplit('__DONE_', 1)[0])
+                tail = '\n'.join(l for l in tail.splitlines() if l.strip() and not l.startswith('#')).strip()
                 print(f'[{int(time.time() - started)} s] {tail[-200:]}', flush=True)
                 if code:
                     out, _ = con.run('tail -40 /root/.bglog', 60)

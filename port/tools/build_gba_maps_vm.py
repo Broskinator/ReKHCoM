@@ -2,11 +2,12 @@
 """Build the original GBA ROMs with the decomp inside the Debian VM and fetch their link maps.
 
 The maps give the cartridge address of every IWRAM/EWRAM variable, which the
-RetroAchievements layer uses to project the port's globals onto the GBA memory
+RetroAchievements layer uses (with the ELF symbol tables, which also list
+the static variables the map leaves out) to project the port's globals onto the GBA memory
 map (port/progress/LOGROS_71_VIA_RAPIDA.md). Each ROM is checked against its
 sha1 by the decomp's own build; only the maps leave the VM.
 
-    python port/tools/build_gba_maps_vm.py            # -> build/gba-maps/com_{eu,us,jp}.map
+    python port/tools/build_gba_maps_vm.py            # -> build/gba-maps/com_{eu,us,jp}.{map,elf}
 
 Needs: a clean tree (the source is HEAD), roms/B8CP.gba, B8CE.gba and B8CJ.gba,
 the VM image D:/ReKHCoM-build/ps5/ps5env.qcow2 (network for the first run:
@@ -55,7 +56,7 @@ for v in us eu jp; do
   python3 tools/extract_assets.py $v
   python3 configure.py --version $v > /dev/null
   ninja -j"$(nproc)"
-  cp build/$v/com_$v.map /root/gba-maps/
+  cp build/$v/com_$v.map build/$v/com_$v.elf /root/gba-maps/
   sha1sum build/$v/com_$v.gba | tee -a /root/gba-maps/sha1.txt
 done
 tar -cf /root/gba-maps.tar -C /root gba-maps
@@ -84,7 +85,7 @@ def main():
     fetched = args.out / 'fetch'
     command = [sys.executable, str(ROOT / 'port/tools/linux_vm_test.py'), '--share', str(SHARE),
                '--disk', str(IMAGE), '--net', '--mem', args.mem, '--cpus', args.cpus,
-               '--bg-run', 'bash /root/share/build-gba.sh', '--poll', '30', '--stall', '900',
+               '--bg-run', 'bash /root/share/build-gba.sh', '--poll', '30', '--stall', '1800',
                '--fetch', '/root/gba-maps.tar', '--out', str(fetched)]
     subprocess.run(command, cwd=ROOT, check=True, env=dict(os.environ, MSYS_NO_PATHCONV='1', PYTHONUTF8='1'))
     package = fetched / 'gba-maps.tar'

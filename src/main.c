@@ -428,6 +428,15 @@ int PortHarnessMode(const char* name, int arg) {
         SetCardKindObtained(arg);
         return 1;
     }
+    /* battleid:ID|WORLD<<8 - any battle in a given world, as PortRematchBegin
+       starts one (official achievement validation, ra_battle_dryrun.py) */
+    if (strcmp(name, "battleid") == 0) {
+        extern u8 gWorldBattleStages[];
+        gGameState.world = (u8)(arg >> 8);
+        gGameState.battleStage = gWorldBattleStages[gGameState.world];
+        ModeRequest(&gModeBattle, arg & 0xFF);
+        return 1;
+    }
     if (strcmp(name, "rematch") == 0) {
         extern int PortRematchStart(int i);
         return PortRematchStart(arg);
@@ -632,6 +641,18 @@ int PortHarnessMode(const char* name, int arg) {
                 obj->flags |= BTLOBJ_FLAG_DAMAGE_PENDING;
             }
             obj = ListPoolNext(&obj->node);
+        }
+        return 1;
+    }
+    /* playerkill: the player takes a hit worth all its HP through the same
+       damage route, so the battle is lost as a real hit would lose it */
+    if (strcmp(name, "playerkill") == 0 && gBtlWork != NULL && gBtlWork->actor != NULL
+        && strcmp(PortHarnessModeName(), "mode_battle") == 0) {
+        BtlObj* actor = gBtlWork->actor;
+        if (actor->hp > 0) {
+            actor->invincibleTimer = 0;
+            actor->damage = actor->hp;
+            actor->flags |= BTLOBJ_FLAG_DAMAGE_PENDING;
         }
         return 1;
     }
