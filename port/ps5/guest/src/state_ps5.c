@@ -159,6 +159,24 @@ void PortStateRequestLoad(const char* path) {
     sPendingLoad = 1;
 }
 
+/* Boss rematches (port_rematch.c): a request without notices, its result kept,
+   as port_state.c does on PC. */
+static int sQuiet, sLastResult;
+
+void PortStateRequestQuiet(int load, const char* path) {
+    SDL_strlcpy(sPendingPath, path, sizeof(sPendingPath));
+    if (load) sPendingLoad = 1; else sPendingSave = 1;
+    sQuiet = 1;
+}
+
+int PortStateBusy(void) {
+    return sPendingSave || sPendingLoad;
+}
+
+int PortStateLastResult(void) {
+    return sLastResult;
+}
+
 /* Called at the top of every frame; acts only at the main loop's wait. */
 void PortStateService(void) {
     char msg[96];
@@ -170,16 +188,21 @@ void PortStateService(void) {
         sPendingSave = 0;
         r = Save(sPendingPath);
         PortLog("state: save %s -> %s", sPendingPath, r ? "ok" : "failed");
+        sLastResult = r;
         SDL_snprintf(msg, sizeof(msg), r ? "State %d saved" : "State %d: save failed", gPortStateSlot);
-        PortUiNotice(msg);
+        if (!sQuiet)
+            PortUiNotice(msg);
     }
     if (sPendingLoad) {
         sPendingLoad = 0;
         r = Load(sPendingPath);
         PortLog("state: load %s -> %d", sPendingPath, r);
+        sLastResult = r;
         SDL_snprintf(msg, sizeof(msg),
                      r > 0 ? "State %d loaded" : (r < 0 ? "State %d: other version" : "State %d: empty"),
                      gPortStateSlot);
-        PortUiNotice(msg);
+        if (!sQuiet)
+            PortUiNotice(msg);
     }
+    sQuiet = 0;
 }
