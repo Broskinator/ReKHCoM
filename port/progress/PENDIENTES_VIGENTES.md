@@ -12,12 +12,19 @@ conservada para poder rastrear. Reglas del usuario:
 - Nunca borrar carpetas ReKHCoM-vX sin pedirlo el usuario (18/10: autorizó borrar
   las antiguas dejando 3; respaldo de guardados en backups/).
 
-## Reparto actual (19/10, tras v1.9.8)
+## Reparto actual (19/10, mañana)
 
 | Quién | Puntos |
 |---|---|
-| **Claude** | 71 logros oficiales restantes; 51–54 alphas de consolas; 39 rutas |
+| **Claude** | 1) 72 cristal del primer cuarto tras el tutorial: el usuario ve otra posición que en el emulador; se está comprobando en el original desde el inicio con el .vbm (SRAM limpia) si esa sala sale siempre igual; si es así, corregir la causa en el port; 2) v1.9.9 estable (empaquetada salvo PS5/web; se publica con release_check.py); 3) 71 logros oficiales restantes; 4) 51–54 alphas de consolas; 5) 39 rutas |
 | **Codex** | 61–62 escenas de Ciudad de Paso; 16–24 arte de jefes |
+
+Hecho del 19/10 (madrugada/mañana): v1.9.8 publicada y pasada a prerelease (no aprobada
+como estable); 21/90 logros oficiales activos; menú de Opciones ya no lee reproductores
+nulos (crash en Android); confirmar/cancelar en la pausa de escenas con los sonidos del
+juego; truco «llenar colección» quitado (rompía el menú); PS5 vuelve a compilar
+(estados silenciosos para las revanchas); la web publica logo y portada; release_check.py
+bloquea publicaciones incompletas (web, PS5, versiones).
 
 ## Pendientes para el futuro
 
