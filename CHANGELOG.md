@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Fix crash when highlighting the boss-only Marluxia card after the all-cards cheat
+  (#21); existing saves remain browsable and cheats/editors exclude that internal card.
+
 - Achievements: direct catalog with cached badges (grey when locked, colour when earned);
   account login remains in the launcher. Official online awards/Hardcore remain disabled.
 - Options → Achievements: read-only local progress and the launcher's last official

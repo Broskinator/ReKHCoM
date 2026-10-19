@@ -29,16 +29,18 @@ function loadEditorSlot(){
 $('editor-slot').addEventListener('change',()=>{if(editorSave)editorDrafts.set(editorSave.file,editorSave.block.slice());loadEditorSlot();});
 for(let i=0;i<ReKHCards.maps.length;i++){const o=document.createElement('option');o.value=i;o.textContent=ReKHCards.maps[i];$('editor-map-kind').append(o);}
 for(const id of ['editor-map-value','editor-card-value'])for(let v=0;v<10;v++){const o=document.createElement('option');o.value=v;o.textContent=v;$(id).append(o);}
+// Player kinds end at Ansem (97); Marluxia 2 (95) belongs to the boss deck.
+function editableBattleCard(c){return c[0]<=97&&c[0]!==95&&c[3]<=3&&!(c[1]&0x18);}
 const editableKinds=new Map();
-ReKHCards.cards.forEach((card,id)=>{if(card[3]<=3&&!(card[1]&0x18)&&!editableKinds.has(card[0]))editableKinds.set(card[0],id);});
+ReKHCards.cards.forEach((card,id)=>{if(editableBattleCard(card)&&!editableKinds.has(card[0]))editableKinds.set(card[0],id);});
 for(const kind of editableKinds.keys()){const o=document.createElement('option');o.value=kind;o.textContent=ReKHCards.kinds[kind];$('editor-card-kind').append(o);}
 function refreshMapCard(){if(editorSave)$('editor-map-count').value=editorSave.getMap(Number($('editor-map-kind').value)*10+Number($('editor-map-value').value));}
 $('editor-map-kind').addEventListener('change',refreshMapCard);$('editor-map-value').addEventListener('change',refreshMapCard);
 $('editor-map-count').addEventListener('input',()=>{const input=$('editor-map-count');if(editorSave&&input.value!==''&&input.validity.valid){editorSave.setMap(Number($('editor-map-kind').value)*10+Number($('editor-map-value').value),Number(input.value));renderEditorChanges();}});
 $('editor-map-count').addEventListener('change',()=>{if(!editorSave)return;editorSave.setMap(Number($('editor-map-kind').value)*10+Number($('editor-map-value').value),Number($('editor-map-count').value));refreshMapCard();renderEditorChanges();});
-function currentBattleCard(){return ReKHCards.cards.findIndex(c=>c[0]===Number($('editor-card-kind').value)&&c[2]===Number($('editor-card-value').value)&&c[3]<=3&&!(c[1]&0x18));}
+function currentBattleCard(){return ReKHCards.cards.findIndex(c=>c[0]===Number($('editor-card-kind').value)&&c[2]===Number($('editor-card-value').value)&&editableBattleCard(c));}
 function refreshBattleCard(){
-  const kind=Number($('editor-card-kind').value),values=ReKHCards.cards.filter(c=>c[0]===kind&&c[3]<=3&&!(c[1]&0x18)).map(c=>c[2]);
+  const kind=Number($('editor-card-kind').value),values=ReKHCards.cards.filter(c=>c[0]===kind&&editableBattleCard(c)).map(c=>c[2]);
   for(const option of $('editor-card-value').options)option.disabled=!values.includes(Number(option.value));
   if(!values.includes(Number($('editor-card-value').value)))$('editor-card-value').value=values[0];
   const id=currentBattleCard(),canvas=$('card-sprite'),ctx=canvas.getContext('2d');ctx.clearRect(0,0,16,32);

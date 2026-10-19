@@ -99,7 +99,8 @@ int PortCheatMapCards(void) {
 /* a card Sora can own: attack, magic, summon, item or enemy */
 static int CollectableCard(int id) {
     const CardDef* def = &gCardDefs[id];
-    return def->kind <= CARD_KIND_ANSEM && !(def->flags & (CARD_DEF_FLAG_FRIEND | CARD_DEF_FLAG_GIMMICK)) &&
+    /* Marluxia 2 is a boss-only card: kind 95 has no menu description. */
+    return def->kind <= CARD_KIND_ANSEM && def->kind != CARD_KIND_MARLUXIA_2 && !(def->flags & (CARD_DEF_FLAG_FRIEND | CARD_DEF_FLAG_GIMMICK)) &&
            def->category <= CARD_CATEGORY_ENEMY;
 }
 

@@ -231,8 +231,15 @@ void LoadRikuCardDescriptionText(RikuDeckMenuWork* work, u16 card) {
     void* description;
 
     def = &gCardDefs[card];
+#ifdef PLATFORM_PC
+    description = def->kind < ARRAY_COUNT(gCardKindDescriptions) ? gCardKindDescriptions[def->kind] : NULL;
+    /* Cheats/old edited saves may contain the boss-only Marluxia 2 card,
+       whose cartridge description is NULL. Do not localize/dereference it. */
+    work->textSlotCount5 = description ? LoadTextSlots(LANGSTR(description), work->textSlots5) : 0;
+#else
     description = gCardKindDescriptions[def->kind];
     work->textSlotCount5 = LoadTextSlots(LANGSTR(description), work->textSlots5);
+#endif
 }
 
 u8 UpdateRikuDeckMenuLoadBgs(RikuDeckMenuWork* work, void* task) {

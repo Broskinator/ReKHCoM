@@ -259,7 +259,8 @@ static void PageEditor() {
             std::vector<int> kinds;
             for (int id = 0; id < Cards::kCardCount; id++) {
                 const Cards::Card& c = Cards::kCards[id];
-                if (c.category <= 3 && !(c.flags & (0x8 | 0x10)) &&
+                /* Card kinds 0..97 are player kinds, except boss-only Marluxia 2 (95). */
+                if (c.kind <= 97 && c.kind != 95 && c.category <= 3 && !(c.flags & (0x8 | 0x10)) &&
                     std::find(kinds.begin(), kinds.end(), c.kind) == kinds.end())
                     kinds.push_back(c.kind);
             }

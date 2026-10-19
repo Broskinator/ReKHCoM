@@ -30,8 +30,11 @@ Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora
 
 ## 2. Codex
 
-- **#21 (issue):** con «todas las cartas de batalla» y el editor de mazo, pasar por la
-  segunda carta de Marluxia (retrato de jefe) crashea. En curso.
+- **#21 (issue, Codex, listo para integrar):** corregido crash de Marluxia 2.
+  Truco/editor excluyen la carta interna; las vistas de Sora/Riku/intercambio
+  comprueban rango y descripción nula para guardados existentes. EU/US/JP
+  compilan; 8.550 vistas dirigidas pasan. Evidencia: ISSUE_21_MARLUXIA.md.
+  Claude: incluir en v1.9.8 y responder/cerrar el issue al publicar.
 - **27 logros:** catálogo, imágenes, 16 disparos por región y menú in-game listos; falta
   validar memoria/set oficial y Level 1.
 - **55 web:** opciones del launcher en pestañas y estética del juego; commiteada, espera

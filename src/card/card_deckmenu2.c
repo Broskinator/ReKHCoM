@@ -5265,8 +5265,15 @@ void LoadCardDescriptionText(DeckMenuWork* work, u16 index) {
     void* description;
 
     def = &gCardDefs[index];
+#ifdef PLATFORM_PC
+    description = def->kind < ARRAY_COUNT(gCardKindDescriptions) ? gCardKindDescriptions[def->kind] : NULL;
+    /* Cheats/old edited saves may contain the boss-only Marluxia 2 card,
+       whose cartridge description is NULL. Do not localize/dereference it. */
+    work->textSlotCount5 = description ? LoadTextSlots(LANGSTR(description), work->textSlots5) : 0;
+#else
     description = gCardKindDescriptions[def->kind];
     work->textSlotCount5 = LoadTextSlots(LANGSTR(description), work->textSlots5);
+#endif
 }
 
 s32 ShowCollectionCardPreview(DeckMenuWork* work) {

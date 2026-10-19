@@ -2084,7 +2084,13 @@ void LoadDeckExchangeCardDescriptionText(DeckExchangeWork* work, u16 index) {
     const CardDef* def;
 
     def = &gCardDefs[index];
+#ifdef PLATFORM_PC
+    /* Boss-only cards from old edited saves have no description. */
+    work->textSlotCount5 = def->kind < ARRAY_COUNT(gCardKindDescriptions) && gCardKindDescriptions[def->kind] ?
+        LoadTextSlots((void*)gCardKindDescriptions[def->kind], work->textSlots5) : 0;
+#else
     work->textSlotCount5 = LoadTextSlots((void*)gCardKindDescriptions[def->kind], work->textSlots5);
+#endif
 }
 
 void SetDeckExchangeGridRowCount(DeckExchangeWork* work, s16 cardCount) {
