@@ -21,7 +21,7 @@ static uint32_t PortRaRead(uint32_t address, uint8_t* out, uint32_t size, void* 
 }
 #ifdef VERSION_EU
 /* Official achievements whose reads are all verified (build/ra-reference-audit/enable.json). */
-static const uint32_t sOfficialVerified[] = { 15580u, 15582u, 15584u, 15585u, 15587u, 15588u, 15590u, 15592u, 15595u, 15597u, 15598u, 15599u, 15600u, 15612u, 156793u, 160372u, 160403u, 160404u, 160405u, 160406u, 160407u, 160408u, 160409u };
+static const uint32_t sOfficialVerified[] = { 15580u, 15582u, 15584u, 15585u, 15587u, 15588u, 15590u, 15592u, 15595u, 15597u, 15598u, 15599u, 15600u, 15612u, 156793u, 160363u, 160365u, 160367u, 160369u, 160372u, 160376u, 160403u, 160404u, 160405u, 160406u, 160407u, 160408u, 160409u };
 #endif
 #endif
 
@@ -89,9 +89,82 @@ void PortAchievementsInvalidate(const char* reason) {
 #endif
 }
 
+#ifdef PORT_RETROACHIEVEMENTS
+/* Test harness (KHCOM_RA_DRYRUN=definitions.json, the catalog audit_ra_references.py
+   saved): every official achievement is evaluated each frame against the port's
+   memory with rcheevos' own runtime, offline, and each trigger is logged
+   ("ra-dryrun: trigger <id> frame <n>"). Nothing is submitted; no account. */
+#include "rc_runtime.h"
+static rc_runtime_t sDryRuntime;
+static int sDryReady = -1;
+static unsigned sDryFrame;
+
+static uint32_t DryPeek(uint32_t address, uint32_t bytes, void* ud) {
+    uint8_t b[4] = { 0, 0, 0, 0 };
+    (void)ud;
+    if (bytes > 4 || !PortRaReadMemory(address, b, bytes))
+        return 0;
+    return b[0] | (uint32_t)b[1] << 8 | (uint32_t)b[2] << 16 | (uint32_t)b[3] << 24;
+}
+
+static void DryEvent(const rc_runtime_event_t* event) {
+    if (event->type == RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED)
+        PortLog("ra-dryrun: trigger %u frame %u", (unsigned)event->id, sDryFrame);
+}
+
+static void DryRunFrame(void) {
+    const char* path = SDL_getenv("KHCOM_RA_DRYRUN");
+    if (!path)
+        return;
+    if (sDryReady < 0) {
+        size_t size = 0;
+        char* json = (char*)SDL_LoadFile(path, &size);
+        char* p = json;
+        int count = 0;
+        sDryReady = 0;
+        if (!json)
+            return;
+        rc_runtime_init(&sDryRuntime);
+        /* [{"id": N, "definition": "..."}, ...] */
+        while (p && (p = SDL_strstr(p, "\"id\":")) != NULL) {
+            unsigned id;
+            char* d;
+            char* e;
+            p += 5;
+            while (*p == ' ') p++;
+            id = (unsigned)SDL_strtoul(p, NULL, 10);
+            d = SDL_strstr(p, "\"definition\":");
+            if (!d)
+                break;
+            d += 13;
+            while (*d == ' ') d++;
+            if (*d++ != '"')
+                break;
+            e = SDL_strchr(d, '"');
+            if (!e)
+                break;
+            *e = 0;
+            if (id != 101000001u && rc_runtime_activate_achievement(&sDryRuntime, id, d, NULL, 0) == RC_OK)
+                count++;
+            p = e + 1;
+        }
+        PortLog("ra-dryrun: %d official achievements active", count);
+        SDL_free(json);
+        sDryReady = 1;
+    }
+    if (sDryReady == 1) {
+        ++sDryFrame;
+        rc_runtime_do_frame(&sDryRuntime, DryEvent, DryPeek, NULL, NULL);
+    }
+}
+#endif
+
 void PortAchievementsFrame(void) {
     KhLocalSnapshot snapshot;
     int i;
+#ifdef PORT_RETROACHIEVEMENTS
+    DryRunFrame();
+#endif
     ++sPreviewFrame;
     if (SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW") &&
         sPreviewFrame == (unsigned)SDL_atoi(SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW")))

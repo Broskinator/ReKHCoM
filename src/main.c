@@ -606,6 +606,20 @@ int PortHarnessMode(const char* name, int arg) {
         }
         return 1;
     }
+    /* bosskill: every enemy takes a hit worth all its HP through the game's own
+       damage route (ApplyBtlObjHit), so it is defeated as a real hit would */
+    if (strcmp(name, "bosskill") == 0 && gBtlWork != NULL
+        && strcmp(PortHarnessModeName(), "mode_battle") == 0) {
+        BtlObj* obj = ListPoolFirst(&gBtlWork->pool);
+        while (obj != NULL) {
+            if (obj != gBtlWork->actor && obj->hp > 0 && obj->maxHp > 0) {
+                obj->damage = obj->hp;
+                obj->flags |= BTLOBJ_FLAG_DAMAGE_PENDING;
+            }
+            obj = ListPoolNext(&obj->node);
+        }
+        return 1;
+    }
     /* battleend: the same closing sequence without a level up, for the exit */
     if ((strcmp(name, "levelup") == 0 || strcmp(name, "battleend") == 0) && gBtlWork != NULL) {
         /* The debug battle menu maxes every stat; restore selectable reward

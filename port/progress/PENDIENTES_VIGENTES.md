@@ -17,7 +17,7 @@ conservada para poder rastrear. Reglas del usuario:
 | Quién | Puntos |
 |---|---|
 | **Claude** | 1) v1.9.9 estable con release_check.py; 2) 51–54 alphas de consolas |
-| **ChatGPT/Codex** | 1) 71 logros oficiales restantes (67/90): validar con BizHawk las cadenas gBtlWork/gCardBattleState→heap, Pooh 0x0203C9D4, piso 0x0203CB86, IWRAM 0x03002D00 y activarlos en sOfficialVerified (port_achievements.c); herramientas ra_layout.py, ra_layout_check.py, ra_witness.py, bizhawk_*.lua; 2) 61–62 escenas de Ciudad de Paso; 3) 39 rutas completas; 4) 16–24 arte de jefes |
+| **ChatGPT/Codex** | 1) 71 logros oficiales restantes (62/90; jefes: `ra_boss_dryrun.py` filas 1 y 6–13): validar con BizHawk las cadenas gBtlWork/gCardBattleState→heap, Pooh 0x0203C9D4, piso 0x0203CB86, IWRAM 0x03002D00 y activarlos en sOfficialVerified (port_achievements.c); herramientas ra_layout.py, ra_layout_check.py, ra_witness.py, bizhawk_*.lua; 2) 61–62 escenas de Ciudad de Paso; 3) 39 rutas completas; 4) 16–24 arte de jefes |
 
 Hecho del 19/10 (madrugada/mañana): v1.9.8 publicada y pasada a prerelease (no aprobada
 como estable); 23/90 logros oficiales activos; menú de Opciones ya no lee reproductores
@@ -28,7 +28,13 @@ bloquea publicaciones incompletas (web, PS5, versiones).
 
 ## Pendientes para el futuro
 
-- **71 RetroAchievements:** 23/90 oficiales activos (los que solo leen GameState,
+- **71 RetroAchievements:** 28/90 oficiales activos (19/10: +5 jefes validados con
+  `ra_boss_dryrun.py`, que evalúa las 90 definiciones oficiales sin conexión con
+  KHCOM_RA_DRYRUN y derrota al jefe por la vía de daño del propio juego (`bosskill`):
+  Guard Armor 160363, Jafar 160365, Hades 160369, Úrsula 160376, Parasite Cage 160367
+  saltan justo al derrotarlo y nunca en el control. Trickmaster 160364 y Oogie no saltan
+  (condición extra; Trickmaster resetea con 0x02034000 = sKeyReleaseSelect); filas 7–13
+  sin probar.) Antes: 23/90 (los que solo leen GameState,
   teclas, modo y el estado del título; añadido 160372 de Pooh por Codex). Faltan 67: dependen de cadenas desde
   gBtlWork/gCardBattleState hacia el heap (48+7), heap fijo 0x02033BC8 (3), Pooh
   0x0203C9D4, piso 0x0203CB86, IWRAM 0x03002D00 y 0x0203A6xx. Validar comparando la
@@ -41,6 +47,10 @@ bloquea publicaciones incompletas (web, PS5, versiones).
 - **39:** rutas completas Sora y Reverse/Rebirth.
 
 ## Cerrados hoy (referencia)
+
+72 paridad de cristal en 4 semillas (19/10, `crystal_parity.py`): 0x2242C2F1, 0x3A4A4A40,
+0x5F5E1000 y 0xA344A3F9 dan 3 posiciones distintas y el original (BizHawk, US) tiene el
+cristal en la misma posición que el port en las 4.
 
 72 cristal/faroles (prueba definitiva en el GBA, 19/10): con la partida del usuario y solo la
 semilla de la sala cambiada a la de su prueba del port (0x2242C2F1, save_reseed.py), el
