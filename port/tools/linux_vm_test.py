@@ -1,14 +1,15 @@
 """Smoke-test a Linux bundle inside a QEMU VM (Debian nocloud image).
 
 The shared folder is exposed read-only as a FAT disk; the VM copies it to
-its own disk, runs the commands given with --run, and prints files listed
-with --fetch back over the serial console (base64), saved to --out.
+its own disk, runs the commands given with --run, and writes the files listed
+with --fetch as a tar archive onto a raw "outbox" disk, which is read back here
+and saved to --out (the serial console is read a byte at a time: a 28 MB PS5
+package in base64 through it took hours).
 
     python port/tools/linux_vm_test.py --share D:/ReKHCoM-build/linux/vmshare \
         --run "cd /root/share/ReKHCoM && KHCOM_FAST=1 ./ReKHCoM.sh" --fetch /root/share/ReKHCoM/kh_com.log
 """
 import argparse
-import base64
 import queue
 import re
 import subprocess
@@ -110,17 +111,22 @@ def main():
                                    '-b', str(IMAGES[args.machine]), str(args.disk), args.disk_size])
         system = f'file={args.disk},if=virtio'
     nic = ['-nic', 'user,model=virtio-net-pci'] if args.net else ['-nic', 'none']
+    # Outbox for --fetch: a raw disk (/dev/vdc) the guest writes a tar archive to.
+    outbox = image.with_name(image.stem + '-outbox.img')
+    with open(outbox, 'wb') as fh:
+        fh.truncate(1 << 30)
+    outdrive = ['-drive', 'file=' + str(outbox).replace(chr(92), '/') + ',format=raw,if=virtio']
     if args.machine == 'x86_64':
         cmd = [str(QEMU / 'qemu-system-x86_64.exe'), '-m', args.mem, '-smp', args.cpus, '-accel', args.accel,
                '-accel', 'tcg', '-drive', system,
-               '-drive', f'file={share},format=raw,if=virtio,readonly=on', '-nographic', *nic]
+               '-drive', f'file={share},format=raw,if=virtio,readonly=on', *outdrive, '-nographic', *nic]
     else:
         # cortex-a53 like the H700; virtio-gpu gives the kernel a /dev/fb0.
         cmd = [str(QEMU / 'qemu-system-aarch64.exe'), '-M', 'virt', '-cpu', 'cortex-a53', '-m', '1024', '-smp', '2',
                '-device', 'virtio-gpu-pci',
                '-bios', str(QEMU / 'share/edk2-aarch64-code.fd'),
                '-drive', system,
-               '-drive', f'file={share},format=raw,if=virtio,readonly=on', '-nographic', *nic]
+               '-drive', f'file={share},format=raw,if=virtio,readonly=on', *outdrive, '-nographic', *nic]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     con = Console(proc)
     try:
@@ -136,17 +142,24 @@ def main():
             out, code = con.run(c, args.run_timeout)
             print(f'$ {c}\n{out.strip()}\n[exit {code}]', flush=True)
         args.out.mkdir(parents=True, exist_ok=True)
-        for f in args.fetch:
-            out, code = con.run(f'echo BEGIN64; base64 -w0 {f}; echo; echo END64')
-            m = re.search(r'BEGIN64\s*([A-Za-z0-9+/=\s]*?)\s*END64', out)
-            if code == 0 and m:
-                data = base64.b64decode(re.sub(r'\s', '', m.group(1)))
-                (args.out / Path(f).name).write_bytes(data)
-                print('fetched', f, len(data), 'bytes')
-            else:
-                print('could not fetch', f)
+        if args.fetch:
+            names = ' '.join(f.lstrip('/') for f in args.fetch)
+            out, code = con.run(f'tar -cf /dev/vdc -C / {names}; sync', 600)
+            print(f'# outbox tar [exit {code}] {out.strip()[-300:]}', flush=True)
         con.send('poweroff\n')
         proc.wait(120)
+        if args.fetch:
+            import tarfile
+            with tarfile.open(outbox) as t:
+                for f in args.fetch:
+                    try:
+                        data = t.extractfile(f.lstrip('/')).read()
+                    except (KeyError, AttributeError):
+                        print('could not fetch', f)
+                        continue
+                    (args.out / Path(f).name).write_bytes(data)
+                    print('fetched', f, len(data), 'bytes')
+        outbox.unlink(missing_ok=True)
     finally:
         if proc.poll() is None:
             proc.kill()

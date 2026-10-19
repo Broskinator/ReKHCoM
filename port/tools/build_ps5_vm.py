@@ -33,8 +33,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--version', help='release version (default: REKHCOM_VERSION of the launcher)')
     ap.add_argument('--out', type=Path, default=ROOT / 'build/releases')
-    ap.add_argument('--mem', default='4096')
-    ap.add_argument('--cpus', default='4')
+    ap.add_argument('--mem', default='6144')
+    ap.add_argument('--cpus', default='8')
     args = ap.parse_args()
     version = args.version or re.search(r'#define REKHCOM_VERSION\s+"([^"]+)"',
                                         (ROOT / 'port/decompui/decompui.cpp').read_text(encoding='utf-8'))[1]
@@ -74,7 +74,7 @@ def main():
         "printf '#!/bin/sh\\nexec ccache clang-18 \"$@\"\\n' > /usr/local/bin/clang-cc; chmod +x /usr/local/bin/clang-cc",
         'export CLANG=/usr/local/bin/clang-cc',
         'ccache -s | head -3 || true',
-        f'python3 port/tools/build_all.py --platform ps5 --package --release-version {version} --jobs 3',
+        f'python3 port/tools/build_all.py --platform ps5 --package --release-version {version} --jobs {args.cpus}',
         'unzip -t port/ps5/dist/PPSA98511.zip | tail -1',
     ]) + '\n'
     (SHARE / 'build-release.sh').write_bytes(script.encode())
