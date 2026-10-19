@@ -4,6 +4,22 @@ const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const {File}=require('node:buffer');
 const web=path.resolve(__dirname,'../web'),api=require(path.join(web,'runtime.js'));
 async function main(){
+  for(let button=0;button<=14;button++)assert.deepEqual(api.controllerBinding(button),{region:button,directions:15});
+  for(const [binding,region,directions]of [[100,7,8],[101,7,4],[102,7,2],[103,7,1],
+    [104,8,8],[105,8,4],[106,8,2],[107,8,1],[108,15,15],[109,15,15],[110,16,15],[111,16,15]])
+    assert.deepEqual(api.controllerBinding(binding),{region,directions});
+  for(const invalid of [-1,15,99,112,NaN])assert.deepEqual(api.controllerBinding(invalid),{region:-1,directions:0});
+  assert.equal(api.keyboardBinding({key:'Shift',code:'ShiftRight'}),0x400000e5);
+  assert.equal(api.keyboardBinding({key:'1',code:'Numpad1'}),0x40000059);
+  assert.equal(api.keyboardBinding({key:'1',code:'Digit1'}),49);
+  assert.equal(api.keyboardBinding({key:'Enter',code:'NumpadEnter'}),0x40000058);
+  assert.equal(api.keyboardBinding({key:'F13',code:'F13'}),0x40000068);
+  assert.equal(api.keyboardBinding({key:'X',code:'KeyX'}),120);
+  assert.equal(api.keyboardBinding({key:'Dead'}),null);
+  assert.equal(api.keyboardName(0x400000e5),'Shift Right');
+  assert.equal(api.keyboardName(0x40000059),'Numpad 1');
+  assert.equal(api.keyboardName(0x40000068),'F13');
+  assert.equal(api.keyboardName(0x40000052),'↑');
   assert.deepEqual(api.fitSize(5120,1440),{width:1920,height:540});
   assert.deepEqual(api.fitSize(1052,591.75),{width:1052,height:592});
   assert.deepEqual(api.fitSize(360,202.5),{width:360,height:203});

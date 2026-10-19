@@ -34,6 +34,7 @@ ReKHCards.cards.forEach((card,id)=>{if(card[3]<=3&&!(card[1]&0x18)&&!editableKin
 for(const kind of editableKinds.keys()){const o=document.createElement('option');o.value=kind;o.textContent=ReKHCards.kinds[kind];$('editor-card-kind').append(o);}
 function refreshMapCard(){if(editorSave)$('editor-map-count').value=editorSave.getMap(Number($('editor-map-kind').value)*10+Number($('editor-map-value').value));}
 $('editor-map-kind').addEventListener('change',refreshMapCard);$('editor-map-value').addEventListener('change',refreshMapCard);
+$('editor-map-count').addEventListener('input',()=>{const input=$('editor-map-count');if(editorSave&&input.value!==''&&input.validity.valid){editorSave.setMap(Number($('editor-map-kind').value)*10+Number($('editor-map-value').value),Number(input.value));renderEditorChanges();}});
 $('editor-map-count').addEventListener('change',()=>{if(!editorSave)return;editorSave.setMap(Number($('editor-map-kind').value)*10+Number($('editor-map-value').value),Number($('editor-map-count').value));refreshMapCard();renderEditorChanges();});
 function currentBattleCard(){return ReKHCards.cards.findIndex(c=>c[0]===Number($('editor-card-kind').value)&&c[2]===Number($('editor-card-value').value)&&c[3]<=3&&!(c[1]&0x18));}
 function refreshBattleCard(){

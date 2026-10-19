@@ -23,3 +23,10 @@ moguri), filtro conseguido vacío sin inventar progreso. Vista 1920x1080 y móvi
 Entrega: servidor local 127.0.0.1:8765/web55-preview/; anterior web55-before/.
 Pendiente aprobación visual antes de publicar. Los binarios que reconstruyen el
 menú in-game se actualizan después de integrar la nueva entrada Logros.
+
+19/10: mando web interactivo con el arte aprobado; ilumina la asignación de la fila
+en foco, hombros/gatillos y direcciones de sticks. Escala entera comprobada en
+1080p y móvil sin cargar el motor. Captura controller-highlight-1080.png.
+Remapeo distingue modificadores derechos, teclado numérico y F13–F24; Escape
+cancela sin cambiar la tecla. Editor aplica entradas válidas de estadísticas
+y cartas de mapa. Node runtime y editor C++/JS 12/12 pasan.

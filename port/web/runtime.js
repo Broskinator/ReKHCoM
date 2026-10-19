@@ -62,6 +62,36 @@
       }catch(error){console.error('HD glyph',error);return 0;}
     };
   }
-  const api={fitSize,saveName,persistence,fonts};root.ReKHWeb=api;
+  // SDL's canonical button/axis encoding, shared with the native controller art.
+  function controllerBinding(binding){
+    if(!Number.isInteger(binding)||binding<0)return {region:-1,directions:0};
+    if(binding<100)return {region:binding<=14?binding:-1,directions:binding<=14?15:0};
+    const axis=Math.floor((binding-100)/2),negative=(binding-100)%2;
+    if(axis>=6)return {region:-1,directions:0};
+    if(axis>=4)return {region:15+axis-4,directions:15};
+    return {region:axis<2?7:8,directions:axis%2?(negative?1:2):(negative?4:8)};
+  }
+  const keyboardCodes=new Map([
+    ['Enter',[13,'Enter']],['Backspace',[8,'Backspace']],['Tab',[9,'Tab']],['Space',[32,'Space']],
+    ['Escape',[27,'Escape']],['Delete',[127,'Delete']],['Insert',[0x40000049,'Insert']],
+    ['Home',[0x4000004a,'Home']],['PageUp',[0x4000004b,'Page Up']],['End',[0x4000004d,'End']],['PageDown',[0x4000004e,'Page Down']],
+    ['ArrowRight',[0x4000004f,'→']],['ArrowLeft',[0x40000050,'←']],['ArrowDown',[0x40000051,'↓']],['ArrowUp',[0x40000052,'↑']]
+  ]);
+  ['ControlLeft','ShiftLeft','AltLeft','MetaLeft','ControlRight','ShiftRight','AltRight','MetaRight'].forEach((code,n)=>keyboardCodes.set(code,[0x400000e0+n,code.replace('Control','Ctrl ').replace('Shift','Shift ').replace('Alt','Alt ').replace('Meta','Meta ')]));
+  for(let n=1;n<=24;n++)keyboardCodes.set('F'+n,[(n<=12?0x4000003a+n-1:0x40000068+n-13),'F'+n]);
+  for(let n=1;n<=9;n++)keyboardCodes.set('Numpad'+n,[0x40000059+n-1,'Numpad '+n]);
+  keyboardCodes.set('Numpad0',[0x40000062,'Numpad 0']);keyboardCodes.set('NumpadDecimal',[0x40000063,'Numpad .']);
+  ['Divide','Multiply','Subtract','Add','Enter'].forEach((code,n)=>keyboardCodes.set('Numpad'+code,[0x40000054+n,'Numpad '+['/','*','-','+','Enter'][n]]));
+  function keyboardBinding(event){
+    const code=keyboardCodes.get(event.code)||keyboardCodes.get(event.key)||keyboardCodes.get({Shift:'ShiftLeft',Control:'ControlLeft',Alt:'AltLeft',Meta:'MetaLeft',' ':'Space'}[event.key]);
+    if(code)return code[0];
+    return typeof event.key==='string'&&event.key.length===1?event.key.toLowerCase().codePointAt(0):null;
+  }
+  function keyboardName(value){
+    if(!value)return '—';
+    for(const [code,name]of keyboardCodes.values())if(code===value)return name;
+    return value>=32&&value<=0x10ffff?(value<127?String.fromCodePoint(value).toUpperCase():String.fromCodePoint(value)):null;
+  }
+  const api={fitSize,saveName,persistence,fonts,controllerBinding,keyboardBinding,keyboardName};root.ReKHWeb=api;
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
