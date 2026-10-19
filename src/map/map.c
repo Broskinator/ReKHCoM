@@ -121,6 +121,11 @@ static LoadGameMenuWork* sLoadGameMenuWork;
 static MenuMsgWork* sMenuMsgWork;
 #ifdef PLATFORM_PC
 static u8 sMapSaveTargetSlot;
+
+/* test harness (main.c gmkall): how many gimmicks the room placed */
+u8 PortMapGmkCount(void) {
+    return sMapGmkCount;
+}
 #endif
 
 void MapEnmPlaceInView(MapEnmArgs* arg) {
@@ -5740,6 +5745,14 @@ void Task_MapMenu_0(MapMenuWork* work) {
     }
 
     FadeSetPaletteExcluded(work->palette6->index + 0x10, TRUE);
+#ifdef PLATFORM_PC
+    /* Task_MapMenu_1 tests panelsVisible before MapMenuOpen clears it, and the
+       work comes from the heap uncleared: with leftovers (often the deck
+       editor's) it animated a cursor that does not exist yet. The GBA read
+       that garbage harmlessly and AnimInit replaced it frames later; here
+       it is an access violation (issue #26). */
+    work->panelsVisible = FALSE;
+#endif
     cursor = gGameState.mapMenuCursor;
 
     if (cursor != -1) {

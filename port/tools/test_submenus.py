@@ -51,13 +51,14 @@ def run(build, save, entry, cycles, timeout):
     log = (work / "kh_com.log").read_text(errors="replace") if (work / "kh_com.log").exists() else ""
     trace = [(int(f), m) for f, m in re.findall(r"harness: frame (\d+) mode (\S+)", log) if int(f) >= 1600]
     # a visit: leaving the field for some mode and coming back
+    field = ("Mode_MapFld", "Mode_MapFix")  # a room, or a hall (castle floors)
     visits, inside, names = 0, False, []
     for f, m in trace:
-        if m != "Mode_MapFld" and not inside:
+        if m not in field and not inside:
             inside = True
             if m not in names:
                 names.append(m)
-        elif m == "Mode_MapFld" and inside:
+        elif m in field and inside:
             inside = False
             visits += 1
     crashed = "CRASH" in log or "fatal" in log.lower()

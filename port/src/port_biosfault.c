@@ -37,6 +37,7 @@ typedef uint32_t DWORD;
 #endif
 
 #include "port/port.h"
+#include "port/port_state.h"
 
 extern uint8_t gPortBiosArea[0x10000];
 
@@ -268,11 +269,28 @@ static int SkipDivision(DWORD* eip, DWORD* eax, DWORD* edx) {
 
 /* A bus access outside the GBA space: picks the register to move for one
    instruction. Returns 0 when it must stay a real fault. */
+/* The game's code is linked first, before the platform layer (port_state.c
+   hashes the same span for save states). */
+static int InGameCode(DWORD eip) {
+#ifdef _WIN32
+    const uint8_t* start = (const uint8_t*)GetModuleHandleA(NULL) + 0x1000;
+#else
+    extern const uint8_t __executable_start[];
+    const uint8_t* start = __executable_start;
+#endif
+    return eip >= (DWORD)(uintptr_t)start && eip < (DWORD)(uintptr_t)PortStateService;
+}
+
 static int RedirectAccess(uint32_t fault, int write, DWORD eip, int* reg, uint32_t* delta) {
     if (fault >= GBA_SPACE_LOW && fault < GBA_SPACE_HIGH)
         return 0; /* only addresses outside the GBA space */
-    if (fault >= BIOS_AREA_SIZE && fault < GBA_SPACE_LOW)
-        return 0; /* the system's own address range */
+    /* The system's own address range: a fault there is the port's own bug,
+       unless the game's code made it. On the GBA everything below EWRAM past
+       the BIOS is open bus, and the game does read it: a stale panelsVisible
+       flag animating garbage through a NULL table (issue #26) read
+       0x0003FFFC, harmless on the cartridge. */
+    if (fault >= BIOS_AREA_SIZE && fault < GBA_SPACE_LOW && !InGameCode(eip))
+        return 0;
     if (!AddressRegister((const uint8_t*)(uintptr_t)eip, BusTarget(fault, write) - fault, reg, delta))
         return 0;
     LogSite(write, fault, eip);

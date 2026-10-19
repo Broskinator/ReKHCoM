@@ -24,6 +24,9 @@ def main():
     parser.add_argument("--cycles", type=int, default=12)
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--edit", action="store_true", help="Open deck editing and switch between add/remove")
+    parser.add_argument("--ini", default="", help="extra kh_com.ini lines, e.g. zoom=3 (issue #26)")
+    parser.add_argument("--moves", action="store_true", help="with --edit: add a card, then remove one, before leaving")
+    parser.add_argument("--file2", action="store_true", help="load the save's second file")
     args = parser.parse_args()
     if args.cycles < 1:
         parser.error("--cycles must be positive")
@@ -35,15 +38,21 @@ def main():
     shutil.copytree(ROOT / "port/assets/fonts", work / "assets/fonts")
     (work / "kh_com.ini").write_text("config_version=2\nview_mode=4\nhd_text=1\nwindow_scale=2\n")
     keys = [f"{frame}-{frame + 3}:A" for frame in range(200, 1400, 50)]
+    if args.file2:  # the file list opens with the first file: one DOWN before choosing
+        keys = [k for k in keys if not k.startswith(("600-", "650-"))] + ["630-633:DOWN"]
     shots = []
     period = 1300 if args.edit else 650
     for cycle in range(args.cycles):
         frame = 1600 + cycle * period
         if args.edit:
-            keys.extend(f"{frame + offset}-{frame + offset + 3}:{button}" for offset, button in
-                        ((0, "START"), (90, "A"), (240, "A"), (320, "DOWN"),
-                         (350, "DOWN"), (380, "DOWN"), (440, "A"), (620, "L"),
-                         (780, "B"), (950, "B"), (1120, "B")))
+            route = (((0, "START"), (90, "A"), (240, "A"), (320, "DOWN"),
+                      (350, "DOWN"), (380, "DOWN"), (440, "A"), (620, "L"),
+                      (780, "B"), (950, "B"), (1120, "B")) if not args.moves else
+                     ((0, "START"), (90, "A"), (240, "A"), (320, "DOWN"),
+                      (350, "DOWN"), (380, "DOWN"), (440, "A"), (520, "A"), (580, "A"),
+                      (640, "L"), (720, "A"), (780, "RIGHT"), (820, "A"),
+                      (900, "B"), (1000, "B"), (1120, "B")))
+            keys.extend(f"{frame + offset}-{frame + offset + 3}:{button}" for offset, button in route)
             shots.extend((frame + 560, frame + 730, frame + 900, frame + 1270))
             continue
         keys.extend((f"{frame}-{frame + 3}:START", f"{frame + 90}-{frame + 93}:A",
@@ -64,7 +73,7 @@ def main():
     log = (work / "kh_com.log").read_text(errors="replace")
     trace = re.findall(r"harness: frame (\d+) mode (\S+)", log)
     deck = sum(name == "Mode_Deck" for _, name in trace)
-    returns = sum(int(frame) >= 1600 and name == "Mode_MapFld" for frame, name in trace)
+    returns = sum(int(frame) >= 1600 and name in ("Mode_MapFld", "Mode_MapFix") for frame, name in trace)
     passed = code == 0 and "CRASH" not in log and deck >= args.cycles and returns >= args.cycles
     report = (f"exit={code}; deck entries={deck}; field returns={returns}; requested={args.cycles}\n"
               + "\n".join(f"{frame} {name}" for frame, name in trace)

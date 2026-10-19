@@ -78,6 +78,24 @@ static LONG WINAPI CrashHandler(EXCEPTION_POINTERS* info) {
             PortLog("  in %s +%08lx", name, (unsigned long)(c->Eip - (uintptr_t)mod));
     }
     LogStack(c->Eip, c->Ebp);
+    {
+        /* release builds keep no frame chain: list the stack words that point
+           into the executable's code, so the caller can still be symbolized */
+        uintptr_t base = (uintptr_t)GetModuleHandleA(NULL);
+        IMAGE_NT_HEADERS* nt = (IMAGE_NT_HEADERS*)(base + ((IMAGE_DOS_HEADER*)base)->e_lfanew);
+        uintptr_t lo = base + nt->OptionalHeader.BaseOfCode;
+        uintptr_t hi = lo + nt->OptionalHeader.SizeOfCode;
+        const uint32_t* sp = (const uint32_t*)(uintptr_t)c->Esp;
+        int i, n = 0;
+        for (i = 0; i < 512 && n < 24; i++) {
+            if (IsBadReadPtr(sp + i, 4))
+                break;
+            if (sp[i] >= lo && sp[i] < hi) {
+                PortLog("  stack %08lx", (unsigned long)sp[i]);
+                n++;
+            }
+        }
+    }
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
