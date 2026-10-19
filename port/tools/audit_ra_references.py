@@ -42,7 +42,7 @@ addresses = collections.Counter(int(row['address']) for row in rows if row['refe
 # by this root inventory. Keep these ranges aligned with port_ra_state.c (EU).
 ranges = [(0x421C0, 0x42200), (0x422B8, 0x423D0), (0x423F0, 0x42690),
           (0x42690, 0x42E5E), (0x42E68, 0x42E6A), (0x42ED0, 0x42FDE)]
-covered = lambda a: a == 0x3CACC or any(start <= a and a + 4 <= end for start, end in ranges)
+covered = lambda a: a in (0x3CACC, 0x3C000, 0x3C001, 0x6C68, 0x749C) or any(start <= a and a + 4 <= end for start, end in ranges)
 remaining = [hex(a) for a in sorted(addresses) if not covered(a)]
 report = dict(achievement_graphs=len({r['achievement'] for r in rows}), references=len(rows),
     unique_direct_addresses=len(addresses), scalar_roots_projected=sum(map(covered, addresses)),

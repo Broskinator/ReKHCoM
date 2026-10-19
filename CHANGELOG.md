@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Achievements: direct catalog with cached badges (grey when locked, colour when earned);
+  account login remains in the launcher. Official online awards/Hardcore remain disabled.
+- Options → Achievements: read-only local progress and the launcher's last official
+  snapshot, with scrolling and locked/unlocked filters; keyboard and gamepad support.
+- Local achievements accept Windows/portable progress files; Japanese voices and
+  presentation settings no longer invalidate local challenges.
+- Web launcher: matching graphics/sound/enhancement/control tabs, optional save-copy
+  editor with card limits and backups, and a direct list of the 16 local challenges.
 - Dialogue portraits no longer show early or uncovered in wide views (Codex, #59).
 - Android: the GBA memory is reserved region by region when the whole range is not free (#20).
 - Save crystals, gimmicks and the room's map icon follow the game's own lifetime through

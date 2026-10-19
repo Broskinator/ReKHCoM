@@ -5,12 +5,13 @@ import json
 import struct
 ROOT = Path(__file__).resolve().parents[2]
 expected = {
-    'eu': [0x0203A1C0, 0x0203A3F0, 0x0203A690, 0x0203AE68, 0x0203AED0, 0x02034ACC],
-    'us': [0x02039BB0, 0x02039DE0, 0x0203A080, 0x0203A858, 0x0203A8C0, 0x02034AB0],
-    'jp': [0x02039B20, 0x02039D50, 0x02039FF0, 0x0203A7C8, 0x0203A830, 0x02034A10],
+    'eu': [0x0203A1C0, 0x0203A3F0, 0x0203A690, 0x0203AE68, 0x0203AED0, 0x02034ACC, 0x03006C68, 0x0300749C, 0x02034000],
+    'us': [0x02039BB0, 0x02039DE0, 0x0203A080, 0x0203A858, 0x0203A8C0, 0x02034AB0, 0x03006C68, 0x03007498, 0x02034000],
+    'jp': [0x02039B20, 0x02039D50, 0x02039FF0, 0x0203A7C8, 0x0203A830, 0x02034A10, 0x03006C68, 0x03007498, 0x02034000],
 }
 witnesses = [('InitGameState', 4), ('GetActiveDeck', 1), ('InitCardCollection', 4),
-             ('InitCardCollection', 5), ('CountOwnedMapCardKinds', 7), ('GetActiveDeckIndex', 0)]
+             ('InitCardCollection', 5), ('CountOwnedMapCardKinds', 7), ('GetActiveDeckIndex', 0),
+             ('VBlankTimerStart', 0), ('ModeRequest', 0), ('GetKeysHeld', 0)]
 report = []
 for region, code in [('eu', 'B8CP'), ('us', 'B8CE'), ('jp', 'B8CJ')]:
     manifest = ROOT / ('config/jp/funcmap.txt' if region == 'jp' else 'config/eu/funcmap.txt')

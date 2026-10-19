@@ -8,6 +8,9 @@ Deck gDecks[3];
 uint16_t gCardCollection[999], gCardCount;
 uint8_t gMapCardCounts[270];
 uint8_t GetActiveDeckIndex(void) { return 2; }
+uint16_t GetKeysHeld(void) { return 0x0201; }
+volatile uint32_t gVBlankCounter;
+int32_t gPendingModeArg;
 void PortRaOverlayState(uint32_t address, uint8_t* buffer, uint32_t size);
 int main(void) {
     uint8_t bytes[sizeof(GameState) + 8];
@@ -55,6 +58,17 @@ int main(void) {
         PortRaOverlayState(maps + 269, bytes, 1); assert(bytes[0] == 9);
         PortRaOverlayState(active, bytes, 1); assert(bytes[0] == 2);
     }
+    gVBlankCounter = 0x12345678; gPendingModeArg = 162;
+    PortRaOverlayState(0x6C68, bytes, 4); assert(bytes[0] == 0x78 && bytes[3] == 0x12);
+    PortRaOverlayState(
+#ifdef VERSION_EU
+        0x749C,
+#else
+        0x7498,
+#endif
+        bytes, 2); assert(bytes[0] == 162 && bytes[1] == 0);
+    PortRaOverlayState(0x3C000, bytes, 1); assert(bytes[0] == 1);
+    PortRaOverlayState(0x3C001, bytes, 1); assert(bytes[0] == 2);
     puts("PASS scalar GameState/card projection: region, byte order, clipping, partial reads, native pointer exclusion");
     return 0;
 }

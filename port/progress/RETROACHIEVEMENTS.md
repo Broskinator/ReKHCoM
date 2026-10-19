@@ -174,3 +174,12 @@ ID y definición, con escape JSON; no se cambia el cliente usado en el juego.
 Se verificaron 91 definiciones y sus claves exactas, sin campos de cuenta. Los
 90 grafos que leen memoria producen el inventario de referencias; el aviso de
 sistema no contiene referencias RAM. No se versionan esos datos descargados.
+
+
+También se proyectan el contador VBlank, el argumento escalar del modo pendiente
+(no su puntero) y los botones GBA mantenidos. Sus literales se verifican en
+VBlankTimerStart, ModeRequest y GetKeysHeld, en las tres ROM. Se amplía la prueba
+a datos IWRAM y lectura individual de los bytes del input. La auditoría queda en
+143/157 raíces directas proyectadas, con 14 raíces y referencias indirectas aún
+por validar. Los 139/157 anteriores describen el checkpoint previo, no una
+habilitación de premios.

@@ -10,21 +10,29 @@ extern Deck gDecks[3];
 extern uint16_t gCardCollection[999], gCardCount;
 extern uint8_t gMapCardCounts[270];
 extern uint8_t GetActiveDeckIndex(void);
+extern uint16_t GetKeysHeld(void);
+extern volatile uint32_t gVBlankCounter;
+extern int32_t gPendingModeArg;
 STATIC_ASSERT(sizeof(Deck) == 0xE0, RaDeckLayout);
 
-/* GameState, decks, collection, count, map cards, active deck. */
-static const uint32_t sOriginalState[6] = {
+/* GameState, decks, collection, count, map cards, active deck, VBlank counter,
+ * pending mode ARGUMENT (not a native Mode pointer), held GBA keys. */
+static const uint32_t sOriginalState[9] = {
 #if defined(VERSION_US)
-    0x02039BB0u, 0x02039DE0u, 0x0203A080u, 0x0203A858u, 0x0203A8C0u, 0x02034AB0u
+    0x02039BB0u, 0x02039DE0u, 0x0203A080u, 0x0203A858u, 0x0203A8C0u, 0x02034AB0u,
+    0x03006C68u, 0x03007498u, 0x02034000u
 #elif defined(VERSION_JP)
-    0x02039B20u, 0x02039D50u, 0x02039FF0u, 0x0203A7C8u, 0x0203A830u, 0x02034A10u
+    0x02039B20u, 0x02039D50u, 0x02039FF0u, 0x0203A7C8u, 0x0203A830u, 0x02034A10u,
+    0x03006C68u, 0x03007498u, 0x02034000u
 #else
-    0x0203A1C0u, 0x0203A3F0u, 0x0203A690u, 0x0203AE68u, 0x0203AED0u, 0x02034ACCu
+    0x0203A1C0u, 0x0203A3F0u, 0x0203A690u, 0x0203AE68u, 0x0203AED0u, 0x02034ACCu,
+    0x03006C68u, 0x0300749Cu, 0x02034000u
 #endif
 };
 static void Overlay(uint32_t address, uint8_t* buffer, uint32_t size,
                     uint32_t original, const void* source, uint32_t length) {
-    uint32_t begin = 0x8000u + original - 0x02000000u, end = begin + length;
+    uint32_t begin = original >= 0x03000000u ? original - 0x03000000u : 0x8000u + original - 0x02000000u;
+    uint32_t end = begin + length;
     uint32_t from = address > begin ? address : begin;
     uint32_t to = address + size < end ? address + size : end;
     if (from < to) memcpy(buffer + from - address, (const uint8_t*)source + from - begin, to - from);
@@ -47,4 +55,9 @@ void PortRaOverlayState(uint32_t address, uint8_t* buffer, uint32_t size) {
     Overlay(address, buffer, size, sOriginalState[4], gMapCardCounts, sizeof(gMapCardCounts));
     { uint8_t active = GetActiveDeckIndex();
       Overlay(address, buffer, size, sOriginalState[5], &active, sizeof(active)); }
+    { uint32_t counter = gVBlankCounter;
+      uint16_t keys = GetKeysHeld();
+      Overlay(address, buffer, size, sOriginalState[6], &counter, sizeof(counter));
+      Overlay(address, buffer, size, sOriginalState[7], &gPendingModeArg, sizeof(gPendingModeArg));
+      Overlay(address, buffer, size, sOriginalState[8], &keys, sizeof(keys)); }
 }

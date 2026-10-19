@@ -11,6 +11,9 @@ Deck gDecks[3];
 uint16_t gCardCollection[999], gCardCount;
 uint8_t gMapCardCounts[270];
 uint8_t GetActiveDeckIndex(void) { return 0; }
+uint16_t GetKeysHeld(void) { return 0; }
+volatile uint32_t gVBlankCounter;
+int32_t gPendingModeArg;
 
 static int check(int ok, const char* label) {
     if (!ok) fprintf(stderr, "FAIL: %s\n", label);
