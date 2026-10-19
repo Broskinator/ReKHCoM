@@ -1600,7 +1600,7 @@ u8 MapCellHasType(s16 x, s16 y, u8 type) {
 }
 
 void MapAssignWallTopPieces(s16 x, s16 y) {
-    MapCell* cell = MapGetCell(x, y + 7);
+    MapCell* cell = BIOS_PTR(MapGetCell(x, y + 7));
 
     // @bug cell is NULL past the room edge (NULL read).
     if (cell->upperZ == MAP_Z_TOP) {

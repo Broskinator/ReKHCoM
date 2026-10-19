@@ -504,7 +504,7 @@ ObjTiles* AllocObjTiles(u16 size, const void* owner) {
 
 void SetObjTileSource(ObjTiles* tiles, const void* src) {
     // @bug Callers pass NULL when the tiles failed to allocate (NULL write).
-    tiles->src = src;
+    BIOS_PTR(tiles)->src = src;
 }
 
 enum ObjPaletteType {

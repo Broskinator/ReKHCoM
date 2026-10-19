@@ -328,7 +328,7 @@ u8 UpdateMapSelectSetup(MapSelectWork* work, void* task) {
     }
 
     // @bug card can be NULL (NULL read).
-    LoadMapSelectKindPalette(work->card->args.baseCardId, work);
+    LoadMapSelectKindPalette(BIOS_PTR(work->card)->args.baseCardId, work);
     SetTaskUpdate(task, (TaskUpdateFunc)UpdateMapSelectSlideIn);
     return 1;
 }

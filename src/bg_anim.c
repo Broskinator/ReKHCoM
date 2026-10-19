@@ -199,7 +199,7 @@ void BgAnimUpdate() {
             chunk = sBgAnimFrame / sBgAnimFramesPerChunk;
             off = sBgAnimFrame % sBgAnimFramesPerChunk * sBgAnimFrameBytes;
             // @bug A frame past the last chunk has no data (NULL read).
-            src = (u8*)sBgAnimCurrent->chunks[chunk].data + off;
+            src = (u8*)BIOS_PTR(sBgAnimCurrent->chunks[chunk].data) + off;
             over = off + sBgAnimFrameBytes - sBgAnimCurrent->chunks[chunk].size;
 
             if (over > 0) {

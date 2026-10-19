@@ -1066,9 +1066,9 @@ void StockNameRiku_3(StockNameWork* work) {
     ReleaseObjTiles(work->tiles);
     ReleaseObjPalette(work->palette);
     // @bug Leaving a battle frees gCardBattleState before this name is destroyed (NULL write).
-    gCardBattleState->unk_0D9 = 0;
+    BIOS_PTR(gCardBattleState)->unk_0D9 = 0;
     work->visible = FALSE;
-    gCardBattleState->unk_0CA = 256;
+    BIOS_PTR(gCardBattleState)->unk_0CA = 256;
 }
 
 void StockNameSora_3(StockNameWork* work) {

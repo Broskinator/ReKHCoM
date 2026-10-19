@@ -6,6 +6,7 @@
 #ifdef PLATFORM_PC
 #include "engine.h"
 extern int PortSaveSlotSelectEnabled(void);
+void PortLog(const char* fmt, ...);
 #endif
 #include "system_state.h"
 #include "monsgage.h"
@@ -5203,11 +5204,11 @@ void MapMenuSetPanelPalettesExcluded(MapMenuWork* work, u8 excluded) {
     s32 i;
 
     // @bug Palettes the menu has not loaded are NULL (NULL read).
-    FadeSetPaletteExcluded(work->palette3->index + 0x10, excluded);
-    FadeSetPaletteExcluded(work->palette8->index + 0x10, excluded);
-    FadeSetPaletteExcluded(work->palette4->index + 0x10, excluded);
-    FadeSetPaletteExcluded(work->palette5->index + 0x10, excluded);
-    FadeSetPaletteExcluded(work->palette->index + 0x10, excluded);
+    FadeSetPaletteExcluded(BIOS_PTR(work->palette3)->index + 0x10, excluded);
+    FadeSetPaletteExcluded(BIOS_PTR(work->palette8)->index + 0x10, excluded);
+    FadeSetPaletteExcluded(BIOS_PTR(work->palette4)->index + 0x10, excluded);
+    FadeSetPaletteExcluded(BIOS_PTR(work->palette5)->index + 0x10, excluded);
+    FadeSetPaletteExcluded(BIOS_PTR(work->palette)->index + 0x10, excluded);
 
     for (i = 0; i < 3; i++) {
         if (work->palette9[i] != NULL) {
@@ -5218,9 +5219,9 @@ void MapMenuSetPanelPalettesExcluded(MapMenuWork* work, u8 excluded) {
 
 void MapMenuSetCharaPalettesExcluded(MapMenuWork* work, u8 excluded) {
     // @bug Palettes the menu has not loaded are NULL (NULL read).
-    FadeSetPaletteExcluded(work->palette2->index + 0x10, excluded);
-    FadeSetPaletteExcluded(work->palette6->index + 0x10, excluded);
-    FadeSetPaletteExcluded(work->palette7->index + 0x10, excluded);
+    FadeSetPaletteExcluded(BIOS_PTR(work->palette2)->index + 0x10, excluded);
+    FadeSetPaletteExcluded(BIOS_PTR(work->palette6)->index + 0x10, excluded);
+    FadeSetPaletteExcluded(BIOS_PTR(work->palette7)->index + 0x10, excluded);
 }
 
 void MapMenuWriteDigits3(ObjTiles* tiles, u8 offset, u16 value) {

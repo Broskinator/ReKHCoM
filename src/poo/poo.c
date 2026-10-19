@@ -810,7 +810,8 @@ void UpdatePoohAction(PoohWork* work, PooNode* node) {
         if (work->lookTimer <= 59) {
             targetLookAngle = work->lookAngle;
             // @bug node is NULL near the screen's edge (NULL read).
-            work->lookTarget = GetAngle(work->pos.x, work->pos.y, ((s32*)node->pos)[0], ((s32*)node->pos)[1]);
+            work->lookTarget = GetAngle(work->pos.x, work->pos.y, ((s32*)BIOS_PTR(BIOS_PTR(node)->pos))[0],
+                                        ((s32*)BIOS_PTR(BIOS_PTR(node)->pos))[1]);
             ApproachAngle(&targetLookAngle, work->lookTarget, 4);
             work->lookAngle = targetLookAngle;
             work->lookTimer++;
