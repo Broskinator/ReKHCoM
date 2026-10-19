@@ -14,6 +14,8 @@ uint8_t GetActiveDeckIndex(void) { return 0; }
 uint16_t GetKeysHeld(void) { return 0; }
 volatile uint32_t gVBlankCounter;
 int32_t gPendingModeArg;
+struct BtlWork* gBtlWork;
+struct CardBattleState* gCardBattleState;
 
 static int check(int ok, const char* label) {
     if (!ok) fprintf(stderr, "FAIL: %s\n", label);

@@ -34,8 +34,12 @@ Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora
   comprueban rango y descripción nula para guardados existentes. EU/US/JP
   compilan; 8.550 vistas dirigidas pasan. Evidencia: ISSUE_21_MARLUXIA.md.
   Claude: incluir en v1.9.8 y responder/cerrar el issue al publicar.
-- **27 logros:** catálogo, imágenes, 16 disparos por región y menú in-game listos; falta
-  validar memoria/set oficial y Level 1.
+- **27 logros — cerrado para v1.9.8 (19/10, Claude retomó el WIP de Codex):** 16 retos
+  locales por región, catálogo oficial con imágenes, menú in-game y login listos; las
+  raíces de batalla y de batalla de cartas se publican en sus direcciones GBA
+  (145/157 raíces directas del set oficial). Los premios oficiales y Hardcore siguen
+  desactivados. Queda como punto aparte (71): validar las 12 raíces restantes y las
+  estructuras indirectas antes de activar premios oficiales.
 - **55 web:** opciones del launcher en pestañas y estética del juego; commiteada, espera
   revisión visual (WEB_55_REVISION.md).
 - **70 (Codex, tras 27):** mejorar web y launcher con criterio estético, guías de diseño web,

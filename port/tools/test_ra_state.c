@@ -11,6 +11,8 @@ uint8_t GetActiveDeckIndex(void) { return 2; }
 uint16_t GetKeysHeld(void) { return 0x0201; }
 volatile uint32_t gVBlankCounter;
 int32_t gPendingModeArg;
+struct BtlWork* gBtlWork;
+struct CardBattleState* gCardBattleState;
 void PortRaOverlayState(uint32_t address, uint8_t* buffer, uint32_t size);
 int main(void) {
     uint8_t bytes[sizeof(GameState) + 8];
@@ -22,7 +24,38 @@ int main(void) {
 #else
         0x3A1C0u;
 #endif
+    const uint32_t battleRoot = 0x8000u +
+#if defined(VERSION_EU)
+        0x34A28u, cardRoot = 0x423E4u;
+#elif defined(VERSION_US)
+        0x34928u, cardRoot = 0x41DD4u;
+#else
+        0x34928u, cardRoot = 0x41D44u;
+#endif
     unsigned i;
+    gBtlWork = (struct BtlWork*)(uintptr_t)0x02033F00u;
+    gCardBattleState = (struct CardBattleState*)(uintptr_t)0x03006700u;
+    memset(bytes, 0xA5, sizeof(bytes));
+    PortRaOverlayState(battleRoot, bytes, 4);
+    assert(bytes[0] == 0 && bytes[1] == 0x3F && bytes[2] == 3 && bytes[3] == 2 && bytes[4] == 0xA5);
+    PortRaOverlayState(cardRoot, bytes, 4);
+    assert(bytes[0] == 0 && bytes[1] == 0x67 && bytes[2] == 0 && bytes[3] == 3);
+    PortRaOverlayState(battleRoot + 1, bytes, 2);
+    assert(bytes[0] == 0x3F && bytes[1] == 3 && bytes[2] == 0 && bytes[3] == 3);
+    /* Host/native code addresses, ROM and past-the-heap pointers stay zero. */
+    {
+        const uintptr_t bad[] = {0, 0x00401234u, 0x02034000u, 0x03006800u, 0x08001234u};
+        for (i = 0; i < sizeof(bad)/sizeof(*bad); ++i) {
+            gBtlWork = (struct BtlWork*)bad[i];
+            gCardBattleState = (struct CardBattleState*)bad[i];
+            memset(bytes, 0xA5, 8);
+            PortRaOverlayState(battleRoot, bytes, 4);
+            assert(!bytes[0] && !bytes[1] && !bytes[2] && !bytes[3] && bytes[4] == 0xA5);
+            PortRaOverlayState(cardRoot, bytes, 4);
+            assert(!bytes[0] && !bytes[1] && !bytes[2] && !bytes[3]);
+        }
+    }
+
     memset(&gGameState, 0x3C, sizeof(gGameState));
     memset(bytes, 0xA5, sizeof(bytes));
     gGameState.flags = 0x12345678;

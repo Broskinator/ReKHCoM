@@ -43,9 +43,14 @@ addresses = collections.Counter(int(row['address']) for row in rows if row['refe
 ranges = [(0x421C0, 0x42200), (0x422B8, 0x423D0), (0x423F0, 0x42690),
           (0x42690, 0x42E5E), (0x42E68, 0x42E6A), (0x42ED0, 0x42FDE)]
 covered = lambda a: a in (0x3CACC, 0x3C000, 0x3C001, 0x6C68, 0x749C) or any(start <= a and a + 4 <= end for start, end in ranges)
+pointer_roots = (0x3CA28, 0x423E4)
+scalar_covered = covered
+covered = lambda a: a in pointer_roots or scalar_covered(a)
 remaining = [hex(a) for a in sorted(addresses) if not covered(a)]
 report = dict(achievement_graphs=len({r['achievement'] for r in rows}), references=len(rows),
-    unique_direct_addresses=len(addresses), scalar_roots_projected=sum(map(covered, addresses)),
+    unique_direct_addresses=len(addresses), scalar_roots_projected=sum(map(scalar_covered, addresses)),
+    heap_pointer_roots_projected=sum(a in pointer_roots for a in addresses),
+    direct_roots_projected=sum(map(covered, addresses)),
     remaining_direct_addresses=remaining,
     modified_reference_operands=sum(r['reference_type'] == '1' for r in rows),
     coverage_scope='direct roots only; indirect target layouts and trigger semantics remain unvalidated',
