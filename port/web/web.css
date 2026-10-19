@@ -28,3 +28,28 @@ button:focus-visible,.file:focus-within,select:focus-visible,input:focus-visible
 .achievement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}.achievement-row{display:flex;align-items:center;gap:14px;padding:18px 0;border-bottom:1px solid #b9b3b3;min-width:0}.achievement-row h2{font-size:17px;margin:0 0 8px}.achievement-row p{font-size:14px;margin:0 0 8px}.achievement-row small{color:#716b6b}.achievement-badge{width:48px;height:48px;flex:none;image-rendering:pixelated;filter:grayscale(1);opacity:.68}.achievement-row.unlocked .achievement-badge{filter:none;opacity:1}.achievement-row.unlocked small{color:#8c1818}.achievement-filters{display:flex;gap:12px;margin:18px 0}.achievement-filters input{flex:1;min-width:0}.achievement-setting{display:flex;align-items:center;gap:10px}#achievement-meter{width:100%;height:16px;accent-color:#c79b15}@media(max-width:650px){.achievement-grid{grid-template-columns:1fr}.achievement-filters{flex-wrap:wrap}.achievement-filters input{width:100%}}
 .achievement-badge{background:transparent}
 .controller canvas{display:block;width:min(100%,416px);height:auto;background:transparent;image-rendering:pixelated;margin:auto}.controller #controller-binding{font-size:14px;color:#9c1000;min-height:1.5em}
+
+/* 55+70 (19/10): the Play tab as the launcher's home page. Game card with
+   the box art on the left, numbered steps and the PLAY bar on the right;
+   logo and eyebrow line in the header. Ids are unchanged for web.js. */
+.visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+header{align-items:flex-start;padding-bottom:14px!important}
+.brand{display:flex;flex-direction:column;gap:6px}.brand::before{content:none!important}
+.brand small{font-size:12px;letter-spacing:.14em;color:var(--red)}
+.brand img{display:block;width:clamp(160px,18vw,230px);height:auto;margin-top:2px}
+.eyebrow{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink)}
+.eyebrow::before{content:'';width:12px;height:12px;background:var(--red);box-shadow:0 0 0 2px var(--ink);flex:none}
+.card{background:#fff;border:1px solid var(--rule);box-shadow:0 3px 0 #e6e1e3;padding:26px 28px}
+.setup-layout{display:grid;grid-template-columns:minmax(220px,380px) minmax(0,1fr);gap:28px;max-width:none!important;padding:28px 0 8px!important;align-items:start}
+.art-card{margin:0}.art-card img{display:block;width:100%;height:auto}
+.start-card h1{margin:0 0 12px}
+.start-card .lead{font-family:system-ui,sans-serif;font-size:16px;line-height:1.7;color:#3b3639;margin:0 0 22px;max-width:56ch}
+.steps{list-style:none;counter-reset:step;margin:0 0 18px;padding:0;display:grid;gap:18px}
+.steps li{counter-increment:step;display:grid;grid-template-columns:34px minmax(0,1fr);column-gap:14px;align-items:start;padding-bottom:16px;border-bottom:2px solid var(--rule)}
+.steps li::before{content:counter(step);grid-row:span 2;display:grid;place-items:center;width:34px;height:34px;background:var(--ink);color:#fff;font-size:16px}
+.steps .file{justify-self:start;margin:0}.steps .hint{margin:8px 0 0;font-size:14px;color:#5d575a}
+#status{margin:6px 0 16px}
+.play-bar{display:block;width:100%;min-height:72px!important;font-size:28px!important;letter-spacing:.12em;background:var(--ink)!important;color:#fff!important;border:0!important;box-shadow:0 4px 0 var(--red)!important}
+.play-bar:not(:disabled):hover{background:var(--red)!important;box-shadow:0 4px 0 var(--ink)!important}
+.play-bar:disabled{opacity:1!important;background:repeating-linear-gradient(135deg,#f3f0f1 0 10px,#ebe6e8 10px 20px)!important;color:#9a9396!important;box-shadow:inset 0 0 0 2px var(--rule)!important}
+@media(max-width:820px){.setup-layout{grid-template-columns:1fr}.start-card{order:1}.art-card{order:2;max-width:220px}.card{padding:20px}.brand img{width:200px}.play-bar{font-size:22px!important;min-height:60px!important}}

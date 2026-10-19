@@ -16,7 +16,7 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos (orden) |
 |---|---|
-| **Claude (Opus)** | 1) 55+70 web y launcher como un solo punto; 5) v1.9.8 estable en TODAS las plataformas presupuestadas, con las alphas de consolas 51–54 al mismo tiempo; 6) 39 rutas |
+| **Claude (Opus)** | 1) 55+70 (primera pasada hecha 19/10, espera aprobación visual) web y launcher como un solo punto; 5) v1.9.8 estable en TODAS las plataformas presupuestadas, con las alphas de consolas 51–54 al mismo tiempo; 6) 39 rutas |
 | **ChatGPT/Codex** | apagado (19/10): Claude toma 27, 55 y 70. Queda para Codex: 2) 27 logros (memoria/set oficial, Level 1); 3) 55 web (espera revisión visual); 4) 70 rediseño web y launcher (asignado a Codex por el usuario, 19/10); 5) 61–62 escenas de Ciudad de Paso; 6) 16–24 arte de jefes |
 
 Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora y evidencia.

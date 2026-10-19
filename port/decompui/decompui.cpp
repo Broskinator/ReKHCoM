@@ -706,11 +706,25 @@ static bool PlayButton(const char* label, ImVec2 size, bool enabled) {
     float r = Px(8);
     float a = enabled ? 1.0f : 0.35f;
 
-    /* a debug-menu row: black, the red cursor square, a grey shadow */
-    dl->AddRectFilled(ImVec2(p.x + Px(4), p.y + Px(4)), ImVec2(mx.x + Px(4), mx.y + Px(4)),
-                      Col(kBorder.x, kBorder.y, kBorder.z, a));
-    dl->AddRectFilled(p, mx, hover ? Col(0.18f, 0.17f, 0.17f, a) : Col(kText.x, kText.y, kText.z, a));
+    /* a debug-menu row: black, the red cursor square, a grey shadow; not
+       ready yet, light paper with diagonal stripes and grey text (as the
+       web page), so it reads as waiting rather than broken */
     (void)r;
+    if (enabled) {
+        dl->AddRectFilled(ImVec2(p.x + Px(4), p.y + Px(4)), ImVec2(mx.x + Px(4), mx.y + Px(4)),
+                          Col(kBorder.x, kBorder.y, kBorder.z, 1));
+        dl->AddRectFilled(p, mx, hover ? Col(0.18f, 0.17f, 0.17f, 1) : Col(kText.x, kText.y, kText.z, 1));
+    } else {
+        float step = Px(20), x;
+        dl->AddRectFilled(p, mx, Col(0.953f, 0.941f, 0.945f, 1));
+        dl->PushClipRect(p, mx, true);
+        for (x = p.x - size.y; x < mx.x; x += step)
+            dl->AddQuadFilled(ImVec2(x, mx.y), ImVec2(x + Px(10), mx.y), ImVec2(x + Px(10) + size.y, p.y),
+                              ImVec2(x + size.y, p.y), Col(0.922f, 0.902f, 0.910f, 1));
+        dl->PopClipRect();
+        dl->AddRect(p, mx, Col(kBorder.x, kBorder.y, kBorder.z, 1), 0, 0, Px(2));
+        a = 1.0f;
+    }
     if (focus)
         dl->AddRect(ImVec2(p.x - Px(3), p.y - Px(3)), ImVec2(mx.x + Px(3), mx.y + Px(3)),
                     ImGui::GetColorU32(kAccent), 0, 0, Px(2.5f));
@@ -724,7 +738,7 @@ static bool PlayButton(const char* label, ImVec2 size, bool enabled) {
     } else {
         GameSquare(dl, ImVec2(cx + sq * 0.5f, cy), sq * 0.8f, false);
     }
-    dl->AddText(ImVec2(cx + sq + gap, cy - th * 0.5f), Col(1, 1, 1, a), label);
+    dl->AddText(ImVec2(cx + sq + gap, cy - th * 0.5f), enabled ? Col(1, 1, 1, a) : Col(0.60f, 0.58f, 0.59f, 1), label);
     ImGui::PopFont();
     if (!enabled)
         ImGui::EndDisabled();

@@ -141,6 +141,8 @@ def main():
     for name in ['index.html', 'web.css', 'web.js', 'runtime.js', 'i18n.js', 'settings.js', 'save-editor.js', 'editor-ui.js', 'achievement-data.js', 'achievements.js', 'cards.js', 'controller.png']:
         shutil.copy2(ROOT / 'port/web' / name, out / name)
     shutil.copytree(ROOT / 'port/assets/fonts', out / 'fonts', dirs_exist_ok=True)
+    for name in ['logo.png', 'boxart.jpg']:  # the launcher's own art, already shipped with it
+        shutil.copy2(ROOT / 'port/decompui/assets' / name, out / name)
     print(f'Built {output}', flush=True)
 
 
