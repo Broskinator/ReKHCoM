@@ -1,74 +1,38 @@
-# Cristal del primer cuarto: sigue en mala posición (abierto, 19/10)
+# Cristal de la primera sala: CERRADO (19/10, la lógica es la del cartucho)
 
-Para el Claude que lo retome. Prioridad crucial del usuario: «no quiero tener salas que no
-sean posibles en GBA en mi port».
+El usuario veía el cristal (y los faroles) de la primera sala tras el tutorial en otro lugar que
+en su emulador y creía que esa sala era fija. No lo es, tampoco en el GBA.
 
-## Informe del usuario
+## Pruebas
 
-- 19/10 ~10:50, con v1.9.9 (`Probar ReKHCoM v1.9.9.bat`) sigue viendo el **primer cristal**
-  (la primera sala de cartas tras el tutorial, Moment's Reprieve en Ciudad de Paso) en mala
-  posición. Según él, en el GBA aparece siempre en el mismo lugar.
-- Su captura (v1.9.9) muestra la sala con la plataforma elevada, la escalera a la izquierda y
-  un bloque de casa en el centro. El cristal aparece **al fondo de la plataforma**, arriba a la
-  derecha del bloque, junto a la pared trasera. Eso es lo que considera mala posición.
-- Dejó un **savestate en la puerta, antes de que se genere la sala**:
-  - `ReKHCoM-v1.9.9/ReKHCoM-v1.9.9-windows-x86/states/slot1.khst` (port US, 10:50)
-  - copia intocable: `backups/crystal-door-20261019/` (slot1.khst + kh_com.sav)
-- La noche anterior dejó otro savestate en `ReKHCoM-v1.9.8/.../states/slot1.khst` con el
-  mismo problema. Un harness sobre él dio `room=254 seed=00000000`, con el cristal en
-  (155648, 73728). Una semilla 0 es sospechosa: vale la pena investigarla.
+1. **Código máquina del cartucho (USA).**
+   - `MapGmkTutorialWaitCard` (0x080F1A10) carga `gMapFloorDefs[0].entryRoom` (0x0984C868),
+     que en el piso 0 es la sala 1, y llama a `CreateMapRoom` (0x080DF640).
+   - `CreateMapRoom` guarda como semilla `gFrameCounter²` (0x080DF66E).
+   - Las 5 llamadas a `CreateMapRoom` del ROM coinciden 1:1 con la decomp.
+   - Solo dos instrucciones del ROM escriben `gFrameCounter` (0x03007480): la puesta a 0 de
+     `AgbMain` y el `++` de cada vuelta del bucle.
+2. **Cartucho en marcha (BizHawk, SaveRAM del usuario apartada y restaurada, sha1 verificado).**
+   - Partida nueva desde el encendido hasta la misma puerta del tutorial.
+   - Misma carta y mismos botones: entrar de inmediato da la semilla 0x46112944 = 34286²;
+     37 fotogramas después da 0x4636D944 = 34322².
+   - Resultado: dos salas distintas (bloque, farol y cristal en otro sitio).
+   - Evidencia: `build/bh-frames/gba_two_frames.png` y la imagen de la copia de prueba.
+3. **El BizHawk del usuario.**
+   - Su sala tiene la semilla 0x90FAECF1 = 49319²: la creó en el fotograma 49319 de esa sesión.
+   - Siempre la veía igual porque cargaba un estado guardado dentro de la sala ya creada.
+4. **Paridad.** Con la misma semilla, el port coloca el cristal exactamente donde el cartucho:
+   6/6 semillas (`crystal_parity.py`).
+   - La herramienta ahora también compara la lista completa de objetos de la sala (faroles,
+     cajas…) con el harness `gmkall`.
+5. **"Lógica Mapa GBA" (69) no interviene:** solo cambia la vista de enemigos (`MAP_ENM_VIEW`).
 
-## Lo que está probado (y lo que no)
+## Para el usuario
 
-1. **Código.** `CreateMapRoom` pone `floorRoom->seed = gFrameCounter * gFrameCounter`.
-   - `gFrameCounter` está en 0x03007480 (EU/US) y sube una vez por vuelta del bucle principal.
-   - El cristal lo coloca `MapGmkPlaceGmk04` → `MapGmkFindSpot` con esa semilla.
-   - Las salas fijas (`ROOM_FLAG_FIXED_ROOM`, vestíbulos y salas de historia) usan las tablas
-     de ROM `MapFixCreateGimmicks`.
-   - Hay 4 llamadas a `CreateMapRoom`: puerta con carta, puerta del tutorial, vuelta de sala
-     de historia e inicio de piso.
-2. **Paridad con la misma semilla.** `crystal_parity.py` toma la partida del usuario y cambia
-   solo la semilla guardada (+0xE8 en los bloques 0x2F20 y 0x3E34, con `save_reseed.py`).
-   - Resultado: el original (BizHawk US) y el port ponen el cristal en la misma posición en
-     4/4 semillas: 0x2242C2F1, 0x3A4A4A40, 0x5F5E1000 y 0xA344A3F9 (3 posiciones distintas).
-   - **Conclusión:** con la MISMA semilla, la colocación es idéntica.
-3. **NO probado.** Que en el GBA la semilla de esa sala cambie realmente según el frame en
-   que se entra. La prueba limpia (movie `.vbm` desde el encendido, entrar a tiempo y 37
-   frames tarde) quedó sin resultado concluyente.
-   - Las pruebas anteriores con BizHawk estaban contaminadas: BizHawk identifica el juego por
-     hash y cargaba la SaveRAM del usuario.
-   - Si el usuario tiene razón (en el GBA siempre igual), entonces hay algo que no entendemos.
-     Opciones:
-     - `gFrameCounter` en el GBA tiene un valor determinista al llegar a esa puerta, por
-       ejemplo porque se reinicia o se detiene en algún punto, y en el port no;
-     - la primera sala usa otra vía, por ejemplo la del tutorial;
-     - el port avanza `gFrameCounter` en momentos donde el GBA no lo hace: menús del port,
-       escenas saltadas, fundidos, carga de estado.
+- Copia de prueba: `Probar cristal puerta 72.bat` (v1.9.9 tal cual, abre en su savestate de la
+  puerta).
+- Imagen: `ReKHCoM-prueba-cristal-72/cristal_gba_vs_port.png`.
 
-## Qué hacer
-
-1. Cargar el savestate de la puerta en el port y registrar `gFrameCounter` y la semilla al
-   crear la sala. Repetir esperando N frames antes de entrar: ¿cambia la posición?
-2. En BizHawk (US), con la SaveRAM del usuario apartada (ver la regla de abajo), llegar a
-   esa misma puerta y entrar en dos frames distintos.
-   - Comparar con `bizhawk_seedwatch.lua` / `bizhawk_seedtrace.lua`.
-   - Si el original da siempre la misma semilla, buscar quién fija o reinicia `gFrameCounter`
-     (watchpoint de escritura en 0x03007480) y replicarlo en el port.
-3. Revisar también que no sea solo de **dibujo**: la paridad compara la posición del objeto,
-   no dónde se ve en pantalla en la vista ancha.
-4. Revisar el caso `seed=00000000` del savestate de la v1.9.8.
-
-## Reglas
-
-- **SaveRAM de BizHawk del usuario**
-  (`toolchain/bizhawk/GBA/SaveRAM/Kingdom Hearts - Chain of Memories (USA).SaveRAM`):
-  respaldo en `backups/bizhawk-saveram-20261019`. Apartarla antes de cada prueba y
-  restaurarla con verificación sha1, como hace `crystal_parity.py`. Hoy el sha1 es
-  fd1edccb9cbc.
-- La build US lee `kh_com_us.sav`; la EU lee `kh_com.sav`.
-- No usar lógica propia del port: corregir dentro del flujo del juego
-  (ver `LOGICA_APROBADOS.md`).
-
-Herramientas: `port/tools/crystal_parity.py`, `save_reseed.py`, `bizhawk_reseed.lua`,
-`bizhawk_seedwatch.lua`, `bizhawk_seedtrace.lua`; harness `KHCOM_MODE=N:gmkcount`
-(registra el cristal y la semilla) y `N:crystalview`.
+Herramientas: `port/tools/crystal_parity.py`, `save_reseed.py`, `bizhawk_*.lua`,
+`build/bh-frames/run.py` (corridas del cartucho con checkpoints propios, sin tocar los slots del
+usuario).

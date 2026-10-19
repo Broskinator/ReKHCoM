@@ -48,6 +48,24 @@ bloquea publicaciones incompletas (web, PS5, versiones).
 
 ## Cerrados hoy (referencia)
 
+72 cristal de la primera sala (19/10, tarde): CERRADO, el cartucho también cambia la sala según
+el fotograma de entrada (prueba limpia desde el encendido en BizHawk: 34286² y 34322² dan salas
+distintas; código máquina: la puerta del tutorial llama a CreateMapRoom con gFrameCounter²).
+Paridad 6/6. Detalle en CRISTAL_PENDIENTE.md.
+
+73 ventana de guardado corrida (19/10, savestate 2 del usuario): BG0 quedaba acoplada a -120 px
+por una ventana de mensajes de cartas con retrato que se cerraba sin soltar la capa
+(card_msgwin.c, desde 825785d1e del 12/10). Arreglo: msgwin_3 suelta la capa y SetupBg limpia el
+acople de la capa que reconfigura. Control negativo con el harness dockleft.
+
+74 issue #26, crash al cerrar el editor de barajas: bug original. Task_MapMenu_1 lee
+panelsVisible antes de que MapMenuOpen lo inicialice (heap sin limpiar, restos del editor) y
+anima un cursor inexistente con tabla NULL (lee 0x0003FFFC, open bus en el GBA). Arreglo:
+panelsVisible = FALSE al crear la tarea, y el emulador de bus (port_biosfault.c) trata como open
+bus las lecturas del código del juego bajo la EWRAM. test_menu_cycles.py --edit --moves: antes
+crash al 3er ciclo, ahora 12/12 en zoom x2, x3 y x4. El manejador de fallos lista la pila
+(sin costo: solo corre al caer).
+
 72 paridad de cristal en 4 semillas (19/10, `crystal_parity.py`): 0x2242C2F1, 0x3A4A4A40,
 0x5F5E1000 y 0xA344A3F9 dan 3 posiciones distintas y el original (BizHawk, US) tiene el
 cristal en la misma posición que el port en las 4.

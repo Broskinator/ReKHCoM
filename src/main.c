@@ -564,6 +564,21 @@ int PortHarnessMode(const char* name, int arg) {
         PortLog("harness: save crystals %d", count);
         return 1;
     }
+    /* gmkall: every gimmick the room placed (crystal, lamps, crates...), to
+       compare against the cartridge's placement list (crystal_parity.py) */
+    if (strcmp(name, "gmkall") == 0 && gFieldState != NULL && gMapGmkPlacements != NULL) {
+        extern void PortLog(const char* format, ...);
+        extern u8 PortMapGmkCount(void);
+        int i, count = PortMapGmkCount();
+        for (i = 0; i < count; i++) {
+            const MapGmkPlacement* p = &gMapGmkPlacements[i];
+            PortLog("harness: gmk %d def=%08x flags=%04x at %d,%d,%d room=%u seed=%08x", i, (unsigned)(uintptr_t)p->def,
+                    (unsigned)p->flags, (int)p->pos.x, (int)p->pos.y, (int)p->pos.z, (unsigned)gMapFloorState.room,
+                    (unsigned)GetMapFloorRoom(gMapFloorState.room)->seed);
+        }
+        PortLog("harness: gmk count %d", count);
+        return 1;
+    }
     if (strcmp(name, "poslog") == 0 && gFieldState != NULL) {
         extern void PortLog(const char* format, ...);
         Task* enm = ListPoolFirst(&gFieldState->tasks4.head);
@@ -640,6 +655,13 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
     /* the save point's menu, opened as talking to it does */
+    /* dockleft:BG: leave a layer docked as a closed portrait window used to
+       (the user's 19/10 save window shifted by the margin) */
+    if (strcmp(name, "dockleft") == 0) {
+        extern int PortWideMarginX(void);
+        PortDockBg(arg, -PortWideMarginX());
+        return 1;
+    }
     if (strcmp(name, "mapsave") == 0 && gFieldState != NULL) {
         gFieldState->flags |= FIELD_FLAG_FREEZE_PLAYER;
         TaskCreate(&gFieldState->tasks, &gTaskDescMapSave, NULL);
