@@ -12,67 +12,26 @@ conservada para poder rastrear. Reglas del usuario:
 - Nunca borrar carpetas ReKHCoM-vX sin pedirlo el usuario (18/10: autorizó borrar
   las antiguas dejando 3; respaldo de guardados en backups/).
 
-## Reparto actual (19/10 — pasado al limpio)
+## Reparto actual (19/10, tras v1.9.8)
 
-| Quién | Puntos (orden) |
+| Quién | Puntos |
 |---|---|
-| **Claude (Opus)** | 1) 55+70 (primera pasada hecha 19/10, espera aprobación visual) web y launcher como un solo punto; 5) v1.9.8 estable en TODAS las plataformas presupuestadas, con las alphas de consolas 51–54 al mismo tiempo; 6) 39 rutas |
-| **ChatGPT/Codex** | apagado (19/10): Claude toma 27, 55 y 70. Queda para Codex: 2) 27 logros (memoria/set oficial, Level 1); 3) 55 web (espera revisión visual); 4) 70 rediseño web y launcher (asignado a Codex por el usuario, 19/10); 5) 61–62 escenas de Ciudad de Paso; 6) 16–24 arte de jefes |
+| **Claude** | 71 logros oficiales restantes; 51–54 alphas de consolas; 39 rutas |
+| **Codex** | 61–62 escenas de Ciudad de Paso; 16–24 arte de jefes |
 
-Si uno lleva más de 10 min sin actividad, el otro toma sus puntos anotando hora y evidencia.
+## Pendientes para el futuro
 
-## 1. Por publicar
-
-- **v1.9.8 estable (19/10, EN ESPERA hasta que el usuario diga; quedan mejoras):** todo lo de main + #21 de Codex; Windows, Linux,
-  Steam Deck, Anbernic, Android y Web. Las demás releases quedan solo como tags.
-  Al publicar: responder #20 (Android) y #21.
-
-## 2. Codex
-
-- **#21 (issue, Codex, listo para integrar):** corregido crash de Marluxia 2.
-  Truco/editor excluyen la carta interna; las vistas de Sora/Riku/intercambio
-  comprueban rango y descripción nula para guardados existentes. EU/US/JP
-  compilan; 8.550 vistas dirigidas pasan. Evidencia: ISSUE_21_MARLUXIA.md.
-  Claude: incluir en v1.9.8 y responder/cerrar el issue al publicar.
-- **27 logros — cerrado para v1.9.8 (19/10, Claude retomó el WIP de Codex):** 16 retos
-  locales por región, catálogo oficial con imágenes, menú in-game y login listos; las
-  raíces de batalla y de batalla de cartas se publican en sus direcciones GBA
-  (145/157 raíces directas del set oficial). Los premios oficiales y Hardcore siguen
-  desactivados. Queda como punto aparte (71): validar las 12 raíces restantes y las
-  estructuras indirectas antes de activar premios oficiales.
-- **55 web:** opciones del launcher en pestañas y estética del juego; commiteada, espera
-  revisión visual (WEB_55_REVISION.md).
-- **70 (Codex, tras 27):** mejorar web y launcher con criterio estético, guías de diseño web,
-  referencias de diseño, recrear desde captura y verificación con navegador
-  (plugins sugeridos: audit-suite, playwright, designs-drift, Design).
-- **61 (pendiente, sin aprobación):** plaza de León; captura actual 19/10 a x3/1080p confirma cortes de extremos.
-- **62 (pendiente, sin aprobación):** casa de Ciudad de Paso; captura actual 19/10 a x3/1080p confirma corte derecho y puntas sin completar.
-- **16–24 (al final, de a uno con antes/después):** arte de jefes y escenas: Darkside
-  (WIP en wip/darkside-backdrop-20261018), Oogie, Jafar, Maléfica dragón, Úrsula,
-  Marluxia final, Alicia/Trickmaster, resto de candidatas, tira de arenas GBA.
-
-## 3. Claude
-
-- **68:** Android, Riku: crash al iniciar partida nueva (con texto HD). Replicar con el
-  APK x86 de prueba en el emulador (AVD en D:/ReKHCoM-build/android-avd), sin la sesión
-  de juego del usuario abierta.
-- **39 (al final):** rutas completas Sora y Reverse/Rebirth con el .vbm como guía por
-  tramos y el bot (KHCOM_BOT).
-- **43:** mantener esta cola tras cada cierre.
-
-## 4. Claude: consolas (antes del otro chat, cerrado 19/10)
-
-- **51 PS Vita:** de ggdrn/KH_COM_VITA solo la forma de compilar (VitaSDK + vitaGL); el
-  resto es nuestro. Fases: referencia en Vita3K → punteros reubicables → .vpk alpha.
-- **52 PS4** (reusar el guest de port/ps5 con OpenOrbis/GoldHEN; probar en shadPS4),
-  **53 Switch** (64 bits o proceso de 32), **54 PS3** (big-endian, muy improbable).
-
-## Esperan reportes (no cuentan como pendientes)
-
-- **63:** cristal de guardado y colisión: arreglado con la lógica del juego; se confirma
-  jugando.
-Mando físico, Linux/Steam Deck, Anbernic RG34XX, Android/Odin 2 y móvil real:
-se reabren solo si un reporte muestra un fallo.
+- **71 RetroAchievements:** 21/90 oficiales activos (los que solo leen GameState,
+  teclas, modo y el estado del título). Faltan 69: dependen de cadenas desde
+  gBtlWork/gCardBattleState hacia el heap (48+7), heap fijo 0x02033BC8 (3), Pooh
+  0x0203C9D4, piso 0x0203CB86, IWRAM 0x03002D00 y 0x0203A6xx. Validar comparando la
+  RAM del port con el original (BizHawk) en las mismas situaciones y activarlos en
+  sOfficialVerified (port_achievements.c). Herramientas: ra_layout.py, ra_layout_check.py,
+  ra_witness.py, audit_ra_references.py.
+- **51–54 consolas:** alphas de Vita, PS4 y Switch (PS5 ya existe por VM).
+- **61–62:** escenas de Ciudad de Paso con márgenes incompletos (requieren aprobación).
+- **16–24:** arte de jefes y escenas, de a uno con antes/después.
+- **39:** rutas completas Sora y Reverse/Rebirth.
 
 ## Cerrados hoy (referencia)
 

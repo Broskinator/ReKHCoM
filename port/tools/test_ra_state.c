@@ -11,6 +11,8 @@ uint8_t GetActiveDeckIndex(void) { return 2; }
 uint16_t GetKeysHeld(void) { return 0x0201; }
 volatile uint32_t gVBlankCounter;
 int32_t gPendingModeArg;
+static uint32_t sTitleStateTest;
+uint32_t* PortTitleStatePtr(void) { return &sTitleStateTest; }
 struct BtlWork* gBtlWork;
 struct CardBattleState* gCardBattleState;
 void PortRaOverlayState(uint32_t address, uint8_t* buffer, uint32_t size);

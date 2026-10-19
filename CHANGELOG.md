@@ -4,8 +4,9 @@
 
 Stable, on every platform again (Windows, Linux, Steam Deck, Anbernic, Android, Web).
 
-- Achievements: 16 local challenges per region, official catalog with badges, an
-  Achievements page in Options and in the launcher. Official awards stay off for now.
+- Achievements: 16 local challenges per region; RetroAchievements (EU cartridge, softcore)
+  with 21 of the 90 official achievements active, the rest listed and enabled as their
+  memory is verified; Achievements page in Options and in the launcher.
 - New web page and launcher look: the three versions with their flags, box art and
   the steps to start; web options in tabs and an optional save-copy editor.
 - Story scenes: tap START to pause (back to the game or skip the scene).

@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "ra_client.h"
+#include "../third_party/rcheevos/src/rc_client_internal.h"
 #include "rc_consoles.h"
 #include "rc_hash.h"
 #include "rc_api_user.h"
@@ -35,6 +36,8 @@ struct KhRa {
     uint32_t *account_unlocks, account_unlock_count;
     unsigned generation;
     int account_progress_available;
+    const uint32_t* official; /* KhRaStartOfficial: the only achievements evaluated */
+    uint32_t official_count;
 };
 
 static void SetStatus(KhRa* ra, const char* text, int error) {
@@ -230,7 +233,8 @@ int KhRaFetchImage(KhRa* ra, const char* url, KhRaImageCallback callback, void* 
 static void Event(const rc_client_event_t* event, rc_client_t* client) {
     KhRa* ra = (KhRa*)rc_client_get_userdata(client);
     if (event->type == RC_CLIENT_EVENT_ACHIEVEMENT_TRIGGERED && event->achievement)
-        snprintf(ra->notice, sizeof(ra->notice), "Local test: %s", event->achievement->title);
+        snprintf(ra->notice, sizeof(ra->notice), "%s\n%s", event->achievement->title,
+                 event->achievement->description ? event->achievement->description : "");
     else if (event->type == RC_CLIENT_EVENT_SERVER_ERROR && event->server_error)
         SetStatus(ra, event->server_error->error_message, 1);
 }
@@ -260,9 +264,31 @@ static void AccountProgress(const rc_api_server_response_t* response, void* user
     free(request);
 }
 
+/* Achievements whose memory reads are not verified against the cartridge yet
+ * are disabled as rcheevos disables an unsupported one: they stay in the
+ * list, never trigger and never submit. */
+static void RestrictOfficial(KhRa* ra) {
+    rc_client_game_info_t* game = ra->client->game;
+    rc_client_subset_info_t* subset;
+    if (!ra->official || !game) return;
+    for (subset = game->subsets; subset; subset = subset->next) {
+        rc_client_achievement_info_t* a = subset->achievements;
+        rc_client_achievement_info_t* end = a + subset->public_.num_achievements;
+        for (; a < end; ++a) {
+            uint32_t i, ok = 0;
+            for (i = 0; i < ra->official_count; ++i) ok |= ra->official[i] == a->public_.id;
+            if (ok || a->public_.state == RC_CLIENT_ACHIEVEMENT_STATE_UNLOCKED) continue;
+            a->public_.state = RC_CLIENT_ACHIEVEMENT_STATE_DISABLED;
+            a->public_.bucket = RC_CLIENT_ACHIEVEMENT_BUCKET_UNSUPPORTED;
+            if (a->trigger) a->trigger->state = RC_TRIGGER_STATE_DISABLED;
+        }
+    }
+}
+
 static void Loaded(int result, const char* error, rc_client_t* client, void* userdata) {
     KhRa* ra = (KhRa*)userdata;
     ra->busy = 0;
+    if (result == RC_OK) RestrictOfficial(ra);
     SetStatus(ra, result == RC_OK ? "Catalog loaded. Validation mode: online awards disabled." : error,
               result != RC_OK);
     if (result == RC_OK && !ra->closing) {
@@ -450,6 +476,16 @@ int KhRaAccountUnlocked(const KhRa* ra, uint32_t id) {
     return 0;
 }
 int KhRaValidationMode(void) { return 1; }
+
+void KhRaStartOfficial(KhRa* ra, const uint32_t* ids, uint32_t count) {
+    if (!ra) return;
+    ra->official = ids; ra->official_count = count;
+    rc_client_set_spectator_mode_enabled(ra->client, 0); /* softcore unlocks are submitted */
+    if (ra->enabled && ra->token[0] && !rc_client_get_user_info(ra->client) && !ra->busy) {
+        ra->busy = 1; SetStatus(ra, "Signing in...", 0);
+        rc_client_begin_login_with_token(ra->client, ra->username, ra->token, LoggedIn, ra);
+    }
+}
 const char* KhRaTakeNotice(KhRa* ra) {
     static char notice[512];
     if (!ra || !ra->notice[0]) return NULL;

@@ -53,6 +53,9 @@ enum TitleState {
 };
 
 static u32 sTitleState;
+#ifdef PLATFORM_PC
+u32* PortTitleStatePtr(void) { return &sTitleState; } /* port_ra_state.c */
+#endif
 static TaskPool sTitleTaskPool;
 static Task* sTitleMenuTask;
 static Task* sTitleLogoTask;

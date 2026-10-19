@@ -14,6 +14,16 @@
 #include "mode.h"
 #include "../achievements/local_achievements.c"
 #ifdef PORT_RETROACHIEVEMENTS
+int PortRaReadMemory(uint32_t address, uint8_t* buffer, uint32_t size);
+static uint32_t PortRaRead(uint32_t address, uint8_t* out, uint32_t size, void* userdata) {
+    (void)userdata;
+    return PortRaReadMemory(address, out, size) ? size : 0;
+}
+/* Official achievements whose reads are all verified (build/ra-reference-audit/enable.json). */
+static const uint32_t sOfficialVerified[] = { 15580u, 15584u, 15585u, 15587u, 15588u, 15590u, 15592u, 15595u, 15597u, 15598u, 15599u, 15600u, 15612u, 156793u, 160403u, 160404u, 160405u, 160406u, 160407u, 160408u, 160409u };
+#endif
+
+#ifdef PORT_RETROACHIEVEMENTS
 #include "../achievements/ra_client.h"
 static KhRa* sRa;
 #endif
@@ -46,10 +56,15 @@ void PortAchievementsInit(void) {
         fclose(config);
     }
 #ifdef PORT_RETROACHIEVEMENTS
-    /* Catalog/account access is integrated. Official frame evaluation stays
-     * off until relocated globals and pointer chains are verified against the
-     * official set. Local native achievements below do not depend on that map. */
-    sRa = KhRaCreate(PortConfigPath("."), NULL, NULL, NULL);
+    /* Official set (EU cartridge): evaluated from the port's memory as the
+     * cartridge lays it out (port_ra_memory.c / port_ra_state.c). Only the
+     * achievements whose every read is verified against the ROM are active;
+     * the rest stay listed but disabled until their memory is verified
+     * (queue item 71). */
+    sRa = KhRaCreate(PortConfigPath("."), PortRaRead, NULL, NULL);
+#ifdef VERSION_EU
+    KhRaStartOfficial(sRa, sOfficialVerified, sizeof(sOfficialVerified) / sizeof(sOfficialVerified[0]));
+#endif
 #endif
     if (SDL_getenv("KHCOM_MODE") || SDL_getenv("KHCOM_BOT") || SDL_getenv("KHCOM_BATTLE") ||
         SDL_getenv("KHCOM_EVENT") || SDL_getenv("KHCOM_KEYS")) sInvalidated = 1;
@@ -80,7 +95,17 @@ void PortAchievementsFrame(void) {
         sPreviewFrame == (unsigned)SDL_atoi(SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW")))
         PortAchievementToast("Primeros recuerdos", "Alcanza el nivel 10.", "VISTA PREVIA - LOGRO LOCAL");
 #ifdef PORT_RETROACHIEVEMENTS
-    KhRaPump(sRa, 0);
+    KhRaPump(sRa, !sInvalidated && (gCurrentMode == &gModeMapFld || gCurrentMode == &gModeBattle ||
+                                     gCurrentMode == &gModeTitle || sStarted));
+    {
+        const char* notice = KhRaTakeNotice(sRa);
+        if (notice) {
+            char title[256];
+            const char* nl = SDL_strchr(notice, '\n');
+            SDL_strlcpy(title, notice, nl ? (size_t)(nl - notice + 1) : sizeof(title));
+            PortAchievementToast(title, nl ? nl + 1 : "", "RETROACHIEVEMENTS");
+        }
+    }
 #endif
     if (gPortConfig.cheatOneHit || gPortConfig.cheatInfiniteHp || gPortConfig.cheatUnlockRiku ||
         gPortConfig.ps2Mode)

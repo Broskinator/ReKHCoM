@@ -62,6 +62,14 @@ void PortRaOverlayState(uint32_t address, uint8_t* buffer, uint32_t size) {
     if (!buffer || !size || address > 0x58000u || size > 0x58000u - address) return;
     OverlayHeapRoot(address, buffer, size, sOriginalState[9], gBtlWork);
     OverlayHeapRoot(address, buffer, size, sOriginalState[10], gCardBattleState);
+#if defined(VERSION_EU)
+    {
+        /* the title screen's state (mode_title.c sTitleState), read by the official
+           set at 0x02035088: the title functions' Thumb literal pools load it there */
+        extern uint32_t* PortTitleStatePtr(void);
+        Overlay(address, buffer, size, 0x02035088u, PortTitleStatePtr(), 4);
+    }
+#endif
     for (i = 0; i < 2; ++i) {
         Overlay(address, buffer, size, sOriginalState[0] + spans[i][0],
                 (const uint8_t*)&gGameState + spans[i][0], spans[i][1] - spans[i][0]);
