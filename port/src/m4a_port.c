@@ -603,6 +603,29 @@ static int32_t sHistR[8][PORT_MIX_MAX];
    frame's volume to this one's across the frame. */
 static s32 sLastVolR[MAX_DIRECTSOUND_CHANNELS], sLastVolL[MAX_DIRECTSOUND_CHANNELS];
 
+/* Options menu (main.c PortMenuSound*): the mixer's history is kept while
+   the menu's clicks play on a silent mixer, and put back when it closes. */
+static struct {
+    int32_t histL[8][PORT_MIX_MAX], histR[8][PORT_MIX_MAX];
+    s32 lastVolR[MAX_DIRECTSOUND_CHANNELS], lastVolL[MAX_DIRECTSOUND_CHANNELS];
+} sMenuMix;
+
+void PortM4aMixHold(int save) {
+    if (save) {
+        memcpy(sMenuMix.histL, sHistL, sizeof(sHistL));
+        memcpy(sMenuMix.histR, sHistR, sizeof(sHistR));
+        memcpy(sMenuMix.lastVolR, sLastVolR, sizeof(sLastVolR));
+        memcpy(sMenuMix.lastVolL, sLastVolL, sizeof(sLastVolL));
+        memset(sHistL, 0, sizeof(sHistL));
+        memset(sHistR, 0, sizeof(sHistR));
+    } else {
+        memcpy(sHistL, sMenuMix.histL, sizeof(sHistL));
+        memcpy(sHistR, sMenuMix.histR, sizeof(sHistR));
+        memcpy(sLastVolR, sMenuMix.lastVolR, sizeof(sLastVolR));
+        memcpy(sLastVolL, sMenuMix.lastVolL, sizeof(sLastVolL));
+    }
+}
+
 static void MixChannel(SoundInfo* info, SoundChannel* chan, int n, int over) {
     WaveData* wav = chan->wav;
     u8 flags = chan->statusFlags;

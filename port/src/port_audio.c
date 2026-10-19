@@ -409,6 +409,14 @@ void PortAudioVisitState(PortStateVisitor visit) {
     visit(&sStreamFrac, sizeof(sStreamFrac));
 }
 
+/* Options menu: the PSG channels stop sounding (a note held at volume 0
+   still leaves its level); the menu puts the saved state back on closing. */
+void PortAudioPsgOff(void) {
+    int ch;
+    for (ch = 0; ch < 4; ch++)
+        sPsg[ch].on = 0;
+}
+
 void PortAudioReset(void) {
     if (sStream != NULL) {
         SDL_PauseAudioStreamDevice(sStream);
@@ -529,6 +537,15 @@ static void SmoothFilter(int n, int rate) {
             sOut[i * 2 + c] = y;
         }
     }
+}
+
+/* While the options menu pauses the game: send the m4a mix only (its click);
+   a movie or stream must not advance behind the menu. */
+void PortAudioMenuFrame(void) {
+    if (gPortMix.ready && InM4aBuffer(IO32(0xBC)))
+        PortAudioFrame();
+    else
+        gPortMix.ready = 0;
 }
 
 void PortAudioFrame(void) {

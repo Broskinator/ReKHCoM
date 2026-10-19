@@ -43,6 +43,7 @@ extern const char* GetModeName(void);
 #include "port/port.h"
 #include "display.h"
 #include "m4a_song.h"
+#include "songs.h"
 #include "card_worldselect.h"
 #include "game_state.h"
 #include "map_api.h"
@@ -88,6 +89,115 @@ extern Mode gModeDeck, gModeStatus, gModeJiminy, gModeAllmap, gModeMapinspect, g
 
 void PortHarnessSong(int song) {
     m4aSongNumStart((u16)song);
+}
+
+/* Options menu sounds: the debug menu's click (SONG_SYS_CLICK) when its light
+   moves, a little quieter. The game is paused while the menu is open: the
+   whole sound state (the m4a players, their tracks, the mixer, the sound
+   registers and the port's PSG/FIFO) is copied when it opens, silenced for
+   the clicks, and put back exactly when it closes, so the music and effects
+   go on from the same note, at the same volume. */
+#define MENU_CLICK_VOLUME 0xB0 /* of 0x100 */
+#define MENU_SOUND_IO 0x060u   /* sound registers 0x060-0x0A7 */
+#define MENU_SOUND_IO_SIZE 0x48u
+extern u8 gMPlayMemAccArea[16];
+extern CgbChannel gCgbChans[4];
+extern SoundInfo gSoundInfo;
+void SoundClear();
+void PortAudioVisitState(void (*visit)(void* data, size_t size));
+void PortAudioPsgOff(void);
+void PortM4aMixHold(int save);
+static struct {
+    SoundInfo sound;
+    CgbChannel cgb[4];
+    u8 memAcc[16];
+    MusicPlayerInfo info[26];
+    MusicPlayerTrack tracks[64];
+    u8 io[MENU_SOUND_IO_SIZE];
+    u8 port[4096];
+    u32 portSize;
+    int held;
+} sMenuSound;
+
+static void MenuSoundSavePort(void* data, size_t size) {
+    if (sMenuSound.portSize + size <= sizeof(sMenuSound.port))
+        memcpy(sMenuSound.port + sMenuSound.portSize, data, size);
+    sMenuSound.portSize += (u32)size;
+}
+
+static void MenuSoundLoadPort(void* data, size_t size) {
+    if (sMenuSound.portSize + size <= sizeof(sMenuSound.port))
+        memcpy(data, sMenuSound.port + sMenuSound.portSize, size);
+    sMenuSound.portSize += (u32)size;
+}
+
+/* copy (save) or put back (load) every player's info and tracks */
+static int MenuSoundPlayers(int save) {
+    u32 i, t = 0;
+    for (i = 0; i < NUM_MUSIC_PLAYERS && i < ARRAY_COUNT(sMenuSound.info); i++) {
+        const MusicPlayer* mp = &gMPlayTable[i];
+        if (t + mp->numTracks > ARRAY_COUNT(sMenuSound.tracks))
+            return 0;
+        if (save) {
+            sMenuSound.info[i] = *mp->info;
+            memcpy(&sMenuSound.tracks[t], mp->track, mp->numTracks * sizeof(MusicPlayerTrack));
+        } else {
+            *mp->info = sMenuSound.info[i];
+            memcpy(mp->track, &sMenuSound.tracks[t], mp->numTracks * sizeof(MusicPlayerTrack));
+        }
+        t += mp->numTracks;
+    }
+    return 1;
+}
+
+static const MusicPlayer* MenuClickPlayer(void) {
+    return &gMPlayTable[gSongTable[SONG_SYS_CLICK].ms];
+}
+
+void PortMenuSoundBegin(void) {
+    sMenuSound.held = 0;
+    if (!MenuSoundPlayers(1))
+        return; /* larger than expected: leave the sound alone, no clicks */
+    sMenuSound.sound = gSoundInfo;
+    memcpy(sMenuSound.cgb, gCgbChans, sizeof(sMenuSound.cgb));
+    memcpy(sMenuSound.memAcc, gMPlayMemAccArea, sizeof(sMenuSound.memAcc));
+    memcpy(sMenuSound.io, (u8*)REG_BASE + MENU_SOUND_IO, MENU_SOUND_IO_SIZE);
+    sMenuSound.portSize = 0;
+    PortAudioVisitState(MenuSoundSavePort);
+    if (sMenuSound.portSize > sizeof(sMenuSound.port))
+        return;
+    sMenuSound.held = 1;
+    m4aMPlayAllStop();
+    SoundClear(); /* PSG channels off too: no tone held under the menu */
+    PortAudioPsgOff();
+    PortM4aMixHold(1); /* and no reverb tail */
+}
+
+void PortMenuSoundClick(void) {
+    if (!sMenuSound.held)
+        return;
+    m4aSongNumStart(SONG_SYS_CLICK);
+    m4aMPlayVolumeControl(MenuClickPlayer()->info, 0xFFFF, MENU_CLICK_VOLUME);
+}
+
+/* the mixer for one menu frame (the port then sends it out) */
+void PortMenuSoundFrame(void) {
+    if (sMenuSound.held)
+        m4aSoundMain();
+}
+
+void PortMenuSoundEnd(void) {
+    if (!sMenuSound.held)
+        return;
+    MenuSoundPlayers(0);
+    gSoundInfo = sMenuSound.sound;
+    memcpy(gCgbChans, sMenuSound.cgb, sizeof(sMenuSound.cgb));
+    memcpy(gMPlayMemAccArea, sMenuSound.memAcc, sizeof(sMenuSound.memAcc));
+    memcpy((u8*)REG_BASE + MENU_SOUND_IO, sMenuSound.io, MENU_SOUND_IO_SIZE);
+    sMenuSound.portSize = 0;
+    PortAudioVisitState(MenuSoundLoadPort);
+    PortM4aMixHold(0);
+    sMenuSound.held = 0;
 }
 
 /* The original debug menu resets volatile game progress, so make it available

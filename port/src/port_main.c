@@ -2108,10 +2108,18 @@ static void VBlankCycle(void) {
 #ifdef __ANDROID__
     while (sAndroidBackground) { SDL_Delay(50); PumpEvents(); }
 #endif
+    if (PortUiActive()) {
+        extern void PortMenuSoundBegin(void);
+        PortMenuSoundBegin();
+    }
     while (PortUiActive()) {
+        extern void PortMenuSoundFrame(void);
+        extern void PortAudioMenuFrame(void);
 #ifdef __EMSCRIPTEN__
         PortWebWaitVisible();
 #endif
+        PortMenuSoundFrame();
+        PortAudioMenuFrame();
         int w = gPortScreen.width, h = gPortScreen.height;
 
         UpdateResolution();
@@ -2128,6 +2136,10 @@ static void VBlankCycle(void) {
         if (SDL_getenv("KHCOM_VPAD")) {
             (void)PortInputKeys();
             sFrameCount++;
+        }
+        if (!PortUiActive()) {
+            extern void PortMenuSoundEnd(void);
+            PortMenuSoundEnd();
         }
     }
     IO16(0x130) = (uint16_t)(~PortInputResolve(PortInputKeys() | HarnessKeys(sFrameCount) | PortBotKeys(sFrameCount)) & 0x3FF);

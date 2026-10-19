@@ -1303,6 +1303,8 @@ void PortUiTitleHint(void) {
 }
 
 static void Move(int dir) {
+    extern void PortMenuSoundClick(void);
+    PortMenuSoundClick(); /* the debug menu's click, as its light moves */
     sFsPending = -1; /* leaving the row drops a resolution not applied */
     do {
         int first = PageFirst(), n = PageEnd() - first;
@@ -2150,6 +2152,23 @@ static int HarnessOptionsAction(void) {
             w = comma ? comma + 1 : NULL;
         }
         return changed;
+    }
+    if (SDL_getenv("KHCOM_OPTIONS_MOVES")) { /* tick:dir moves the light, as the arrows do */
+        const char* m = SDL_getenv("KHCOM_OPTIONS_MOVES");
+        int tick = sHarnessTick + 1;
+        while (m && *m) {
+            const char* comma = SDL_strchr(m, ',');
+            const char* colon = SDL_strchr(m, ':');
+            if (colon && (!comma || colon < comma) && SDL_atoi(m) == tick) {
+                Move(SDL_atoi(colon + 1) < 0 ? -1 : 1);
+                changed = 1;
+            }
+            m = comma ? comma + 1 : NULL;
+        }
+        if (!route) {
+            sHarnessTick = tick;
+            return changed;
+        }
     }
     if (!route)
         return 0;

@@ -92,11 +92,12 @@ completas al final.
 
 ## 3. Claude
 
-- **58 (18/10):** añadir los sonidos de las luces del modo debug al menú de
-  Opciones, un poco más bajos de volumen. Intento en stash
-  `claude-58-menu-click-music-regression`: el clic suena, pero pausar la música con
-  m4aMPlayStop corta las notas largas (al volver suena más baja) y deja un tono
-  sostenido del PSG con el menú abierto. Falta pausar sin soltar notas.
+- **58 (19/10, sonido, espera aprobación):** el clic de las luces del modo debug
+  suena al mover la luz en Opciones (algo más bajo). Al abrir el menú se guarda todo
+  el estado de sonido (reproductores m4a, pistas, mezclador, registros, PSG/FIFO del
+  port e historial de reverberación), se silencia, y al cerrar se restaura tal cual:
+  la música sigue en la misma nota y volumen (medido: error 0,0002 en el título y
+  0,0006 en el campo frente a una pasada sin menú; silencio total entre clics).
 - **63 (18/10, colisión) — hecho, falta tu prueba:** se quitó la lógica propia del
   port que conservaba y recreaba cristales/gimmicks en los menús (4e6bb4aad,
   d3c5f41e2) y el cristal de prueba del harness; ahora siguen el flujo del juego.
