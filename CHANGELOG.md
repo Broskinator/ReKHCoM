@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.9.10 — 2026-10-19
+
+Stable. Fixes on top of v1.9.9:
+
+- Deck editor: the game no longer closes after editing a deck (#26). This was a bug in the
+  original game; on the GBA it was harmless, on PC it crashed. It was present since v1.0.
+- Save crystals: the save window no longer appears shifted over the party after a message
+  window with a portrait.
+- Crash reports: if the game ever closes unexpectedly, kh_com.log now lists where it
+  happened, so it can be attached to a bug report.
+
 ## v1.9.9 — 2026-10-19
 
 Stable. Everything from v1.9.8 (published as a test build), plus:
