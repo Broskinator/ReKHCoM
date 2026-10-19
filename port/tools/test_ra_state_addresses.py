@@ -12,6 +12,13 @@ expected = {
 witnesses = [('InitGameState', 4), ('GetActiveDeck', 1), ('InitCardCollection', 4),
              ('InitCardCollection', 5), ('CountOwnedMapCardKinds', 7), ('GetActiveDeckIndex', 0),
              ('VBlankTimerStart', 0), ('ModeRequest', 0), ('GetKeysHeld', 0), ('BgFxIsBlocked', 0), ('GetSoraListIndex', 0)]
+# An LDR address alone does not identify the pointed-to object. Bind the
+# witness to its C owner as well, so sBgFx cannot regress to gBtlWork again.
+effect = (ROOT / 'src/btl/btl_effect.c').read_text(encoding='utf-8')
+body = effect.split('u8 BgFxIsBlocked(u8 priority) {', 1)[1].split('\n}', 1)[0]
+assert 'sBgFx->priority' in body and 'gBtlWork' not in body
+projection = (ROOT / 'port/src/port_ra_state.c').read_text(encoding='utf-8')
+assert 'sOriginalState[9], PortRaBgFxWork()' in projection
 report = []
 for region, code in [('eu', 'B8CP'), ('us', 'B8CE'), ('jp', 'B8CJ')]:
     manifest = ROOT / ('config/jp/funcmap.txt' if region == 'jp' else 'config/eu/funcmap.txt')

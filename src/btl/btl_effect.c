@@ -318,6 +318,12 @@ BgAnimationDef gBgAnimDefRikuLimitFinish = { &sBgAnimationChunks[106], gBgAnimRi
 BgAnimationDef gBgAnimDefRikuDiveHit = { &sBgAnimationChunks[107], gBgAnimRikuDiveHitMap, gBgAnimRikuDiveHitPalette, sizeof(gBgAnimRikuDiveHitPalette), 64, 16, 16, 5, 5 };
 
 static BgFx* sBgFx;
+#ifdef PLATFORM_PC
+/* RA conditions anchor their heap-relative reads at this original global,
+ * not gBtlWork. Keep access read-only; no battle/effect lifetime changes. */
+const void* PortRaBgFxWork(void) { return sBgFx; }
+#endif
+
 
 void BgFxReset() {
     if (gBtlWork->flags & BTL_FLAG_BOSS_BATTLE) {

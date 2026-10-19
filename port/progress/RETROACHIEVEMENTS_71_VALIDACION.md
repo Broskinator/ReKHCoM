@@ -38,3 +38,14 @@ el port ni valida las condiciones que requieren estar en combate.
 Fuentes del formato: MGBAHawk.IStatable.cs de TASEmulators/BizHawk y
 https://github.com/mgba-emu/mgba/blob/master/include/mgba/internal/gba/serialize.h
 La extracción requiere --rom y --zstd explícitos; no copia datos privados al repo.
+
+## Corregir la identidad del anclaje de combate
+
+Los literales de BgFxIsBlocked son EU 0x02034A28, US/JP 0x02034928.
+Su cuerpo opera sobre sBgFx (src/btl/btl_effect.c), no sobre gBtlWork.
+La proyección anterior publicaba gBtlWork en esa dirección: una dirección
+correcta con el objeto equivocado. PortRaBgFxWork devuelve ahora sBgFx, sin
+modificar su vida ni lógica. Se conserva la restricción a punteros de heaps GBA.
+Los tests atan explícitamente el testigo Thumb a su propietario C para evitar
+regresar a la confusión entre ambas variables. Dirección y bytes parciales se
+comprueban en EU/US/JP. No amplía por sí sola los 21 logros oficiales activos.

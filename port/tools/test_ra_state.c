@@ -13,7 +13,8 @@ volatile uint32_t gVBlankCounter;
 int32_t gPendingModeArg;
 static uint32_t sTitleStateTest;
 uint32_t* PortTitleStatePtr(void) { return &sTitleStateTest; }
-struct BtlWork* gBtlWork;
+static const void* sBgFxForTest;
+const void* PortRaBgFxWork(void) { return sBgFxForTest; }
 struct CardBattleState* gCardBattleState;
 void PortRaOverlayState(uint32_t address, uint8_t* buffer, uint32_t size);
 int main(void) {
@@ -35,7 +36,7 @@ int main(void) {
         0x34928u, cardRoot = 0x41D44u;
 #endif
     unsigned i;
-    gBtlWork = (struct BtlWork*)(uintptr_t)0x02033F00u;
+    sBgFxForTest = (const void*)(uintptr_t)0x02033F00u;
     gCardBattleState = (struct CardBattleState*)(uintptr_t)0x03006700u;
     memset(bytes, 0xA5, sizeof(bytes));
     PortRaOverlayState(battleRoot, bytes, 4);
@@ -48,7 +49,7 @@ int main(void) {
     {
         const uintptr_t bad[] = {0, 0x00401234u, 0x02034000u, 0x03006800u, 0x08001234u};
         for (i = 0; i < sizeof(bad)/sizeof(*bad); ++i) {
-            gBtlWork = (struct BtlWork*)bad[i];
+            sBgFxForTest = (const void*)bad[i];
             gCardBattleState = (struct CardBattleState*)bad[i];
             memset(bytes, 0xA5, 8);
             PortRaOverlayState(battleRoot, bytes, 4);

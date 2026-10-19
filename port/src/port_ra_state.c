@@ -13,12 +13,12 @@ extern uint8_t GetActiveDeckIndex(void);
 extern uint16_t GetKeysHeld(void);
 extern volatile uint32_t gVBlankCounter;
 extern int32_t gPendingModeArg;
-extern struct BtlWork* gBtlWork;
+extern const void* PortRaBgFxWork(void);
 extern struct CardBattleState* gCardBattleState;
 STATIC_ASSERT(sizeof(Deck) == 0xE0, RaDeckLayout);
 
 /* GameState, decks, collection, count, map cards, active deck, VBlank counter,
- * pending mode ARGUMENT (not a native Mode pointer), held GBA keys, battle work root, card battle root. */
+ * pending mode ARGUMENT (not a native Mode pointer), held GBA keys, background-effect root (sBgFx), card battle root. */
 static const uint32_t sOriginalState[11] = {
 #if defined(VERSION_US)
     0x02039BB0u, 0x02039DE0u, 0x0203A080u, 0x0203A858u, 0x0203A8C0u, 0x02034AB0u,
@@ -60,7 +60,7 @@ void PortRaOverlayState(uint32_t address, uint8_t* buffer, uint32_t size) {
     };
     unsigned i;
     if (!buffer || !size || address > 0x58000u || size > 0x58000u - address) return;
-    OverlayHeapRoot(address, buffer, size, sOriginalState[9], gBtlWork);
+    OverlayHeapRoot(address, buffer, size, sOriginalState[9], PortRaBgFxWork());
     OverlayHeapRoot(address, buffer, size, sOriginalState[10], gCardBattleState);
 #if defined(VERSION_EU)
     {
