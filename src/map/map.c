@@ -2875,7 +2875,6 @@ void MapFldMain() {
         }
 
         if (GetKeysPressed() & START_BUTTON) {
-            /* the pause menu needs the icon's sprite memory for its list */
             MapFldDestroyAllmapRoom();
             TaskCreate(&gFieldState->tasks, &gTaskDescMapMenu, NULL);
             MapFldSetUpdateAndRun(MapFldWaitMenu);
@@ -2884,9 +2883,7 @@ void MapFldMain() {
     }
 
     if (gMapRoomState->flags & ROOM_FLAG_SAVE_MENU_OPEN) {
-#ifndef PLATFORM_PC
         MapFldDestroyAllmapRoom();
-#endif
         MapFldSetUpdateAndRun(MapFldWaitMenu);
         return;
     }
@@ -2995,11 +2992,6 @@ void MapFldWaitMenu() {
         SetupBg(0, 3, 31, 14);
         SetBgPriority(0, 0);
         MapGmkCreateTasks();
-#ifdef PLATFORM_PC
-        /* The wide view shows the field around the menus: the room's map
-           icon stayed up instead of vanishing and popping back. */
-        if (sMapFldAllmapRoomTask == NULL)
-#endif
         sMapFldAllmapRoomTask = CreateAllmapRoomTask(&gFieldState->tasks);
         MapFldSetUpdateAndRun(MapFldMain);
     } else {

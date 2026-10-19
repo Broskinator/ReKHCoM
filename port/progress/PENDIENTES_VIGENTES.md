@@ -96,6 +96,9 @@ completas al final.
   posición depende de la semilla de la sala (fotograma al usar la carta), igual que
   en el GBA. Detrás del cristal, izquierda avanza; 8 ciclos de menú de guardado y 6
   de pausa: el cristal sigue (sala aleatoria y castillo). Confirmar con una partida.
+  Revisión de todo el mapa contra el decomp original: el icono del mapa de la sala
+  también vuelve a su ciclo original. Queda a decisión del usuario: los Heartless
+  del campo desaparecen según la vista ancha y no a 240 px (v1.9.1, map_tasks.c).
 - **68 (bug, 18/10):** Android (APK de prueba v1.9.6): iniciar partida con texto HD
   activado crashea. Replicar en el emulador (AVD en D:/ReKHCoM-build/android-avd).
 - **66 (18/10):** Android: la app aún pregunta el idioma del juego al empezar, pero
