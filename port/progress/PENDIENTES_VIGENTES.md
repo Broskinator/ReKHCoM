@@ -16,8 +16,8 @@ conservada para poder rastrear. Reglas del usuario:
 
 | Quién | Puntos |
 |---|---|
-| **Claude** | 1) 72 cristal del primer cuarto tras el tutorial: el usuario ve otra posición que en el emulador; se está comprobando en el original desde el inicio con el .vbm (SRAM limpia) si esa sala sale siempre igual; si es así, corregir la causa en el port; 2) v1.9.9 estable (empaquetada salvo PS5/web; se publica con release_check.py); 3) 71 logros oficiales restantes; 4) 51–54 alphas de consolas; 5) 39 rutas |
-| **Codex** | 61–62 escenas de Ciudad de Paso; 16–24 arte de jefes |
+| **Claude** | 1) 72 cristal del primer cuarto tras el tutorial (en el original sale SIEMPRE igual: semilla 0x90FAECF1 con SRAM limpia en el .vbm; el port no); 2) v1.9.9 estable con release_check.py; 3) 51–54 alphas de consolas |
+| **ChatGPT/Codex** | 1) 71 logros oficiales restantes (69/90): validar con BizHawk las cadenas gBtlWork/gCardBattleState→heap, Pooh 0x0203C9D4, piso 0x0203CB86, IWRAM 0x03002D00 y activarlos en sOfficialVerified (port_achievements.c); herramientas ra_layout.py, ra_layout_check.py, ra_witness.py, bizhawk_*.lua; 2) 61–62 escenas de Ciudad de Paso; 3) 39 rutas completas; 4) 16–24 arte de jefes |
 
 Hecho del 19/10 (madrugada/mañana): v1.9.8 publicada y pasada a prerelease (no aprobada
 como estable); 21/90 logros oficiales activos; menú de Opciones ya no lee reproductores
