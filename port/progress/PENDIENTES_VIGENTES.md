@@ -12,12 +12,15 @@ conservada para poder rastrear. Reglas del usuario:
 - Nunca borrar carpetas ReKHCoM-vX sin pedirlo el usuario (18/10: autorizó borrar
   las antiguas dejando 3; respaldo de guardados en backups/).
 
-## Reparto actual (18/10, noche)
+## Reparto actual (19/10, madrugada)
 
 | Quién | Puntos | Orden sugerido |
 |---|---|---|
-| **Claude (Opus)** | 57 menú de Opciones a toda la altura; 58 sonidos del modo debug; 63 colisiones; 64 moguri a Experimental; 65 pausa y saltar escena; v1.9.4 y #19; 44 limpieza; 43 cola; 51–54 consolas (otro chat); 39 rutas (al final) | 1) 58 (corto), 2) 63, 3) 65, 4) 44 con permiso, 5) 39 |
-| **ChatGPT/Codex** | 59 caras flotando en escenas; 60 barras del título; 40 audio PSG; 55 página web con las opciones del launcher y estética del juego; después 61–62 y 16–24 | Orden explícito del usuario: **55 → 27** (59 y 60 aprobados; 40 sin fallo actual). Los demás quedan después. |
+| **Claude (Opus)** | 69 lógica mapa GBA (espera aprobación); 68 crash de Riku en Android; 58 sonidos del modo debug; 65 pausa y saltar escena; 66 idioma en Android; 67 banderas en el launcher; franjas negras de salas del castillo (find_blank_margins); 44 limpieza; 43 cola; 39 rutas (al final) | 1) 68, 2) 58, 3) 65, 4) 66–67, 5) franjas, 6) 44 con permiso, 7) 39 |
+| **ChatGPT/Codex** | 55 página web; 27 logros; después 61–62 y 16–24 | **55 → 27.** 19/10 01:15: Codex sin actividad desde 18/10 21:11; Claude integró su commit local de logros (556b43129 → main). Queda WIP suyo sin commitear en khcom-codex (12 archivos: logros y web); lo retoma él o Claude si sigue inactivo. |
+
+Hechos 18–19/10 (Claude): 56/56b, 57, 63 (cristales y gimmicks con la lógica del
+juego), 64. Sesión de 2 h del usuario jugando: builds con -j2, sin emuladores.
 
 Reglas de continuidad y orden por tamaño: lo corto primero; arte de jefes y rutas
 completas al final.
