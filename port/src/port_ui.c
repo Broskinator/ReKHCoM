@@ -65,6 +65,7 @@ enum {
     ITEM_FPS,
     ITEM_DODGE,
     ITEM_STOCK,
+    ITEM_PAD_LAYOUT,
     ITEM_SAVEBANK,
     ITEM_UNDUB,
     ITEM_MUSIC,
@@ -208,6 +209,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
+    { "Gamepad face buttons", "Boutons de la manette", "Gamepad-Tasten", "Tasti del controller",
+      "Botones del mando", "パッドのボタン配置" },
     { "Save bank", "Banque de sauvegarde", "Speicherbank", "Banco di salvataggio", "Banco de partidas",
       "セーブバンク" },
     { "Japanese voices (restart)", "Voix japonaises (relancer)", "Japanische Stimmen (Neustart)",
@@ -416,6 +419,12 @@ static const char* const sDifficulty[3][LANG_COUNT] = {
     { "Standard", "Standard", "Standard", "Standard", "Estándar", "スタンダード" },
     { "Beginner", "Débutant", "Anfänger", "Principiante", "Principiante", "ビギナー" },
     { "Proud", "Fier", "Stolz", "Orgoglioso", "Orgulloso", "プラウド" },
+};
+/* gPortConfig.padLayout: detect the pad (Nintendo pads swap A/B and X/Y), Xbox positions, Nintendo */
+static const char* const sPadLayout[3][LANG_COUNT] = {
+    { "Auto", "Auto", "Automatisch", "Automatico", "Automático", "自動" },
+    { "Xbox", "Xbox", "Xbox", "Xbox", "Xbox", "Xbox" },
+    { "Nintendo", "Nintendo", "Nintendo", "Nintendo", "Nintendo", "Nintendo" },
 };
 static const char* const sOnOff[2][LANG_COUNT] = {
     { "Off", "Non", "Aus", "No", "No", "オフ" },
@@ -833,6 +842,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_STOCK:
             SDL_strlcpy(out, sOnOff[gPortConfig.stockButton != 0][l], size);
             break;
+        case ITEM_PAD_LAYOUT:
+            SDL_strlcpy(out, sPadLayout[SDL_clamp(gPortConfig.padLayout, 0, 2)][l], size);
+            break;
         case ITEM_INVERT_CARD_SCROLL:
             SDL_strlcpy(out, sOnOff[gPortConfig.invertCardScroll != 0][l], size);
             break;
@@ -1024,6 +1036,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_STOCK:
             gPortConfig.stockButton = !gPortConfig.stockButton;
+            break;
+        case ITEM_PAD_LAYOUT:
+            gPortConfig.padLayout = (gPortConfig.padLayout + 3 + (dir < 0 ? -1 : 1)) % 3;
             break;
         case ITEM_INVERT_CARD_SCROLL:
             gPortConfig.invertCardScroll = !gPortConfig.invertCardScroll;

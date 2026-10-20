@@ -249,7 +249,7 @@ static const Setting kSettings[] = {
     { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
-    { "dodge_button", 1 },   { "stock_button", 1 }, { "experimental_moogle_notice", 0 }, { "hd_text", 0 },
+    { "dodge_button", 1 },   { "stock_button", 1 }, { "pad_layout", 0 }, { "experimental_moogle_notice", 0 }, { "hd_text", 0 },
     { "invert_card_scroll", 0 }, { "game_language", 0 },
     { "card_hud_raise", 8 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 }, { "experimental_unstock", 0 },
     { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 0 },
@@ -1286,6 +1286,20 @@ static void PageExtras() {
                          T("Y en el mando, D en el teclado: acumula cartas o trucos sin pulsar L y R a la vez.",
                            "Gamepad Y, keyboard D: stock cards or sleights without pressing L and R together."),
                          Ini("stock_button"));
+    ImGui::Separator();
+    {
+        const char* layouts[] = { T("Automático", "Auto"), "Xbox", "Nintendo" };
+        int layout = std::clamp(Ini("pad_layout"), 0, 2);
+        if (CycleRow(T("Botones del mando", "Gamepad face buttons"),
+                     T("Los mandos de Nintendo (Switch Pro, 8BitDo en modo Switch) tienen A y B, X e Y al revés que los de Xbox. "
+                       "Automático los detecta; elige Nintendo o Xbox si tu mando no se reconoce. En el juego, A es el botón rotulado A.",
+                       "Nintendo pads (Switch Pro, 8BitDo in Switch mode) have A/B and X/Y the other way round from Xbox ones. "
+                       "Auto detects them; pick Nintendo or Xbox if your pad is not recognised. In the game, A is the button labelled A."),
+                     layout, 3, layouts)) {
+            Ini("pad_layout") = layout;
+            changed = true;
+        }
+    }
     ImGui::Separator();
     ImGui::EndChild();
     ImGui::Spacing();
