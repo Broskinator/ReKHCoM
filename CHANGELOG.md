@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.9.11 — 2026-10-19
+## v1.9.11 — 2026-10-20
 
 - Achievements: the official RetroAchievements set (90, European version) is now earned as you
   play, with or without an account, and kept on your computer. The launcher, the web page and
@@ -30,6 +30,15 @@
   The launcher follows it too (A confirms, B goes back, bindings and the controller test).
 - Battles against Cloud, Axel and Parasite Cage no longer close the game on Android x86 and the
   web: a few divisions by zero of the original now return 0, as on the GBA.
+- Intro (#24): A, then A again, skips the copyright and logo screens straight to the title.
+- Cinematics (#24): START pauses any movie; the pause offers Skip cinematic (it asks first).
+- Game language (#24): the language chosen in the game stays locked on every version; the
+  launcher no longer overwrites it, and the web page's Game language shows and changes it.
+- Web: a wide Fullscreen button right under the game picture.
+- Widescreen: in "Choose a world" the title and footer bands reach the side margins during the
+  whole slide-in instead of popping in at the end.
+- Android, web and Linux ARM: opening the floor map, and a battle ending during Sora's card
+  reshuffle, no longer close the game (the same kind of stray access as #30).
 - Deck editor: moving the last copy of a card into the deck no longer risks closing the game on
   Android, the web and Linux ARM (same kind of division by zero).
 
