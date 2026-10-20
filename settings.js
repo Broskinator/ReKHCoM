@@ -26,6 +26,7 @@ const optionSpecs=[
   ['improvements','Battle','Combate','cheat_infinite_hp','Infinite HP','HP infinito',0,'check'],
   ['improvements','Extras','Extras','cheat_unlock_riku','Riku on title screen','Riku en el título',0,'check'],
   ['improvements','Extras','Extras','save_bank','Save bank','Banco de partidas',1,[[1,'1','1'],[2,'2','2'],[3,'3','3'],[4,'4','4'],[5,'5','5']],'startup'],
+  ['improvements','Experimental','Experimental','experimental_battle_zoom','Battle zoom (Auto view)','Zoom en combate (vista Auto)',0,[[0,'Same as main zoom','Igual al zoom principal'],[4,'×2','×2'],[6,'×3','×3'],[8,'×4','×4'],[10,'×5','×5'],[12,'×6','×6'],[14,'×7','×7'],[16,'×8','×8']]],
   ['improvements','Experimental','Experimental','experimental_save_point_slot_select','Choose slot at save points','Elegir ranura en cristales',0,'check'],
   ['improvements','Experimental','Experimental','experimental_moogle_notice','Moogle points notice','Aviso de puntos moguri',0,'check'],
   ['improvements','Experimental','Experimental','experimental_unstock','Return stocked cards','Devolver cartas acumuladas',0,'check'],
@@ -45,7 +46,9 @@ const optionInputs=new Map();
 function preferenceNotice(en,es){$('preferences-status').textContent=optionWord(en,es);}
 function keyName(v){return ReKHWeb.keyboardName(v)||optionWord('Unknown key','Tecla desconocida');}
 function rememberPreferences(){try{localStorage.setItem('rekhcom-options',JSON.stringify(preferences));}catch{preferenceNotice('Browser settings storage is unavailable.','No se pueden conservar las opciones del navegador.');}}
-function mergeIni(){let text=baseIni||'config_version=11\n';for(const[k,v]of Object.entries(preferences)){const line=new RegExp('^'+k+'=.*$','m');text=line.test(text)?text.replace(line,k+'='+v):text+'\n'+k+'='+v;}return text+'\n';}
+function mergeIni(){let current='';try{if(core)current=core.FS.readFile('/saves/kh_com.ini',{encoding:'utf8'});}catch{}
+  /* the file as it is now: the game and the language selector write it too */
+  let text=current||baseIni||'config_version=11\n';for(const[k,v]of Object.entries(preferences)){const line=new RegExp('^'+k+'=.*$','m');text=line.test(text)?text.replace(line,k+'='+v):text+'\n'+k+'='+v;}return text+'\n';}
 function changePreference(key,value){
   preferences[key]=Number(value);dirtyPreferences.add(key);rememberPreferences();
   if(started){

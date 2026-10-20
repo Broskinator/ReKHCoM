@@ -3,12 +3,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="light">
-<title>ReKHCoM · Web v1.9.10 Alpha</title>
+<title>ReKHCoM · Web v1.9.12 Alpha</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="stylesheet" href="web.css?v=d06afdc6e3cc1db0">
+<link rel="stylesheet" href="web.css?v=8447913173929407">
 <main>
-  <header><a class="brand" href="https://github.com/MatyMeatBoy/ReKHCoM"><small>REKHCOM · DECOMP PORT · WEB v1.9.10 ALPHA</small><img src="logo.png" alt="ReKHCoM — Kingdom Hearts Re:Chain of Memories" width="300" height="160"></a><label><span class="visually-hidden">Web · v1.9.10 Alpha</span><select id="interface-language" aria-label="Website language"><option value="en">English</option><option value="es">Español</option></select></label></header>
+  <header><a class="brand" href="https://github.com/MatyMeatBoy/ReKHCoM"><small>REKHCOM · DECOMP PORT · WEB v1.9.12 ALPHA</small><img src="logo.png" alt="ReKHCoM — Kingdom Hearts Re:Chain of Memories" width="300" height="160"></a><label><span class="visually-hidden">Web · v1.9.12 Alpha</span><select id="interface-language" aria-label="Website language"><option value="en">English</option><option value="es">Español</option></select></label></header>
   <nav class="tabs" role="tablist" aria-label="Launcher">
     <button role="tab" id="tab-game" aria-controls="panel-game" aria-selected="true" data-panel="game" data-en="Play" data-es="Juego">Play</button>
     <button role="tab" id="tab-graphics" aria-controls="panel-graphics" aria-selected="false" tabindex="-1" data-panel="graphics" data-en="Graphics" data-es="Gráficos">Graphics</button>
@@ -30,6 +30,9 @@
         <div class="version" data-region="us"><span class="square" aria-hidden="true"></span><span class="version-name"><b data-en="America" data-es="América">America</b><small>B8CE <span class="lang"><svg class="flag" viewBox="0 0 7 4.67" aria-hidden="true"><rect width="7" height="4.67" fill="#B22234"/><path d="M0,.9h7M0,1.62h7M0,2.34h7M0,3.06h7M0,3.78h7" stroke="#fff" stroke-width=".36"/><rect width="2.9" height="2.52" fill="#3C3B6E"/></svg>EN</span></small></span><span class="version-state" data-en="No ROM" data-es="Sin ROM">No ROM</span></div>
         <div class="version" data-region="jp"><span class="square" aria-hidden="true"></span><span class="version-name"><b data-en="Japan" data-es="Japón">Japan</b><small>B8CJ <span class="lang"><svg class="flag" viewBox="0 0 3 2" aria-hidden="true"><rect width="3" height="2" fill="#fff"/><circle cx="1.5" cy="1" r=".6" fill="#BC002D"/></svg>JA</span></small></span><span class="version-state" data-en="No ROM" data-es="Sin ROM">No ROM</span></div>
       </div>
+      <label class="game-language" id="game-language-row" hidden><span data-en="Game language" data-es="Idioma del juego">Game language</span>
+        <select id="game-language"><option value="" data-en="Choose at start" data-es="Elegir al empezar">Choose at start</option><option value="en">English</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="es">Español</option></select>
+        <small data-en="The game starts straight in it, without its language screen." data-es="El juego empieza directamente en él, sin su pantalla de idiomas.">The game starts straight in it, without its language screen.</small></label>
       <ol class="steps">
         <li><label class="file"><span data-i18n="rom">Choose ROM</span> <input id="rom" type="file" aria-describedby="file-help"></label>
           <p class="hint" data-i18n="romHint">Use an original, unpatched ROM. Available game languages depend on its region.</p></li>
@@ -49,6 +52,7 @@
       <button id="save-share" data-i18n="shareSave" hidden>Share / Save to Files</button>
     </section>
     <canvas id="canvas" tabindex="0" aria-label="Game. Use the arrow keys to move."></canvas>
+    <button id="fullscreen-bar" class="fullscreen-bar" data-i18n="fullscreen">Fullscreen</button>
     <p class="hint" data-i18n="keys">Arrows: move · X: A · Z: B · A/S: L/R · C: dodge · D: stock · Enter: START · Backspace: SELECT · Escape: options · F11 / Alt+Enter: fullscreen. Gamepads supported.</p>
     <p class="hint" data-i18n="saveHint">Save inside the game, then export a backup. Clearing browser data can erase saves. Quick states are not available in this alpha.</p>
   </section>
@@ -76,9 +80,8 @@
   <p id="preferences-status" class="hint" role="status"></p>
   <section id="panel-achievements" role="tabpanel" aria-labelledby="tab-achievements" hidden>
     <h1 data-en="Achievements" data-es="Logros">Achievements</h1>
-    <p class="hint" data-en="16 local challenges · EU, US and JP. Progress is stored in this browser. These challenges do not award RetroAchievements account points." data-es="16 retos locales · EU, US y JP. El progreso se guarda en este navegador. Estos retos no conceden puntos en tu cuenta RetroAchievements.">16 local challenges · EU, US and JP. Progress is stored in this browser. These challenges do not award RetroAchievements account points.</p>
-    <label class="achievement-setting"><input id="achievement-local-enabled" type="checkbox" checked disabled><span data-en="Enable local achievements (before starting)" data-es="Activar logros locales (antes de iniciar)">Enable local achievements (before starting)</span></label>
-    <p id="achievement-progress" role="status"></p><progress id="achievement-meter" max="16" value="0" aria-label="Achievements / Logros"></progress>
+    <p class="hint" data-en="The official RetroAchievements set (by its authors at retroachievements.org) for the European version. Earned as you play, no account needed; progress is stored in this browser. Cheats, rematches and loading a save state pause achievements until the game is restarted." data-es="El set oficial de RetroAchievements (sus autores en retroachievements.org) para la versión europea. Se consiguen al jugar, sin cuenta; el progreso se guarda en este navegador. Los trucos, las revanchas y cargar un savestate pausan los logros hasta reiniciar el juego.">The official RetroAchievements set (by its authors at retroachievements.org) for the European version. Earned as you play, no account needed; progress is stored in this browser. Cheats, rematches and loading a save state pause achievements until the game is restarted.</p>
+    <p id="achievement-progress" role="status"></p><progress id="achievement-meter" max="90" value="0" aria-label="Achievements / Logros"></progress>
     <div class="achievement-filters"><input type="search" id="achievement-search" aria-label="Search achievements / Buscar logros"><select id="achievement-filter" aria-label="Filter achievements / Filtrar logros"><option value="all" data-en="All" data-es="Todos">All</option><option value="locked" data-en="Locked" data-es="Pendientes">Locked</option><option value="unlocked" data-en="Unlocked" data-es="Conseguidos">Unlocked</option></select></div>
     <div id="achievement-grid" class="achievement-grid"></div>
     <p class="hint" data-en="RetroAchievements account access is currently available in the Windows launcher. Official unlock submissions and Hardcore are still under validation." data-es="La conexión con tu cuenta RetroAchievements está disponible por ahora en el launcher Windows. Los desbloqueos oficiales y Hardcore siguen en validación.">RetroAchievements account access is currently available in the Windows launcher. Official unlock submissions and Hardcore are still under validation.</p>
@@ -89,11 +92,11 @@
 <dialog id="editor-warning" aria-labelledby="editor-warning-title"><h2 id="editor-warning-title" data-en="Keep an original backup." data-es="Conserva un respaldo original.">Keep an original backup.</h2><p data-en="Changing stats or cards may alter progression and achievements. This editor only downloads copies; keep your original save before importing an edited file into the game." data-es="Cambiar estadísticas o cartas puede alterar el progreso y los logros. Este editor solo descarga copias; conserva tu partida original antes de importar un archivo editado al juego.">Changing stats or cards may alter progression and achievements. This editor only downloads copies; keep your original save before importing an edited file into the game.</p><button id="editor-cancel" data-en="Cancel" data-es="Cancelar">Cancel</button><button id="editor-confirm" data-en="Enable editor" data-es="Activar editor">Enable editor</button></dialog>
 <script src="runtime.js?v=663e6fe982984e81" defer></script>
 <script src="i18n.js?v=e29073c01672021b" defer></script>
-<script src="web.js?v=fc5a5ec33e87ffb6" defer></script>
-<script src="settings.js?v=0c77828cf82394a8" defer></script>
+<script src="web.js?v=17e1a8faf0b3f21b" defer></script>
+<script src="settings.js?v=c362866fb03b0002" defer></script>
 <script src="cards.js?v=4282af17bbeab113" defer></script>
 <script src="save-editor.js?v=4a5e44bd93589d47" defer></script>
 <script src="editor-ui.js?v=298cc84233c5e31d" defer></script>
-<script src="achievement-data.js?v=1fda2147fa5179d2" defer></script>
-<script src="achievements.js?v=a138b51de84d7fe1" defer></script>
+<script src="achievement-data.js?v=f1685a4c1e4f598d" defer></script>
+<script src="achievements.js?v=6bc7e9d0cb701652" defer></script>
 </html>

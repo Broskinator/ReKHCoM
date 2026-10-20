@@ -21,7 +21,7 @@ function canvasSize(){
   const size=ReKHWeb.fitSize(width,full?innerHeight:expanded?rect.height:width*9/16);
   if(started)core._PortWebResize(size.width,size.height);
   else{canvas.width=size.width;canvas.height=size.height;}
-  $('fullscreen').textContent=t(full||expanded?'exitFullscreen':'fullscreen');
+  $('fullscreen').textContent=$('fullscreen-bar').textContent=t(full||expanded?'exitFullscreen':'fullscreen');
 }
 function scheduleResize(){
   cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(canvasSize);
@@ -65,6 +65,7 @@ $('rom').addEventListener('change',async()=>{
     if(!region)throw Error(t('region'));
     const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-1',buffer)),n=>n.toString(16).padStart(2,'0')).join('');
     if(hash!==region.sha)throw Error(t('romHash'));
+    $('game-language-row').hidden=region.id!=='eu'; /* only the European cartridge has the language screen */
     for(const row of document.querySelectorAll('.version')){const on=row.dataset.region===region.id;row.classList.toggle('loaded',on);
       const state=row.querySelector('.version-state');state.dataset.en=on?'Loaded · verified':'No ROM';state.dataset.es=on?'Cargada · verificada':'Sin ROM';
       state.textContent=document.documentElement.lang==='es'?state.dataset.es:state.dataset.en;}
@@ -77,6 +78,7 @@ $('rom').addEventListener('change',async()=>{
     let savedOptions='';
     try{savedOptions=core.FS.readFile('/saves/kh_com.ini',{encoding:'utf8'});}catch{}
     window.ReKHOptions?.load(savedOptions);
+    syncGameLanguage(savedOptions);
     core.persistSoon=()=>store.request();
     core.onAchievementsChanged=()=>window.ReKHAchievements?.render();
     window.ReKHAchievements?.render();
@@ -120,7 +122,9 @@ $('play').addEventListener('click',()=>{
   window.ReKHOptions?.beforeStart();
   $('setup').hidden=true;$('game').hidden=false;canvasSize();started=true;$('canvas').focus();status('');
   window.ReKHOptions?.refresh();
-  try{core.callMain(['--data-dir','/saves','--rom',':browser:']);scheduleResize();}catch(error){fail(error);}
+  const args=['--data-dir','/saves','--rom',':browser:'];
+  if(region.id==='eu'&&$('game-language').value)args.push('--language',$('game-language').value);
+  try{core.callMain(args);scheduleResize();}catch(error){fail(error);}
 });
 $('touch').addEventListener('change',()=>{
   core?._PortWebTouchEnable($('touch').checked?1:0);
@@ -145,6 +149,7 @@ function setExpanded(on){
   clearInput();scheduleResize();$('canvas').focus();
 }
 $('fullscreen').addEventListener('click',toggleFullscreen);
+$('fullscreen-bar').addEventListener('click',toggleFullscreen); /* the same, right under the picture */
 $('pause').addEventListener('click',()=>{paused=!paused;$('pause').textContent=t(paused?'resume':'pause');visibility();if(!paused)$('canvas').focus();});
 $('export').addEventListener('click',async()=>{
   $('export').disabled=true;
@@ -190,3 +195,26 @@ $('canvas').addEventListener('pointercancel',clearInput);
 $('canvas').addEventListener('pointerdown',()=>$('canvas').focus());
 $('canvas').addEventListener('contextmenu',event=>event.preventDefault());
 translateWeb('en');status('choose');
+
+/* The European game's language lives in kh_com.ini (game_language, as on the desktop):
+   the game remembers the choice made on its language screen there, and this selector
+   shows and changes the same value. A choice made before the ROM is loaded is written
+   once the save folder is mounted. */
+const gameLanguageIds=['','en','fr','de','it','es'];
+let gameLanguageChoice=null;
+try{const saved=localStorage.getItem('rekhcom-game-language');if(saved)$('game-language').value=saved;}catch{}
+function writeGameLanguage(){
+  if(!core||region?.id!=='eu')return;
+  const value=Math.max(0,gameLanguageIds.indexOf($('game-language').value));
+  let ini='';try{ini=core.FS.readFile('/saves/kh_com.ini',{encoding:'utf8'});}catch{}
+  if(/^game_language=.*$/m.test(ini))ini=ini.replace(/^game_language=.*$/m,'game_language='+value);
+  else ini=(ini||'config_version=11').replace(/\n?$/,'\n')+'game_language='+value+'\n';
+  core.FS.writeFile('/saves/kh_com.ini',ini);store?.request();
+}
+function syncGameLanguage(ini){
+  const remembered=ini.match(/^game_language=(\d+)$/m);
+  if(gameLanguageChoice===null&&remembered)$('game-language').value=gameLanguageIds[Number(remembered[1])]||'';
+  else if(gameLanguageChoice!==null||$('game-language').value)writeGameLanguage(); /* older pages kept it in this browser */
+  try{localStorage.removeItem('rekhcom-game-language');}catch{}
+}
+$('game-language').addEventListener('change',()=>{gameLanguageChoice=$('game-language').value;writeGameLanguage();});

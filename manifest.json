@@ -1,20 +1,20 @@
 {
-  "version": "v1.9.10-web-alpha",
-  "source_commit": "a68547796dd453a2bc895036b38cae2d69dd65b2",
+  "version": "v1.9.12-web-alpha",
+  "source_commit": "788ce879e4f4ae08e886389966dd53e1a4419786",
   "source_dirty": false,
-  "built_utc": "2026-10-19T15:46:16.811471+00:00",
+  "built_utc": "2026-10-20T19:00:18.650503+00:00",
   "files": {
     "index.html": {
-      "bytes": 16071,
-      "sha256": "5a85467c81ebb16c90f6828e5033c610276bc6314d84662c681fb088509489d5"
+      "bytes": 16986,
+      "sha256": "853a6f2cad0d8f016aaf14c59a92d593be9f6908eba402bafb99cfd6b2893e57"
     },
     "web.css": {
-      "bytes": 13836,
-      "sha256": "d06afdc6e3cc1db0a979dee2f27de0c7033aab877c113e4f5947d17a77992c8a"
+      "bytes": 14462,
+      "sha256": "8447913173929407d194dabbc354a58db07c7f9a555b141931905bbeb14e5148"
     },
     "web.js": {
-      "bytes": 10606,
-      "sha256": "fc5a5ec33e87ffb640859521b1783a69db01e402dd7b567ff71edfc832506cbc"
+      "bytes": 12712,
+      "sha256": "17e1a8faf0b3f21b76c8dde06414c5bdc3a954f60f155c6111890460806a436c"
     },
     "runtime.js": {
       "bytes": 6492,
@@ -25,8 +25,8 @@
       "sha256": "e29073c01672021b0c6e9c57d0e9c01f181ee49bf39bc2245497a928f603c2f0"
     },
     "settings.js": {
-      "bytes": 16177,
-      "sha256": "0c77828cf82394a852980b01ee53162b5302af9de6e8d9e0496d3e096cd8d107"
+      "bytes": 16674,
+      "sha256": "c362866fb03b000227996fcd68f2fa12e42ff907ec7234f87ea633007e7e7b61"
     },
     "save-editor.js": {
       "bytes": 3993,
@@ -37,12 +37,12 @@
       "sha256": "298cc84233c5e31d711810c472d972ad2fd8f19f8093c5cc6c42b9179e97144a"
     },
     "achievement-data.js": {
-      "bytes": 1715,
-      "sha256": "1fda2147fa5179d2ccdb6d3a02fc218e5185a4dc6571436ab7cabd6ed9490530"
+      "bytes": 51899,
+      "sha256": "f1685a4c1e4f598d26b866e7565479b93268efb0061444fbe6c88985146f1c3b"
     },
     "achievements.js": {
-      "bytes": 4254,
-      "sha256": "a138b51de84d7fe1f6f81a8f565cdf1970f29c5e523218150627b3b5004ec50a"
+      "bytes": 3029,
+      "sha256": "6bc7e9d0cb701652d276d8a1e23429f35a733716f751f21ae15d86f3e3340185"
     },
     "cards.js": {
       "bytes": 32098,
@@ -51,6 +51,10 @@
     "controller.png": {
       "bytes": 8510,
       "sha256": "a8daabc38680527ad0bb4cc3115b9b07e157b0ea4f00aac27d1d042536b103c4"
+    },
+    "achievement-badges.png": {
+      "bytes": 347982,
+      "sha256": "4a8776fb578c1668283b8b6645bcd454ac6e141748016a4327cd81cee631bd4a"
     },
     "favicon.png": {
       "bytes": 62166,
@@ -93,28 +97,28 @@
       "sha256": "eaa349ba375164b474b490c1d1e53c909508790aa5e39f9ba54336172f6503a4"
     },
     "rekhcom-eu.js": {
-      "bytes": 205255,
-      "sha256": "3381bde5e9e21cc70a87ad4698d122919224eb502852e4df7fe94e29545e4588"
+      "bytes": 205663,
+      "sha256": "b721764312b0b029f0179131340ac21502d93eef01da993c835bf7b61be0b2ba"
     },
     "rekhcom-eu.wasm": {
-      "bytes": 4454682,
-      "sha256": "77ccf2e5b594b59fca57ab92ad28eab792ff8e807aacec03da11c5f3761eecbb"
+      "bytes": 5483763,
+      "sha256": "b2d0d3a53afc5c0ff568201c36dd6400da04cbc537e9128aadaf1e89d0de6b2a"
     },
     "rekhcom-us.js": {
-      "bytes": 205254,
-      "sha256": "7747326f7b47d5b386aa6bb0012e59712486b1445ef9edb0d31e2ab87e4569d8"
+      "bytes": 205541,
+      "sha256": "f99cd026d1365356f76d4780430d17e3a1c531e7f4e2f6e7945ce0887533ec5d"
     },
     "rekhcom-us.wasm": {
-      "bytes": 4601002,
-      "sha256": "4497a94a4b1b24cac2c34248c02dd916f2d94b79122c5fe06cf9f4ab7df40bf0"
+      "bytes": 5586969,
+      "sha256": "8561204748e3817b9490f17d9a0dd5aeefc8695b47875cf486a304b2ed5277b3"
     },
     "rekhcom-jp.js": {
-      "bytes": 205255,
-      "sha256": "7ebb476fef081cc69681d8ebf57b852426c90b9fe98b8676d21cac4e3422691b"
+      "bytes": 205541,
+      "sha256": "b9777cb85003e553b1c45a3d24ff46273ce9b86aa2174ac791b00c79ab02fc21"
     },
     "rekhcom-jp.wasm": {
-      "bytes": 4477916,
-      "sha256": "9ff96451e481eb0f3feb35294af59fee79ed9ca29c449ef59a76e302265f080d"
+      "bytes": 5464121,
+      "sha256": "4e180d92a2523d6c66fad38c8dbb487fbcb326d5cdbbcc8c8e043a92164d2766"
     }
   }
 }
