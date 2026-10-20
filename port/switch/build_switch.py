@@ -198,7 +198,7 @@ def build_host(regions):
     Image.open(PS5 / 'sce_sys/icon0.png').convert('RGB').resize((256, 256), Image.LANCZOS).save(share / 'icon.jpg', quality=92)
     (share / 'build.sh').write_bytes(VM_SCRIPT.replace('VERSION', version()).encode())
     out = BUILD / 'host-out'
-    command = [sys.executable, ROOT / 'port/tools/linux_vm_test.py', '--share', share, '--disk', VM_DISK, '--mem', '4096',
+    command = [sys.executable, ROOT / 'port/tools/linux_vm_test.py', '--share', share, '--disk', VM_DISK, '--fresh-share', '--mem', '4096',
                '--cpus', '4', '--run', 'bash /root/share/build.sh', '--fetch', '/root/share/ReKHCoM.nro', '--out', out]
     run(command, cwd=ROOT, env=dict(os.environ, MSYS_NO_PATHCONV='1', PYTHONUTF8='1'))
     nro = out / 'ReKHCoM.nro'

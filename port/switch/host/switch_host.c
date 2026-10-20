@@ -6,8 +6,13 @@
  * Video is the PS4 host's software rasterizer (port/ps4/ps4_host.c: every draw is an axis-aligned quad) into a
  * 1280x720 frame that SDL2 uploads and scales; sound is an SDL2 audio queue at 48 kHz; controllers come from libnx.
  *
- * Without __SWITCH__ the same file is a headless Linux AArch64 test host (the frame stays in memory, --shot N file.ppm
- * writes one, KHCOM_PADS scripts buttons), to check the image and the bridge without a console. */
+ * With __vita__ (port/vita/build_vita.py) the same file is the PS Vita host: the game image is ARMv7 code linked into
+ * the same executable (one per region), video is the same rasterizer into a 960x544 display buffer, sound a
+ * sceAudioOut port and the controls sceCtrl.
+ *
+ * Without __SWITCH__ or __vita__ the same file is a headless Linux AArch64 test host (the frame stays in memory,
+ * --shot N file.ppm writes one, KHCOM_PADS scripts buttons), to check the image and the bridge without a console.
+ * Built for 32-bit ARM Linux with REKHCOM_LINKED_GUEST it links the Vita's game image instead (build_vita.py test). */
 #define _GNU_SOURCE
 #include <dirent.h>
 #include <errno.h>
@@ -27,6 +32,19 @@
 #include <switch.h>
 #include <SDL2/SDL.h>
 #define DATA_ROOT "sdmc:/switch/ReKHCoM"
+#elif defined(__vita__)
+#include <psp2/appmgr.h>
+#include <psp2/audioout.h>
+#include <psp2/ctrl.h>
+#include <psp2/display.h>
+#include <psp2/kernel/processmgr.h>
+#include <psp2/kernel/sysmem.h>
+#include <psp2/kernel/threadmgr.h>
+#include <psp2/power.h>
+#define DATA_ROOT "ux0:data/ReKHCoM"
+int _newlib_heap_size_user = 64 * 1024 * 1024; /* textures of the rasterizer, the notices */
+unsigned int sceUserMainThreadStackSize = 4 * 1024 * 1024; /* the game runs on the main thread */
+#define REKHCOM_LINKED_GUEST
 #else
 #include <signal.h>
 #include <sys/mman.h>
@@ -34,6 +52,12 @@
 #endif
 
 #include "bridge.h"
+
+#ifdef REKHCOM_LINKED_GUEST
+/* the game image is part of this executable (the Vita's, port/vita/build_vita.py) */
+extern uint64_t gHostTable[];
+extern int guest_main(void);
+#endif
 
 #ifndef DATA_ROOT
 static char sDataRoot[512] = ".";
@@ -61,6 +85,9 @@ static void Log(const char* fmt, ...) {
 }
 
 static uint64_t NowUs(void) {
+#ifdef __vita__
+    return sceKernelGetProcessTimeWide();
+#endif
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
     return (uint64_t)t.tv_sec * 1000000u + (uint64_t)t.tv_nsec / 1000u;
@@ -78,11 +105,20 @@ static void H_exit(int code) {
     SDL_Quit();
     romfsExit();
 #endif
+#ifdef __vita__
+    sceKernelExitProcess(code);
+#endif
     exit(code);
 }
 
 static uint64_t H_ticks_us(void) { return NowUs(); }
-static void H_sleep_us(uint32_t us) { usleep(us); }
+static void H_sleep_us(uint32_t us) {
+#ifdef __vita__
+    sceKernelDelayThread(us);
+#else
+    usleep(us);
+#endif
+}
 
 static int H_getenv(const char* name, char* out, int cap) {
     const char* v = getenv(name);
@@ -149,8 +185,16 @@ static void H_dir_close(int d) {
 
 /* ---- video: software rasterizer (as port/ps4/ps4_host.c) ----------------- */
 
+#ifdef __vita__
+#define FB_W 960
+#define FB_H 544
+/* the display reads A8B8G8R8: on the Vita the rasterizer keeps red and blue swapped from textures to screen */
+#define PIX(c) (((c) & 0xFF00FF00u) | (((c) >> 16) & 0xFFu) | (((c) & 0xFFu) << 16))
+#else
 #define FB_W 1280
 #define FB_H 720
+#define PIX(c) (c)
+#endif
 static int sW = FB_W, sH = FB_H;
 static uint32_t* sFb; /* XRGB */
 static int sPitch = FB_W;
@@ -159,6 +203,9 @@ static int sFrame; /* frames shown (the test host's --shot and KHCOM_PADS count 
 static SDL_Window* sWindow;
 static SDL_Renderer* sRenderer;
 static SDL_Texture* sScreen;
+#elif defined(__vita__)
+static void* sVram[2];
+static int sBack;
 #else
 static int sShotFrame[16], sShots; /* --shot N file, repeatable */
 static const char* sShotFile[16];
@@ -188,6 +235,17 @@ static void VideoInit(void) {
         Log("video: %s", SDL_GetError());
     else
         Log("video: %dx%d through SDL %s", FB_W, FB_H, SDL_GetCurrentVideoDriver());
+#elif defined(__vita__)
+    for (int i = 0; i < 2; i++) {
+        SceUID block = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, 2 * 1024 * 1024, NULL);
+        if (block < 0 || sceKernelGetMemBlockBase(block, &sVram[i]) < 0) {
+            Log("video: no display memory (0x%08x)", block);
+            sVram[0] = NULL;
+            return;
+        }
+        memset(sVram[i], 0, FB_W * FB_H * 4);
+    }
+    Log("video: %dx%d", FB_W, FB_H);
 #endif
 }
 
@@ -199,6 +257,14 @@ static void Present(void) {
     SDL_RenderClear(sRenderer);
     SDL_RenderCopy(sRenderer, sScreen, NULL, NULL);
     SDL_RenderPresent(sRenderer);
+#elif defined(__vita__)
+    if (sVram[0]) {
+        SceDisplayFrameBuf fb = { sizeof(fb), sVram[sBack], FB_W, SCE_DISPLAY_PIXELFORMAT_A8B8G8R8, FB_W, FB_H };
+        sceDisplayWaitSetFrameBuf(); /* the buffer set last frame is on screen: the other one is free */
+        memcpy(sVram[sBack], sFb, FB_W * FB_H * 4);
+        sceDisplaySetFrameBuf(&fb, SCE_DISPLAY_SETBUF_NEXTFRAME);
+        sBack ^= 1;
+    }
 #else
     for (int s = 0; s < sShots; s++) {
         if (sFrame != sShotFrame[s])
@@ -222,10 +288,12 @@ static void H_gfx_begin(uint32_t clear) {
     sHasClip = 0;
     if (clear >> 24)
         for (int i = 0; i < sW * sH; i++)
-            sFb[i] = clear | 0xFF000000u;
+            sFb[i] = PIX(clear) | 0xFF000000u;
 }
 
-static uint32_t ToArgb(const uint8_t* s) { return ((uint32_t)s[3] << 24) | ((uint32_t)s[0] << 16) | ((uint32_t)s[1] << 8) | s[2]; }
+static uint32_t ToArgb(const uint8_t* s) {
+    return PIX(((uint32_t)s[3] << 24) | ((uint32_t)s[0] << 16) | ((uint32_t)s[1] << 8) | s[2]);
+}
 
 static int H_tex_create(const void* rgba, int w, int h, int smooth) {
     for (int i = 0; i < 4096; i++)
@@ -320,7 +388,7 @@ static void Rect(const Tex* t, const HostVertex* q) {
     float qx0 = q[0].x, qy0 = q[0].y, qx1 = q[5].x, qy1 = q[5].y;
     float u0 = q[0].u, v0 = q[0].v, u1 = q[5].u, v1 = q[5].v;
     int x0 = (int)ceilf(qx0 - 0.5f), y0 = (int)ceilf(qy0 - 0.5f), x1 = (int)ceilf(qx1 - 0.5f), y1 = (int)ceilf(qy1 - 0.5f);
-    uint32_t color = q[0].argb;
+    uint32_t color = PIX(q[0].argb);
     int crisp = 1;
 
     ClipBox(&x0, &y0, &x1, &y1);
@@ -394,7 +462,7 @@ static void Tri(const Tex* t, const HostVertex* a, const HostVertex* b, const Ho
                 u -= floorf((u + 0.25f) / 2.0f) * 2.0f;
                 s = Bilinear(t, u, vv);
             }
-            Put(&sFb[(size_t)y * sPitch + x], s, a->argb);
+            Put(&sFb[(size_t)y * sPitch + x], s, PIX(a->argb));
         }
 }
 
@@ -484,6 +552,29 @@ static void H_gfx_end(void) {
 
 #ifdef __SWITCH__
 static SDL_AudioDeviceID sAudio;
+#elif defined(__vita__)
+/* a ring the output thread empties into the port, 256 frames at a time */
+#define RING 16384
+static int16_t sRing[RING * 2];
+static volatile uint32_t sRingHead, sRingTail;
+static int sAudioPort = -1;
+
+static int AudioThread(SceSize args, void* argp) {
+    static int16_t buf[256 * 2];
+    (void)args, (void)argp;
+    for (;;) {
+        uint32_t tail = sRingTail, avail = sRingHead - tail, n = avail < 256 ? avail : 256;
+        for (uint32_t i = 0; i < n; i++) {
+            buf[i * 2] = sRing[((tail + i) % RING) * 2];
+            buf[i * 2 + 1] = sRing[((tail + i) % RING) * 2 + 1];
+        }
+        memset(buf + n * 2, 0, (256 - n) * 4);
+        __sync_synchronize();
+        sRingTail = tail + n;
+        sceAudioOutOutput(sAudioPort, buf);
+    }
+    return 0;
+}
 #endif
 static double sRatio = 1.0, sPos;
 static int16_t sLast[2];
@@ -504,6 +595,17 @@ static int H_audio_open(int rate) {
         return -1;
     }
     SDL_PauseAudioDevice(sAudio, 0);
+#elif defined(__vita__)
+    if (sAudioPort >= 0)
+        return 0;
+    sAudioPort = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_BGM, 256, rate, SCE_AUDIO_OUT_MODE_STEREO);
+    if (sAudioPort < 0) {
+        Log("audio: no port (0x%08x)", sAudioPort);
+        return -1;
+    }
+    SceUID t = sceKernelCreateThread("audio", AudioThread, 64, 0x10000, 0, 0, NULL);
+    if (t >= 0)
+        sceKernelStartThread(t, 0, NULL);
 #endif
     Log("audio: %d Hz", rate);
     return 0;
@@ -513,6 +615,16 @@ static void Queue(const int16_t* f, uint32_t n) {
 #ifdef __SWITCH__
     if (sAudio)
         SDL_QueueAudio(sAudio, f, n * 4);
+#elif defined(__vita__)
+    uint32_t head = sRingHead;
+    if (n > RING - (head - sRingTail))
+        n = RING - (head - sRingTail);
+    for (uint32_t i = 0; i < n; i++) {
+        sRing[((head + i) % RING) * 2] = f[i * 2];
+        sRing[((head + i) % RING) * 2 + 1] = f[i * 2 + 1];
+    }
+    __sync_synchronize();
+    sRingHead = head + n;
 #else
     (void)f, (void)n;
 #endif
@@ -557,6 +669,8 @@ static void H_audio_push(const int16_t* frames, uint32_t count) {
 static uint32_t H_audio_queued(void) {
 #ifdef __SWITCH__
     return sAudio ? SDL_GetQueuedAudioSize(sAudio) / 4 : 0;
+#elif defined(__vita__)
+    return sRingHead - sRingTail;
 #else
     return 800 * 4;
 #endif
@@ -565,6 +679,8 @@ static void H_audio_clear(void) {
 #ifdef __SWITCH__
     if (sAudio)
         SDL_ClearQueuedAudio(sAudio);
+#elif defined(__vita__)
+    sRingTail = sRingHead;
 #endif
 }
 static void H_audio_ratio(double ratio) { sRatio = ratio > 0.5 && ratio < 2.0 ? ratio : 1.0; }
@@ -614,6 +730,30 @@ static int H_pad_poll(HostPad* out, int count) {
     out[0].l2 = (b & HidNpadButton_ZL) ? 255 : 0;
     out[0].r2 = (b & HidNpadButton_ZR) ? 255 : 0;
     return 1;
+#elif defined(__vita__)
+    SceCtrlData c;
+    if (count < 1 || sceCtrlPeekBufferPositive(0, &c, 1) < 0)
+        return 0;
+    /* RetroPad numbering (bridge.h) by position: Cross south, Circle east, Square west, Triangle north. The Vita has
+       no L2/R2/L3/R3: Select + L / R save and load a state (the touchpad + L3 / R3 of the PS4 and PS5). */
+    static const struct { uint32_t key; int bit; } map[] = {
+        { SCE_CTRL_CROSS, 0 }, { SCE_CTRL_SQUARE, 1 }, { SCE_CTRL_SELECT, 2 }, { SCE_CTRL_START, 3 },
+        { SCE_CTRL_UP, 4 }, { SCE_CTRL_DOWN, 5 }, { SCE_CTRL_LEFT, 6 }, { SCE_CTRL_RIGHT, 7 },
+        { SCE_CTRL_CIRCLE, 8 }, { SCE_CTRL_TRIANGLE, 9 }, { SCE_CTRL_LTRIGGER, 10 }, { SCE_CTRL_RTRIGGER, 11 },
+    };
+    out[0].connected = 1;
+    for (size_t i = 0; i < sizeof(map) / sizeof(map[0]); i++)
+        if (c.buttons & map[i].key)
+            out[0].buttons |= 1u << map[i].bit;
+    if ((c.buttons & SCE_CTRL_SELECT) && (c.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_RTRIGGER))) {
+        out[0].buttons &= ~((1u << 2) | (1u << 10) | (1u << 11));
+        out[0].buttons |= (1u << 16) | ((c.buttons & SCE_CTRL_LTRIGGER) ? 1u << 14 : 1u << 15);
+    }
+    out[0].lx = (int16_t)(c.lx == 255 ? 32767 : (c.lx - 128) * 256);
+    out[0].ly = (int16_t)(c.ly == 255 ? 32767 : (c.ly - 128) * 256);
+    out[0].rx = (int16_t)(c.rx == 255 ? 32767 : (c.rx - 128) * 256);
+    out[0].ry = (int16_t)(c.ry == 255 ? 32767 : (c.ry - 128) * 256);
+    return 1;
 #else
     static const char* const names[] = { "B", "Y", "SELECT", "START", "UP", "DOWN", "LEFT", "RIGHT", "A", "X", "L", "R" };
     const char* script = getenv("KHCOM_PADS");
@@ -642,6 +782,7 @@ static int H_pad_poll(HostPad* out, int count) {
 static int H_quit_requested(void) { return sQuit; }
 static void H_set_title(const char* s) { (void)s; }
 
+#ifndef REKHCOM_LINKED_GUEST
 /* ---- the game image: a Mach-O executable of 32-bit load commands ---------------------------------------------- */
 
 typedef struct {
@@ -745,6 +886,7 @@ static bool LoadImage(const char* region, Ps5GuestHeader* header) {
     Log("game image: %s, header at 0x%08x, ends at 0x%08x", path, headerAt, end);
     return header->magic == PS5G_MAGIC;
 }
+#endif
 
 static const char* FindRegion(void) {
     static const struct { const char* code; const char* region; } known[] = { { "B8CP", "eu" }, { "B8CE", "us" }, { "B8CJ", "jp" } };
@@ -788,18 +930,22 @@ static void ShowNotice(const char* name, int frames) {
         if (id >= 0)
             DrawBox(id, w, h, (sH - h * (sW / 1920.0f)) / 2, 0xFFFFFFFFu);
         H_gfx_end();
-        usleep(16000);
+        H_sleep_us(16000);
     }
     if (id >= 0)
         H_tex_free(id);
 }
 
-#ifndef __SWITCH__
+#if !defined(__SWITCH__) && !defined(__vita__)
 /* The test host reports where the image stopped: game image addresses go to guest.map (build_switch.py). */
 static void OnFault(int sig, siginfo_t* info, void* context) {
     const ucontext_t* uc = context;
-    Log("fault: signal %d at pc 0x%llx, lr 0x%llx, address 0x%llx", sig, (unsigned long long)uc->uc_mcontext.pc,
-        (unsigned long long)uc->uc_mcontext.regs[30], (unsigned long long)(uintptr_t)info->si_addr);
+#ifdef __arm__
+    unsigned long long pc = uc->uc_mcontext.arm_pc, lr = uc->uc_mcontext.arm_lr;
+#else
+    unsigned long long pc = uc->uc_mcontext.pc, lr = uc->uc_mcontext.regs[30];
+#endif
+    Log("fault: signal %d at pc 0x%llx, lr 0x%llx, address 0x%llx", sig, pc, lr, (unsigned long long)(uintptr_t)info->si_addr);
     _exit(128 + sig);
 }
 #endif
@@ -812,6 +958,19 @@ int main(int argc, char** argv) {
     romfsInit();
     sAssetRoot = "romfs:/assets";
     mkdir("sdmc:/switch", 0777);
+    mkdir(DATA_ROOT, 0777);
+    mkdir(DATA_ROOT "/logs", 0777);
+    rename(DATA_ROOT "/logs/ReKHCoM.log", DATA_ROOT "/logs/ReKHCoM.old.log");
+    sLog = fopen(DATA_ROOT "/logs/ReKHCoM.log", "w");
+    setenv("KHCOM_ASSETS", sAssetRoot, 1);
+    setenv("KHCOM_DATA", DATA_ROOT, 1);
+#elif defined(__vita__)
+    (void)argc, (void)argv;
+    scePowerSetArmClockFrequency(444);
+    scePowerSetBusClockFrequency(222);
+    scePowerSetGpuClockFrequency(222);
+    sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+    sAssetRoot = "app0:assets";
     mkdir(DATA_ROOT, 0777);
     mkdir(DATA_ROOT "/logs", 0777);
     rename(DATA_ROOT "/logs/ReKHCoM.log", DATA_ROOT "/logs/ReKHCoM.old.log");
@@ -839,7 +998,11 @@ int main(int argc, char** argv) {
     setenv("KHCOM_ASSETS", sAssetRoot, 0);
     setenv("KHCOM_DATA", sDataRoot, 0);
 #endif
+#ifdef REKHCOM_LINKED_GUEST
+    Log("ReKHCoM (Vita, %s) starting", REKHCOM_VITA_REGION);
+#else
     Log("ReKHCoM (Switch) starting");
+#endif
     VideoInit();
 
     const char* region = FindRegion();
@@ -850,6 +1013,23 @@ int main(int argc, char** argv) {
         if (!region)
             H_exit(0);
     }
+#ifdef REKHCOM_LINKED_GUEST
+    /* one executable per region (the game image is linked in): the right one takes over */
+    if (strcmp(region, REKHCOM_VITA_REGION) != 0) {
+#ifdef __vita__
+        char self[64];
+        snprintf(self, sizeof(self), strcmp(region, "eu") ? "app0:eboot_%s.self" : "app0:eboot.bin", region);
+        Log("starting %s", self);
+        if (sLog)
+            fflush(sLog);
+        sceAppMgrLoadExec(self, NULL, NULL);
+#endif
+        while (!sQuit)
+            ShowNotice("load-error", 600);
+        H_exit(1);
+    }
+    uint64_t* table = gHostTable;
+#else
     Ps5GuestHeader header;
     if (!LoadImage(region, &header)) {
         while (!sQuit)
@@ -858,6 +1038,7 @@ int main(int argc, char** argv) {
     }
 
     uint64_t* table = (uint64_t*)(uintptr_t)header.hostTable;
+#endif
 #define HF(name) [HF_##name] = (uint64_t)(uintptr_t)H_##name
 #define HM(name, fn) [HF_##name] = (uint64_t)(uintptr_t)(fn)
     uint64_t t[HF_COUNT] = {
@@ -878,8 +1059,12 @@ int main(int argc, char** argv) {
         }
     memcpy(table, t, sizeof(t));
     Log("starting the game (%d bridge entries)", HF_COUNT);
+#ifdef REKHCOM_LINKED_GUEST
+    int rc = guest_main();
+#else
     int (*boot)(uint32_t) = (int (*)(uint32_t))(uintptr_t)header.boot;
     int rc = boot(header.stackTop);
+#endif
     Log("the game returned %d", rc);
     H_exit(rc);
     return rc;

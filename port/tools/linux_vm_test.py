@@ -93,6 +93,7 @@ def main():
     ap.add_argument('--disk-size', default='40G')
     ap.add_argument('--net', action='store_true', help='user-mode network (apt, downloads)')
     ap.add_argument('--run-timeout', type=int, default=1800, help='seconds allowed for each --run command')
+    ap.add_argument('--fresh-share', action='store_true', help='empty /root/share first (a persistent --disk keeps it)')
     ap.add_argument('--mem', default='2048')
     ap.add_argument('--cpus', default='2')
     args = ap.parse_args()
@@ -143,7 +144,8 @@ def main():
         con.expect(r'# ', 120)
         con.send('stty -echo cols 250; export PS1="# "\n')
         con.expect(r'# ', 30)
-        for step in ('mkdir -p /root/share && tar -xf /dev/vdb -C /root/share', 'ls /root/share', 'uname -m'):
+        fresh = 'rm -rf /root/share && ' if args.fresh_share else ''
+        for step in (fresh + 'mkdir -p /root/share && tar -xf /dev/vdb -C /root/share', 'ls /root/share', 'uname -m'):
             out, code = con.run(step, 300)
             print(f'# {step} [exit {code}]\n{out.strip()[-600:]}', flush=True)
         for c in args.run:

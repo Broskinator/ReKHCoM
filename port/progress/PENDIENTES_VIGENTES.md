@@ -1,4 +1,4 @@
-# Cola vigente (20/10/2026, 17:00)
+# Cola vigente (20/10/2026, 19:00)
 
 Publicado: v1.9.12 estable (Latest) con Windows, Linux, Steam Deck, Anbernic, Android, PS5 y PS4; web en Pages. Issues #23, #24, #30 y #31 cerrados; #25 abierto. PR #32 integrado.
 
@@ -17,7 +17,7 @@ Reglas del usuario:
 
 | Quién | Pendiente |
 |---|---|
-| **Claude** | Switch y Vita (pedido del usuario, 20/10): estado y pasos en "Vita y Switch" abajo. Ahora: listas de punteros de la ROM de EU/US/JP en la VM, luego probar la imagen de Switch en la VM ARM64 |
+| **Claude** | Switch y Vita (pedido del usuario, 20/10): .nro y .vpk compilan y la imagen juega en la VM; falta el OK del usuario para publicarlas como alphas (ver "Vita y Switch") |
 | **Usuario** | Aprobar el launcher nuevo (`Probar launcher nuevo.bat`, commit 07a6fa9ab) |
 | **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, ver KIT_DEPURACION.md). Hecho: 65 jefes en Android x86 con UBSan, 209/209 combates y 52/52 salas US en escritorio sin fallos; arreglados Cloud/Axel/Parasite Cage y el editor de baraja (DIV0). En curso (20/10): Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
 | **Usuario** | Revisar 61–62 (escenas de Ciudad de Paso con márgenes incompletos) cuando Claude las muestre |
@@ -43,19 +43,28 @@ Las dos vías necesitan que el decomp compile la ROM idéntica al cartucho.
 Hecho:
 - Modo reubicable: cabeceras, símbolos fijos (`rom_symbols_reloc.s`), build de comprobación en
   Windows (`configure_pc.py --reloc`) con el rango del bus reservado sin acceso.
-- Switch: imagen del juego AArch64 con punteros de 32 bits (clang `arm64_32`, Mach-O, enlazada en
-  0x10000000) y host libnx / host de prueba Linux AArch64 (`port/switch`, c2d8b705a). Arranca en la
-  VM ARM64; sin las listas de punteros se cae al poco.
-- Build idéntica de GBA recuperada (rota desde el 14/10): envoltorios de dígitos de barajas
-  (7c7fb0f09), desbloqueo de Riku del título y ranura del cristal (62777ed3f) solo en PC. ROM US
-  igual al cartucho (SHA1 10729bd8...). Herramientas: `build/gbacmp/` (vista GBA de las fuentes
-  contra el decomp, buscador de desplazamientos).
+- Build idéntica de GBA recuperada (7c7fb0f09, 62777ed3f): ROM EU/US/JP iguales al cartucho.
+- Listas de punteros de EU/US/JP (`gen_rom_pointers.py`, 132037/98603/98035 palabras), cada una
+  comprobada contra el cartucho; incluyen las desalineadas (GOTO/PATT de las canciones).
+- Switch (`port/switch`, README): imagen AArch64 de punteros de 32 bits para Cortex-A57 (sin
+  `-mcpu` clang emitía `xpaci` de ARMv8.3 y caía), memcpy/memset de 16 bytes, `.nro` de las tres
+  regiones (`build_switch.py host`, devkitA64 de la imagen Docker devkitpro/devkita64 porque
+  apt.devkitpro.org responde 403).
+- Vita (`port/vita`, README): misma imagen reubicable en ARMv7 (clang, Cortex-A9), aislada en un
+  objeto con solo `guest_main`/`gHostTable` globales y enlazada con el host compartido
+  (`switch_host.c` con `__vita__`: rasterizador a 960x544, sceAudioOut, sceCtrl); un ejecutable por
+  región (eboot.bin EU, eboot_us/jp.self). VitaSDK en la VM de consolas. `build_vita.py test` corre la
+  misma imagen en Linux ARM de 32 bits.
+- Verificado en la VM ARM64: título, menús y la batalla KHCOM_BATTLE=10:4 en Switch y en Vita; el
+  fotograma 1490 sale idéntico píxel a píxel en las dos imágenes.
+
+Sin verificar (no hay consola ni emulador aquí): mapeo de memoria de código en Switch real, pantalla,
+audio y mandos del host de Vita, rendimiento. Llega como reporte de quien lo pruebe.
 
 Siguiente:
-1. Listas de punteros de EU/US/JP (`build_gba_maps_vm.py`) y comprobar que el reenlace da la misma ROM.
-2. Imagen de Switch con las listas, en la VM ARM64 hasta el menú y una partida; luego .nro.
-3. Vita: host propio (vitasdk) sobre la misma imagen reubicable, ARM32.
-4. Release: Switch y Vita como alphas en la misma release, solo cuando arranquen.
+1. OK del usuario para publicar `ReKHCoM-vX-switch-alpha.nro` y `ReKHCoM-vX-vita-alpha.vpk` (en la
+   próxima release, o probar antes en Vita3K si el usuario lo autoriza).
+2. Sumarlos a stage_release/release_check y build_all cuando se publiquen.
 
 ## Esperando a terceros (no se trabaja)
 

@@ -113,7 +113,16 @@ _memcpy:
     mov w1, w1
     mov w2, w2
     mov x3, x0
-    cbz x2, 2f
+    orr x5, x0, x1          /* both 8-byte aligned: 16 bytes at a time (forward, so memmove may use it too) */
+    tst x5, #7
+    b.ne 3f
+4:  cmp x2, #16
+    b.lo 3f
+    ldp x4, x6, [x1], #16
+    stp x4, x6, [x3], #16
+    sub x2, x2, #16
+    b 4b
+3:  cbz x2, 2f
 1:  ldrb w4, [x1], #1
     strb w4, [x3], #1
     subs x2, x2, #1
@@ -125,7 +134,18 @@ _memset:
     mov w0, w0
     mov w2, w2
     mov x3, x0
-    cbz x2, 2f
+    and w1, w1, #255
+    orr w1, w1, w1, lsl #8
+    orr w1, w1, w1, lsl #16
+    orr x1, x1, x1, lsl #32
+    tst x3, #7              /* 8-byte aligned: 16 bytes at a time */
+    b.ne 3f
+4:  cmp x2, #16
+    b.lo 3f
+    stp x1, x1, [x3], #16
+    sub x2, x2, #16
+    b 4b
+3:  cbz x2, 2f
 1:  strb w1, [x3], #1
     subs x2, x2, #1
     b.ne 1b
