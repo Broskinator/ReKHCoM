@@ -79,6 +79,27 @@ void mode_lang_0(s32 arg) {
     }
 
     sLangWork->language = gLanguage;
+#ifdef PLATFORM_PC
+    {
+        /* the launcher or the web page fixed the language (--language): the
+           screen confirms it as the player would (the save header keeps it)
+           and leaves through its own fade-out, without being shown */
+        extern int gPortStartupLanguage;
+        if (gPortStartupLanguage >= LANGUAGE_ENGLISH && gPortStartupLanguage <= LANGUAGE_SPANISH) {
+            gLanguage = gPortStartupLanguage;
+            if (sLangWork->language != gLanguage) {
+                SaveWriteHeader(-1);
+            }
+            FadeToAmount(FADE_MODE_BLACK, 16, 1);
+            DisableBg(0);
+            DisableBg(1);
+            sLangWork->flags |= LANG_FLAG_HIDE_CURSOR;
+            sLangWork->state = LANG_STATE_FADE_OUT;
+            sLangWork->timer = 1;
+            return;
+        }
+    }
+#endif
     FadeStartIn(FADE_MODE_BLACK, 16);
 }
 

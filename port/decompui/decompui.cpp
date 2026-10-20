@@ -999,6 +999,18 @@ static void PageHome(SDL_Window* window) {
         dl->AddText(sFontSmall, sFontSmall->FontSize, sp, ImGui::GetColorU32(color), status);
         ImGui::PopID();
     }
+    if (sSelected == 0) {
+        /* the European cartridge's language: chosen here, the game starts in it
+           and skips its language screen (--language) */
+        const char* langs[] = { T("Elegir al empezar", "Choose at start"), "English", "Fran\xC3\xA7" "ais", "Deutsch",
+                                "Italiano", "Espa\xC3\xB1ol" };
+        ImGui::Spacing();
+        if (CycleRow(T("Idioma del juego", "Game language"),
+                     T("Con un idioma elegido, el juego empieza directamente en él, sin la pantalla de idiomas.",
+                       "With a language chosen, the game starts straight in it, without the language screen."),
+                     sGameLanguage, 6, langs))
+            SaveLauncherState();
+    }
     ImGui::Spacing();
     if (ImGui::Button(T("Instalar ROM...", "Install ROM..."), ImVec2(-FLT_MIN, 0)))
         PickRom(window);
@@ -1027,12 +1039,6 @@ static void PageHome(SDL_Window* window) {
     ImGui::Spacing();
     BeginCard("save");
     Eyebrow(T("PARTIDA", "SAVE"));
-    if (sSelected == 0) {
-        const char* langs[] = { T("Elegir al empezar", "Choose at start"), "English", "Fran\xC3\xA7" "ais", "Deutsch",
-                                "Italiano", "Espa\xC3\xB1ol" };
-        if (CycleRow(T("Idioma del juego", "Game language"), nullptr, sGameLanguage, 6, langs))
-            SaveLauncherState();
-    }
     {
         static const char* const banks[] = { "1", "2", "3", "4", "5" };
         int bank = std::clamp(Ini("save_bank"), 1, 5) - 1;

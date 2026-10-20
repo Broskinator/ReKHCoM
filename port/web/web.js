@@ -65,6 +65,7 @@ $('rom').addEventListener('change',async()=>{
     if(!region)throw Error(t('region'));
     const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-1',buffer)),n=>n.toString(16).padStart(2,'0')).join('');
     if(hash!==region.sha)throw Error(t('romHash'));
+    $('game-language-row').hidden=region.id!=='eu'; /* only the European cartridge has the language screen */
     for(const row of document.querySelectorAll('.version')){const on=row.dataset.region===region.id;row.classList.toggle('loaded',on);
       const state=row.querySelector('.version-state');state.dataset.en=on?'Loaded · verified':'No ROM';state.dataset.es=on?'Cargada · verificada':'Sin ROM';
       state.textContent=document.documentElement.lang==='es'?state.dataset.es:state.dataset.en;}
@@ -120,7 +121,9 @@ $('play').addEventListener('click',()=>{
   window.ReKHOptions?.beforeStart();
   $('setup').hidden=true;$('game').hidden=false;canvasSize();started=true;$('canvas').focus();status('');
   window.ReKHOptions?.refresh();
-  try{core.callMain(['--data-dir','/saves','--rom',':browser:']);scheduleResize();}catch(error){fail(error);}
+  const args=['--data-dir','/saves','--rom',':browser:'];
+  if(region.id==='eu'&&$('game-language').value)args.push('--language',$('game-language').value);
+  try{core.callMain(args);scheduleResize();}catch(error){fail(error);}
 });
 $('touch').addEventListener('change',()=>{
   core?._PortWebTouchEnable($('touch').checked?1:0);
@@ -190,3 +193,7 @@ $('canvas').addEventListener('pointercancel',clearInput);
 $('canvas').addEventListener('pointerdown',()=>$('canvas').focus());
 $('canvas').addEventListener('contextmenu',event=>event.preventDefault());
 translateWeb('en');status('choose');
+
+/* the European game's language: kept in this browser, passed as --language */
+try{const saved=localStorage.getItem('rekhcom-game-language');if(saved!==null)$('game-language').value=saved;}catch{}
+$('game-language').addEventListener('change',()=>{try{localStorage.setItem('rekhcom-game-language',$('game-language').value);}catch{}});

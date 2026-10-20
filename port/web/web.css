@@ -68,3 +68,6 @@ header{align-items:flex-start;padding-bottom:14px!important}
 .version.loaded{background:#f6eef0;border-bottom-color:var(--ink)}
 .version.loaded .square{background:var(--ink);box-shadow:inset 0 0 0 4px var(--ink),inset 0 0 0 7px var(--red)}
 .version.loaded .version-state{color:#1f7a3a}.version.loaded .version-state::before{background:#2e9b4f}
+.game-language{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px 14px;margin:0 0 18px}
+.game-language[hidden]{display:none}
+.game-language small{grid-column:1/-1;color:var(--muted,#6b6466);font-size:.85em}
