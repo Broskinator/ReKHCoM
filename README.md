@@ -45,6 +45,8 @@ Only stable versions appear as public releases. The current stable is **v1.9.12*
 - **Web:** a Fullscreen button right under the game.
 - **HD text:** steady level-up messages; the "/" of numbers such as 095/095 in HD too.
 - **Widescreen:** the Guard Armor courtyard also before the fight, while the armour assembles.
+- **Zoom at any moment:** + / - on the keyboard, Select + Up / Down on a gamepad; optional battle zoom (Experimental).
+- **Force Nintendo layout (#23):** for Nintendo pads that Steam or Lutris report as Xbox ones.
 - **Consoles:** PS5 and a first PS4 alpha (GoldHEN). Switch and Vita are in progress, not in this release.
 
 ## Achievements

@@ -66,7 +66,6 @@ enum {
     ITEM_FPS,
     ITEM_DODGE,
     ITEM_STOCK,
-    ITEM_PAD_LAYOUT,
     ITEM_SAVEBANK,
     ITEM_UNDUB,
     ITEM_MUSIC,
@@ -128,6 +127,8 @@ enum {
     ITEM_CONTROL_DODGE,
     ITEM_CONTROL_UNSTOCK,
     ITEM_CONTROL_RESET,
+    ITEM_CONTROL_NINTENDO_HEADING, /* section heading, not selectable */
+    ITEM_PAD_LAYOUT,               /* force the Nintendo layout */
     ITEM_CONTROLS_BACK,
     ITEM_COUNT
 };
@@ -216,8 +217,6 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
-    { "Gamepad face buttons", "Boutons de la manette", "Gamepad-Tasten", "Tasti del controller",
-      "Botones del mando", "パッドのボタン配置" },
     { "Save bank", "Banque de sauvegarde", "Speicherbank", "Banco di salvataggio", "Banco de partidas",
       "セーブバンク" },
     { "Japanese voices (restart)", "Voix japonaises (relancer)", "Japanische Stimmen (Neustart)",
@@ -305,6 +304,9 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Esquivar", "Esquive", "Ausweichen", "Schiva", "Esquivar", "ドッジ" },
     { "Devolver cartas", "Rendre les cartes", "Karten zurückgeben", "Restituisci carte", "Devolver cartas", "カードを戻す" },
     { "Restaurar valores predeterminados", "Restaurer les valeurs par défaut", "Standardwerte wiederherstellen", "Ripristina valori predefiniti", "Restaurar valores predeterminados", "初期設定に戻す" },
+    { "Nintendo controller", "Manette Nintendo", "Nintendo-Controller", "Controller Nintendo", "Mando Nintendo", "任天堂のコントローラー" },
+    { "Force Nintendo layout", "Forcer la disposition Nintendo", "Nintendo-Belegung erzwingen", "Forza disposizione Nintendo",
+      "Forzar mando Nintendo", "任天堂配置に固定" },
     { "Volver", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
 };
 static const char* const sCheatsTitle[LANG_COUNT] = { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" };
@@ -429,12 +431,6 @@ static const char* const sDifficulty[3][LANG_COUNT] = {
     { "Standard", "Standard", "Standard", "Standard", "Estándar", "スタンダード" },
     { "Beginner", "Débutant", "Anfänger", "Principiante", "Principiante", "ビギナー" },
     { "Proud", "Fier", "Stolz", "Orgoglioso", "Orgulloso", "プラウド" },
-};
-/* gPortConfig.padLayout: detect the pad (Nintendo pads swap A/B and X/Y), Xbox positions, Nintendo */
-static const char* const sPadLayout[3][LANG_COUNT] = {
-    { "Auto", "Auto", "Automatisch", "Automatico", "Automático", "自動" },
-    { "Xbox", "Xbox", "Xbox", "Xbox", "Xbox", "Xbox" },
-    { "Nintendo", "Nintendo", "Nintendo", "Nintendo", "Nintendo", "Nintendo" },
 };
 static const char* const sOnOff[2][LANG_COUNT] = {
     { "Off", "Non", "Aus", "No", "No", "オフ" },
@@ -860,7 +856,7 @@ static void ValueText(int item, char* out, size_t size) {
             SDL_strlcpy(out, sOnOff[gPortConfig.stockButton != 0][l], size);
             break;
         case ITEM_PAD_LAYOUT:
-            SDL_strlcpy(out, sPadLayout[SDL_clamp(gPortConfig.padLayout, 0, 2)][l], size);
+            SDL_strlcpy(out, sOnOff[gPortConfig.padLayout == 2][l], size);
             break;
         case ITEM_INVERT_CARD_SCROLL:
             SDL_strlcpy(out, sOnOff[gPortConfig.invertCardScroll != 0][l], size);
@@ -1059,7 +1055,7 @@ static void Change(int item, int dir) {
             gPortConfig.stockButton = !gPortConfig.stockButton;
             break;
         case ITEM_PAD_LAYOUT:
-            gPortConfig.padLayout = (gPortConfig.padLayout + 3 + (dir < 0 ? -1 : 1)) % 3;
+            gPortConfig.padLayout = gPortConfig.padLayout == 2 ? 0 : 2; /* off: detect the pad */
             break;
         case ITEM_INVERT_CARD_SCROLL:
             gPortConfig.invertCardScroll = !gPortConfig.invertCardScroll;
@@ -1272,6 +1268,8 @@ void PortUiOpenOptions(void) {
         sCursor = SDL_clamp(SDL_atoi(SDL_getenv("KHCOM_OPTIONS_CURSOR")), 0, ITEM_COUNT - 1);
     if (sCursor >= ITEM_CHEAT_DEBUG && sCursor <= ITEM_CHEATS_BACK) /* a row of the Cheats page */
         sPage = PAGE_CHEATS;
+    if (sCursor >= ITEM_CONTROL_A && sCursor <= ITEM_CONTROLS_BACK) /* a row of the Controls page */
+        sPage = PAGE_CONTROLS;
     RefreshModes();
     if (SDL_getenv("KHCOM_ACHIEVEMENTS_SHOT")) AchievementMenuOpen();
 }
@@ -1323,6 +1321,23 @@ static void Close(void) {
     sCloseSound = 1;
     PortConfigSave();
     PortInputSuppressUntilRelease();
+}
+
+/* A step of the main zoom from the keyboard (+/-) or Select + Up/Down, with a notice. dir < 0: closer. */
+void PortUiZoomStep(int dir) {
+    char text[64];
+    int l = Lang();
+    if (gPortConfig.viewMode != PORT_VIEW_AUTO) {
+        SDL_snprintf(text, sizeof(text), "Zoom %s", sAutoOnly[l]);
+    } else {
+        int z = PortConfigZoomNext(gPortConfig.zoom, dir);
+        if (z != gPortConfig.zoom) {
+            gPortConfig.zoom = z;
+            PortConfigSave();
+        }
+        SDL_snprintf(text, sizeof(text), "Zoom x%d", PortConfigZoomId(z) / 2);
+    }
+    PortUiNotice(text);
 }
 
 void PortUiNotice(const char* text) {
@@ -1379,7 +1394,8 @@ static void Move(int dir) {
     do {
         int first = PageFirst(), n = PageEnd() - first;
         sCursor = first + Wrap(sCursor - first + dir, n);
-        if (sCursor == ITEM_EXPERIMENTAL || sCursor == ITEM_RECOM_EXTRAS || sCursor == ITEM_CHEAT_DEBUG_HEADING)
+        if (sCursor == ITEM_EXPERIMENTAL || sCursor == ITEM_RECOM_EXTRAS || sCursor == ITEM_CHEAT_DEBUG_HEADING ||
+            sCursor == ITEM_CONTROL_NINTENDO_HEADING)
             sCursor = first + Wrap(sCursor - first + dir, n);
     } while (!ItemEnabled(sCursor) || !ItemVisible(sCursor));
 }
@@ -2102,6 +2118,43 @@ static void DrawGbaMapNote(int l, int width, int height, int left) {
     NoteDiagram(x0 + 8, y0 + 22 + lines * 11 + 8, dw, dh, 0, l);
     NoteDiagram(x0 + panelW - 8 - dw, y0 + 22 + lines * 11 + 8, dw, dh, 1, l);
 }
+/* Beside "Force Nintendo layout": what it changes (issue #23). */
+static const char* const sNintendoNote[LANG_COUNT] = {
+    "Nintendo pads (Switch Pro, Joy-Con, 8BitDo in Switch mode) have A and B, X and Y the other way round from Xbox "
+    "pads. ReKHCoM detects them; turn this on if yours is taken for an Xbox pad (e.g. through Steam or Lutris). On: "
+    "the button labelled A is the game's A, B is B, X is X and Y is Y. Your bindings above stay as they are.",
+    "Les manettes Nintendo (Switch Pro, Joy-Con, 8BitDo en mode Switch) ont A et B, X et Y inversés par rapport à "
+    "Xbox. ReKHCoM les détecte ; activez ceci si la vôtre est prise pour une manette Xbox (via Steam ou Lutris). "
+    "Activé : le bouton marqué A est le A du jeu, B est B, X est X et Y est Y. Vos assignations ne changent pas.",
+    "Nintendo-Controller (Switch Pro, Joy-Con, 8BitDo im Switch-Modus) haben A und B, X und Y umgekehrt zu Xbox. "
+    "ReKHCoM erkennt sie; schalte dies ein, wenn deiner als Xbox-Controller gilt (z. B. über Steam oder Lutris). "
+    "An: die Taste mit A ist das A des Spiels, B ist B, X ist X und Y ist Y. Deine Belegung bleibt gleich.",
+    "I controller Nintendo (Switch Pro, Joy-Con, 8BitDo in modalità Switch) hanno A e B, X e Y invertiti rispetto "
+    "a Xbox. ReKHCoM li riconosce; attivalo se il tuo viene preso per un controller Xbox (es. con Steam o Lutris). "
+    "Attivo: il tasto con la A è la A del gioco, B è B, X è X e Y è Y. Le tue assegnazioni restano uguali.",
+    "Los mandos de Nintendo (Switch Pro, Joy-Con, 8BitDo en modo Switch) tienen A y B, X e Y al revés que los de "
+    "Xbox. ReKHCoM los detecta; actívalo si el tuyo se toma por un mando de Xbox (por ejemplo con Steam o Lutris). "
+    "Activado: el botón rotulado A es la A del juego, B es B, X es X e Y es Y. Tus asignaciones no cambian.",
+    "任天堂のコントローラー（Switch Pro、ジョイコン、Switchモードの8BitDo）は Xboxと比べて AとB、XとYが逆です。 "
+    "ReKHCoMは自動で判別します。 Xboxのパッドと判定される場合（SteamやLutris経由など）はオンに。 "
+    "オン: Aと書かれたボタンがゲームのA、BはB、XはX、YはYになります。 割り当ては変わりません。",
+};
+
+static void DrawNintendoNote(int l, int width, int height, int left) {
+    int panelW = SDL_min(190, width - left - 6), x0, y0, h, textW, lines;
+    if (panelW < 120)
+        return;
+    x0 = width - panelW - 6;
+    textW = panelW - 16;
+    lines = DrawWrapped(sNintendoNote[l], 0, 0, textW, 0, 0);
+    h = 22 + lines * 11 + 6;
+    y0 = SDL_max(MENU_TOP, (height - h) / 2 - 6);
+    Fill(x0 - 2, y0 - 2, panelW + 4, h + 4, MENU_GREY);
+    Fill(x0, y0, panelW, h, 0xFFFFFFFFu);
+    DrawText(sLabels[ITEM_PAD_LAYOUT][l], x0 + 8, y0 + 4, MENU_RED_DARK, 0xFFD8D8D8u);
+    Fill(x0 + 8, y0 + 17, panelW - 16, 1, MENU_GREY);
+    DrawWrapped(sNintendoNote[l], x0 + 8, y0 + 21, textW, MENU_INK, 1);
+}
 #include "port_achievement_menu.inc"
 
 static void DrawMenu(int l, int width, int height) {
@@ -2177,7 +2230,8 @@ static void DrawMenu(int l, int width, int height) {
         }
         uint32_t face = on ? MENU_INK : MENU_DIM;
 
-        if (i == ITEM_EXPERIMENTAL || i == ITEM_RECOM_EXTRAS || i == ITEM_CHEAT_DEBUG_HEADING) {
+        if (i == ITEM_EXPERIMENTAL || i == ITEM_RECOM_EXTRAS || i == ITEM_CHEAT_DEBUG_HEADING ||
+            i == ITEM_CONTROL_NINTENDO_HEADING) {
             /* a section heading: red text and a thin line, no square */
             int end = DrawText(sLabels[i][l], barX, y - 1, MENU_RED_DARK, 0xFFD8D8D8u);
             Fill(end + 6, y + 4, barX + barW - end - 6, 1, MENU_GREY);
@@ -2203,6 +2257,8 @@ static void DrawMenu(int l, int width, int height) {
         DrawControlDiagram(barX, top + rows * rowH + 2, barW, height - 15 - (top + rows * rowH + 2));
     if (sPage == PAGE_CHEATS && sCursor == ITEM_CHEAT_GBA_MAP)
         DrawGbaMapNote(l, width, height, barX + barW + 8);
+    if (sPage == PAGE_CONTROLS && sCursor == ITEM_PAD_LAYOUT)
+        DrawNintendoNote(l, width, height, barX + barW + 8);
     int zoom = sCursor == ITEM_BATTLE_ZOOM && gPortConfig.battleZoom ? gPortConfig.battleZoom : gPortConfig.zoom;
     if (sPage == PAGE_MAIN && (sCursor == ITEM_ZOOM || sCursor == ITEM_BATTLE_ZOOM) &&
         ItemEnabled(sCursor) && PortConfigZoomHeavy(zoom))
@@ -2297,7 +2353,7 @@ static int HarnessOptionsAction(void) {
         const char* dir = item ? SDL_strchr(item + 1, ':') : NULL;
         if (item && dir && (!comma || dir < comma) && SDL_atoi(route) == sHarnessTick) {
             int row = SDL_atoi(item + 1), direction = SDL_atoi(dir + 1);
-            if (row >= 0 && row < ITEM_COUNT && row != ITEM_EXPERIMENTAL && row != ITEM_RECOM_EXTRAS && row != ITEM_CHEAT_DEBUG_HEADING && row != ITEM_CLOSE) {
+            if (row >= 0 && row < ITEM_COUNT && row != ITEM_EXPERIMENTAL && row != ITEM_RECOM_EXTRAS && row != ITEM_CHEAT_DEBUG_HEADING && row != ITEM_CONTROL_NINTENDO_HEADING && row != ITEM_CLOSE) {
                 char before[128], after[128];
                 ValueText(row, before, sizeof(before));
                 sCursor = row;

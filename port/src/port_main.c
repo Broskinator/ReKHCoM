@@ -1977,6 +1977,12 @@ static void PumpEvents(void) {
                     PortStateRequestLoad(NULL);
                     continue;
                 }
+                /* +/-: the main zoom (Auto view), unless the key is bound to a game action */
+                if ((ev.key.key == SDLK_PLUS || ev.key.key == SDLK_EQUALS || ev.key.key == SDLK_KP_PLUS ||
+                     ev.key.key == SDLK_MINUS || ev.key.key == SDLK_KP_MINUS) && !PortInputKeyBound(ev.key.key)) {
+                    PortUiZoomStep(ev.key.key == SDLK_MINUS || ev.key.key == SDLK_KP_MINUS ? 1 : -1);
+                    continue;
+                }
                 if (ev.key.key == SDLK_F6 || ev.key.key == SDLK_F7) {
                     char msg[32];
                     gPortStateSlot = (gPortStateSlot + (ev.key.key == SDLK_F7 ? 1 : 8)) % 9;

@@ -327,6 +327,7 @@ uint16_t PortInputKeys(void);
 /* Turns the extra buttons into GBA keys and requests; returns the GBA key
    bits. Called once per frame. */
 uint16_t PortInputResolve(uint16_t keys);
+int PortInputKeyBound(int key); /* the keyboard key is bound to a game action */
 void PortInputHandleEvent(const void* sdlEvent);
 
 #endif

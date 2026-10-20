@@ -5,6 +5,7 @@
 
 #include "port/port.h"
 #include "port/pad_layout.h"
+#include "port/port_ui.h"
 #include "mode.h"
 #include "text_types.h"
 #include "msg.h"
@@ -47,6 +48,10 @@ static const uint16_t sActionBits[PORT_ACT_COUNT] = {
 static uint16_t sKeyboard;
 static int sSuppress;
 static int sBattleMenuKeys, sBattleMenuChord;
+/* Select + Up/Down changes the zoom (Auto view): 0 Select up, 1 Select alone held back, 2 Select passed to the
+   game, 3 the zoom chord; sZoomEat keeps Up/Down from the game until they are released after a chord. */
+static int sZoomSelect, sZoomEat;
+static uint16_t sZoomPrev;
 static int sDodgeHeld;
 static int sDodgePending;
 static int sUnstockHeld;
@@ -57,6 +62,7 @@ static int sUnstockPending;
 void PortInputSuppressUntilRelease(void) {
     sSuppress = 1;
     sBattleMenuKeys = sBattleMenuChord = 0;
+    sZoomSelect = sZoomEat = 0;
     sDodgeHeld = sDodgePending = 0;
     sUnstockHeld = sUnstockPending = 0;
 }
@@ -150,11 +156,19 @@ void PortInputHandleEvent(const void* p) {
             break;
         case SDL_EVENT_WINDOW_FOCUS_LOST:
             sKeyboard = 0;
-            sBattleMenuKeys = sBattleMenuChord = 0;
+            sBattleMenuKeys = sBattleMenuChord = sZoomSelect = sZoomEat = 0;
             sDodgeHeld = sDodgePending = 0;
             sUnstockHeld = sUnstockPending = 0;
             break;
     }
+}
+
+int PortInputKeyBound(int key) {
+    size_t i;
+    for (i = 0; i < PORT_ACT_COUNT * 2; i++)
+        if (gPortConfig.keys[i / 2][i % 2] != 0 && gPortConfig.keys[i / 2][i % 2] == key)
+            return 1;
+    return 0;
 }
 
 static uint16_t GamepadKeys(SDL_Gamepad* pad) {
@@ -271,8 +285,49 @@ const void* PortCardScrollTutorialText(int message, const void* source) {
     return inverted;
 }
 
+/* Select + Up/Down: the main zoom, at any moment (Auto view). Select alone reaches the game when it is released,
+   so the chord neither opens the floor map nor switches the card list; with any other button (soft reset
+   Start+Select+A+B, debug shortcuts) it reaches the game as it is held. */
+static uint16_t ZoomChord(uint16_t keys) {
+    uint16_t raw = keys, others = keys & ~(KEY_SELECT | KEY_UP | KEY_DOWN);
+    uint16_t pressed = keys & ~sZoomPrev & (KEY_UP | KEY_DOWN);
+
+    sZoomPrev = raw;
+    if (gPortConfig.viewMode != PORT_VIEW_AUTO) {
+        sZoomSelect = sZoomEat = 0;
+        return keys;
+    }
+    if (!(keys & KEY_SELECT)) {
+        if (sZoomSelect == 1)
+            keys |= KEY_SELECT; /* a tap: the game sees it now */
+        if (sZoomSelect == 3)
+            sZoomEat = 1;
+        sZoomSelect = 0;
+    } else {
+        if (sZoomSelect == 0)
+            sZoomSelect = (others || (keys & (KEY_UP | KEY_DOWN))) ? 2 : 1;
+        else if (sZoomSelect == 1 && others)
+            sZoomSelect = 2;
+        if ((sZoomSelect == 1 || sZoomSelect == 3) && pressed) {
+            sZoomSelect = 3;
+            PortUiZoomStep(pressed & KEY_UP ? -1 : 1); /* up: closer */
+        }
+        if (sZoomSelect != 2)
+            keys &= ~KEY_SELECT;
+    }
+    if (sZoomSelect == 3 || sZoomEat) {
+        keys &= ~(KEY_UP | KEY_DOWN);
+        if (!(raw & (KEY_UP | KEY_DOWN)))
+            sZoomEat = 0;
+    }
+    return keys;
+}
+
 uint16_t PortInputResolve(uint16_t keys) {
-    int dodge = (keys & KEY_DODGE) && gPortConfig.dodgeButton;
+    int dodge;
+
+    keys = ZoomChord(keys);
+    dodge = (keys & KEY_DODGE) && gPortConfig.dodgeButton;
 
     /* Defer battle Start/Select until release: either can be the first half
        of the options shortcut, which must neither pause nor switch lists. */

@@ -54,6 +54,12 @@ v1.9.11 came out only as two test prereleases; this stable release carries all o
 - HD text: the "/" of numbers such as 095/095 (Status, decks) uses the HD font like its digits.
 - Achievements: the badge atlas is also built into the game and the launcher, so the badges
   show on every version even if the file next to the executable is missing.
+- Zoom at any moment (Auto view): + / - on the keyboard, Select + Up / Down on a gamepad. A
+  notice shows the new scale; Select alone still works as before, acting when released.
+- Battle zoom (Experimental, PR #32 by DL-6-case): a zoom of its own for battles; by default the
+  same as the main zoom. Start + Select (options) no longer switches the card list in battle.
+- Controls: "Force Nintendo layout" in its own section at the end of Controls (game and
+  launcher), with a note on what it swaps, for Nintendo pads taken for Xbox ones (#23).
 - Widescreen: in the scene before the Guard Armor fight (the armour falls and assembles), the
   courtyard continues past the original screen like in the fight; it was cut by a black band.
 

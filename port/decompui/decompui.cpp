@@ -1346,20 +1346,6 @@ static void PageExtras() {
                            "Gamepad Y, keyboard D: stock cards or sleights without pressing L and R together."),
                          Ini("stock_button"));
     ImGui::Separator();
-    {
-        const char* layouts[] = { T("Automático", "Auto"), "Xbox", "Nintendo" };
-        int layout = std::clamp(Ini("pad_layout"), 0, 2);
-        if (CycleRow(T("Botones del mando", "Gamepad face buttons"),
-                     T("Los mandos de Nintendo (Switch Pro, 8BitDo en modo Switch) tienen A y B, X e Y al revés que los de Xbox. "
-                       "Automático los detecta; elige Nintendo o Xbox si tu mando no se reconoce. En el juego, A es el botón rotulado A.",
-                       "Nintendo pads (Switch Pro, 8BitDo in Switch mode) have A/B and X/Y the other way round from Xbox ones. "
-                       "Auto detects them; pick Nintendo or Xbox if your pad is not recognised. In the game, A is the button labelled A."),
-                     layout, 3, layouts)) {
-            Ini("pad_layout") = layout;
-            changed = true;
-        }
-    }
-    ImGui::Separator();
     ImGui::EndChild();
     ImGui::Spacing();
     BeginCard("experimental");
@@ -1625,9 +1611,29 @@ static void PageControls() {
     ImGui::Spacing();
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("Fijos: Opciones F1 / Esc o Start + Select (en el inicio, solo Select), pantalla completa F11 o Alt+Enter, "
-                               "estados F5 / F9.",
+                               "estados F5 / F9, zoom (vista Auto) + / - o Select + arriba / abajo en el mando.",
                                "Fixed: options F1 / Esc or Start + Select (on the title screen, Select alone), fullscreen F11 or Alt+Enter, states "
-                               "F5 / F9."));
+                               "F5 / F9, zoom (Auto view) + / - or Select + Up / Down on the gamepad."));
+    ImGui::PopStyleColor();
+    ImGui::EndChild();
+    /* Issue #23: a Nintendo pad the system reports as an Xbox one (Steam Input, Lutris) */
+    ImGui::Spacing();
+    BeginCard("nintendo");
+    Eyebrow(T("MANDO NINTENDO", "NINTENDO CONTROLLER"));
+    int force = Ini("pad_layout") == 2;
+    if (ToggleRow(T("Forzar mando Nintendo", "Force Nintendo layout"), nullptr, force)) {
+        Ini("pad_layout") = force ? 2 : 0; /* off: detect the pad */
+        SaveIni();
+    }
+    ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+    ImGui::TextWrapped("%s", T("Los mandos de Nintendo (Switch Pro, Joy-Con, 8BitDo en modo Switch) tienen A y B, X e Y al revés que los de Xbox. "
+                               "ReKHCoM los detecta solo; activa esta opción si el tuyo se toma por un mando de Xbox (por ejemplo con Steam o Lutris). "
+                               "Activada: el botón rotulado A es la A del juego, B es B, X es X e Y es Y, en el juego y en este launcher. "
+                               "Las asignaciones de la tabla de arriba no cambian.",
+                               "Nintendo pads (Switch Pro, Joy-Con, 8BitDo in Switch mode) have A and B, X and Y the other way round from Xbox pads. "
+                               "ReKHCoM detects them; turn this on if yours is taken for an Xbox pad (e.g. through Steam or Lutris). "
+                               "On: the button labelled A is the game's A, B is B, X is X and Y is Y, in the game and in this launcher. "
+                               "The bindings in the table above stay as they are."));
     ImGui::PopStyleColor();
     ImGui::EndChild();
 }

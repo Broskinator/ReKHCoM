@@ -30,6 +30,8 @@ static uint32_t sFrame;
 uint32_t PortFrameCount(void) { return sFrame; }
 void PortLog(const char* fmt, ...) { (void)fmt; }
 int PortUiMenuCanvas(void) { return 0; }
+static int sZoomSteps[2];
+void PortUiZoomStep(int dir) { sZoomSteps[dir > 0]++; }
 
 static void config_test(void) {
     FILE* f;
@@ -58,6 +60,7 @@ static void config_test(void) {
 }
 
 static void key_test(void) {
+    gPortConfig.viewMode = PORT_VIEW_ORIGINAL; /* no Select + Up/Down zoom chord here */
     Mode* modes[] = { NULL, &sMenu, &gModeBattle, &gModeVsbattle };
     const uint16_t shoulders[] = { 0, 0x100, 0x200, 0x300 };
     for (int enabled = 0; enabled < 2; enabled++) {
@@ -79,7 +82,54 @@ static void key_test(void) {
     }
 }
 
+static void zoom_chord_test(void) {
+    Mode* modes[] = { &sMenu, &gModeBattle };
+    gPortConfig.viewMode = PORT_VIEW_AUTO;
+    for (unsigned m = 0; m < SDL_arraysize(modes); m++) {
+        int battle = modes[m] == &gModeBattle;
+        gCurrentMode = modes[m];
+        PortInputSuppressUntilRelease();
+        sZoomSteps[0] = sZoomSteps[1] = 0;
+        /* Select + Up, Up again, then Down: three zoom steps; neither Select nor the arrows reach the game */
+        assert(PortInputResolve(0x004) == 0);
+        assert(PortInputResolve(0x044) == 0);
+        assert(PortInputResolve(0x004) == 0);
+        assert(PortInputResolve(0x044) == 0);
+        assert(PortInputResolve(0x084) == 0);
+        assert(sZoomSteps[0] == 2 && sZoomSteps[1] == 1);
+        assert(PortInputResolve(0x080) == 0); /* Select let go first: Down stays eaten until released */
+        assert(PortInputResolve(0) == 0);
+        assert(PortInputResolve(0x080) == 0x080);
+        assert(PortInputResolve(0) == 0);
+        if (battle) assert(PortInputResolve(0) == 0); /* the battle's own deferral has nothing pending */
+        /* Select alone: one press when released (battle: one frame later, its own deferral) */
+        assert(PortInputResolve(0x004) == 0);
+        assert(PortInputResolve(0x004) == 0);
+        if (battle) {
+            assert(PortInputResolve(0) == 0);
+            assert(PortInputResolve(0) == 0x004);
+        } else {
+            assert(PortInputResolve(0) == 0x004);
+        }
+        assert(PortInputResolve(0) == 0);
+        /* Select with another button passes through as held (Start+Select+A+B soft reset) */
+        if (!battle) {
+            assert(PortInputResolve(0x004) == 0);
+            assert(PortInputResolve(0x00f) == 0x00f);
+            assert(PortInputResolve(0x00f) == 0x00f);
+            assert(PortInputResolve(0) == 0);
+        }
+        assert(sZoomSteps[0] == 2 && sZoomSteps[1] == 1);
+    }
+    gPortConfig.viewMode = PORT_VIEW_ORIGINAL; /* other views: Select is the game's at once */
+    gCurrentMode = &sMenu;
+    assert(PortInputResolve(0x004) == 0x004);
+    assert(PortInputResolve(0x044) == 0x044);
+    assert(PortInputResolve(0) == 0);
+}
+
 static void menu_chord_test(void) {
+    gPortConfig.viewMode = PORT_VIEW_ORIGINAL;
     Mode* modes[] = { &gModeBattle, &gModeVsbattle };
     const uint16_t buttons[] = { 0x004, 0x008 }; /* Select and Start, in either order. */
     for (unsigned i = 0; i < SDL_arraysize(modes); i++) {
@@ -178,7 +228,8 @@ int main(void) {
     tutorial_test();
     device_test();
     menu_chord_test();
-    puts("PASS: defaults, INI round-trip/clamping, GBA key combinations, battle menu shortcut, battle/Versus/menu scope, keyboard, shoulders, right stick, stock, suppression and localized tutorial labels");
+    zoom_chord_test();
+    puts("PASS: defaults, INI round-trip/clamping, GBA key combinations, battle menu shortcut, Select + Up/Down zoom, battle/Versus/menu scope, keyboard, shoulders, right stick, stock, suppression and localized tutorial labels");
     return 0;
 }
 '''
