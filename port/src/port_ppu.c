@@ -2664,6 +2664,62 @@ void PortCanvasAlloc(void) {
     capacity = n;
 }
 
+/* The "/" of a BG number such as 095/095 is a fixed tile of the panel, not one of the digit tiles the game
+   copies in, so it stayed pixel art between HD digits. A cell between two registered digits whose ink runs
+   from top right to bottom left is registered as that slash, with the colours of the digit on its left. */
+static uint16_t TextBgEntry(int bg, int tx, int ty) {
+    uint16_t cnt = IO16(0x08 + bg * 2);
+    int size = cnt >> 14, block = (tx >= 32) + (ty >= 32) * (size == 3 ? 2 : 1);
+    const uint16_t* map = (const uint16_t*)(VRAM8 + ((cnt >> 8) & 31) * 0x800 + block * 0x800);
+    return map[(ty & 31) * 32 + (tx & 31)];
+}
+
+static const BgTextTile* RegisteredDigit(unsigned base, uint16_t entry) {
+    unsigned offset = base + (entry & 0x3FF) * 32;
+    const BgTextTile* tile;
+    if ((entry & 0xC00) || offset >= 0x10000) return NULL;
+    tile = &sBgTextTiles[offset / 32];
+    return tile->code >= '0' && tile->code <= '9' && !memcmp(tile->source, VRAM8 + offset, 32) ? tile : NULL;
+}
+
+static void RegisterBgSlashes(uint16_t dispcnt) {
+    int bg, mode = dispcnt & 7;
+    if (!sHdText || mode > 1) return;
+    for (bg = 0; bg < (mode == 1 ? 2 : 4); bg++) {
+        uint16_t cnt = IO16(0x08 + bg * 2);
+        unsigned base = ((cnt >> 2) & 3) * 0x4000;
+        int w = (cnt >> 14) & 1 ? 64 : 32, h = (cnt >> 14) & 2 ? 64 : 32, tx, ty;
+        if (!(dispcnt & (0x100 << bg)) || (cnt & 0x80)) continue;
+        for (ty = 0; ty < h; ty++)
+            for (tx = 1; tx + 1 < w; tx++) {
+                uint16_t e = TextBgEntry(bg, tx, ty);
+                unsigned offset = base + (e & 0x3FF) * 32;
+                const BgTextTile *left, *right;
+                int y, x, top = -1, bottom = -1, topX = 0, bottomX = 0, ink;
+                if ((e & 0xC00) || offset >= 0x10000 || sBgTextTiles[offset / 32].code > 0x20) continue;
+                if (!(left = RegisteredDigit(base, TextBgEntry(bg, tx - 1, ty))) ||
+                    !(right = RegisteredDigit(base, TextBgEntry(bg, tx + 1, ty))))
+                    continue;
+                for (y = 0; y < 8; y++) {
+                    int sum = 0, count = 0;
+                    for (x = 0; x < 8; x++) {
+                        uint8_t v = VRAM8[offset + y * 4 + x / 2];
+                        ink = (x & 1) ? v >> 4 : v & 15;
+                        if (ink == left->faceIndex || ink == left->shadowIndex) { sum += x; count++; }
+                    }
+                    if (count) {
+                        if (top < 0) { top = y; topX = sum / count; }
+                        bottom = y; bottomX = sum / count;
+                    }
+                }
+                if (top < 0 || bottom - top < 3 || topX < bottomX + 2) continue;
+                PortRegisterBgTextTile((void*)(uintptr_t)(GBA_VRAM + offset), '/',
+                                       left->style | left->faceIndex << 8 | left->shadowIndex << 12 | left->panelIndex << 16,
+                                       VRAM8 + offset);
+            }
+    }
+}
+
 void PortPpuBeginFrame(void) {
 #ifdef __EMSCRIPTEN__
     extern int gPortWebHdReady;
@@ -2714,6 +2770,7 @@ void PortPpuBeginFrame(void) {
 #ifdef __ANDROID__
     sHdText = sHdText && PortPortableHdReady();
 #endif
+    RegisterBgSlashes(dispcnt);
     if (sHudLayer || sHdText) {
         memset(sOccBg, 4, (size_t)gPortScreen.width * gPortScreen.height);
         memset(sOccBgLayer, 4, (size_t)gPortScreen.width * gPortScreen.height);

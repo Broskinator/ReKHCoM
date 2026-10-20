@@ -48,6 +48,7 @@
   version. Copy your cartridge dump to /data/ReKHCom/.
 - HD text: the level-up message (the stats that went up) no longer flickers while its effect
   plays; a letter was taken for hidden by the sprite of the letter next to it.
+- HD text: the "/" of numbers such as 095/095 (Status, decks) uses the HD font like its digits.
 
 ## v1.9.10 — 2026-10-19
 
