@@ -1389,8 +1389,9 @@ s32 UpdateSoraReloadDeal(CardBattleWork* work, Task* task) {
     nextIndex = 255;
 
     if (gBtlWork->phase == BTL_PHASE_END) {
-        if (gRikuBtlWork->flags & BTL_FLAG_RELOAD_CHARGING) {
-            gRikuBtlWork->flags &= ~BTL_FLAG_RELOAD_CHARGING;
+        // @bug gRikuBtlWork only exists in battles against humanoid bosses (NULL read and write).
+        if (BIOS_PTR(gRikuBtlWork)->flags & BTL_FLAG_RELOAD_CHARGING) {
+            BIOS_PTR(gRikuBtlWork)->flags &= ~BTL_FLAG_RELOAD_CHARGING;
         }
 
         m4aSongNumStop(SONG_SYS_RELOAD);
