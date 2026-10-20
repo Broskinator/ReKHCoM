@@ -46,6 +46,8 @@
   cartridge's debug menu does, without shrinking the card collection's room (#31).
 - PS4 (alpha, not yet run on a console): a package for consoles with GoldHEN, the same game as the PS5
   version. Copy your cartridge dump to /data/ReKHCom/.
+- HD text: the level-up message (the stats that went up) no longer flickers while its effect
+  plays; a letter was taken for hidden by the sprite of the letter next to it.
 
 ## v1.9.10 — 2026-10-19
 

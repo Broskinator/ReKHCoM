@@ -1592,6 +1592,41 @@ static const uint8_t sObjSize[3][4][2] = {
     { { 8, 16 }, { 8, 32 }, { 16, 32 }, { 32, 64 } },
 };
 
+/* Where an HD glyph's coverage is checked: a pixel of the glyph's own ink, the one nearest (4, 6). A fixed (4, 6)
+   falls in the gap of letters such as V or T, where the sprite shows whatever lies behind it, so the glyph was
+   taken for covered whenever that changed (the level-up message flickered while its effect animated). */
+static void GlyphInkPoint(int i, int* dx, int* dy) {
+    uint16_t a0 = OAM16[i * 4 + 0], a1 = OAM16[i * 4 + 1], a2 = OAM16[i * 4 + 2];
+    int shape = a0 >> 14, w, h, x, y, best = 1 << 30;
+    int mapping1d = (IO16(0) >> 6) & 1, tile = a2 & 0x3FF;
+
+    *dx = 4;
+    *dy = 6;
+    if (shape == 3 || (a0 & 0x2000) || (a0 & 0x100)) /* 8bpp or affine: keep the old point */
+        return;
+    w = sObjSize[shape][a1 >> 14][0];
+    h = sObjSize[shape][a1 >> 14][1];
+    for (y = 0; y < h; y++)
+        for (x = 0; x < w; x++) {
+            int t = mapping1d ? tile + (y >> 3) * (w >> 3) + (x >> 3) : tile + (y >> 3) * 32 + (x >> 3);
+            uint8_t b = VRAM8[0x10000 + ((t * 32 + (y & 7) * 4 + ((x & 7) >> 1)) & 0x7FFF)];
+            int sx = (a1 & 0x1000) ? w - 1 - x : x, sy = (a1 & 0x2000) ? h - 1 - y : y;
+            int d = (sx - 4) * (sx - 4) + (sy - 6) * (sy - 6);
+            if (((x & 1) ? b >> 4 : b & 15) && d < best) {
+                best = d;
+                *dx = sx;
+                *dy = sy;
+            }
+        }
+}
+
+/* Whether the sprite on top at a glyph's ink point hides HD glyph i. Another HD glyph does not: its pixels are
+   replaced by the outline font, and the cartridge's proportional text lets neighbouring letter sprites overlap
+   (the V of a level-up message covered part of the T next to it, so the T came and went as OAM order changed). */
+static int ObjCoversGlyph(uint16_t occ, int prio, int i) {
+    return occ < prio * 128 + i && !HdTextGlyph(occ & 127);
+}
+
 static void DrawObjs(int gy, uint16_t dispcnt) {
     int i, w = gPortScreen.width;
     int mapping1d = (dispcnt >> 6) & 1;
@@ -3425,12 +3460,14 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
                 ox -= 512;
         }
         if (onScreen) {
-            int px = ox + (gPortOverlayW - GBA_SCREEN_W) / 2 + 4;
-            int py = oy + 6, prio = (a2 >> 10) & 3;
+            int inkX, inkY;
+            GlyphInkPoint(i, &inkX, &inkY);
+            int px = ox + (gPortOverlayW - GBA_SCREEN_W) / 2 + inkX;
+            int py = oy + inkY, prio = (a2 >> 10) & 3;
             if (px >= 0 && px < gPortOverlayW && py >= 0 && py < GBA_SCREEN_H) {
                 int at = py * gPortOverlayW + px;
                 if ((sScreenOccBg[at] == 0 && sScreenOccObj[at] == 0) ||
-                    sScreenOccBg[at] < prio || sScreenOccObj[at] < prio * 128 + i)
+                    sScreenOccBg[at] < prio || ObjCoversGlyph(sScreenOccObj[at], prio, i))
                     continue;
             }
         }
@@ -3441,8 +3478,10 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
                glyphs use their original OAM position for coverage, just as
                PortPpuRenderHud does. Their own docked message window is the
                explicit exception below, keeping field dialogue visible. */
-            int px = ox + gPortScreen.originX + 4;
-            int py = oy + gPortScreen.originY + 6;
+            int inkX, inkY;
+            GlyphInkPoint(i, &inkX, &inkY);
+            int px = ox + gPortScreen.originX + inkX;
+            int py = oy + gPortScreen.originY + inkY;
             int prio = (a2 >> 10) & 3;
             if (px >= 0 && px < gPortScreen.width && py >= 0 && py < gPortScreen.height) {
                 int at = py * gPortScreen.width + px;
@@ -3451,7 +3490,7 @@ int PortPpuTextGlyphs(PortTextGlyph* out, int max, int hud) {
                    field dialogue must stay visible */
                 int message = sHudLayer && sMsgMask[at];
                 if (!message && ((sOccBg[at] == 0 && sOccObj[at] == 0) || sOccBg[at] < prio ||
-                    sOccObj[at] < prio * 128 + i))
+                    ObjCoversGlyph(sOccObj[at], prio, i)))
                     continue;
             }
         }
