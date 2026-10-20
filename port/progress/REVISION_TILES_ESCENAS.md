@@ -1,15 +1,19 @@
 # Revisión acumulativa de escenas con extensión de tiles
 
-Estado 18/10/2026: **4/44 candidatas aceptadas**. Son 44 eventos con cambios
+Estado vigente 18/10/2026: **1/44 aprobada definitiva (004 León); 3 mejorables**.
+El usuario detectó problemas al alejar el zoom: revisar 057/061/074 en una
+vista mucho más amplia antes de continuar. Ver REPARTIJA_20261018.md.
+Los estados de aceptación históricos de abajo conservan la revisión del
+encuadre anterior y no equivalen a aprobación del área ampliada. Son 44 eventos con cambios
 potenciales en 33 fondos; los vacíos que forman un marco intencionado se
 descartan en revisión. No interpretar 44 como 44 fondos que haya que rellenar.
 
 | Evento | Estado | Ejemplo / regla aprendida |
 | --- | --- | --- |
 | 004 Leon | Aceptada previamente | Continuar diagonales y período propio, sin duplicar cajas. |
-| 061 Cristal | Mejorada aceptada | Perfiles distintos por capa; rombo entero en la unión; seleccionar tile de panel sin sombra ajena. |
-| 057 Playa | Mejorada aprobada | Pared continua; pasto completo a ambos lados de la unión con piezas originales. |
-| 074 Monstruo | Mejorada aceptada | Paleta activa y tres capas; pieza inferior completada con el motivo izquierdo original. |
+| 061 Cristal | Mejorable; revisión amplia pendiente | Perfiles distintos por capa; rombo entero en la unión; seleccionar tile de panel sin sombra ajena. |
+| 057 Playa | Mejorable; revisión amplia pendiente | Pared continua; pasto completo a ambos lados de la unión con piezas originales. |
+| 074 Monstruo | Mejorable; revisión amplia pendiente | Paleta activa y tres capas; pieza inferior completada con el motivo izquierdo original. |
 
 ## Lógica que se acumula con cada ejemplo
 

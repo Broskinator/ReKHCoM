@@ -150,7 +150,9 @@ void PortSceneNarrow(int on);
 typedef int (*PortWorldTileFunc)(int bg, int tx, int ty);
 void PortSetBgWorld(int bg, PortWorldTileFunc fn, int originX, int originY);
 /* Event scenes: continue the map past its edges along the isometric diagonal. */
-void PortSetBgIsoExtend(int bg, int enabled);
+enum { PORT_ISO_LEFT = 1, PORT_ISO_RIGHT = 2, PORT_ISO_TOP = 4, PORT_ISO_BOTTOM = 8,
+       PORT_ISO_UPPER = 16 /* the layers over the floor continue too (walls on BG2) */ };
+void PortSetBgIsoExtend(int bg, int edges);
 #endif
 
 typedef struct BgWork {
