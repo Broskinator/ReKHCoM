@@ -19,7 +19,7 @@
 - Achievements: titles and descriptions in Spanish, French, German, Italian and Japanese (the
   game's language; the launcher and the web page follow theirs). The unlock popup shows the
   achievement's own badge and no longer says "RetroAchievements".
-  On Android and the web the badges were missing (red square); they now travel with the app.
+  The badges travel with every version (Android and the web included).
 - Achievements menu (in the game): left/right jump five rows; L/R (Q/E on the keyboard) change tab.
 - Launcher: PLAY and Install ROM sit at the top of Home, visible without scrolling.
 - Android, web and Linux ARM: the game no longer closes when stocking cards (#30). The original
