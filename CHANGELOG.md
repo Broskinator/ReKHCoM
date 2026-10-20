@@ -26,6 +26,8 @@
 - Gamepads: Nintendo controllers (Switch Pro, Joy-Cons, 8BitDo in Switch mode) are detected and
   their A/B and X/Y match the labels (#23); the menus use whatever is bound to the game's A and B.
   New "Gamepad face buttons" option (Auto / Xbox / Nintendo) in the options and the launcher.
+- Battles against Cloud, Axel and Parasite Cage no longer close the game on Android x86 and the
+  web: a few divisions by zero of the original now return 0, as on the GBA.
 
 ## v1.9.10 — 2026-10-19
 
