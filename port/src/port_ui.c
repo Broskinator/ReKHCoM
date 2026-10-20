@@ -53,6 +53,7 @@ enum {
     ITEM_FPS,
     ITEM_DODGE,
     ITEM_STOCK,
+    ITEM_INVERT_CARD_SCROLL,
     ITEM_SAVEBANK,
     ITEM_UNDUB,
     ITEM_MUSIC,
@@ -195,6 +196,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
       "Accumulo con un tasto (L+R)", "Acumular con un botón (L+R)", "ワンボタンストック (L+R)" },
+    { "Invert card scrolling", "Inverser le défilement", "Kartenauswahl umkehren", "Inverti scorrimento carte",
+      "Invertir selección de cartas", "カード送りを反転" },
     { "Save bank", "Banque de sauvegarde", "Speicherbank", "Banco di salvataggio", "Banco de partidas",
       "セーブバンク" },
     { "Japanese voices (restart)", "Voix japonaises (relancer)", "Japanische Stimmen (Neustart)",
@@ -814,6 +817,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_STOCK:
             SDL_strlcpy(out, sOnOff[gPortConfig.stockButton != 0][l], size);
             break;
+        case ITEM_INVERT_CARD_SCROLL:
+            SDL_strlcpy(out, sOnOff[gPortConfig.invertCardScroll != 0][l], size);
+            break;
         case ITEM_MOOGLE_NOTICE:
             SDL_strlcpy(out, sOnOff[gPortConfig.moogleNotice != 0][l], size);
             break;
@@ -1002,6 +1008,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_STOCK:
             gPortConfig.stockButton = !gPortConfig.stockButton;
+            break;
+        case ITEM_INVERT_CARD_SCROLL:
+            gPortConfig.invertCardScroll = !gPortConfig.invertCardScroll;
             break;
         case ITEM_MOOGLE_NOTICE:
             gPortConfig.moogleNotice = !gPortConfig.moogleNotice;

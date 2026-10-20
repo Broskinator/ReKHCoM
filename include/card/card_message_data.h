@@ -215,4 +215,14 @@ typedef struct CardMessageDef {
 
 extern CardMessageDef gCardMessageDefs[];
 
+#ifdef PLATFORM_PC
+const void* PortCardScrollTutorialText(int message, const void* text);
+#endif
+
+#ifdef PLATFORM_PC
+#define CARD_MSG_TEXT(work) ((TextChar*)PortCardScrollTutorialText((work)->args.messageId, LANGSTR((work)->messageDef->text)))
+#else
+#define CARD_MSG_TEXT(work) ((TextChar*)LANGSTR((work)->messageDef->text))
+#endif
+
 #endif

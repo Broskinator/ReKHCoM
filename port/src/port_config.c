@@ -116,6 +116,7 @@ static const Key sKeys[] = {
     { "sfx_volume", &gPortConfig.sfxVolume, 0, 100 },
     { "dodge_button", &gPortConfig.dodgeButton, 0, 1 },
     { "stock_button", &gPortConfig.stockButton, 0, 1 },
+    { "invert_card_scroll", &gPortConfig.invertCardScroll, 0, 1 },
     { "experimental_moogle_notice", &gPortConfig.moogleNotice, 0, 1 },
     { "debug_gba_map_logic", &gPortConfig.gbaMapLogic, 0, 1 },
     { "experimental_unstock", &gPortConfig.unstockButton, 0, 1 },

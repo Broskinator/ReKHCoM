@@ -4,6 +4,13 @@
 #include <SDL3/SDL.h>
 
 #include "port/port.h"
+#include "mode.h"
+#include "text_types.h"
+#include "msg.h"
+#include "card_message_data.h"
+
+extern Mode* gCurrentMode;
+extern Mode gModeBattle;
 #if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
 #include "port/port_android.h"
 #endif
@@ -230,8 +237,42 @@ uint16_t PortInputKeys(void) {
     return keys;
 }
 
+/* Keep the original localized instructions, swapping only this tutorial's button labels. */
+const void* PortCardScrollTutorialText(int message, const void* source) {
+    static TextChar inverted[256];
+    const TextChar* text = source;
+    size_t length, i;
+
+    if (!gPortConfig.invertCardScroll || message != CARD_MSG_ROBE_TUTORIAL_18 || text == NULL)
+        return source;
+    for (length = 0; length < SDL_arraysize(inverted) - 1 && text[length]; length++) {}
+    if (text[length])
+        return source;
+    SDL_memcpy(inverted, text, (length + 1) * sizeof(*text));
+#ifdef VERSION_JP
+    /* Japanese text uses two-byte Shift-JIS glyphs, including full-width L/R. */
+    for (i = 0; i + 1 < length; i += 2) {
+        if (inverted[i] == 0x82 && inverted[i + 1] == 0x6b) inverted[i + 1] = 0x71;
+        else if (inverted[i] == 0x82 && inverted[i + 1] == 0x71) inverted[i + 1] = 0x6b;
+    }
+#else
+    int highlighted = 0;
+    for (i = 0; i < length; i++) {
+        if (inverted[i] == MSG_CODE_HIGHLIGHT) highlighted = 1;
+        else if (inverted[i] == MSG_CODE_PLAIN) highlighted = 0;
+        else if (highlighted && inverted[i] == 'L') inverted[i] = 'R';
+        else if (highlighted && inverted[i] == 'R') inverted[i] = 'L';
+    }
+#endif
+    return inverted;
+}
+
 uint16_t PortInputResolve(uint16_t keys) {
     int dodge = (keys & KEY_DODGE) && gPortConfig.dodgeButton;
+
+    /* Reverse local battle inputs once, before hold/chord detection and link transmission. */
+    if (gPortConfig.invertCardScroll && (gCurrentMode == &gModeBattle || gCurrentMode == &gModeVsbattle))
+        keys = (keys & ~(KEY_L | KEY_R)) | ((keys & KEY_L) >> 1) | ((keys & KEY_R) << 1);
 
     /* Stock button: L and R together, without pressing both shoulders. */
     if ((keys & KEY_STOCK) && gPortConfig.stockButton)
