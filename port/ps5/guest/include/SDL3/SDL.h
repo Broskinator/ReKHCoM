@@ -248,6 +248,11 @@ typedef int SDL_Scancode;
 #define SDLK_F7 0x40000040u
 #define SDLK_F9 0x40000042u
 #define SDLK_F11 0x40000044u
+#define SDLK_PLUS 0x0000002Bu
+#define SDLK_MINUS 0x0000002Du
+#define SDLK_EQUALS 0x0000003Du
+#define SDLK_KP_MINUS 0x40000056u
+#define SDLK_KP_PLUS 0x40000057u
 #define SDLK_DELETE 0x4000004Cu
 
 typedef enum SDL_EventType {
