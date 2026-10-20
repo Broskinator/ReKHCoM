@@ -51,16 +51,20 @@ static int AchievementMenuInput(const SDL_Event* ev) {
         switch (ev->key.key) {
         case SDLK_UP: case SDLK_W: move = -1; break;
         case SDLK_DOWN: case SDLK_S: move = 1; break;
-        case SDLK_LEFT: case SDLK_A: filter = -1; break;
-        case SDLK_RIGHT: case SDLK_D: filter = 1; break;
+        case SDLK_LEFT: case SDLK_A: move = -5; break;
+        case SDLK_RIGHT: case SDLK_D: move = 5; break;
+        case SDLK_Q: case SDLK_PAGEUP: filter = -1; break;
+        case SDLK_E: case SDLK_PAGEDOWN: filter = 1; break;
         case SDLK_ESCAPE: case SDLK_BACKSPACE: case SDLK_F1: case SDLK_Z: case SDLK_J: back = !ev->key.repeat; break;
         }
     } else if (ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
         switch (ev->gbutton.button) {
         case SDL_GAMEPAD_BUTTON_DPAD_UP: move = -1; break;
         case SDL_GAMEPAD_BUTTON_DPAD_DOWN: move = 1; break;
-        case SDL_GAMEPAD_BUTTON_DPAD_LEFT: filter = -1; break;
-        case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: filter = 1; break;
+        case SDL_GAMEPAD_BUTTON_DPAD_LEFT: move = -5; break;
+        case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: move = 5; break;
+        case SDL_GAMEPAD_BUTTON_LEFT_SHOULDER: filter = -1; break;
+        case SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER: filter = 1; break;
         case SDL_GAMEPAD_BUTTON_EAST: back = 1; break;
         case SDL_GAMEPAD_BUTTON_START: case SDL_GAMEPAD_BUTTON_BACK: case SDL_GAMEPAD_BUTTON_GUIDE: Close(); return 1;
         }
@@ -68,7 +72,11 @@ static int AchievementMenuInput(const SDL_Event* ev) {
     if (back) { sPage = PAGE_MAIN; sCursor = ITEM_ACHIEVEMENTS_MENU; sScroll = 0; return 1; }
     if (filter) { sAchievementView = Wrap(sAchievementView + filter, 3); sAchievementChoice = sAchievementScroll = 0; }
     count = AchievementMenuRows(indices, &earned);
-    if (move && count) sAchievementChoice = Wrap(sAchievementChoice + move, count);
+    if (move && count) {
+        /* single steps wrap; a 5-row jump stops at the first or last row */
+        if (move == 1 || move == -1) sAchievementChoice = Wrap(sAchievementChoice + move, count);
+        else sAchievementChoice = SDL_clamp(sAchievementChoice + move, 0, count - 1);
+    }
     if (move || filter) sMenuLightStart = MenuLightNow();
     return 1;
 }
@@ -88,7 +96,7 @@ static void DrawAchievementMenu(int l, int width, int height) {
     char text[160];
     Fill(0, 0, width, height, 0xFFFFFFFFu);
     DrawText(es ? "Logros" : "Achievements", x, MENU_TITLE_Y, MENU_INK, 0xFFD8D8D8u);
-    SDL_snprintf(text, sizeof(text), "%d/%d    < %s >", earned, PortAchievementsListCount(), filters[es][sAchievementView]);
+    SDL_snprintf(text, sizeof(text), "%d/%d    L < %s > R", earned, PortAchievementsListCount(), filters[es][sAchievementView]);
     AchievementMenuText(text, x, MENU_TOP + 2, right, MENU_RED_DARK);
     if (sAchievementChoice >= count) sAchievementChoice = SDL_max(0, count - 1);
     if (sAchievementChoice < sAchievementScroll) sAchievementScroll = sAchievementChoice;
