@@ -19,6 +19,7 @@
 - Achievements: titles and descriptions in Spanish, French, German, Italian and Japanese (the
   game's language; the launcher and the web page follow theirs). The unlock popup shows the
   achievement's own badge and no longer says "RetroAchievements".
+  On Android and the web the badges were missing (red square); they now travel with the app.
 - Achievements menu (in the game): left/right jump five rows; L/R (Q/E on the keyboard) change tab.
 - Launcher: PLAY and Install ROM sit at the top of Home, visible without scrolling.
 - Android, web and Linux ARM: the game no longer closes when stocking cards (#30). The original
@@ -26,6 +27,7 @@
 - Gamepads: Nintendo controllers (Switch Pro, Joy-Cons, 8BitDo in Switch mode) are detected and
   their A/B and X/Y match the labels (#23); the menus use whatever is bound to the game's A and B.
   New "Gamepad face buttons" option (Auto / Xbox / Nintendo) in the options and the launcher.
+  The launcher follows it too (A confirms, B goes back, bindings and the controller test).
 - Battles against Cloud, Axel and Parasite Cage no longer close the game on Android x86 and the
   web: a few divisions by zero of the original now return 0, as on the GBA.
 
