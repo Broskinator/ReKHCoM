@@ -8,7 +8,7 @@ browser and PS5), with its own renderer, audio and launcher, with widescreen and
 ultrawide support at the cartridge's original speed.
 
 <p align="center">
-  <a href="https://github.com/MatyMeatBoy/ReKHCoM/releases/latest"><b>⬇ Download the latest release (v1.9.10)</b></a>
+  <a href="https://github.com/MatyMeatBoy/ReKHCoM/releases/latest"><b>⬇ Download the latest release (v1.9.11)</b></a>
   &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCoM/"><b>▶ Play in your browser · Alpha</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCoM/tags">Previous version tags</a>
@@ -20,26 +20,28 @@ included), in all five European languages, English (US) and Japanese.
 <p align="center"><img src="docs/screenshots/battle.png" width="49%"> <img src="docs/screenshots/field.png" width="49%"></p>
 
 Development versions are tracked in [Git tags](https://github.com/MatyMeatBoy/ReKHCoM/tags).
-Only stable versions appear as public releases. The current stable is **v1.9.10**.
+Only stable versions appear as public releases. The current stable is **v1.9.11**.
 
 | Platform | Download | Status |
 |---|---|---|
-| Windows | `ReKHCoM-v1.9.10-windows-x86.zip` | Stable |
-| Linux (x86) | `ReKHCoM-v1.9.10-linux-x86.tar.gz` | Stable, tested in virtual machines |
-| Steam Deck | `ReKHCoM-v1.9.10-steamdeck-i386.tar.gz` | Stable, tested in virtual machines |
-| Anbernic (RG34XX and similar) | `ReKHCoM-v1.9.10-linux-armhf-anbernic-alpha.zip` | Alpha |
-| Android | `ReKHCoM-v1.9.10-android-alpha.apk` | Alpha |
+| Windows | `ReKHCoM-v1.9.11-windows-x86.zip` | Stable |
+| Linux (x86) | `ReKHCoM-v1.9.11-linux-x86.tar.gz` | Stable, tested in virtual machines |
+| Steam Deck | `ReKHCoM-v1.9.11-steamdeck-i386.tar.gz` | Stable, tested in virtual machines |
+| Anbernic (RG34XX and similar) | `ReKHCoM-v1.9.11-linux-armhf-anbernic-alpha.zip` | Alpha |
+| Android | `ReKHCoM-v1.9.11-android-alpha.apk` | Alpha |
 | Browser | [matymeatboy.github.io/ReKHCoM](https://matymeatboy.github.io/ReKHCoM/) | Alpha |
-| PS5 | `PPSA98511.zip` (shown as ReKHCoM-v1.9.10-ps5-alpha) | Alpha |
+| PS5 | `PPSA98511.zip` (shown as ReKHCoM-v1.9.11-ps5-alpha) | Alpha |
 
-## What's new in v1.9.10
+## What's new in v1.9.11
 
-- **Deck editor fix.** The game no longer closes after editing a deck. This was a
-  bug in the original game: harmless on the GBA, a crash on PC.
-- **Save crystals.** The save window no longer appears shifted over the party after
-  a message window with a portrait.
-- **Crash reports.** If the game ever closes unexpectedly, `kh_com.log` lists where
-  it happened, so it can be attached to a bug report.
+- **Achievements without an account.** The 90 official achievements are earned as you play,
+  translated into Spanish, French, German, Italian and Japanese, with their badges.
+- **Faster start (#24).** A twice skips the logos; START pauses any cinematic and can skip it;
+  the game remembers its language on every version.
+- **Nintendo controllers (#23).** A/B and X/Y follow the labels, in the game and the launcher.
+- **Fewer crashes on Android, web and Linux ARM (#30).** Card stocking, Cloud/Axel/Parasite Cage,
+  the floor map, early story scenes and the deck editor no longer close the game.
+- **Web:** a Fullscreen button right under the game.
 
 ## Achievements
 
@@ -163,7 +165,7 @@ Export a backup before clearing browser data.
 ## Running (Windows)
 
 1. Download the [latest stable ZIP](https://github.com/MatyMeatBoy/ReKHCoM/releases/latest)
-   and extract `ReKHCoM-v1.9.10-windows-x86.zip` into a writable folder of its own
+   and extract `ReKHCoM-v1.9.11-windows-x86.zip` into a writable folder of its own
    (for example `ReKHCoM`).
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
@@ -227,7 +229,7 @@ your dump during the first configure step.
 To make a distributable ZIP without ROMs, saves or local settings:
 
 ```sh
-python port/tools/package_release.py --version v1.9.10 --sdl ../toolchain/SDL3-3.4.18
+python port/tools/package_release.py --version v1.9.11 --sdl ../toolchain/SDL3-3.4.18
 ```
 
 ## Controls
