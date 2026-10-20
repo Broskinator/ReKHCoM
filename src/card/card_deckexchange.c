@@ -2104,7 +2104,8 @@ void SetDeckExchangeGridRowCount(DeckExchangeWork* work, s16 cardCount) {
 void UpdateDeckExchangeGridScrollBar(DeckExchangeWork* work) {
     s32 rowStep;
 
-    rowStep = 0x5400 / (work->rowCount - 4);
+    // @bug rowCount is 4 when 10-12 entries are left (division by zero).
+    rowStep = DIV0(0x5400, work->rowCount - 4);
     work->thumbY = rowStep * (work->scrollRowEnd - 4) + 0x2800;
 
     if (work->thumbY > 0x7C00) {
