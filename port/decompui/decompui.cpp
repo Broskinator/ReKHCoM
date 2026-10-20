@@ -1267,11 +1267,6 @@ static void PageExtras() {
                            "Gamepad Y, keyboard D: stock cards or sleights without pressing L and R together."),
                          Ini("stock_button"));
     ImGui::Separator();
-    changed |= ToggleRow(T("Invertir selección de cartas", "Invert card scrolling"),
-                         T("Invierte L/R y el movimiento horizontal del stick derecho al seleccionar cartas en combate. Los menús y L+R no cambian.",
-                           "Reverses L/R and right-stick horizontal card scrolling in battle. Menus and L+R combinations stay unchanged."),
-                         Ini("invert_card_scroll"));
-    ImGui::Separator();
     ImGui::EndChild();
     ImGui::Spacing();
     BeginCard("experimental");
@@ -1290,6 +1285,11 @@ static void PageExtras() {
                          T("Al recoger puntos moguri en el campo, muestra cuántos y el total. Desactivado por defecto.",
                            "Picking up moogle points on the field shows how many and the total. Off by default."),
                          Ini("experimental_moogle_notice"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Invertir selección de cartas", "Invert card scrolling"),
+                         T("Invierte L/R y el movimiento horizontal del stick derecho al seleccionar cartas en combate. Los menús y L+R no cambian. Desactivado por defecto.",
+                           "Reverses L/R and right-stick horizontal card scrolling in battle. Menus and L+R combinations stay unchanged. Off by default."),
+                         Ini("invert_card_scroll"));
     ImGui::Separator();
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("En pruebas: pueden tener fallos visuales.", "Being tested: expect visual glitches."));
