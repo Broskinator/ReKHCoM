@@ -1,118 +1,28 @@
-# Cola vigente — pasada al limpio, 19/10/2026
+# Cola vigente (19/10/2026)
 
-Única cola de trabajo (los demás .md son evidencia). Numeración histórica
-conservada para poder rastrear. Reglas del usuario:
+Única cola de trabajo; los demás .md son evidencia. Lo terminado sale de aquí
+(queda en el historial de git y en CHANGELOG.md). Numeración histórica conservada.
 
-- Claude y Codex commitean/pushean a main; si uno lleva más de 10 min sin commits ni
+Reglas del usuario:
+- Claude y Codex commitean y pushean a main; si uno lleva más de 10 min sin commits ni
   archivos tocados, el otro toma sus puntos anotando hora y evidencia aquí.
-- Todo lo visual se entrega como copia jugable + .bat y espera aprobación del
-  usuario; lo aprobado se documenta en LOGICA_APROBADOS.md; método: PRUEBAS_VISUALES.md.
-- Lo publicado sale de la cola. Validación en hardware real NO es pendiente:
-  llega como reporte (sección final).
-- Nunca borrar carpetas ReKHCoM-vX sin pedirlo el usuario (18/10: autorizó borrar
-  las antiguas dejando 3; respaldo de guardados en backups/).
+- Todo lo visual se entrega como copia jugable + .bat y espera aprobación del usuario; lo
+  aprobado va a LOGICA_APROBADOS.md; método en PRUEBAS_VISUALES.md.
+- La validación en hardware real no es pendiente: llega como reporte.
+- Nunca borrar carpetas ReKHCoM-vX sin que el usuario lo pida.
 
-## Reparto actual (19/10, tarde)
+## Reparto
 
-| Quién | Puntos |
+| Quién | Pendiente |
 |---|---|
-| **Claude** | 51–54 alphas de consolas (v1.9.10 + PS5 y 71 cerrados) |
-| **ChatGPT/Codex** | 1) 61–62 escenas de Ciudad de Paso; 2) 39 rutas completas; 3) 16–24 arte de jefes |
+| **Claude** | 51–54: alphas de Vita, PS4 y Switch, compiladas como la de PS5 (VM) |
+| **Claude** | Release v1.9.11: candidato listo en main; se publica solo cuando el usuario diga |
+| **Usuario** | Revisar 61–62 (escenas de Ciudad de Paso con márgenes incompletos) cuando Claude las muestre |
+| **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
+| **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después |
 
-Hecho del 19/10 (madrugada/mañana): v1.9.8 publicada y pasada a prerelease (no aprobada
-como estable); 23/90 logros oficiales activos; menú de Opciones ya no lee reproductores
-nulos (crash en Android); confirmar/cancelar en la pausa de escenas con los sonidos del
-juego; truco «llenar colección» quitado (rompía el menú); PS5 vuelve a compilar
-(estados silenciosos para las revanchas); la web publica logo y portada; release_check.py
-bloquea publicaciones incompletas (web, PS5, versiones).
+## Esperando a terceros (no se trabaja)
 
-## Pendientes para el futuro
-
-- **51–54 consolas:** alphas de Vita, PS4 y Switch (PS5 ya existe por VM).
-- **61–62:** escenas de Ciudad de Paso con márgenes incompletos (requieren aprobación).
-- **16–24:** arte de jefes y escenas, de a uno con antes/después.
-- **39:** rutas completas Sora y Reverse/Rebirth.
-
-## Cerrados hoy (referencia)
-
-71 RetroAchievements: 90/90 oficiales activos (EU), validados sin conexión contra las
-definiciones reales; detalle en RETROACHIEVEMENTS_71_VALIDACION.md (19/10, tarde).
-
-v1.9.10 publicada como ESTABLE Latest (19/10, aprobada por el usuario): arreglos 73 (ventana de
-guardado corrida) y 74 (#26, crash al cerrar el editor de barajas). Windows, Linux, Steam Deck,
-Anbernic, Android y Web; release_check OK antes y después. La v1.9.9 queda intacta (Quiver).
-PS5 publicada aparte como v1.9.10-ps5 (estable, no Latest; release_check --post OK).
-El build de PS5 de la v1.9.9 sí terminaba dentro de la VM; lo que nunca acababa era traer
-el zip por la consola serie (base64 leído byte a byte con búsqueda en todo el buffer).
-Ahora: disco buzón para --fetch, --bg-run con progreso cada 30 s y corte a los 15 min sin
-avance, VM con 8 CPU y 6 GB. El build completo tarda ~1 min con ccache.
-Copia de prueba: «Probar ReKHCoM v1.9.10.bat» (partidas y opciones de la v1.9.9).
-
-72 cristal de la primera sala (19/10, tarde): CERRADO, el cartucho también cambia la sala según
-el fotograma de entrada (prueba limpia desde el encendido en BizHawk: 34286² y 34322² dan salas
-distintas; código máquina: la puerta del tutorial llama a CreateMapRoom con gFrameCounter²).
-Paridad 6/6. Detalle en CRISTAL_PENDIENTE.md.
-
-73 ventana de guardado corrida (19/10, savestate 2 del usuario): BG0 quedaba acoplada a -120 px
-por una ventana de mensajes de cartas con retrato que se cerraba sin soltar la capa
-(card_msgwin.c, desde 825785d1e del 12/10). Arreglo: msgwin_3 suelta la capa y SetupBg limpia el
-acople de la capa que reconfigura. Control negativo con el harness dockleft.
-
-74 issue #26, crash al cerrar el editor de barajas: bug original. Task_MapMenu_1 lee
-panelsVisible antes de que MapMenuOpen lo inicialice (heap sin limpiar, restos del editor) y
-anima un cursor inexistente con tabla NULL (lee 0x0003FFFC, open bus en el GBA). Arreglo:
-panelsVisible = FALSE al crear la tarea, y el emulador de bus (port_biosfault.c) trata como open
-bus las lecturas del código del juego bajo la EWRAM. test_menu_cycles.py --edit --moves: antes
-crash al 3er ciclo, ahora 12/12 en zoom x2, x3 y x4. El manejador de fallos lista la pila
-(sin costo: solo corre al caer).
-
-72 paridad de cristal en 4 semillas (19/10, `crystal_parity.py`): 0x2242C2F1, 0x3A4A4A40,
-0x5F5E1000 y 0xA344A3F9 dan 3 posiciones distintas y el original (BizHawk, US) tiene el
-cristal en la misma posición que el port en las 4.
-
-72 cristal/faroles (prueba definitiva en el GBA, 19/10): con la partida del usuario y solo la
-semilla de la sala cambiada a la de su prueba del port (0x2242C2F1, save_reseed.py), el
-cartucho original (BizHawk) pone el cristal en (57344, 61440), exactamente donde el port; la
-posición anterior desaparece. El código máquina del cartucho (CreateMapRoom en 0x080DF66E)
-carga 0x03007480 dos veces, MUL y lo guarda como semilla: depende del momento de usar la
-carta, también en el GBA. Las pruebas previas con el .vbm estaban contaminadas por la SRAM del
-usuario (BizHawk identifica el juego por hash). Salas fijas (halls, historia) usan tablas de la
-ROM. El port no genera salas imposibles en GBA. Partida BizHawk del usuario respaldada y
-restaurada (sha1 verificado). Cristales y faroles en otra posición que el emulador (reporte del 19/10): la lógica es la
-del cartucho. En la RAM del original (BizHawk) gFrameCounter (0x03007480, el que lee
-CreateMapRoom según la ROM) valía 56129 y la semilla de la sala 0x90FAECF1 = 49319²: la
-sala se creó en el fotograma 49319 de esa partida. En la prueba del port el usuario entró
-en el 23975 (semilla 0x2242C2F1). Con la misma semilla el port pone el cristal y el farol
-donde el original (comprobado en 63). Cambia con el momento de usar la carta, también en
-el GBA. Limpieza (44, 19/10): fuera los worktrees khcom-linux, khcom-codex-perf (su rama queda), khcom-fix y khcom-n5 (sus cambios sueltos en backups/*.patch) y las carpetas de prueba de build; se conservan khcom-ps5, khcom-claude, khcom-wide-review, khcom-codex y las ReKHCoM-vX. Copia «Probar ReKHCoM v1.9.8 en curso.bat» con la build de main y partida (archivo 1 nivel 3 del usuario, archivo 2 editado a nivel 50). Crash de Riku en Android (68): la apertura de Riku leía obj.anim nulo (bug original); en PC lo cubría el manejador de fallos, en Android no. BIOS_PTR en esa lectura y otros 11 accesos nulos documentados (d79640b01). Confirmado en el emulador x86: nueva partida de Riku con texto HD pasa el fotograma 2400 sin crash. #21 de Codex en main (22b115878). Pausa en escenas (65): toque corto de START → Volver al juego / Saltar escena (con confirmación, «No» preseleccionado); el salto usa el mismo camino que mantener START (respeta las 3 escenas no saltables; recompensas y banderas intactas, probado en EVENT 0:5); mantener START sigue saltando como el original. Franjas lisas en los bordes de escenas (barrido find_blank_margins, 78 tomas): revisadas, son el fin real de la sala (vacío/color de fondo del juego, lógica aprobada en 56); sin cambios. Clic del modo debug en Opciones con el sonido del juego restaurado exacto (58, 55e1e30f0) y banderas de idiomas en el launcher (67, 4a5c89ef5): el usuario delegó la aprobación en Claude (19/10), verificados por medición y captura; salen en v1.9.6. Lógica Mapa GBA en Trucos → Modo debug, con panel explicativo (69): APROBADO 19/10, en main (8a74f004b), sale en v1.9.6. Márgenes sin pintar en las escenas del tutorial (56/56b) en f5ddc75b9, sale en v1.9.6. Menú de Opciones a toda la altura (57) y aviso moguri a Experimental (64), publicados en v1.9.5. 29 no se reproduce (Mapamundi correcto en los 12 mundos a 16:9; la revisión de objetos de sala la cubren los 36/36 menús de 28): cerrado. 36–37 web probada por el usuario en navegador real: va bien. Mando (49) y 057 playa (12) aprobados por el usuario. Guardados y opciones (5–9), #17 borde de Riku (10), #18 Mapamundi (11), 061 hielo
-y 074 Monstro (13–14), remapeo y gatillos (25), submenús (28), fuente CJK Linux
-(34), PS5 (38), táctil (45), transición de Opciones (50), regresión sincorazones (4).
-Publicado en Nightly 5 (18/10, v1.9.3-nightly.20261018.5): #17 borde de Riku, logros locales,
-arte del mando (49 aprobado), transición de Opciones, CJK Linux, corrección Linux #19.
-Publicados antes: Nightly 4 (trucos, revanchas, aviso moguri, editor de partidas,
-#16, diagrama de mando v1). Ver NIGHTLY4_PUBLICACION.md y NIGHTLY5_PUBLICACION.md.
-
-## Futuro muy lejano (no cuenta como pendiente)
-
-- 057 playa (12, aprobada): igualar los tiles del lado superior derecho con el
-  izquierdo y que el pasto no tenga motivos cortados. Solo si algún día sobran tokens.
-
-## Fuentes
-
-LOGICA_APROBADOS.md, PRUEBAS_VISUALES.md, CONTROLADOR_LOGICA.md,
-MENU_TRANSICIONES_LOGICA.md, ESCENAS_REVISION_AMPLIA.md, CODEX_TAREAS.md,
-CODEX_RESPUESTAS.md, LINUX.md, WEB_PENDIENTES.md. Pruebas e imágenes en build/;
-no versionar ROM, saves ni savestates.
-
-19/10, instrucción del usuario: dejar los fondos de lado; Codex retoma 27 y
-commitea avances comprobables aproximadamente cada tres minutos. Las capturas
-actuales de 61/62 están en build/revision-61-62-actual; no hay nueva solución
-ni aprobación visual. No confundir estos pendientes con las escenas 061/062.
-
-71, Codex 19/10: corregido el anclaje sBgFx (era gBtlWork por error) y activado
-160372 tras validar su grafo completo en 300 frames controlados. 22/90 = 24,4 %.
-Evidencia: RETROACHIEVEMENTS_71_VALIDACION.md. No es un premio real enviado.
-
-71, Codex: 15582 activado tras probar la transición de sala (gMapFloorState.room,
-byte +6, no piso). 23/90 = 25,6 %, quedan 67. 800 frames de condiciones reales
-comprobados entre 15582 y Pooh; controles negativos sin activación.
+- Issue #27 (scanlines en márgenes): abierto hasta que quien lo reportó confirme.
+- Quiver: issue tgeorgiadis/quiver-launcher#182, pedimos levantar la retención del
+  repositorio (VirusTotal 0/68; la causa fueron releases borrados mientras los revisaban).
