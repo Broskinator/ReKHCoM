@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "mode.h"
 #include "port/port_aspect.h"
 #include "port/port_hd2d.h"
 #include "port/port_ui.h"
@@ -39,6 +40,8 @@ typedef volatile unsigned int vu32;
 typedef void (*IntrFunc)(void);
 
 extern void AgbMain(void);
+extern Mode* gCurrentMode;
+extern Mode gModeBattle;
 extern IntrFunc gIntrTable[];
 
 /* The game's mutable globals (see port/game_prefix.h). */
@@ -332,7 +335,8 @@ static void UpdateResolution(void) {
             outW = area.w;
             outH = area.h;
         }
-        PortConfigAutoView(outW, outH, &w, &h, &sAutoScale);
+        PortConfigAutoView(outW, outH, gCurrentMode == &gModeBattle || gCurrentMode == &gModeVsbattle,
+                           &w, &h, &sAutoScale);
     }
     /* screen layer: the 160 GBA lines at the window's height */
     gPortOverlayW = GBA_SCREEN_W;

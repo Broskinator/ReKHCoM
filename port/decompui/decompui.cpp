@@ -251,7 +251,7 @@ static const Setting kSettings[] = {
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "pad_layout", 0 }, { "experimental_moogle_notice", 0 }, { "hd_text", 0 },
-    { "invert_card_scroll", 0 }, { "game_language", 0 },
+    { "invert_card_scroll", 0 }, { "game_language", 0 }, { "experimental_battle_zoom", 0 },
     { "card_hud_raise", 8 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 }, { "experimental_unstock", 0 },
     { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
@@ -1132,12 +1132,9 @@ static void PageHome(SDL_Window* window) {
     ImGui::EndGroup();
 }
 
-static void PageGraphics() {
-    const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
-                            T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
-                            T("Auto (llenar ventana)", "Auto (fill window)") };
-    static std::string zoomLabels[PORT_ZOOM_LEVELS];
-    const char* zooms[PORT_ZOOM_LEVELS];
+static bool ZoomRow(const char* label, const char* help, int& value, bool inherit) {
+    static std::string zoomLabels[PORT_ZOOM_LEVELS + 1];
+    const char* zooms[PORT_ZOOM_LEVELS + 1];
     int W = 1920, H = 1080;
     {
         DEVMODEW cur;
@@ -1157,6 +1154,8 @@ static void PageGraphics() {
         }
     }
     int zoomCount = PortZoomCount(1, W, H);
+    int offset = inherit ? 1 : 0;
+    if (inherit) zooms[0] = T("Igual al zoom principal", "Same as main zoom");
     for (int i = 0; i < zoomCount; i++) {
         int z = PortZoomAt(i, 1, W, H);
         float f = z * 0.5f;
@@ -1166,8 +1165,18 @@ static void PageGraphics() {
         if (PortZoomReference(z))
             zoomLabels[i] += std::string(T("  (íntegra x", "  (integer x")) + std::to_string(PortZoomReference(z)) + ")";
         if (z == 12) zoomLabels[i] += "  !";
-        zooms[i] = zoomLabels[i].c_str();
+        zooms[i + offset] = zoomLabels[i].c_str();
     }
+    int selected = inherit && !value ? 0 : PortZoomIndex(value, 1, W, H) + offset;
+    if (!CycleRow(label, help, selected, zoomCount + offset, zooms)) return false;
+    value = selected < offset ? 0 : PortZoomAt(selected - offset, 1, W, H);
+    return true;
+}
+
+static void PageGraphics() {
+    const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
+                            T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
+                            T("Auto (llenar ventana)", "Auto (fill window)") };
     const char* filters[] = { T("Nítido", "Sharp"), "Pixel art", T("Suave", "Smooth") };
     const char* huds[] = { T("Original", "Original"), T("Grande", "Large"), T("Más grande", "Larger") };
     const char* narrow[] = { T("Píxel exacto", "Exact pixels"), T("Llenar altura", "Fill height") };
@@ -1189,16 +1198,10 @@ static void PageGraphics() {
                               "On wider monitors, 16:9 or 21:9 leave black bars at the sides."),
                             Ini("aspect"), PORT_ASPECT_COUNT, aspects);
     }
-    {
-        int sel = PortZoomIndex(Ini("zoom"), 1, W, H);
-        if (CycleRow(T("Zoom (vista Auto)", "Zoom (Auto view)"),
-                     T("Escala de píxeles: x4 amplía cada píxel cuatro veces. Menos aumento muestra más mundo y exige más al PC.",
-                       "Pixel scale: x4 enlarges each pixel four times. Lower scales show more world and cost more CPU."),
-                     sel, zoomCount, zooms)) {
-            Ini("zoom") = PortZoomAt(sel, 1, W, H);
-            changed = true;
-        }
-    }
+    changed |= ZoomRow(T("Zoom (vista Auto)", "Zoom (Auto view)"),
+                       T("Escala de píxeles: x4 amplía cada píxel cuatro veces. Menos aumento muestra más mundo y exige más al PC.",
+                         "Pixel scale: x4 enlarges each pixel four times. Lower scales show more world and cost more CPU."),
+                       Ini("zoom"), false);
 #ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* filter: an internal setting */
     changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);
 #endif
@@ -1323,6 +1326,11 @@ static void PageExtras() {
     ImGui::Spacing();
     BeginCard("experimental");
     Eyebrow(T("EXPERIMENTALES", "EXPERIMENTAL"));
+    changed |= ZoomRow(T("Zoom en combate", "Battle zoom"),
+                       T("Solo en vista Auto. Al salir del combate vuelve al zoom principal.",
+                         "Auto view only. Leaving battle restores the main zoom."),
+                       Ini("experimental_battle_zoom"), true);
+    ImGui::Separator();
     changed |= ToggleRow(T("Devolver cartas acumuladas", "Return stocked cards"),
                          T("Solo Sora: mantén V, pulsa el stick derecho o inclínalo hacia abajo durante medio segundo para cancelar la acumulación y devolver esas cartas a la mano. No cancela técnicas en curso. Desactivado por defecto.",
                            "Sora only: hold V, the right-stick button or right stick down for half a second to cancel the stock and return those cards to the hand. Cannot cancel a sleight in progress. Off by default."),
