@@ -32,6 +32,7 @@ LLVM = ROOT.parent / 'toolchain/llvm-mingw-20261006-ucrt-x86_64/bin'
 CLANG = os.environ.get('CLANG', str(LLVM / 'clang.exe') if WINDOWS else 'clang-18')
 LLD = os.environ.get('LLD', str(LLVM / 'ld.lld.exe') if WINDOWS else 'ld.lld-18')
 TARGET = '--target=arm64_32-apple-watchos'
+CPU = '-mcpu=cortex-a57'  # the Switch's CPU (ARMv8.0): without it clang targets Apple's and emits ARMv8.3 (xpaci)
 BASE = 0x10000000
 sys.path.insert(0, str(PS5))
 import build_ps5  # noqa: E402  (its PORT_PATCHES and PORT_EXCLUDED are shared)
@@ -47,7 +48,7 @@ def run(cmd, **kw):
 
 def common_flags():
     resource = subprocess.check_output([CLANG, '-print-resource-dir'], text=True).strip() + '/include'
-    return [TARGET, '-ffreestanding', '-nostdinc', '-isystem', resource, f'-I{PS5 / "guest/include"}', f'-I{PS5 / "shared"}',
+    return [TARGET, CPU, '-ffreestanding', '-nostdinc', '-isystem', resource, f'-I{PS5 / "guest/include"}', f'-I{PS5 / "shared"}',
             '-O2', '-funsigned-char', '-fno-strict-aliasing', '-fwrapv', '-fno-stack-protector', '-fno-common',
             '-fno-omit-frame-pointer', '-fno-builtin-printf', '-fno-math-errno', '-DPORT_GBA_RELOC', '-DPORT_SWITCH']
 
@@ -125,7 +126,7 @@ def build_guest(region, jobs):
     units.append((HERE / 'guest/stubs_a64.c', out / 'switch/stubs_a64.o', port_flags))
     macho_symbols(pc / 'rom_symbols_reloc.s', out / 'rom_symbols.s')
     for src in (out / 'rom_symbols.s', HERE / 'guest/crt0_a64.S'):
-        units.append((src, out / 'asm' / (src.stem + '.o'), [TARGET, '-c']))
+        units.append((src, out / 'asm' / (src.stem + '.o'), [TARGET, CPU, '-c']))
     compile_all(jobs, units)
     image = BUILD / f'guest-{region}.macho'
     run([LLD, '-flavor', 'darwin', '-arch', 'arm64_32', '-platform_version', 'watchos', '9.0', '9.0', '-e', '_switch_boot',

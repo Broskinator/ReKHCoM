@@ -28,7 +28,9 @@
 #include <SDL2/SDL.h>
 #define DATA_ROOT "sdmc:/switch/ReKHCoM"
 #else
+#include <signal.h>
 #include <sys/mman.h>
+#include <ucontext.h>
 #endif
 
 #include "bridge.h"
@@ -158,8 +160,8 @@ static SDL_Window* sWindow;
 static SDL_Renderer* sRenderer;
 static SDL_Texture* sScreen;
 #else
-static int sShotFrame = -1;
-static const char* sShotFile;
+static int sShotFrame[16], sShots; /* --shot N file, repeatable */
+static const char* sShotFile[16];
 #endif
 
 typedef struct Tex {
@@ -198,8 +200,10 @@ static void Present(void) {
     SDL_RenderCopy(sRenderer, sScreen, NULL, NULL);
     SDL_RenderPresent(sRenderer);
 #else
-    if (sFrame == sShotFrame && sShotFile) {
-        FILE* f = fopen(sShotFile, "wb");
+    for (int s = 0; s < sShots; s++) {
+        if (sFrame != sShotFrame[s])
+            continue;
+        FILE* f = fopen(sShotFile[s], "wb");
         if (f) {
             fprintf(f, "P6\n%d %d\n255\n", sW, sH);
             for (int i = 0; i < sW * sH; i++) {
@@ -207,7 +211,7 @@ static void Present(void) {
                 fwrite(p, 1, 3, f);
             }
             fclose(f);
-            Log("frame %d saved to %s", sFrame, sShotFile);
+            Log("frame %d saved to %s", sFrame, sShotFile[s]);
         }
     }
 #endif
@@ -790,6 +794,16 @@ static void ShowNotice(const char* name, int frames) {
         H_tex_free(id);
 }
 
+#ifndef __SWITCH__
+/* The test host reports where the image stopped: game image addresses go to guest.map (build_switch.py). */
+static void OnFault(int sig, siginfo_t* info, void* context) {
+    const ucontext_t* uc = context;
+    Log("fault: signal %d at pc 0x%llx, lr 0x%llx, address 0x%llx", sig, (unsigned long long)uc->uc_mcontext.pc,
+        (unsigned long long)uc->uc_mcontext.regs[30], (unsigned long long)(uintptr_t)info->si_addr);
+    _exit(128 + sig);
+}
+#endif
+
 int main(int argc, char** argv) {
 #ifdef __SWITCH__
     (void)argc, (void)argv;
@@ -810,11 +824,18 @@ int main(int argc, char** argv) {
             snprintf(sDataRoot, sizeof(sDataRoot), "%s", argv[++i]);
         else if (!strcmp(argv[i], "--assets") && i + 1 < argc)
             sAssetRoot = argv[++i];
-        else if (!strcmp(argv[i], "--shot") && i + 2 < argc) {
-            sShotFrame = atoi(argv[++i]);
-            sShotFile = argv[++i];
+        else if (!strcmp(argv[i], "--shot") && i + 2 < argc && sShots < 16) {
+            sShotFrame[sShots] = atoi(argv[++i]);
+            sShotFile[sShots++] = argv[++i];
         }
     }
+    struct sigaction sa = { 0 };
+    sa.sa_sigaction = OnFault;
+    sa.sa_flags = SA_SIGINFO;
+    sigaction(SIGILL, &sa, NULL);
+    sigaction(SIGSEGV, &sa, NULL);
+    sigaction(SIGBUS, &sa, NULL);
+    sigaction(SIGTRAP, &sa, NULL);
     setenv("KHCOM_ASSETS", sAssetRoot, 0);
     setenv("KHCOM_DATA", sDataRoot, 0);
 #endif
