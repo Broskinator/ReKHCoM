@@ -459,6 +459,7 @@ static u16 sMovieSubLowerWidths[MOVIE_SUB_MAX_CHARS];
 #endif
 
 #ifdef PLATFORM_PC
+void PortUiOpenMoviePause(void);
 static u8 sPortMovieSkip;
 
 void PortMovieSkipRequest(void) {

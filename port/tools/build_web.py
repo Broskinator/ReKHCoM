@@ -83,7 +83,8 @@ def main():
     port += [ROOT / 'port/android/native/touch_android.c', reloc_path]
     # rcheevos' runtime (no network): the official set evaluated offline
     rcheevos = ROOT / 'port/third_party/rcheevos/src'
-    port += sorted((rcheevos / 'rcheevos').glob('*.c')) + [rcheevos / 'rc_compat.c', rcheevos / 'rc_util.c']
+    port += sorted((rcheevos / 'rcheevos').glob('*.c')) + [rcheevos / 'rc_compat.c', rcheevos / 'rc_util.c',
+                                                             rcheevos / 'rhash' / 'md5.c']  # runtime.c checks memrefs with MD5
     jobs = [(p, True) for p in game] + [(p, False) for p in port]
     headers = sorted([*ROOT.joinpath('include').rglob('*.h'),
                       *ROOT.joinpath('port/include').rglob('*.h'), *gen.rglob('*.h'),
