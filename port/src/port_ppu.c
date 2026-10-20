@@ -2320,6 +2320,12 @@ static uint32_t sNarrowSide[2][GBA_SCREEN_H][NARROW_SIDE_W];
    showed the scenery (0) */
 static uint32_t sNarrowEdge[2][GBA_SCREEN_H];
 static uint8_t sNarrowEdgeKind[2][GBA_SCREEN_H];
+/* sprite rows at the edge (PortNarrowObjBands): each row's colours and counts */
+static int sNarrowObjBands;
+#define OBJ_BAND_COLORS 16
+static uint16_t sObjBandColor[2][GBA_SCREEN_H][OBJ_BAND_COLORS];
+static uint8_t sObjBandCount[2][GBA_SCREEN_H][OBJ_BAND_COLORS];
+static uint8_t sObjBandKinds[2][GBA_SCREEN_H], sObjBandTotal[2][GBA_SCREEN_H];
 
 /* A box or title is one block of rows touching the edge; its lettering can
    cut some rows short of a band (the Moogle Shop's points box, the title's
@@ -2334,8 +2340,74 @@ int PortNarrowEdgeKind(int side, int y) {
     return sNarrowEdgeKind[side > 0][y];
 }
 
+/* Rows of sprites at the edge (the world select's bands and sliding title plate,
+   PortNarrowObjBands): a row of one colour carries on as itself (a band, an
+   outline); the others take the colour commonest over their whole run of rows,
+   the plate's body rather than its lettering, as the margin shows once the slide
+   has ended and the game's own band layer takes over. */
+static int ObjBandTop(int side, int y) {
+    int j, top = 0;
+    for (j = 1; j < sObjBandKinds[side][y]; j++)
+        if (sObjBandCount[side][y][j] > sObjBandCount[side][y][top])
+            top = j;
+    return top;
+}
+
+static int ObjBandMixed(int side, int y) {
+    return sObjBandKinds[side][y] && sObjBandTotal[side][y] >= 8 &&
+           sObjBandCount[side][y][ObjBandTop(side, y)] * 10 < sObjBandTotal[side][y] * 9;
+}
+
+static void ObjBandFill(int side, int y, uint16_t c) {
+    int d;
+    sNarrowEdge[side][y] = sColorLut[c & 0x7FFF];
+    sNarrowEdgeKind[side][y] = 2;
+    for (d = 0; d < NARROW_SIDE_W; d++)
+        sNarrowSide[side][y][d] = sColorLut[c & 0x7FFF];
+}
+
+static void FinishObjBands(void) {
+    int side, y;
+    for (side = 0; side < 2; side++)
+        for (y = 0; y < GBA_SCREEN_H; y++) {
+            int z = y, k, j, best = -1, kinds = 0;
+            uint32_t total[OBJ_BAND_COLORS * 4], rows[OBJ_BAND_COLORS * 4];
+            uint16_t cols[OBJ_BAND_COLORS * 4];
+            if (!sObjBandKinds[side][y] || sObjBandTotal[side][y] < 8)
+                continue;
+            if (!ObjBandMixed(side, y)) { /* a band or an outline: its own colour */
+                ObjBandFill(side, y, sObjBandColor[side][y][ObjBandTop(side, y)]);
+                continue;
+            }
+            while (z + 1 < GBA_SCREEN_H && ObjBandMixed(side, z + 1)) z++;
+            for (k = y; k <= z; k++)
+                for (j = 0; j < sObjBandKinds[side][k]; j++) {
+                    int m;
+                    for (m = 0; m < kinds && cols[m] != sObjBandColor[side][k][j]; m++) {}
+                    if (m == kinds) {
+                        if (kinds == OBJ_BAND_COLORS * 4)
+                            continue;
+                        cols[kinds] = sObjBandColor[side][k][j];
+                        rows[kinds] = 0;
+                        total[kinds++] = 0;
+                    }
+                    rows[m]++;
+                    total[m] += sObjBandCount[side][k][j];
+                }
+            /* the plate's body runs through every row; its lettering does not */
+            for (k = 0; k < kinds; k++)
+                if (best < 0 || rows[k] > rows[best] || (rows[k] == rows[best] && total[k] > total[best]))
+                    best = k;
+            for (k = y; k <= z; k++)
+                ObjBandFill(side, k, cols[best]);
+            y = z;
+        }
+}
+
 void PortNarrowSidesFinish(void) {
     int side, y;
+    if (sNarrowObjBands)
+        FinishObjBands();
     for (side = 0; side < 2; side++)
         for (y = 0; y < GBA_SCREEN_H; y++) {
             int a = y, z = y, band = 0, k, d;
@@ -2358,6 +2430,13 @@ uint32_t PortNarrowSidePixel(int side, int y, int distance) {
     if (distance >= NARROW_SIDE_W)
         distance = NARROW_SIDE_W - 1 - (distance % NARROW_SIDE_W);
     return sNarrowSide[side > 0][y][distance < 0 ? 0 : distance];
+}
+
+/* World select: while its header slides in, the title and footer bands are
+   sprites (the game enables their BG only once the slide ends), so a band of
+   sprites at the picture's edge is carried on as well (PortNarrowObjBands). */
+void PortNarrowObjBands(int on) {
+    sNarrowObjBands = on;
 }
 
 static void BuildNarrowSides(int gy, uint16_t dispcnt, const int* bgOn, const int* bgPrio) {
@@ -2433,6 +2512,28 @@ static void BuildNarrowSides(int gy, uint16_t dispcnt, const int* bgOn, const in
             if (effect == 3 && (bldcnt & 0x3F)) col = Darken(col, evy);
             sNarrowSide[side][gy][d] = sColorLut[col & 0x7FFF];
         }
+        /* the sprites touching the edge on this row, counted per colour
+           (PortNarrowSidesFinish decides the margin's colour for the run) */
+        sObjBandKinds[side][gy] = sObjBandTotal[side][gy] = 0;
+        if (sNarrowObjBands && sObjLine[edge] != TRANSPARENT) {
+            int k, kinds = 0;
+            for (k = 0; k < 48; k++) { /* what meets the margin */
+                uint16_t c = sObjLine[edge + k * step];
+                int j;
+                if (c == TRANSPARENT)
+                    break;
+                for (j = 0; j < kinds && sObjBandColor[side][gy][j] != c; j++) {}
+                if (j == kinds) {
+                    if (kinds == OBJ_BAND_COLORS)
+                        continue;
+                    sObjBandColor[side][gy][j] = c;
+                    sObjBandCount[side][gy][kinds++] = 0;
+                }
+                sObjBandCount[side][gy][j]++;
+            }
+            sObjBandKinds[side][gy] = (uint8_t)kinds;
+            sObjBandTotal[side][gy] = (uint8_t)k;
+        }
     }
     (void)dispcnt;
 }
@@ -2465,19 +2566,29 @@ static void HBlank(int line) {
 /* A mode switch asks for its framing before the old picture has gone: the
    change waits for a blank frame of the transition (or half a second), so
    the last frame of the old screen never shows at the new size. */
+static int sLastFrameBlank; /* the frame just drawn was blank (UpdateSceneNarrow) */
+
 void PortSceneNarrow(int on) {
     sNarrowWanted = on;
-    sNarrowWait = 0;
+    /* the old screen already faded out (the game waits for its fade before
+       changing mode): the new framing can start with the new screen */
+    sNarrowWait = sLastFrameBlank ? 31 : 0;
 }
 
 static void UpdateSceneNarrow(uint16_t dispcnt) {
     uint16_t bldcnt = IO16(0x50);
-    int blank = (dispcnt & 0x80) || !(dispcnt & 0x1F00)
-                || (((bldcnt >> 6) & 3) == 3 && (IO16(0x54) & 31) >= 16 && (bldcnt & 0x1F) == 0x1F);
+    /* forced blank, nothing enabled, or every layer faded fully to black or to
+       white (the world select comes in from white: waiting the half second
+       there switched the framing in the middle of its header's slide) */
+    int faded = ((bldcnt >> 6) & 3) >= 2 && (IO16(0x54) & 31) >= 16 && (bldcnt & 0x1F) == 0x1F;
+    int blank = (dispcnt & 0x80) || !(dispcnt & 0x1F00) || faded;
 
+    int lastBlank = sLastFrameBlank; /* the frame before: also a one-colour picture */
+
+    sLastFrameBlank = blank; /* PortPpuRenderFrame sets it too for a one-colour picture */
     if (sSceneNarrow == sNarrowWanted)
         return;
-    if (blank || ++sNarrowWait > 30)
+    if (blank || lastBlank || ++sNarrowWait > 30)
         sSceneNarrow = sNarrowWanted;
 }
 
@@ -2636,6 +2747,17 @@ void PortPpuRenderFrame(void) {
         RenderLine(gy + gPortScreen.originY, gy);
         StepAffine(1);
         HBlank(gy);
+    }
+    if (!sLastFrameBlank) {
+        /* the game's own fades rewrite the palettes: a picture of one colour
+           (all white or all black) is a blank frame of the transition too */
+        const uint32_t* row = gPortFrame + gPortScreen.originY * w + gPortScreen.originX;
+        uint32_t first = row[0];
+        int x, uniform = 1;
+        for (gy = 0; gy < GBA_SCREEN_H && uniform; gy += 2, row += 2 * w)
+            for (x = 0; x < GBA_SCREEN_W; x += 2)
+                if (row[x] != first) { uniform = 0; break; }
+        sLastFrameBlank = uniform;
     }
 
     /* Lines below the original picture: state after line 159. */

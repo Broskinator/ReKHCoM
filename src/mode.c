@@ -131,6 +131,14 @@ void ModeStart(Mode* mode, s32 arg) {
                   : (mode == &gModeMenuNew || mode == &gModeMenuLoad) ? PORT_SIDE_SCENE_BANDS
                   : PORT_SIDE_EDGE_FADE); /* no stretched columns anywhere */
     PortSceneNarrow(ModeIsFullScreenMenu(mode));
+    PortNarrowObjBands(mode == &gModeWorldselect);
+    {
+        /* the logos' "press again to skip" prompt never outlives them */
+        extern Mode gModeCopyright1, gModeCopyright2;
+        extern void PortUiIntroSkipReset(void);
+        if (mode != &gModeCopyright1 && mode != &gModeCopyright2)
+            PortUiIntroSkipReset();
+    }
     {
         /* the battle's opening (the heart bursting) covers the whole screen */
         extern Mode gModeBattle;
