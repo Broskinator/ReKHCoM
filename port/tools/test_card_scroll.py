@@ -68,6 +68,7 @@ static void key_test(void) {
             for (unsigned s = 0; s < SDL_arraysize(shoulders); s++) {
                 unsigned direction = reverse && (s == 1 || s == 2) ? 3 - s : s;
                 for (uint16_t other = 0; other < 0x100; other++) {
+                    if (m >= 2 && (other & 0x00c)) continue; /* Menu keys are tested on release below. */
                     uint16_t input = other | shoulders[s];
                     assert(PortInputResolve(input) == (other | shoulders[direction]));
                 }
@@ -75,6 +76,36 @@ static void key_test(void) {
             assert(PortInputResolve(PORT_KEY_STOCK) == 0x300);
             assert(PortInputResolve(0x300 | PORT_KEY_STOCK) == 0x300);
         }
+    }
+}
+
+static void menu_chord_test(void) {
+    Mode* modes[] = { &gModeBattle, &gModeVsbattle };
+    const uint16_t buttons[] = { 0x004, 0x008 }; /* Select and Start, in either order. */
+    for (unsigned i = 0; i < SDL_arraysize(modes); i++) {
+        gCurrentMode = modes[i];
+        for (unsigned j = 0; j < SDL_arraysize(buttons); j++) {
+            uint16_t button = buttons[j];
+            for (int held = 0; held < 30; held++)
+                assert(PortInputResolve(button) == 0);
+            assert(PortInputResolve(0) == button); /* A standalone press acts once, on release. */
+            assert(PortInputResolve(0) == 0);
+            assert(PortInputResolve(button) == 0);
+            assert(PortInputResolve(0x00c) == 0);
+            assert(PortInputResolve(button) == 0);
+            assert(PortInputResolve(0) == 0); /* Releasing either half of a chord leaks no action. */
+            assert(PortInputResolve(button) == 0);
+            PortInputSuppressUntilRelease(); /* Opening/closing the overlay cancels the pending press. */
+            assert(PortInputResolve(0) == 0);
+            assert(PortInputResolve(button) == 0);
+            SDL_Event lost = {0}; lost.type = SDL_EVENT_WINDOW_FOCUS_LOST;
+            PortInputHandleEvent(&lost);
+            assert(PortInputResolve(0) == 0);
+        }
+        gCurrentMode = &sMenu;
+        assert(PortInputResolve(0x00c) == 0x00c); /* Other screens retain held menu keys. */
+        assert(PortInputResolve(0x00c) == 0x00c);
+        assert(PortInputResolve(0) == 0);
     }
 }
 
@@ -146,7 +177,8 @@ int main(void) {
     key_test();
     tutorial_test();
     device_test();
-    puts("PASS: defaults, INI round-trip/clamping, all GBA key combinations, battle/Versus/menu scope, keyboard, shoulders, right stick, stock, suppression and localized tutorial labels");
+    menu_chord_test();
+    puts("PASS: defaults, INI round-trip/clamping, GBA key combinations, battle menu shortcut, battle/Versus/menu scope, keyboard, shoulders, right stick, stock, suppression and localized tutorial labels");
     return 0;
 }
 '''
