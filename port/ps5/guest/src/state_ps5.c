@@ -22,7 +22,12 @@
 
 #define MAX_PATH 1024
 
+#ifdef __MACH__
+extern char __text_start[] __asm("section$start$__TEXT$__text");
+extern char __text_end[] __asm("section$end$__TEXT$__text");
+#else
 extern char __text_start[], __text_end[];
+#endif
 
 extern void AgbMain(void);
 

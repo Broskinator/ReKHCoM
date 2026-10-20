@@ -120,7 +120,14 @@ char* strdup(const char* s) {
  * Boundary-tag allocator over [heapStart, heapEnd): 16-byte blocks, a header
  * with the size and the previous block's size, first fit with coalescing. */
 
+#ifdef __MACH__
+/* the Switch image (Mach-O): the heap is a zero-filled segment of port/switch/guest/crt0_a64.S */
+extern char rk_heap[];
+#define __heap_start rk_heap
+#define __heap_end (rk_heap + 0x06000000)
+#else
 extern char __heap_start[], __heap_end[];
+#endif
 
 typedef struct Blk {
     uint32_t size;  /* bytes of the whole block, bit 0: in use */

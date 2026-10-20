@@ -32,6 +32,12 @@ void PortBiosAreaRefresh(void) {
 static uint8_t sSramShadow[GBA_SRAM_SIZE];
 static int sSramLoaded;
 
+#ifdef PORT_GBA_RELOC
+/* The relocatable build (Switch, Vita): the regions are arrays of the image (include/gba/gba_space.h). */
+int PortMemoryInit(void) {
+    return 1;
+}
+#else
 int PortMemoryInit(void) {
     /* the host has mapped the range: both ends must answer */
     volatile uint8_t* first = (volatile uint8_t*)(uintptr_t)GBA_EWRAM;
@@ -48,6 +54,7 @@ int PortMemoryInit(void) {
     *last = keepLast;
     return 1;
 }
+#endif
 
 const char* gPortRomPath;
 
@@ -119,9 +126,15 @@ int PortRomLoad(void) {
                   "(any name ending in .gba).");
         return 0;
     }
+#ifdef PORT_GBA_RELOC
+    {
+        extern int GbaSpaceMoveRomPointers(void);
+        PortLog("GBA space: %d ROM pointers moved", GbaSpaceMoveRomPointers());
+    }
+#endif
     /* ROM words that referenced code or data now compiled natively. */
     for (r = gPortRomRelocs; r->romAddress != 0; r++)
-        *(uint32_t*)(uintptr_t)r->romAddress = (uint32_t)(uintptr_t)r->target;
+        *(uint32_t*)(uintptr_t)(GBA_ROM + (r->romAddress - 0x08000000u)) = (uint32_t)(uintptr_t)r->target;
     return 1;
 }
 
