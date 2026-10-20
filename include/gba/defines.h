@@ -1,28 +1,38 @@
 #ifndef GUARD_GBA_DEFINES_H
 #define GUARD_GBA_DEFINES_H
 
+#if defined(PLATFORM_PC) && defined(PORT_GBA_RELOC)
+#include "gba/gba_space.h"
+#define INTR_VECTOR (*(void**)(GBA_IWRAM_BASE + 0x7FFC))
+#define EWRAM_START ((int)GBA_EWRAM_BASE)
+#define IWRAM_START ((int)GBA_IWRAM_BASE)
+#define PLTT ((int)GBA_PLTT_BASE)
+#define VRAM ((int)GBA_VRAM_BASE)
+#define OAM ((int)GBA_OAM_BASE)
+#else
 #define INTR_VECTOR (*(void**)0x03007FFC)
-
 #define EWRAM_START 0x02000000
+#define IWRAM_START 0x03000000
+#define PLTT 0x05000000
+#define VRAM 0x06000000
+#define OAM 0x07000000
+#endif
+
 #define EWRAM_SIZE 0x40000
 
-#define IWRAM_START 0x03000000
 #define IWRAM_SIZE 0x8000
 
-#define PLTT 0x05000000
 #define PLTT_SIZE 0x400
 #define BG_PLTT PLTT
 #define BG_PLTT_SIZE 0x200
 #define OBJ_PLTT (PLTT + 0x200)
 
-#define VRAM 0x06000000
 #define VRAM_SIZE 0x18000
 #define BG_VRAM VRAM
 #define BG_CHAR_SIZE 0x4000
 #define BG_CHAR_ADDR(n) (BG_VRAM + BG_CHAR_SIZE * (n))
 #define OBJ_VRAM0 (VRAM + 0x10000)
 
-#define OAM 0x07000000
 
 #define DISPLAY_WIDTH 240
 #define DISPLAY_HEIGHT 160

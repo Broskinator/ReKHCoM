@@ -15,21 +15,23 @@
 #include <stddef.h>
 #include "port/port_zoom.h"
 
-#define GBA_EWRAM 0x02000000u
+#include "../../../include/gba/gba_space.h"
+
+#define GBA_EWRAM GBA_EWRAM_BASE
 #define GBA_EWRAM_SIZE 0x40000u
-#define GBA_IWRAM 0x03000000u
+#define GBA_IWRAM GBA_IWRAM_BASE
 #define GBA_IWRAM_SIZE 0x8000u
-#define GBA_IO 0x04000000u
+#define GBA_IO GBA_IO_BASE
 #define GBA_IO_SIZE 0x400u
-#define GBA_PLTT 0x05000000u
+#define GBA_PLTT GBA_PLTT_BASE
 #define GBA_PLTT_SIZE 0x400u
-#define GBA_VRAM 0x06000000u
+#define GBA_VRAM GBA_VRAM_BASE
 #define GBA_VRAM_SIZE 0x18000u
-#define GBA_OAM 0x07000000u
+#define GBA_OAM GBA_OAM_BASE
 #define GBA_OAM_SIZE 0x400u
-#define GBA_ROM 0x08000000u
+#define GBA_ROM GBA_ROM_BASE
 #define GBA_ROM_SIZE 0x02000000u
-#define GBA_SRAM 0x0E000000u
+#define GBA_SRAM GBA_SRAM_BASE
 #define GBA_SRAM_SIZE 0x10000u
 
 #define GBA_SCREEN_W 240

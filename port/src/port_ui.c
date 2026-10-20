@@ -35,6 +35,7 @@ extern int PortDebugModeAvailable(void);
 extern int PortCheatActionsAvailable(void);
 extern int PortCheatMaxLevel(void);
 extern int PortCheatMapCards(void);
+extern int PortCheatJournal(void);
 extern unsigned PortGameFlags(void);
 extern int PortRematchAvailable(int i);
 extern int PortRematchStart(int i);
@@ -106,6 +107,7 @@ enum {
     ITEM_CHEAT_INFHP,
     ITEM_CHEAT_MAXLEVEL,
     ITEM_CHEAT_MAPCARDS,
+    ITEM_CHEAT_JOURNAL,
     ITEM_CHEAT_DEBUG_HEADING, /* section heading, not selectable */
     ITEM_CHEAT_GBA_MAP,
     ITEM_CHEATS_BACK,
@@ -268,6 +270,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Livello 99 con tutti i bonus", "Nivel 99 con todos los bonos", "全ボーナス付きレベル99" },
     { "Every map card (9 each)", "Toutes les cartes de salle (9)", "Alle Raumkarten (je 9)",
       "Tutte le carte stanza (9)", "Todas las cartas de mapa (9 c/u)", "全マップカード (各9枚)" },
+    { "Complete the journal", "Compléter le journal", "Tagebuch vervollständigen",
+      "Completa il diario", "Completar el diario", "日記をすべて埋める" },
     { "Debug mode", "Mode debug", "Debug-Modus", "Modalità debug", "Modo debug", "デバッグモード" },
     { "[ReKHCoM] GBA map logic", "[ReKHCoM] Logique carte GBA", "[ReKHCoM] GBA-Kartenlogik",
       "[ReKHCoM] Logica mappa GBA", "[ReKHCoM] Lógica Mapa GBA", "[ReKHCoM] GBAマップロジック" },
@@ -305,12 +309,12 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
 };
 static const char* const sCheatsTitle[LANG_COUNT] = { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" };
 static const char* const sCheatsHelp[LANG_COUNT] = {
-    "Debug: title screen only. Level and cards: on the map; save to keep them.",
-    "Debug : écran titre. Niveau et cartes : sur la carte ; sauvegardez.",
-    "Debug: nur im Titel. Stufe und Karten: auf der Karte; dann speichern.",
-    "Debug: solo dal titolo. Livello e carte: sulla mappa; poi salva.",
-    "Debug: solo en el título. Nivel y cartas: en el mapa; guarda para conservarlos.",
-    "デバッグはタイトルで。レベルとカードはマップ上で。保存して反映。",
+    "Debug: title screen only. Level, cards, journal: on the map; then save.",
+    "Debug : écran titre. Niveau, cartes, journal : sur la carte.",
+    "Debug: nur im Titel. Stufe, Karten, Tagebuch: auf der Karte.",
+    "Debug: solo dal titolo. Livello, carte, diario: sulla mappa.",
+    "Debug: solo en el título. Nivel, cartas y diario: en el mapa; luego guarda.",
+    "デバッグはタイトルで。レベル・カード・日記はマップ上で。保存して反映。",
 };
 static const char* const sRematchTitle[LANG_COUNT] = { "Boss rematches", "Revanches de boss", "Boss-Revanchen",
     "Rivincite coi boss", "Revancha de jefes", "ボス再戦" };
@@ -746,7 +750,8 @@ static int ItemEnabled(int item) {
         case ITEM_CHEAT_DEBUG: return PortDebugModeAvailable();
         case ITEM_REMATCH_MENU: return 1;
         case ITEM_CHEAT_MAXLEVEL:
-        case ITEM_CHEAT_MAPCARDS: return PortCheatActionsAvailable();
+        case ITEM_CHEAT_MAPCARDS:
+        case ITEM_CHEAT_JOURNAL: return PortCheatActionsAvailable();
         case ITEM_BATTLE_ZOOM:
         case ITEM_ZOOM:
         case ITEM_INTZOOM:
@@ -904,6 +909,7 @@ static void ValueText(int item, char* out, size_t size) {
             break;
         case ITEM_CHEAT_MAXLEVEL:
         case ITEM_CHEAT_MAPCARDS:
+        case ITEM_CHEAT_JOURNAL:
             SDL_strlcpy(out, "→", size);
             break;
         case ITEM_CHEAT_DEBUG:
@@ -1125,8 +1131,10 @@ static void Change(int item, int dir) {
             break;
         case ITEM_CHEAT_MAXLEVEL:
         case ITEM_CHEAT_MAPCARDS:
+        case ITEM_CHEAT_JOURNAL:
             /* (the battle card collection is filled from the launcher's save editor) */
-            if (dir > 0 && (item == ITEM_CHEAT_MAXLEVEL ? PortCheatMaxLevel() : PortCheatMapCards())) {
+            if (dir > 0 && (item == ITEM_CHEAT_MAXLEVEL ? PortCheatMaxLevel() :
+                            item == ITEM_CHEAT_MAPCARDS ? PortCheatMapCards() : PortCheatJournal())) {
                 Close();
                 PortUiNotice(sCheatDone[Lang()]);
             }

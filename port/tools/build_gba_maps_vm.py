@@ -49,7 +49,7 @@ if [ ! -x /root/gba-cache/agbcc/bin/old_agbcc ]; then
   rm -rf /root/gba-cache/agbcc && cp -a /root/gba-cache/install/tools/agbcc /root/gba-cache/agbcc
 fi
 rm -rf tools/agbcc && cp -a /root/gba-cache/agbcc tools/agbcc
-if [ ! -x /root/gba-cache/legacy/bin/arm-elf-as ]; then
+if [ ! -x /root/gba-cache/legacy/bin/arm-elf-as ] || [ ! -f /root/gba-cache/legacy/lib/libc.a ] || [ ! -f /root/gba-cache/legacy/lib/libgcc.a ]; then
   python3 tools/setup_legacy_toolchain.py --prefix /root/gba-cache/legacy
 fi
 rm -rf tools/legacy && cp -a /root/gba-cache/legacy tools/legacy
@@ -62,6 +62,18 @@ for v in us eu jp; do
   ninja -j"$(nproc)"
   cp build/$v/com_$v.map build/$v/com_$v.elf /root/gba-maps/
   sha1sum build/$v/com_$v.gba | tee -a /root/gba-maps/sha1.txt
+  # The same link again with a current ld and --emit-relocs: every pointer word of the ROM shows up as a
+  # relocation (the relocatable GBA space of the Vita and Switch builds needs that list). The result must be
+  # the same ROM, byte for byte.
+  link=$(ninja -t commands build/$v/com_$v.elf | tail -1)
+  link=${link/tools\/legacy\/bin\/arm-elf-ld/arm-none-eabi-ld -q --no-warn-rwx-segments}
+  link=${link/-o build\/$v\/com_$v.elf/-o build\/$v\/com_$v.relocs.elf}
+  link=${link/-Map build\/$v\/com_$v.map/-Map build\/$v\/com_$v.relocs.map}
+  eval "$link"
+  arm-none-eabi-objcopy -O binary build/$v/com_$v.relocs.elf build/$v/relocs.bin
+  arm-none-eabi-objcopy -O binary build/$v/com_$v.elf build/$v/orig.bin
+  cmp build/$v/relocs.bin build/$v/orig.bin && echo "relink $v identical"
+  arm-none-eabi-readelf -rW build/$v/com_$v.relocs.elf | gzip > /root/gba-maps/com_$v.relocs.txt.gz
 done
 tar -cf /root/gba-maps.tar -C /root gba-maps
 echo MAPS-OK

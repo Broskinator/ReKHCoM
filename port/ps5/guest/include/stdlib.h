@@ -13,6 +13,7 @@ long labs(long);
 int atoi(const char*);
 long strtol(const char*, char**, int);
 unsigned long strtoul(const char*, char**, int);
+unsigned long long strtoull(const char*, char**, int);
 double atof(const char*);
 void qsort(void*, size_t, size_t, int (*)(const void*, const void*));
 int rand(void);
