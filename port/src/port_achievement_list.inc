@@ -27,8 +27,8 @@ int PortAchievementsListCount(void) { return KhOfficialCount(); }
 int PortAchievementsListGet(int index, PortAchievementInfo* out) {
     const KhOfficialAchievement* a = KhOfficialAt(index);
     if (!out || !a) return 0;
-    SDL_strlcpy(out->title, a->title, sizeof(out->title));
-    SDL_strlcpy(out->description, a->description, sizeof(out->description));
+    SDL_strlcpy(out->title, KhOfficialText(a, ACHIEVEMENT_TEXT_LANGUAGE, 0), sizeof(out->title));
+    SDL_strlcpy(out->description, KhOfficialText(a, ACHIEVEMENT_TEXT_LANGUAGE, 1), sizeof(out->description));
     if (SDL_strlen(a->badge) < sizeof(out->badge)) SDL_strlcpy(out->badge, a->badge, sizeof(out->badge));
     else out->badge[0] = 0;
     out->points = a->points;

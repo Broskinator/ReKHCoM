@@ -34,6 +34,7 @@ int KhRaAccountProgressAvailable(const KhRa* ra);
 int KhRaValidationMode(void);
 void KhRaInvalidate(KhRa* ra, const char* reason);
 const char* KhRaTakeNotice(KhRa* ra);
+uint32_t KhRaNoticeId(const KhRa* ra); /* id of the achievement behind the last notice */
 /* Game process: evaluate and submit (softcore) only these achievement ids. */
 void KhRaStartOfficial(KhRa* ra, const uint32_t* ids, uint32_t count);
 

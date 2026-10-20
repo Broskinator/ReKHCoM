@@ -31,6 +31,7 @@ struct KhRa {
     KhRaTransport transport;
     KhRaJob* jobs;
     char directory[1024], hash[33], status[512], notice[512];
+    uint32_t notice_id;
     char username[128], token[128];
     int enabled, busy, error, remember, closing, invalidated;
     uint32_t *account_unlocks, account_unlock_count;
@@ -232,10 +233,11 @@ int KhRaFetchImage(KhRa* ra, const char* url, KhRaImageCallback callback, void* 
 
 static void Event(const rc_client_event_t* event, rc_client_t* client) {
     KhRa* ra = (KhRa*)rc_client_get_userdata(client);
-    if (event->type == RC_CLIENT_EVENT_ACHIEVEMENT_TRIGGERED && event->achievement)
+    if (event->type == RC_CLIENT_EVENT_ACHIEVEMENT_TRIGGERED && event->achievement) {
+        ra->notice_id = event->achievement->id;
         snprintf(ra->notice, sizeof(ra->notice), "%s\n%s", event->achievement->title,
                  event->achievement->description ? event->achievement->description : "");
-    else if (event->type == RC_CLIENT_EVENT_SERVER_ERROR && event->server_error)
+    } else if (event->type == RC_CLIENT_EVENT_SERVER_ERROR && event->server_error)
         SetStatus(ra, event->server_error->error_message, 1);
 }
 
@@ -486,6 +488,7 @@ void KhRaStartOfficial(KhRa* ra, const uint32_t* ids, uint32_t count) {
         rc_client_begin_login_with_token(ra->client, ra->username, ra->token, LoggedIn, ra);
     }
 }
+uint32_t KhRaNoticeId(const KhRa* ra) { return ra ? ra->notice_id : 0; }
 const char* KhRaTakeNotice(KhRa* ra) {
     static char notice[512];
     if (!ra || !ra->notice[0]) return NULL;

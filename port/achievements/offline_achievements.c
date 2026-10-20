@@ -17,6 +17,11 @@ const KhOfficialAchievement* KhOfficialAt(int index) {
     return index >= 0 && index < KH_OFFICIAL_COUNT ? &gKhOfficialSet[index] : NULL;
 }
 
+const char* KhOfficialText(const KhOfficialAchievement* a, int lang, int field) {
+    if (lang < 0 || lang >= KH_OFFICIAL_LANGS) lang = 0;
+    return a->text[lang][field ? 1 : 0];
+}
+
 int KhOfficialIndex(uint32_t id) {
     int i;
     for (i = 0; i < KH_OFFICIAL_COUNT; ++i)

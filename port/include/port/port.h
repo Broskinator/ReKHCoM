@@ -200,7 +200,8 @@ void PortAchievementsRomLoaded(const uint8_t* rom, size_t size);
 void PortAchievementsFrame(void);
 void PortAchievementsInvalidate(const char* reason);
 void PortAchievementsShutdown(void);
-void PortAchievementToast(const char* title, const char* detail, const char* label);
+/* badgeIndex: position in the official set (its badges.png atlas); -1 = none */
+void PortAchievementToast(const char* title, const char* detail, const char* label, int badgeIndex);
 void PortAchievementToastDraw(void* renderer, int width, int height);
 void PortAchievementToastShutdown(void);
 /* The game's globals: initialised data and zero-initialised data. */

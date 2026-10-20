@@ -18,7 +18,8 @@ function renderAchievements(){
   $('achievement-progress').textContent=got.length+' / '+set.length+' · '+points+' / '+total+' '+optionWord('points','puntos');
   $('achievement-meter').max=set.length;$('achievement-meter').value=got.length;
   const query=$('achievement-search').value.trim().toLocaleLowerCase(),filter=$('achievement-filter').value;
-  set.forEach(([id,value,title,description],index)=>{
+  set.forEach(([id,value,texts],index)=>{
+    const [title,description]=texts[interfaceLanguage==='es'?4:0];
     const unlocked=earned.has(id);
     if(filter==='unlocked'&&!unlocked||filter==='locked'&&unlocked||query&&!(title+' '+description).toLocaleLowerCase().includes(query))return;
     const row=document.createElement('article');row.className='achievement-row'+(unlocked?' unlocked':'');

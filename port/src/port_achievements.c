@@ -37,6 +37,14 @@ static const uint32_t sOfficialVerified[] = { 15580u, 15582u, 15583u, 15584u, 15
 
 #ifdef PORT_RETROACHIEVEMENTS
 #include "../achievements/ra_client.h"
+#ifdef VERSION_EU
+extern uint32_t gLanguage;
+#define ACHIEVEMENT_TEXT_LANGUAGE ((int)gLanguage)
+#elif defined(VERSION_JP)
+#define ACHIEVEMENT_TEXT_LANGUAGE 5 /* Japanese */
+#else
+#define ACHIEVEMENT_TEXT_LANGUAGE 0 /* English */
+#endif
 static KhRa* sRa;
 #endif
 
@@ -228,7 +236,7 @@ void PortAchievementsFrame(void) {
     ++sPreviewFrame;
     if (SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW") &&
         sPreviewFrame == (unsigned)SDL_atoi(SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW")))
-        PortAchievementToast("Heartless Hunter", "Defeat your first Heartless in Castle Oblivion.", "VISTA PREVIA - LOGRO");
+        PortAchievementToast("Heartless Hunter", "Defeat your first Heartless in Castle Oblivion.", "VISTA PREVIA - LOGRO", SDL_atoi(SDL_getenv("KHCOM_ACHIEVEMENT_BADGE") ? SDL_getenv("KHCOM_ACHIEVEMENT_BADGE") : "0"));
     /* Invalidate before this frame can evaluate or submit an official award. */
     if (gPortConfig.cheatOneHit || gPortConfig.cheatInfiniteHp || gPortConfig.cheatUnlockRiku ||
         gPortConfig.ps2Mode)
@@ -245,7 +253,12 @@ void PortAchievementsFrame(void) {
             char title[256];
             const char* nl = SDL_strchr(notice, '\n');
             SDL_strlcpy(title, notice, nl ? (size_t)(nl - notice + 1) : sizeof(title));
-            PortAchievementToast(title, nl ? nl + 1 : "", "RETROACHIEVEMENTS");
+            int index = KhOfficialIndex(KhRaNoticeId(sRa));
+            if (index >= 0) /* the set's own text in the game's language */
+                PortAchievementToast(KhOfficialText(KhOfficialAt(index), ACHIEVEMENT_TEXT_LANGUAGE, 0),
+                                     KhOfficialText(KhOfficialAt(index), ACHIEVEMENT_TEXT_LANGUAGE, 1), "", index);
+            else
+                PortAchievementToast(title, nl ? nl + 1 : "", "", -1);
         }
     }
 #endif
@@ -254,7 +267,6 @@ void PortAchievementsFrame(void) {
         rc_runtime_do_frame(&sOfflineRuntime, OfflineEvent, OfflinePeek, NULL, NULL);
     if (!PortUiActive()) {
         int i, account = 0, spanish;
-        extern uint32_t gLanguage;
 #ifdef PORT_RETROACHIEVEMENTS
         /* signed in: RetroAchievements' own notice announces it; here it is only kept */
         {
@@ -262,13 +274,13 @@ void PortAchievementsFrame(void) {
             account = client && rc_client_get_user_info(client) && rc_client_is_game_loaded(client);
         }
 #endif
-        spanish = gLanguage == 4;
+        spanish = ACHIEVEMENT_TEXT_LANGUAGE == 4;
         for (i = 0; i < KhOfficialCount(); ++i)
             if (sPendingNotices[i / 64] & (1ull << (i % 64))) {
                 sPendingNotices[i / 64] &= ~(1ull << (i % 64));
                 if (!account)
-                    PortAchievementToast(KhOfficialAt(i)->title, KhOfficialAt(i)->description,
-                                         spanish ? "LOGRO DESBLOQUEADO" : "ACHIEVEMENT UNLOCKED");
+                    PortAchievementToast(KhOfficialText(KhOfficialAt(i), ACHIEVEMENT_TEXT_LANGUAGE, 0), KhOfficialText(KhOfficialAt(i), ACHIEVEMENT_TEXT_LANGUAGE, 1),
+                                         spanish ? "LOGRO DESBLOQUEADO" : "ACHIEVEMENT UNLOCKED", i);
             }
     }
 #endif

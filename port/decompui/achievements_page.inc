@@ -33,8 +33,8 @@ static void AchievementPreviewDraw() {
                       ImVec2(a.x + 26 * box.scale, a.y + 32 * box.scale), fade(kAccent));
     dl->AddText(sFontSmall, 6.0f * box.scale, ImVec2(textX, a.y + 5 * box.scale), fade(kMuted),
                 T("VISTA PREVIA · LOGRO", "PREVIEW · ACHIEVEMENT"));
-    dl->AddText(sFontBody, 8.0f * box.scale, ImVec2(textX, a.y + 18 * box.scale), fade(kText), KhOfficialAt(0)->title);
-    dl->AddText(sFontSmall, 6.0f * box.scale, ImVec2(textX, a.y + 33 * box.scale), fade(kMuted), KhOfficialAt(0)->description);
+    dl->AddText(sFontBody, 8.0f * box.scale, ImVec2(textX, a.y + 18 * box.scale), fade(kText), KhOfficialText(KhOfficialAt(0), sSpanish ? 4 : 0, 0));
+    dl->AddText(sFontSmall, 6.0f * box.scale, ImVec2(textX, a.y + 33 * box.scale), fade(kMuted), KhOfficialText(KhOfficialAt(0), sSpanish ? 4 : 0, 1));
 }
 
 static bool AchievementMatches(const char* title, const char* description, bool unlocked) {
@@ -167,7 +167,9 @@ static void PageOfficialAchievements() {
         const KhOfficialAchievement* a = KhOfficialAt(i);
         bool game = sOfflineProgress.when[i] != 0, onAccount = account && KhRaAccountUnlocked(sRaUi, a->id);
         bool unlocked = game || onAccount;
-        if (!AchievementMatches(a->title, a->description, unlocked)) continue;
+        const char* title = KhOfficialText(a, sSpanish ? 4 : 0, 0);
+        const char* description = KhOfficialText(a, sSpanish ? 4 : 0, 1);
+        if (!AchievementMatches(title, description, unlocked)) continue;
         char detail[120];
         std::snprintf(detail, sizeof(detail), a->points == 1 ? T("%u punto · %s", "%u point · %s") : T("%u puntos · %s", "%u points · %s"), a->points,
             onAccount ? T("Conseguido en tu cuenta", "Earned on your account") :
@@ -175,7 +177,7 @@ static void PageOfficialAchievements() {
         ImVec2 uv0, uv1;
         GLuint badge = OfficialAchievementBadge(i, unlocked, &uv0, &uv1);
         if (table) ImGui::TableNextColumn();
-        AchievementRow((int)a->id, a->title, a->description, unlocked, detail, badge, uv0, uv1);
+        AchievementRow((int)a->id, title, description, unlocked, detail, badge, uv0, uv1);
         ++shown;
     }
     if (table) ImGui::EndTable();
