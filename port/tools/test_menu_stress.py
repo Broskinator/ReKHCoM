@@ -8,6 +8,8 @@ random timing so openings also land in the middle of fades and transitions:
   pad     a virtual gamepad presses the real buttons: START for the game's menu,
           START+BACK held together for Options (the same route as a player),
           B / START to close, sometimes A to go one menu deeper (deck).
+  settings as pad, and inside Options it changes random rows (view mode, zoom, HUD size,
+          filters...) before closing: the picture is resized under the game's menu.
   toggle  the harness opens and closes Options at random frames (KHCOM_OPTIONS_TOGGLE)
           while the game's menu opens and closes.
 
@@ -64,6 +66,27 @@ def pad_route(rng, cycles):
     return keys, frame
 
 
+def settings_route(rng, cycles):
+    """As pad, but inside Options it changes random rows (view, zoom, HUD...) before closing."""
+    keys, frame = boot_keys(), FIELD
+    for _ in range(cycles):
+        keys.append(f'{frame}-{frame + 3}:START')
+        t = frame + rng.randint(5, 120)
+        keys += [f'{t}-{t + 6}:START', f'{t + 2}-{t + 6}:BACK']
+        t += rng.randint(20, 40)
+        for _ in range(rng.randint(1, 4)):
+            for _ in range(rng.randint(0, 6)):
+                keys.append(f'{t}-{t + 2}:DOWN')
+                t += 6
+            keys.append(f'{t}-{t + 2}:{rng.choice(("LEFT", "RIGHT"))}')
+            t += rng.randint(6, 30)
+        keys.append(f'{t}-{t + 3}:START')
+        t += rng.randint(10, 80)
+        keys.append(f'{t}-{t + 3}:EAST')
+        frame = t + rng.randint(30, 140)
+    return keys, frame
+
+
 def toggle_route(rng, cycles):
     keys, toggles, frame = [k.replace('SOUTH', 'A') for k in boot_keys()], [], FIELD
     for _ in range(cycles):
@@ -89,8 +112,8 @@ def run(args, variant, seed):
     env = {k: v for k, v in os.environ.items() if not k.startswith(('KHCOM_', 'SDL_'))}
     env.update(SDL_VIDEO_DRIVER='dummy', SDL_AUDIO_DRIVER='dummy', KHCOM_FAST='1', KHCOM_TRACE_MODES='1',
                KHCOM_BIOS_STACK='1')
-    if variant == 'pad':
-        keys, end = pad_route(rng, args.cycles)
+    if variant in ('pad', 'settings'):
+        keys, end = (pad_route if variant == 'pad' else settings_route)(rng, args.cycles)
         env['KHCOM_VPAD'] = ','.join(keys)
     else:
         keys, toggles, end = toggle_route(rng, args.cycles)
@@ -121,7 +144,7 @@ def main():
     ap.add_argument('--cycles', type=int, default=40)
     ap.add_argument('--jobs', type=int, default=3)
     ap.add_argument('--timeout', type=int, default=900)
-    ap.add_argument('--variants', default='pad,toggle')
+    ap.add_argument('--variants', default='pad,settings,toggle')
     args = ap.parse_args()
     jobs = [(v, s) for v in args.variants.split(',') for s in range(args.runs)]
     with ThreadPoolExecutor(args.jobs) as pool:
