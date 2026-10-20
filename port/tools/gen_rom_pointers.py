@@ -38,7 +38,7 @@ def generate(region):
             if not m:
                 continue
             at, symbol = int(m.group(1), 16), int(m.group(2), 16)
-            if not ROM_BASE <= at < ROM_END or at & 3:
+            if not ROM_BASE <= at < ROM_END:  # song data keeps its GOTO/PATT pointers unaligned
                 continue
             if symbol < 0x02000000:
                 continue  # absolute symbol (a constant such as gNumMusicPlayers), not an address

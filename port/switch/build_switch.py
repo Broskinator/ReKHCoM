@@ -10,7 +10,7 @@ calls through the bridge (port/ps5/shared/bridge_list.h), with two differences:
 - the GBA space is relocatable (PORT_GBA_RELOC, include/gba/gba_space.h): every region is an array of the image.
 
     python port/switch/build_switch.py guest            # build/switch/guest-<region>.macho, on Windows or Linux
-    python port/switch/build_switch.py host             # the .nro (devkitPro, in the Linux VM)
+    python port/switch/build_switch.py host             # build/switch/ReKHCoM.nro (devkitPro, in the consoles VM)
 
 Needs the generated assets of each region (build/<region>) and the ROM pointer lists (port/data/rom_pointers_*.inc).
 """
@@ -34,6 +34,7 @@ LLD = os.environ.get('LLD', str(LLVM / 'ld.lld.exe') if WINDOWS else 'ld.lld-18'
 TARGET = '--target=arm64_32-apple-watchos'
 CPU = '-mcpu=cortex-a57'  # the Switch's CPU (ARMv8.0): without it clang targets Apple's and emits ARMv8.3 (xpaci)
 BASE = 0x10000000
+VM_DISK = Path('D:/ReKHCoM-build/ps5/ps5env.qcow2')  # the consoles build VM (port/progress/TOOLKIT_CONSOLAS.md)
 sys.path.insert(0, str(PS5))
 import build_ps5  # noqa: E402  (its PORT_PATCHES and PORT_EXCLUDED are shared)
 
@@ -80,8 +81,10 @@ def compile_all(jobs, units):
             dep = obj.with_suffix('.d')
             if dep.exists():
                 text = dep.read_text().replace('\\\n', ' ')
-                deps = [Path(p) for p in re.findall(r'(?:[A-Za-z]:)?[/\\][^\s:]+(?:\s|$)', text.split(':', 1)[-1])]
-                newest = max((p.stat().st_mtime for p in (Path(str(d).strip()) for d in deps) if p.exists()), default=0)
+                # 'target: dep dep ...', with the spaces inside paths escaped ('00\ Claude')
+                body = re.split(r':\s', text, maxsplit=1)[-1]
+                deps = [Path(d.replace('\\ ', ' ')) for d in re.split(r'(?<!\\)\s+', body) if d]
+                newest = max((d.stat().st_mtime for d in deps if d.exists()), default=0)
                 if newest <= obj.stat().st_mtime:
                     return None
         cmd = [CLANG, *extra, '-MD', '-MF', obj.with_suffix('.d'), '-c', src, '-o', obj]
@@ -135,6 +138,76 @@ def build_guest(region, jobs):
     return image
 
 
+MESSAGES = {
+    'need-rom': ('A compatible ROM is required',
+                 ['Copy your Kingdom Hearts: Chain of Memories cartridge dump',
+                  '(Europe, USA or Japan, a .gba file) to the SD card folder',
+                  '/switch/ReKHCoM/',
+                  'The game starts by itself as soon as the file is there.']),
+    'load-error': ('The game could not be started',
+                   ['Something failed while loading the game.',
+                    'The reason is written to /switch/ReKHCoM/logs/ReKHCoM.log']),
+}
+TOASTS = {
+    'toast-states': ['Minus + L3: save state', 'Minus + R3: load state'],
+    'toast-update-found': ['A new version is available', 'Downloading it now'],
+    'toast-update-done': ['ReKHCoM was updated', 'Restart the app to use the new version'],
+}
+VM_SCRIPT = r'''set -e
+export DEVKITPRO=/opt/devkitpro
+cd /root/share
+P=$DEVKITPRO/portlibs/switch
+CC=$DEVKITPRO/devkitA64/bin/aarch64-none-elf-gcc
+ARCH="-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE"
+$CC $ARCH -O2 -Wall -D__SWITCH__ -Isrc -I$DEVKITPRO/libnx/include -I$P/include -c src/switch_host.c -o host.o
+$CC $ARCH -specs=$DEVKITPRO/libnx/switch.specs host.o -L$DEVKITPRO/libnx/lib -L$P/lib     $($P/bin/sdl2-config --libs) -lnx -lm -o ReKHCoM.elf
+$DEVKITPRO/tools/bin/nacptool --create "ReKHCoM" "ReKHCoM project" "VERSION" ReKHCoM.nacp
+$DEVKITPRO/tools/bin/elf2nro ReKHCoM.elf ReKHCoM.nro --icon=icon.jpg --nacp=ReKHCoM.nacp --romfsdir=romfs
+ls -l ReKHCoM.nro
+'''
+
+
+def version():
+    text = (ROOT / 'port/decompui/decompui.cpp').read_text(encoding='utf-8')
+    return re.search(r'#define REKHCOM_VERSION\s+"v([^"]+)"', text).group(1)
+
+
+def build_host(regions):
+    """The .nro: the libnx host with the game images, fonts and notices in its romfs. Compiled in the consoles VM
+    (port/progress/TOOLKIT_CONSOLAS.md), which has devkitPro in /opt/devkitpro."""
+    from PIL import Image
+    share = BUILD / 'host-share'
+    if share.exists():
+        shutil.rmtree(share)
+    assets = share / 'romfs/assets'
+    assets.mkdir(parents=True)
+    for region in regions:
+        image = BUILD / f'guest-{region}.macho'
+        if not image.is_file():
+            sys.exit(f'{image} missing: build the guest first')
+        shutil.copy2(image, assets / image.name)
+    build_ps5.MESSAGES, build_ps5.TOASTS = MESSAGES, TOASTS
+    build_ps5.render_messages(assets)
+    build_ps5.render_toasts(assets)
+    shutil.copytree(PS5 / 'assets/fonts', assets / 'fonts')
+    (assets / 'achievements').mkdir()
+    shutil.copy2(ROOT / 'port/assets/achievements/badges.png', assets / 'achievements/badges.png')
+    (share / 'src').mkdir()
+    for src in (HERE / 'host/switch_host.c', PS5 / 'shared/bridge.h', PS5 / 'shared/bridge_list.h'):
+        shutil.copy2(src, share / 'src' / src.name)
+    Image.open(PS5 / 'sce_sys/icon0.png').convert('RGB').resize((256, 256), Image.LANCZOS).save(share / 'icon.jpg', quality=92)
+    (share / 'build.sh').write_bytes(VM_SCRIPT.replace('VERSION', version()).encode())
+    out = BUILD / 'host-out'
+    command = [sys.executable, ROOT / 'port/tools/linux_vm_test.py', '--share', share, '--disk', VM_DISK, '--mem', '4096',
+               '--cpus', '4', '--run', 'bash /root/share/build.sh', '--fetch', '/root/share/ReKHCoM.nro', '--out', out]
+    run(command, cwd=ROOT, env=dict(os.environ, MSYS_NO_PATHCONV='1', PYTHONUTF8='1'))
+    nro = out / 'ReKHCoM.nro'
+    if not nro.is_file():
+        sys.exit('the VM did not return ReKHCoM.nro: see the log above')
+    shutil.copy2(nro, BUILD / 'ReKHCoM.nro')
+    print(f'host: {BUILD / "ReKHCoM.nro"} ({nro.stat().st_size} bytes)')
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('step', nargs='?', default='guest', choices=['guest', 'host', 'all'])
@@ -145,7 +218,7 @@ def main():
         for region in args.regions:
             build_guest(region, args.jobs)
     if args.step in ('host', 'all'):
-        sys.exit('host: see port/switch/host (devkitPro)')
+        build_host(args.regions)
 
 
 if __name__ == '__main__':
