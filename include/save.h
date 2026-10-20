@@ -6,9 +6,16 @@
 
 extern u8 gSramFileLarge[];
 
+#if defined(PLATFORM_PC) && defined(PORT_GBA_RELOC)
+#include "gba/gba_space.h"
+#define SRAM_HEADER ((u8*)(GBA_SRAM_BASE + 0x10))
+#define SRAM_SYSTEM ((u8*)(GBA_SRAM_BASE + 0x90))
+#define SRAM_FILE_SMALL ((u8*)(GBA_SRAM_BASE + 0x1EC0))
+#else
 #define SRAM_HEADER ((u8*)0x0E000010)
 #define SRAM_SYSTEM ((u8*)0x0E000090)
 #define SRAM_FILE_SMALL ((u8*)0x0E001EC0)
+#endif
 
 #define SAVE_HEADER_SIZE 0x40
 #define SAVE_SYSTEM_SIZE 0xF14

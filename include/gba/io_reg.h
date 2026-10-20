@@ -3,7 +3,12 @@
 
 #include "types.h"
 
+#if defined(PLATFORM_PC) && defined(PORT_GBA_RELOC)
+#include "gba/gba_space.h"
+#define REG_BASE ((int)GBA_IO_BASE)
+#else
 #define REG_BASE 0x04000000
+#endif
 
 #define REG_OFFSET_DISPCNT     0x0
 #define REG_OFFSET_DISPSTAT    0x4
