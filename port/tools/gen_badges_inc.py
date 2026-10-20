@@ -24,7 +24,8 @@ def render():
 if __name__ == '__main__':
     text = render()
     if '--check' in sys.argv:
-        ok = OUT.exists() and OUT.read_text(encoding='ascii') == text
+        # a CRLF checkout (core.autocrlf) holds the same bytes
+        ok = OUT.exists() and OUT.read_bytes().replace(b'\r\n', b'\n').decode('ascii') == text
         print(('up to date: ' if ok else 'OUT OF DATE: ') + str(OUT.relative_to(ROOT)))
         sys.exit(0 if ok else 1)
     OUT.write_text(text, encoding='ascii', newline='\n')
