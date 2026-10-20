@@ -5,6 +5,7 @@
 
 #ifdef PLATFORM_PC
 #include "engine.h"
+#include "port/port.h"
 #endif
 #include "mode_lang.h"
 #include "sprites_language_select.h"
@@ -81,12 +82,14 @@ void mode_lang_0(s32 arg) {
     sLangWork->language = gLanguage;
 #ifdef PLATFORM_PC
     {
-        /* the launcher or the web page fixed the language (--language): the
+        /* the language is already known (--language from the launcher or the
+           web page, or game_language, kept when the player first chose): the
            screen confirms it as the player would (the save header keeps it)
            and leaves through its own fade-out, without being shown */
         extern int gPortStartupLanguage;
-        if (gPortStartupLanguage >= LANGUAGE_ENGLISH && gPortStartupLanguage <= LANGUAGE_SPANISH) {
-            gLanguage = gPortStartupLanguage;
+        int known = gPortStartupLanguage >= LANGUAGE_ENGLISH ? gPortStartupLanguage : gPortConfig.gameLanguage - 1;
+        if (known >= LANGUAGE_ENGLISH && known <= LANGUAGE_SPANISH) {
+            gLanguage = known;
             if (sLangWork->language != gLanguage) {
                 SaveWriteHeader(-1);
             }
@@ -164,6 +167,11 @@ void mode_lang_1() {
             if (sLangWork->language != gLanguage) {
                 SaveWriteHeader(-1);
             }
+#ifdef PLATFORM_PC
+            /* remembered: the next start goes straight in (game_language) */
+            gPortConfig.gameLanguage = (int)gLanguage + 1;
+            PortConfigSave();
+#endif
         }
 
         if (sLangWork->timer % 4 < 2) {

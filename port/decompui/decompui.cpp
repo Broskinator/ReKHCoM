@@ -18,6 +18,8 @@
 #include <bcrypt.h>
 #include <commdlg.h>
 #include <shellapi.h>
+#include <shlobj.h>
+#include <objbase.h>
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
@@ -103,7 +105,7 @@ static double sNoticeTime;
 static void Notice(const std::string& text, bool error) {
     sNotice = text;
     sNoticeError = error;
-    sNoticeTime = ImGui::GetTime();
+    sNoticeTime = ImGui::GetCurrentContext() ? ImGui::GetTime() : 0.0;
 }
 
 static std::string Sha1Hex(const std::vector<unsigned char>& data) {
@@ -248,7 +250,7 @@ static const Setting kSettings[] = {
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "experimental_moogle_notice", 0 }, { "hd_text", 0 },
-    { "invert_card_scroll", 0 },
+    { "invert_card_scroll", 0 }, { "game_language", 0 },
     { "card_hud_raise", 8 }, { "save_bank", 1 }, { "hd2d", 0 }, { "smooth_audio", 0 }, { "experimental_unstock", 0 },
     { "ps2_mode", 0 }, { "ps2_difficulty", 0 }, { "ps2_fast_text", 0 }, { "hd_hud", 0 }, { "aspect", 0 }, { "integer_zoom", 0 },
     { "kb_a", SDLK_X },         { "kb_a_2", SDLK_K },       { "pad_a", SDL_GAMEPAD_BUTTON_SOUTH },
@@ -370,7 +372,6 @@ static void SaveIni() {
 /* Language the European game starts in (the language screen's cursor):
    0 = the player chooses, then English, French, German, Italian, Spanish. */
 static const char* const kGameLanguageIds[] = { "", "en", "fr", "de", "it", "es" };
-static int sGameLanguage;
 static int sUiLanguage; /* 1 = Spanish, 2 = English; 0 until chosen */
 
 static void ApplyUiLanguage() {
@@ -389,9 +390,13 @@ static void LoadLauncherState() {
                 if (line.substr(8) == kVersions[v].id)
                     sSelected = v;
         } else if (line.rfind("game_language=", 0) == 0) {
+            /* older launchers kept it here; kh_com.ini holds it now (the game
+               reads it and remembers the player's first choice there) */
             for (int i = 1; i < 6; i++)
-                if (line.substr(14) == kGameLanguageIds[i])
-                    sGameLanguage = i;
+                if (line.substr(14) == kGameLanguageIds[i] && Ini("game_language") == 0) {
+                    Ini("game_language") = i;
+                    SaveIni();
+                }
         } else if (line.rfind("ui_language=", 0) == 0) {
             sUiLanguage = std::clamp(std::atoi(line.c_str() + 12), 0, 2);
         }
@@ -402,7 +407,6 @@ static void LoadLauncherState() {
 static void SaveLauncherState() {
     std::ofstream f(sRoot / "decompui.ini", std::ios::trunc);
     f << "version=" << kVersions[sSelected].id << "\n";
-    f << "game_language=" << kGameLanguageIds[sGameLanguage] << "\n";
     f << "ui_language=" << sUiLanguage << "\n";
 }
 
@@ -920,6 +924,8 @@ static void DrawCover(float w, float h) {
     ImGui::Dummy(ImVec2(w, h));
 }
 
+static void CreateDesktopShortcut();
+
 static void PageHome(SDL_Window* window) {
     float avail = ImGui::GetContentRegionAvail().x;
     float coverW = std::clamp(avail * 0.34f, Px(240), Px(360));
@@ -1001,15 +1007,18 @@ static void PageHome(SDL_Window* window) {
     }
     if (sSelected == 0) {
         /* the European cartridge's language: chosen here, the game starts in it
-           and skips its language screen (--language) */
-        const char* langs[] = { T("Elegir al empezar", "Choose at start"), "English", "Fran\xC3\xA7" "ais", "Deutsch",
+           and skips its language screen (game_language, shared with kh_com.ini) */
+        const char* langs[] = { T("Preguntar al empezar", "Ask at start"), "English", "Fran\xC3\xA7" "ais", "Deutsch",
                                 "Italiano", "Espa\xC3\xB1ol" };
         ImGui::Spacing();
+        int language = std::clamp(Ini("game_language"), 0, 5);
         if (CycleRow(T("Idioma del juego", "Game language"),
-                     T("Con un idioma elegido, el juego empieza directamente en él, sin la pantalla de idiomas.",
-                       "With a language chosen, the game starts straight in it, without the language screen."),
-                     sGameLanguage, 6, langs))
-            SaveLauncherState();
+                     T("El juego pregunta solo la primera vez y recuerda tu elección; aquí puedes cambiarlo.",
+                       "The game asks only the first time and remembers your choice; change it here."),
+                     language, 6, langs)) {
+            Ini("game_language") = language;
+            SaveIni();
+        }
     }
     ImGui::Spacing();
     if (ImGui::Button(T("Instalar ROM...", "Install ROM..."), ImVec2(-FLT_MIN, 0)))
@@ -1028,6 +1037,9 @@ static void PageHome(SDL_Window* window) {
     bool ready = sState[sSelected].installed && fs::exists(sState[sSelected].exe);
     if (PlayButton(T("JUGAR", "PLAY"), ImVec2(ImGui::GetContentRegionAvail().x, Px(72)), ready))
         sLaunch = true;
+    if (ready && ImGui::Button(T("Crear acceso directo en el escritorio", "Create a desktop shortcut"),
+                               ImVec2(ImGui::GetContentRegionAvail().x, 0)))
+        CreateDesktopShortcut();
     if (!ready) {
         ImGui::PushFont(sFontSmall);
         ImGui::TextColored(kMuted, "%s",
@@ -1663,15 +1675,57 @@ static std::wstring Quote(const std::wstring& s) {
     return out + L"\"";
 }
 
+/* A desktop shortcut that starts this version's game directly, like the Play
+   button (shared data folder, its ROM; the language comes from kh_com.ini),
+   without opening the launcher. */
+static void CreateDesktopShortcut() {
+    const VersionState& st = sState[sSelected];
+    const char* region = kVersions[sSelected].regionEn;
+    PWSTR desktop = nullptr;
+    bool ok = false;
+
+    const char* testDir = SDL_getenv("DECOMPUI_SHORTCUT"); /* harness: write it there instead, then exit */
+    fs::path folder;
+    if (!st.installed || !fs::exists(st.exe))
+        return;
+    if (testDir) {
+        folder = fs::u8path(testDir);
+    } else {
+        if (FAILED(SHGetKnownFolderPath(FOLDERID_Desktop, 0, nullptr, &desktop)))
+            return;
+        folder = fs::path(desktop);
+        CoTaskMemFree(desktop);
+    }
+    fs::path link = folder / (L"Kingdom Hearts - Chain of Memories (" + std::wstring(region, region + std::strlen(region)) + L").lnk");
+    HRESULT com = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    IShellLinkW* shell = nullptr;
+    if (SUCCEEDED(CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void**)&shell))) {
+        std::wstring args = L"--data-dir " + Quote(sRoot.wstring()) + L" --rom " + Quote(RomPath(sSelected).wstring());
+        IPersistFile* file = nullptr;
+        shell->SetPath(st.exe.wstring().c_str());
+        shell->SetArguments(args.c_str());
+        shell->SetWorkingDirectory(sRoot.wstring().c_str());
+        shell->SetIconLocation((sRoot / "ReKHCoM.exe").wstring().c_str(), 0);
+        shell->SetDescription(L"Kingdom Hearts: Chain of Memories (ReKHCoM)");
+        if (SUCCEEDED(shell->QueryInterface(IID_IPersistFile, (void**)&file))) {
+            ok = SUCCEEDED(file->Save(link.wstring().c_str(), TRUE));
+            file->Release();
+        }
+        shell->Release();
+    }
+    if (SUCCEEDED(com))
+        CoUninitialize();
+    Notice(ok ? T("Acceso directo creado en el escritorio: abre el juego sin el launcher.",
+                  "Shortcut created on the desktop: it opens the game without the launcher.")
+              : T("No se pudo crear el acceso directo.", "The shortcut could not be created."),
+           !ok);
+}
+
 /* Runs the game with the shared data folder; the launcher waits hidden. */
 static void Launch(SDL_Window* window) {
     const VersionState& st = sState[sSelected];
     std::wstring cmd = Quote(st.exe.wstring()) + L" --data-dir " + Quote(sRoot.wstring()) + L" --rom " +
                        Quote(RomPath(sSelected).wstring());
-    if (sSelected == 0 && sGameLanguage > 0) {
-        std::string id = kGameLanguageIds[sGameLanguage];
-        cmd += L" --language " + std::wstring(id.begin(), id.end());
-    }
     STARTUPINFOW si = {};
     PROCESS_INFORMATION pi = {};
 
@@ -1790,6 +1844,10 @@ int main(int, char**) {
             }
     }
 
+    if (SDL_getenv("DECOMPUI_SHORTCUT")) { /* harness: the shortcut alone, then exit */
+        CreateDesktopShortcut();
+        return 0;
+    }
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
         return 1;
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
