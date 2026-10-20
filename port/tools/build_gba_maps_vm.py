@@ -62,6 +62,18 @@ for v in us eu jp; do
   ninja -j"$(nproc)"
   cp build/$v/com_$v.map build/$v/com_$v.elf /root/gba-maps/
   sha1sum build/$v/com_$v.gba | tee -a /root/gba-maps/sha1.txt
+  # The same link again with a current ld and --emit-relocs: every pointer word of the ROM shows up as a
+  # relocation (the relocatable GBA space of the Vita and Switch builds needs that list). The result must be
+  # the same ROM, byte for byte.
+  link=$(ninja -t commands build/$v/com_$v.elf | tail -1)
+  link=${link/tools\/legacy\/bin\/arm-elf-ld/arm-none-eabi-ld -q --no-warn-rwx-segments}
+  link=${link/-o build\/$v\/com_$v.elf/-o build\/$v\/com_$v.relocs.elf}
+  link=${link/-Map build\/$v\/com_$v.map/-Map build\/$v\/com_$v.relocs.map}
+  eval "$link"
+  arm-none-eabi-objcopy -O binary build/$v/com_$v.relocs.elf build/$v/relocs.bin
+  arm-none-eabi-objcopy -O binary build/$v/com_$v.elf build/$v/orig.bin
+  cmp build/$v/relocs.bin build/$v/orig.bin && echo "relink $v identical"
+  arm-none-eabi-readelf -rW build/$v/com_$v.relocs.elf | gzip > /root/gba-maps/com_$v.relocs.txt.gz
 done
 tar -cf /root/gba-maps.tar -C /root gba-maps
 echo MAPS-OK
