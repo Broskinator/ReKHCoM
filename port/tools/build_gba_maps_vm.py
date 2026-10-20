@@ -49,7 +49,7 @@ if [ ! -x /root/gba-cache/agbcc/bin/old_agbcc ]; then
   rm -rf /root/gba-cache/agbcc && cp -a /root/gba-cache/install/tools/agbcc /root/gba-cache/agbcc
 fi
 rm -rf tools/agbcc && cp -a /root/gba-cache/agbcc tools/agbcc
-if [ ! -x /root/gba-cache/legacy/bin/arm-elf-as ]; then
+if [ ! -x /root/gba-cache/legacy/bin/arm-elf-as ] || [ ! -f /root/gba-cache/legacy/lib/libc.a ] || [ ! -f /root/gba-cache/legacy/lib/libgcc.a ]; then
   python3 tools/setup_legacy_toolchain.py --prefix /root/gba-cache/legacy
 fi
 rm -rf tools/legacy && cp -a /root/gba-cache/legacy tools/legacy
