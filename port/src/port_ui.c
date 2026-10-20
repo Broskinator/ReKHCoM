@@ -2118,6 +2118,9 @@ static void DrawMenu(int l, int width, int height) {
         labelW = SDL_max(labelW, TextWidth(sLabels[i][l]));
         ShortValue(i, value, sizeof(value));
         valueW = SDL_max(valueW, TextWidth(value));
+        /* Keep the menu width when battle zoom switches to a shorter numeric value. */
+        if (i == ITEM_BATTLE_ZOOM)
+            valueW = SDL_max(valueW, TextWidth(sMainZoom[l]));
     }
     barW = SDL_min(labelW + valueW + 40, width - barX - 6);
     rows = SDL_min(VisibleBetween(PageFirst(), PageEnd()), (height - top - 14) / rowH);
