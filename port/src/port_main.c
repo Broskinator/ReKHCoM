@@ -420,19 +420,29 @@ static void OutputRect(int outW, int outH, SDL_FRect* dst) {
     dst->y = (float)(int)((outH - dst->h) / 2);
 }
 
-/* Side margins share the picture's scanline spacing and vertical phase. */
+/* Scanlines as the MiSTer scaler draws them (Template_MiSTer sys/scanlines.v):
+   each game line is shown as a bright line followed by a darkened one, the
+   first line of the frame bright; the darkened half keeps 75/50/25% of its
+   brightness (the setting's 25/50/75%; 100% is a black line). Every game
+   line's span is rounded on its own, so non-integer scales stay even, and
+   the side margins share the picture's spacing and phase (#27, #29). */
 static void DrawScanlines(const SDL_FRect* dst, int outW) {
-    float step = dst->h / gPortScreen.height;
-    float y;
+    SDL_FRect rects[1024];
+    int lines = gPortScreen.height, n = 0, i;
+    float step = dst->h / lines;
 
-    if (gPortConfig.scanlines <= 0 || step < 2.0f)
+    if (gPortConfig.scanlines <= 0 || step < 2.0f || lines > 1024)
         return;
-    SDL_SetRenderDrawBlendMode(sRenderer, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, (Uint8)(gPortConfig.scanlines * 255 / 100 / 2));
-    for (y = dst->y + step - SDL_max(1.0f, step / 3.0f); y < dst->y + dst->h; y += step) {
-        SDL_FRect r = { 0, y, (float)outW, SDL_max(1.0f, step / 3.0f) };
-        SDL_RenderFillRect(sRenderer, &r);
+    for (i = 0; i < lines; i++) {
+        float top = SDL_floorf(dst->y + i * step + 0.5f);
+        float bottom = SDL_floorf(dst->y + (i + 1) * step + 0.5f);
+        float mid = top + SDL_floorf((bottom - top) / 2.0f + 0.5f);
+        if (bottom > mid)
+            rects[n++] = (SDL_FRect){ 0, mid, (float)outW, bottom - mid };
     }
+    SDL_SetRenderDrawBlendMode(sRenderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, (Uint8)(gPortConfig.scanlines * 255 / 100));
+    SDL_RenderFillRects(sRenderer, rects, n);
 }
 
 
