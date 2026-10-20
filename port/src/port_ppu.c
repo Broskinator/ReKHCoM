@@ -1143,7 +1143,8 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     int x, py, ty, fy, outside;
     int w = gPortScreen.width;
     int cachedTx = 0, cachedTy = 0, cachedEntry = -1, cachedValid = 0;
-    int guardPatio = sBattleView && bg == 0 && sBgLatch[bg].valid &&
+    /* also in the event before the fight (008), where the armour falls and assembles on the same patio */
+    int guardPatio = bg == 0 && sBgLatch[bg].valid &&
         PortGuardArmorBackdropMatches((const void* const*)sBgLatch[bg].map) &&
         !getenv("KHCOM_NO_GUARD_PATIO"); /* isolated before/after harness */
 

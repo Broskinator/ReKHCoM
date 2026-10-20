@@ -14,6 +14,9 @@ copia jugable aparte, nunca sobre sus carpetas ReKHCoM-vX (esas se conservan).
   `KHCOM_QUIT=<fotograma>`, `KHCOM_OUTPUT_SHOT=f1,f2` (guarda `out_<f>.bmp`).
 - Convertir los BMP a PNG y recortar/ampliar la zona para revisarla.
 
+- Arte de la vista amplia: probar siempre en x3 entero (`zoom=6`) a 1920x1080,
+  2560x1080, 3440x1440 y 3840x1080 (WORKFLOW_ARTE_AMPLIO.md).
+
 ## 2. Entregar la copia al usuario
 
 1. Carpeta nueva en la raíz del proyecto: descomprimir el último paquete

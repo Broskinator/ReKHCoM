@@ -28,6 +28,8 @@ de proponer algo nuevo; ante un caso nuevo, derivar la solución de ellas.
    original; se puede apagar (`KHCOM_TOPCLOSE=0`).
 
 ## Método (rápido)
+Workflow completo (tiles, píxeles, pixel art, pruebas en x3 entero): WORKFLOW_ARTE_AMPLIO.md.
+
 
 1. Reproducir la sala exacta y capturar (ver PRUEBAS_VISUALES.md).
 2. Volcar los tiles: `KHCOM_ROOMDUMP=1` → `roomdump.txt` (BG1/2/3) y
@@ -73,3 +75,8 @@ de proponer algo nuevo; ante un caso nuevo, derivar la solución de ellas.
   defecto, con prefijo "[ReKHCoM]" y un panel sobre el arte de Sora que las
   explica con diagrama, en los 6 idiomas. Fuera de eso, la lógica del juego no
   se toca (63: nada de copias propias de objetos). Commit `8a74f004b`.
+
+- Guard Armor, escena 008 (las piezas caen y se arman antes del combate): aprobado "con
+  honores" el 20/10. El patio del combate cubre también el evento: la extensión se elige
+  por los cuatro mapas del fondo, sin exigir el modo combate (`port_ppu.c`, `guardPatio`).
+  Lección: buscar todas las apariciones de un fondo (WORKFLOW_ARTE_AMPLIO.md, paso 1).

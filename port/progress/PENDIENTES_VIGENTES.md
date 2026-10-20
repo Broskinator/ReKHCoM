@@ -1,4 +1,4 @@
-# Cola vigente (20/10/2026)
+# Cola vigente (20/10/2026, 15:30)
 
 Única cola de trabajo; los demás .md son evidencia. Lo terminado sale de aquí
 (queda en el historial de git y en CHANGELOG.md). Numeración histórica conservada.
@@ -16,10 +16,10 @@ Reglas del usuario:
 | Quién | Pendiente |
 |---|---|
 | **Claude** | 51–54 PS4: alpha hecha (20/10, `port/ps4`): host OpenOrbis para la misma imagen x32 de PS5, .pkg desde Windows; probado el host en Linux (VM) hasta el menú, nunca en consola. Entra en el próximo prerelease |
-| **Claude** | 51–54 Vita y Switch: bloqueadas por diseño (ver abajo). Decisión del usuario pendiente |
+| **Claude** | Switch (pedido por el usuario 20/10): imagen AArch64 de punteros de 32 bits y host en `port/switch` (commit c2d8b705a). Arranca en la VM ARM64 pero las listas de punteros de la ROM (`port/data/rom_pointers_*.inc`) siguen vacías: `build_gba_maps_vm.py` falla porque la ROM US compilada ya no coincide con el SHA1 del cartucho (algún cambio en `src/` rompió la build idéntica de GBA): buscarlo primero. Vita después, con el mismo modo reubicable |
+| **Usuario** | Aprobar el launcher nuevo (`Probar launcher nuevo.bat`, commit 07a6fa9ab) |
 | **Claude** | Release v1.9.11: candidato listo en main; se publica solo cuando el usuario diga |
 | **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, ver KIT_DEPURACION.md). Hecho: 65 jefes en Android x86 con UBSan, 209/209 combates y 52/52 salas US en escritorio sin fallos; arreglados Cloud/Axel/Parasite Cage y el editor de baraja (DIV0). En curso (20/10): Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
-| **Claude** | Insignias de logros fuera de Windows/Linux: arreglado en main (`PortLoadAsset`, APK y web llevan el atlas); falta verlo en el emulador Android y en una build web cuando haya RAM libre. PS5: su carpeta de datos no trae el atlas, probar en la VM |
 | **Claude** | Prerelease v1.9.11-pre1 publicado (20/10, solo Windows). Siguiente: stable v1.9.11 con todas las plataformas solo con OK del usuario |
 | **Claude** | #30 en ARM físico: verificado solo en emulador x86; pedir logcat si sigue en el equipo de quien lo reportó |
 | **Usuario** | Revisar 61–62 (escenas de Ciudad de Paso con márgenes incompletos) cuando Claude las muestre |

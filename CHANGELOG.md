@@ -51,6 +51,8 @@
 - HD text: the "/" of numbers such as 095/095 (Status, decks) uses the HD font like its digits.
 - Achievements: the badge atlas is also built into the game and the launcher, so the badges
   show on every version even if the file next to the executable is missing.
+- Widescreen: in the scene before the Guard Armor fight (the armour falls and assembles), the
+  courtyard continues past the original screen like in the fight; it was cut by a black band.
 
 ## v1.9.10 — 2026-10-19
 
