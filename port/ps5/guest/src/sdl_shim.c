@@ -60,6 +60,13 @@ void* SDL_LoadFile(const char* file, size_t* datasize) {
     FILE* f = fopen(file, "rb");
     long n;
     char* data;
+    if (!f && file[0] != '/') {
+        /* a relative name is a packaged asset (PortLoadAsset): /app0/assets, or KHCOM_ASSETS */
+        char path[512];
+        const char* root = SDL_getenv("KHCOM_ASSETS");
+        SDL_snprintf(path, sizeof(path), "%s/%s", root && *root ? root : "/app0/assets", file);
+        f = fopen(path, "rb");
+    }
     if (!f) return NULL;
     fseek(f, 0, SEEK_END);
     n = ftell(f);
