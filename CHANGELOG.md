@@ -37,8 +37,9 @@
 - Web: a wide Fullscreen button right under the game picture.
 - Widescreen: in "Choose a world" the title and footer bands reach the side margins during the
   whole slide-in instead of popping in at the end.
-- Android, web and Linux ARM: opening the floor map, and a battle ending during Sora's card
-  reshuffle, no longer close the game (the same kind of stray access as #30).
+- Android, web and Linux ARM: opening the floor map, a battle ending during Sora's card
+  reshuffle and the early Traverse Town and Guard Armor scenes no longer close the game (the
+  same kind of stray access as #30).
 - Deck editor: moving the last copy of a card into the deck no longer risks closing the game on
   Android, the web and Linux ARM (same kind of division by zero).
 

@@ -53,6 +53,26 @@ FAULT = re.compile(r'bios: (division by zero|read|write)(?: ([0-9a-f]{8}))? at e
 CRASH_EIP = re.compile(r'(?:eip=|at )([0-9a-f]{8})')
 
 
+# Faults that only the harness reaches (checked by hand; the game's own flow never gets there):
+# (function, substring of the case) -> why
+HARNESS_ONLY = {
+    ('AimMapcardAtDoor', 'fx-doorselect'): 'door selection forced in a room without that door',
+    ('UpdateMapcardFlyToDoor', 'fx-doorselect'): 'door selection forced in a room without that door',
+    ('Level_Up_0', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
+    ('Level_Up_1', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
+    ('UpdateLevelUpSelect', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
+    ('WorldToScreen', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
+    ('Event_0', 'events/'): 'debug-menu events carry 0x8000; the game passes plain ids',
+}
+
+
+def harness_only(func, cases):
+    for (f, case), why in HARNESS_ONLY.items():
+        if func == f and all(case in c for c in cases):
+            return why
+    return ''
+
+
 def free_ram_mb():
     if os.name != 'nt':
         return 4096
@@ -233,18 +253,19 @@ def report():
         rows.append({'function': func, 'source': where, 'kinds': sorted(s['kinds']),
                      'addresses': sorted(s['targets']), 'hits': len(s['cases']),
                      'all_stale': s['stale'] == len(s['cases']), 'cases': s['cases'][:12],
-                     'note': source_hint(where)})
+                     'note': source_hint(where), 'harness_only': harness_only(func, s['cases'])})
+    rows.sort(key=lambda r: bool(r['harness_only']))
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / 'report.json').write_text(json.dumps({'scanned': scanned, 'sites': rows, 'crashes': crashes}, indent=2),
                                      encoding='utf-8')
-    md = ['# Debug kit report', '', f'{scanned} case logs scanned. {len(rows)} fault sites, {len(crashes)} crashes.', '',
+    md = ['# Debug kit report', '', f'{scanned} case logs scanned. {len(rows)} fault sites ({sum(not r["harness_only"] for r in rows)} to fix), {len(crashes)} crashes.', '',
           'Every site closes the game on Android, the web and Linux ARM. "stale" = only seen with an exe older',
           'than the current build (rerun before fixing).', '']
     if rows:
         md += ['| Source | Function | Access | Hits | Cases |', '|---|---|---|---|---|']
         for r in rows:
             access = ', '.join(r['kinds']) + (f" ({', '.join(r['addresses'][:3])})" if r['addresses'] else '')
-            md.append(f"| `{r['source']}` | {r['function']} | {access} | {r['hits']}{' stale' if r['all_stale'] else ''} | "
+            md.append(f"| `{r['source']}` | {r['function']}{' (harness only: ' + r['harness_only'] + ')' if r['harness_only'] else ''} | {access} | {r['hits']}{' stale' if r['all_stale'] else ''} | "
                       f"{', '.join(r['cases'][:4])}{' ...' if r['hits'] > 4 else ''} |")
     if crashes:
         md += ['', '## Crashes and fatal errors', '']
