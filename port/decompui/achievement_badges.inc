@@ -1,6 +1,11 @@
 /* The set's badges, shipped as one atlas (assets/achievements/badges.png,
    10 per row in set order, 64x64): colour and grey textures, made once, so
-   locked art stays recognisable. No network. */
+   locked art stays recognisable. No network; the copy built into the
+   executable stands in when the file is missing. */
+static const unsigned char sBuiltInBadges[] = {
+#include "port/badges_png.inc"
+};
+
 static struct {
     GLuint colour = 0, grey = 0;
     int rows = 0;
@@ -13,6 +18,7 @@ static GLuint OfficialAchievementBadge(int index, bool unlocked, ImVec2* uv0, Im
         std::vector<unsigned char> encoded;
         int w = 0, h = 0, channels;
         ReadFile(sRoot / "assets" / "achievements" / "badges.png", encoded);
+        if (encoded.empty()) encoded.assign(sBuiltInBadges, sBuiltInBadges + sizeof(sBuiltInBadges));
         unsigned char* rgba = encoded.empty() || encoded.size() > (4u << 20) ? nullptr :
             stbi_load_from_memory(encoded.data(), (int)encoded.size(), &w, &h, &channels, 4);
         if (rgba && w == 640 && h > 0 && h % 64 == 0) {

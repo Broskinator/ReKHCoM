@@ -49,6 +49,8 @@
 - HD text: the level-up message (the stats that went up) no longer flickers while its effect
   plays; a letter was taken for hidden by the sprite of the letter next to it.
 - HD text: the "/" of numbers such as 095/095 (Status, decks) uses the HD font like its digits.
+- Achievements: the badge atlas is also built into the game and the launcher, so the badges
+  show on every version even if the file next to the executable is missing.
 
 ## v1.9.10 — 2026-10-19
 

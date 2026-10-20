@@ -189,10 +189,16 @@ const char* PortConfigPath(const char* name) {
     return out;
 }
 
+/* The badge atlas also lives in the executable, so the achievement badges show
+   wherever the file is missing (development builds, console data folders). */
+static const unsigned char sBadgesPng[] = {
+#include "port/badges_png.inc"
+};
+
 /* A file shipped with the game (e.g. "assets/achievements/badges.png"): the data
    folder, then the executable's folder, then the package itself (Android's APK
-   assets and the web build's embedded files, stored without "assets/").
-   Free with SDL_free. */
+   assets and the web build's embedded files, stored without "assets/"), then the
+   copy built in for the badges. Free with SDL_free. */
 void* PortLoadAsset(const char* name, size_t* size) {
     const char* base = SDL_GetBasePath();
     char path[1024];
@@ -204,6 +210,11 @@ void* PortLoadAsset(const char* name, size_t* size) {
     }
     if (!data && SDL_strncmp(name, "assets/", 7) == 0)
         data = SDL_LoadFile(name + 7, size);
+    if (!data && SDL_strcmp(name, "assets/achievements/badges.png") == 0 &&
+        (data = SDL_malloc(sizeof(sBadgesPng))) != NULL) {
+        SDL_memcpy(data, sBadgesPng, sizeof(sBadgesPng));
+        *size = sizeof(sBadgesPng);
+    }
     return data;
 }
 

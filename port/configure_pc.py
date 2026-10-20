@@ -167,7 +167,7 @@ def decompui(n, toolchain, sdl_arch, debug, ra_objs):
     cxx = toolchain / "bin" / "i686-w64-mingw32-clang++.exe"
     n.variable("cxx", "\"" + str(cxx).replace("\\", "/") + "\"")
     n.variable("ui_cxxflags", f"{'-O0 -g' if debug else '-O2'} -std=c++17 -I{rel(imgui)} -I{rel(ui / 'third_party')} "
-                              f"-I{rel(sdl_arch / 'include')} -DRC_CLIENT_SUPPORTS_HASH -Iport/third_party/rcheevos/include")
+                              f"-I{rel(sdl_arch / 'include')} -DRC_CLIENT_SUPPORTS_HASH -Iport/third_party/rcheevos/include -Iport/include")
     n.variable("ui_ldflags", f"-static-libstdc++ -static-libgcc -L{rel(sdl_arch / 'lib')} -lSDL3 -lopengl32 -lcomdlg32 -lbcrypt -lshell32 -lole32 -luuid -lwinhttp -lcrypt32 -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic "
                              + ("" if debug else "-mwindows"))
     n.rule("cxx_ui", "$cxx $ui_cxxflags -MD -MF $out.d -c $in -o $out", description="CXX $in",

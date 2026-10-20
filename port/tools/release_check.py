@@ -110,6 +110,9 @@ if not args.post:
     check(f'Web v{V[1:]}' in web or f'WEB {V}' in web, 'web page label')
     top = re.search(r'^## (v[\d.]+)', (ROOT / 'CHANGELOG.md').read_text(encoding='utf-8'), re.M).group(1)
     check(top == V, f'CHANGELOG top section {top}')
+    badges = subprocess.run([sys.executable, str(ROOT / 'port/tools/gen_badges_inc.py'), '--check'],
+                            capture_output=True).returncode == 0
+    check(badges, 'built-in badge atlas matches port/assets/achievements/badges.png (gen_badges_inc.py)')
     head = int(subprocess.check_output(['git', 'log', '-1', '--format=%ct'], cwd=ROOT, text=True))
     dirty = subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=ROOT, text=True)
     check(not dirty.strip(), 'working tree committed (packages come from HEAD)')
