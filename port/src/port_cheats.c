@@ -20,6 +20,7 @@ extern u8 gMapCardCounts[270];
 extern u16 gCardCollection[999];
 extern u16 gCardCount;
 u16 CountCardsById(u16 cardId);
+void ExpandCardCollectionForNewCard(u16 cardId);
 
 /* Enemies fall to one hit; the player loses no HP. Applied after the
    difficulty scaling, to damage only (healing passes untouched). */
@@ -93,6 +94,30 @@ int PortCheatMapCards(void) {
     PortAchievementsInvalidate("Map card cheat");
     for (i = 0; i < 220; i++)
         gMapCardCounts[i] = 9;
+    return 1;
+}
+
+/* Every journal entry (Sora's Journal and Riku's report, #31), the way the
+   cartridge's own debug menu fills it (SetJiminyFlag(250)). The collection
+   grows from 911 to 999 slots as each card kind is first recorded, so first
+   grow it for every kind not yet recorded, as ObtainCard would; the two Card
+   Soldier kinds share one entry. */
+int PortCheatJournal(void) {
+    u8 seen[CARD_KIND_ANSEM + 1];
+    int id;
+
+    if (!PortCheatActionsAvailable())
+        return 0;
+    PortAchievementsInvalidate("Journal cheat");
+    memset(seen, 0, sizeof(seen));
+    for (id = 0; id < 950; id++) {
+        int kind = gCardDefs[id].kind;
+        if (kind > CARD_KIND_ANSEM || seen[kind] || kind == CARD_KIND_CARD_SOLDIER_SPADE)
+            continue;
+        seen[kind] = 1;
+        ExpandCardCollectionForNewCard(id);
+    }
+    SetJiminyFlag(250);
     return 1;
 }
 

@@ -535,13 +535,13 @@ int PortHarnessMode(const char* name, int arg) {
         return 1;
     }
 
-    /* the Cheats page's actions: 1 level 99, 2 map cards, 3 battle cards */
+    /* the Cheats page's actions: 1 level 99, 2 map cards, 3 battle cards, 4 journal */
     if (strcmp(name, "cheat") == 0) {
-        extern int PortCheatMaxLevel(void), PortCheatMapCards(void), PortCheatBattleCards(void);
+        extern int PortCheatMaxLevel(void), PortCheatMapCards(void), PortCheatBattleCards(void), PortCheatJournal(void);
         extern void PortLog(const char* format, ...);
         extern u16 gCardCount;
         extern u8 gMapCardCounts[270];
-        int ok = arg == 1 ? PortCheatMaxLevel() : arg == 2 ? PortCheatMapCards() : arg == 3 ? PortCheatBattleCards() : 0;
+        int ok = arg == 1 ? PortCheatMaxLevel() : arg == 2 ? PortCheatMapCards() : arg == 3 ? PortCheatBattleCards() : arg == 4 ? PortCheatJournal() : 0;
         int i, cards = 0, maps = 0;
         for (i = 0; i < 999; i++) cards += i < gCardCount && gCardCollection[i] != 0xFFF;
         for (i = 0; i < 270; i++) maps += gMapCardCounts[i];

@@ -42,6 +42,8 @@
   same kind of stray access as #30).
 - Deck editor: moving the last copy of a card into the deck no longer risks closing the game on
   Android, the web and Linux ARM (same kind of division by zero).
+- Cheats: "Complete the journal" fills Jiminy's Journal (and Riku's reports) the way the
+  cartridge's debug menu does, without shrinking the card collection's room (#31).
 
 ## v1.9.10 — 2026-10-19
 
