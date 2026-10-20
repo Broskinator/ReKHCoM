@@ -26,6 +26,7 @@ const optionSpecs=[
   ['improvements','Battle','Combate','cheat_infinite_hp','Infinite HP','HP infinito',0,'check'],
   ['improvements','Extras','Extras','cheat_unlock_riku','Riku on title screen','Riku en el título',0,'check'],
   ['improvements','Extras','Extras','save_bank','Save bank','Banco de partidas',1,[[1,'1','1'],[2,'2','2'],[3,'3','3'],[4,'4','4'],[5,'5','5']],'startup'],
+  ['improvements','Experimental','Experimental','experimental_battle_zoom','Battle zoom (Auto view)','Zoom en combate (vista Auto)',0,[[0,'Same as main zoom','Igual al zoom principal'],[4,'×2','×2'],[6,'×3','×3'],[8,'×4','×4'],[10,'×5','×5'],[12,'×6','×6'],[14,'×7','×7'],[16,'×8','×8']]],
   ['improvements','Experimental','Experimental','experimental_save_point_slot_select','Choose slot at save points','Elegir ranura en cristales',0,'check'],
   ['improvements','Experimental','Experimental','experimental_moogle_notice','Moogle points notice','Aviso de puntos moguri',0,'check'],
   ['improvements','Experimental','Experimental','experimental_unstock','Return stocked cards','Devolver cartas acumuladas',0,'check'],

@@ -73,6 +73,7 @@ enum {
     ITEM_SFX,
     ITEM_MASTER,
     ITEM_EXPERIMENTAL, /* section heading, not selectable */
+    ITEM_BATTLE_ZOOM,
     ITEM_HDTEXT,
     ITEM_HDHUD,
     ITEM_HD2D,
@@ -189,6 +190,10 @@ static int VisibleBetween(int from, int to) {
 }
 
 /* Strings: UTF-8, one row per item, columns in LANG_* order. */
+static const char* const sMainZoom[LANG_COUNT] = {
+    "Same as main zoom", "Comme le zoom principal", "Wie Hauptzoom",
+    "Come zoom principale", "Igual al zoom principal", "通常ズームと同じ"
+};
 static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "View", "Vue", "Ansicht", "Visuale", "Vista", "表示" },
     { "Aspect ratio", "Format d'image", "Seitenverhältnis", "Proporzioni", "Relación de aspecto", "アスペクト比" },
@@ -221,6 +226,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Effects volume", "Volume effets", "Effektlautstärke", "Volume effetti", "Volumen efectos", "効果音の音量" },
     { "Master volume", "Volume général", "Gesamtlautstärke", "Volume generale", "Volumen general", "全体の音量" },
     { "Experimental", "Expérimental", "Experimentell", "Sperimentale", "Experimentales", "実験的機能" },
+    { "Battle zoom", "Zoom en combat", "Kampfzoom", "Zoom battaglia", "Zoom en combate", "バトルズーム" },
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "HD HUD (pilot)", "HUD HD (pilote)", "HD-HUD (Pilot)", "HUD HD (pilota)", "HUD HD (piloto)", "HD HUD (試験)" },
     { "HD-2D look", "Style HD-2D", "HD-2D-Optik", "Stile HD-2D", "Estilo HD-2D", "HD-2D表示" },
@@ -746,6 +752,7 @@ static int ItemEnabled(int item) {
         case ITEM_CHEAT_MAXLEVEL:
         case ITEM_CHEAT_MAPCARDS:
         case ITEM_CHEAT_JOURNAL: return PortCheatActionsAvailable();
+        case ITEM_BATTLE_ZOOM:
         case ITEM_ZOOM:
         case ITEM_INTZOOM:
             return gPortConfig.viewMode == PORT_VIEW_AUTO;
@@ -770,19 +777,24 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_VIEW:
             SDL_strlcpy(out, sViews[gPortConfig.viewMode][l], size);
             break;
-        case ITEM_ZOOM:
-            if (ItemEnabled(item)) /* the step and the pixel scale it gives here */
+        case ITEM_BATTLE_ZOOM:
+        case ITEM_ZOOM: {
+            int zoom = item == ITEM_BATTLE_ZOOM ? gPortConfig.battleZoom : gPortConfig.zoom;
+            if (item == ITEM_BATTLE_ZOOM && !zoom && ItemEnabled(item))
+                SDL_strlcpy(out, sMainZoom[l], size);
+            else if (ItemEnabled(item)) /* the step and the pixel scale it gives here */
             {
-                int z = PortConfigZoomId(gPortConfig.zoom);
+                int z = PortConfigZoomId(zoom);
                 SDL_snprintf(out, size, "x%d", z / 2);
                 if (PortZoomReference(z))
                     SDL_snprintf(out, size, "x%d (%s x%d)", z / 2, sIntegralReference[l], PortZoomReference(z));
-                if (PortConfigZoomHeavy(gPortConfig.zoom) || z == 12)
+                if (PortConfigZoomHeavy(zoom) || z == 12)
                     SDL_strlcat(out, "  !", size);
             }
             else
                 SDL_strlcpy(out, sAutoOnly[l], size);
             break;
+        }
         case ITEM_SCALE:
             SDL_strlcpy(out, sScales[gPortConfig.scaleMode][l], size);
             break;
@@ -989,6 +1001,9 @@ static void Change(int item, int dir) {
     switch (item) {
         case ITEM_VIEW:
             gPortConfig.viewMode = sViewOrder[Wrap(ViewIndex() + dir, PORT_VIEW_COUNT)];
+            break;
+        case ITEM_BATTLE_ZOOM:
+            gPortConfig.battleZoom = PortConfigBattleZoomNext(gPortConfig.battleZoom, dir);
             break;
         case ITEM_ZOOM:
             gPortConfig.zoom = PortConfigZoomNext(gPortConfig.zoom, dir);
@@ -2111,6 +2126,9 @@ static void DrawMenu(int l, int width, int height) {
         labelW = SDL_max(labelW, TextWidth(sLabels[i][l]));
         ShortValue(i, value, sizeof(value));
         valueW = SDL_max(valueW, TextWidth(value));
+        /* Keep the menu width when battle zoom switches to a shorter numeric value. */
+        if (i == ITEM_BATTLE_ZOOM)
+            valueW = SDL_max(valueW, TextWidth(sMainZoom[l]));
     }
     barW = SDL_min(labelW + valueW + 40, width - barX - 6);
     rows = SDL_min(VisibleBetween(PageFirst(), PageEnd()), (height - top - 14) / rowH);
@@ -2185,7 +2203,9 @@ static void DrawMenu(int l, int width, int height) {
         DrawControlDiagram(barX, top + rows * rowH + 2, barW, height - 15 - (top + rows * rowH + 2));
     if (sPage == PAGE_CHEATS && sCursor == ITEM_CHEAT_GBA_MAP)
         DrawGbaMapNote(l, width, height, barX + barW + 8);
-    if (sPage == PAGE_MAIN && sCursor == ITEM_ZOOM && ItemEnabled(ITEM_ZOOM) && PortConfigZoomHeavy(gPortConfig.zoom))
+    int zoom = sCursor == ITEM_BATTLE_ZOOM && gPortConfig.battleZoom ? gPortConfig.battleZoom : gPortConfig.zoom;
+    if (sPage == PAGE_MAIN && (sCursor == ITEM_ZOOM || sCursor == ITEM_BATTLE_ZOOM) &&
+        ItemEnabled(sCursor) && PortConfigZoomHeavy(zoom))
         /* a demanding zoom: say so where the help line is */
         MenuButton(barX, height - 15, sZoomHeavy[l], '!');
     else

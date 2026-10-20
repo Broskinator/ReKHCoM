@@ -146,6 +146,7 @@ typedef struct PortConfig {
     int gbaMapLogic;            /* cheats > debug mode, off: field enemies leave at the GBA screen's edges */
     int gameLanguage;          /* European game: 0 asks (once), 1..5 English, French, German, Italian, Spanish */
     int invertCardScroll;      /* off by default: reverse L/R and right-stick card scrolling in battle */
+    int battleZoom;            /* experimental: 0 follows main zoom, otherwise a battle-only pixel scale */
     int padLayout;             /* face buttons: 0 detect (Nintendo pads swap A/B, X/Y), 1 Xbox positions, 2 Nintendo */
 } PortConfig;
 
@@ -179,10 +180,11 @@ void PortConfigSave(void);
 int PortSaveSlotSelectEnabled(void);
 void PortConfigView(int mode, int* w, int* h);
 /* Internal size and pixel scale that fill an outW x outH output (auto view). */
-void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale);
+void PortConfigAutoView(int outW, int outH, int battle, int* w, int* h, int* scale);
 
 int PortConfigZoomId(int level);
 int PortConfigZoomNext(int level, int dir);
+int PortConfigBattleZoomNext(int level, int dir);
 float PortConfigZoomScaleF(int level); /* pixel scale of a zoom level here */
 int PortConfigZoomScale(int level);    /* ...rounded down (HUD, labels) */
 int PortConfigZoomExact(int level);    /* the pixel scale is whole */

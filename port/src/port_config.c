@@ -92,6 +92,7 @@ static const Key sKeys[] = {
     { "config_version", &sConfigVersion, 0, 1000 },
     { "view_mode", &gPortConfig.viewMode, 0, PORT_VIEW_COUNT - 1 },
     { "zoom", &gPortConfig.zoom, 0, PORT_ZOOM_LEVELS },
+    { "experimental_battle_zoom", &gPortConfig.battleZoom, 0, PORT_ZOOM_LEVELS },
     { "cheat_unlock_riku", &gPortConfig.cheatUnlockRiku, 0, 1 },
     { "cheat_one_hit", &gPortConfig.cheatOneHit, 0, 1 },
     { "cheat_infinite_hp", &gPortConfig.cheatInfiniteHp, 0, 1 },
@@ -249,6 +250,11 @@ int PortConfigZoomId(int level) {
 int PortConfigZoomNext(int level, int dir) {
     return PortZoomStep(level, dir, 1, sZoomOutW, sZoomOutH);
 }
+int PortConfigBattleZoomNext(int level, int dir) {
+    int index = level ? PortZoomIndex(level, 1, sZoomOutW, sZoomOutH) + 1 : 0;
+    index = SDL_clamp(index + dir, 0, PortZoomCount(1, sZoomOutW, sZoomOutH));
+    return index ? PortZoomAt(index - 1, 1, sZoomOutW, sZoomOutH) : 0;
+}
 float PortConfigZoomScaleF(int level) {
     return PortConfigZoomId(level) * 0.5f;
 }
@@ -266,7 +272,7 @@ int PortConfigZoomHeavy(int level) {
 
 float gPortAutoScaleF; /* the Auto view's exact pixel scale (may be fractional) */
 
-void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale) {
+void PortConfigAutoView(int outW, int outH, int battle, int* w, int* h, int* scale) {
     float f;
     extern int PortUiMenuCanvas(void);
 
@@ -275,7 +281,7 @@ void PortConfigAutoView(int outW, int outH, int* w, int* h, int* scale) {
     /* the options menu is drawn on the canvas: while it is open the canvas
        keeps the Enhanced size, so its text stays readable at any zoom */
     f = PortUiMenuCanvas() ? SDL_max(outH / 320.0f, SDL_max(outW / (float)PORT_MAX_W, outH / (float)PORT_MAX_H))
-                       : PortConfigZoomScaleF(gPortConfig.zoom);
+                       : PortConfigZoomScaleF(battle && gPortConfig.battleZoom ? gPortConfig.battleZoom : gPortConfig.zoom);
     while (SDL_ceilf(outW / f) > PORT_MAX_W || SDL_ceilf(outH / f) > PORT_MAX_H)
         f += 0.25f;
     *w = SDL_max((int)SDL_ceilf(outW / f), GBA_SCREEN_W);
@@ -340,6 +346,8 @@ void PortConfigLoad(void) {
     /* Only numbered, whole-pixel steps remain; migrate old half steps up. */
     if (gPortConfig.zoom & 1)
         gPortConfig.zoom++;
+    if (gPortConfig.battleZoom & 1)
+        gPortConfig.battleZoom++;
     if (gPortConfig.zoom == PORT_ZOOM_CLASSIC) gPortConfig.zoom = PORT_ZOOM_DEFAULT;
     gPortConfig.integerZoom = 0;
     if (sConfigVersion < 4 && gPortConfig.fullscreenWidth == 1920 && gPortConfig.fullscreenHeight == 1080) {

@@ -46,6 +46,7 @@ static const uint16_t sActionBits[PORT_ACT_COUNT] = {
 
 static uint16_t sKeyboard;
 static int sSuppress;
+static int sBattleMenuKeys, sBattleMenuChord;
 static int sDodgeHeld;
 static int sDodgePending;
 static int sUnstockHeld;
@@ -55,6 +56,7 @@ static int sUnstockPending;
    confirming press does not reach the game. */
 void PortInputSuppressUntilRelease(void) {
     sSuppress = 1;
+    sBattleMenuKeys = sBattleMenuChord = 0;
     sDodgeHeld = sDodgePending = 0;
     sUnstockHeld = sUnstockPending = 0;
 }
@@ -148,6 +150,7 @@ void PortInputHandleEvent(const void* p) {
             break;
         case SDL_EVENT_WINDOW_FOCUS_LOST:
             sKeyboard = 0;
+            sBattleMenuKeys = sBattleMenuChord = 0;
             sDodgeHeld = sDodgePending = 0;
             sUnstockHeld = sUnstockPending = 0;
             break;
@@ -270,6 +273,22 @@ const void* PortCardScrollTutorialText(int message, const void* source) {
 
 uint16_t PortInputResolve(uint16_t keys) {
     int dodge = (keys & KEY_DODGE) && gPortConfig.dodgeButton;
+
+    /* Defer battle Start/Select until release: either can be the first half
+       of the options shortcut, which must neither pause nor switch lists. */
+    if (gCurrentMode == &gModeBattle || gCurrentMode == &gModeVsbattle) {
+        int menuKeys = keys & (KEY_START | KEY_SELECT);
+        keys &= ~(KEY_START | KEY_SELECT);
+        if (menuKeys == (KEY_START | KEY_SELECT))
+            sBattleMenuChord = 1;
+        if (!sBattleMenuChord)
+            keys |= sBattleMenuKeys & ~menuKeys;
+        sBattleMenuKeys = menuKeys;
+        if (!menuKeys)
+            sBattleMenuChord = 0;
+    } else {
+        sBattleMenuKeys = sBattleMenuChord = 0;
+    }
 
     /* Reverse local battle inputs once, before hold/chord detection and link transmission. */
     if (gPortConfig.invertCardScroll && (gCurrentMode == &gModeBattle || gCurrentMode == &gModeVsbattle))
