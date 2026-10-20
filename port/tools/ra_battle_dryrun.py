@@ -34,8 +34,12 @@ def verified():
     return {int(x) for x in re.findall(r'(\d+)u', block[:block.index('};')])}
 
 
+DEFTEXT = {}
+
+
 def cases(only):
     defs = {a['id']: a['definition'] for a in json.loads(DEFS.read_text())}
+    DEFTEXT.update(defs)
     done = verified()
     out = {}
     for ident, text in defs.items():
@@ -45,7 +49,10 @@ def cases(only):
         core = text.split('S')[0]
         world = re.findall(r'0xH042346=(\d+)', core)
         if battle and world:
-            out[ident] = (int(battle[0]), int(world[-1]), challenge(text))
+            setup = challenge(text)
+            if setup is not None and ident in TIMED:
+                setup.update(TIMED[ident])
+            out[ident] = (int(battle[0]), int(world[-1]), setup)
     return out
 
 
@@ -64,11 +71,11 @@ def challenge(text):
     m = re.search(r'0xH03cacc=(\d)', rest)
     if m:
         deck = int(m.group(1))
-    count = 20
+    count, limit = 20, None
     for addr, op, n in re.findall(r'0xH0(424cc|425ac|4268c)(<=|>=)(\d+)', rest):
         d = {'424cc': 0, '425ac': 1, '4268c': 2}[addr]
         if deck is None or d == deck:
-            deck, count = d, int(n)
+            deck, count, limit = d, int(n), (op, int(n))
             break
     slots = re.findall(r'I:0x 0(42[3-6][0-9a-f]{2})\*2', rest)
     if deck is None:
@@ -76,7 +83,44 @@ def challenge(text):
     banned = [(int(a) * 256 + int(lo), int(a) * 256 + int(hi)) for a, lo, hi in re.findall(
         r'N:0xL042691=(\d+)_I:0x 0[0-9a-f]+\*2_N:0xH042690>=(\d+)_I:0x 0[0-9a-f]+\*2_R:0xH042690<=(\d+)', rest)]
     card = next(c for c in list(range(10)) + list(range(10, 450)) if not any(lo <= c <= hi for lo, hi in banned))
-    return dict(deck=deck, count=count, card=card, noharm=True)
+    return dict(deck=deck, count=count, card=card, noharm=True, banned=banned, limit=limit)
+
+
+TIMED = {
+    160368: dict(fieldhp=56, noharm=True, timed=True, **{'from': 7000}),
+    # Marluxia (second fight): won while riding a summon (BtlSoraWork.state 18
+    # SUMMON_IDLE or 23-27 SUMMON_TAKEOFF..SUMMON_RETURN_LAND); Dumbo, card 299
+    160386: dict(card=299, count=20, deck=0, noharm=True, keys='1500-1503:A', step=15, **{'from': 1560}),
+    # Riku (sixth fight), as Riku: won in Dark Mode (BtlRikuWork.state reached 32
+    # DARK_MODE_TRANSFORM, not 34 DARK_MODE_REVERT since); 30 dark points, a card
+    160401: dict(card=669, deck=0, count=20, noharm=True, dark=30, keys=','.join(f'{f}-{f + 3}:A' for f in range(1450, 2600, 40)),
+                 step=15, **{'from': 2650}),
+}
+
+
+def violations(setup, text):
+    """The same setup breaking each rule the graph checks, one at a time: a
+    forbidden card, a deck size out of range, AP over its cap (level 99), three
+    hits taken (the no-damage graphs reset on the third), or the win too early."""
+    out = []
+    if setup.get('timed'):
+        out.append(dict(setup, **{'from': 2000}))
+    if setup.get('fieldhp'):
+        out.append(dict(setup, fieldhp=80))
+    if setup.get('dark'):
+        out.append(dict(setup, dark=0))  # no dark points: no Dark Mode
+    elif setup.get('keys'):
+        out.append(dict(setup, keys=''))  # won without the summon
+    if setup['banned']:
+        out.append(dict(setup, card=setup['banned'][0][0]))
+    if setup['limit']:
+        op, n = setup['limit']
+        out.append(dict(setup, count=n + 1 if op == '<=' else n - 1))
+    if re.search(r'0xH0422be<=\d+', text):
+        out.append(dict(setup, apcap=True))
+    if re.search(r'd0x 007e8c>0x 007e8c|0x 007cd0<d0x 007cd0', text):
+        out.append(dict(setup, noharm=False, hurt=True))
+    return out
 
 
 def run(battle, world, win, setup=None, tag=''):
@@ -90,13 +134,25 @@ def run(battle, world, win, setup=None, tag=''):
         extra = f',1200:deckuse:{setup["deck"] | setup["count"] << 2 | setup["card"] << 9}'
         if setup['noharm']:
             extra += ',' + ','.join(f'{f}:noharm' for f in range(1320, 1450, 10))
+        if setup.get('hurt'):
+            steps = [setup['hurt_to']] if 'hurt_to' in setup else [70, 55, 40]
+            extra += ''.join(f',{1420 + 10 * k}:hudhp:{p}' for k, p in enumerate(steps))
+        if setup.get('fieldhp'):
+            extra += f',1250:fieldhp:{setup["fieldhp"]}'
+        if setup.get('dark'):
+            extra += f',1210:darkunlock,1480:darkpoints:{setup["dark"]}'
+        if setup.get('apcap'):
+            extra += ',1150:cheat:1'
     hit = 'bosskill' if win else 'playerkill'
-    wins = ',' + ','.join(f'{f}:{hit}' for f in range(1450, 6000, 100))
+    first = (setup or {}).get('from', 1450)
+    step = (setup or {}).get('step', 100)
+    wins = ',' + ','.join(f'{f}:{hit}' for f in range(first, first + 4500, step))
     env = dict(os.environ, SDL_VIDEO_DRIVER='dummy', SDL_AUDIO_DRIVER='dummy', KHCOM_FAST='1',
                KHCOM_RA_DRYRUN=str(DEFS), KHCOM_TRACE_MODES='1', KHCOM_RA_WATCH='1',
                KHCOM_MODE=f'300:{"roomriku:10700" if world == 8 else "room:10900"},302:roomenemies:0,{OBTAIN}{extra},'
                           f'1300:battleid:{battle | STAGE.get(battle, 12) << 8}{wins}',
-               KHCOM_QUIT='6600')
+               KHCOM_QUIT=str(first + 5200),
+               **({'KHCOM_KEYS': setup['keys']} if setup and setup.get('keys') else {}))
     subprocess.run([str(d / 'khcom.exe'), '--language', 'es', '--rom', str(ROOT / 'roms/B8CP.gba'),
                     '--data-dir', str(d)], cwd=d, env=env, timeout=1200,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -119,16 +175,25 @@ def main():
     with ThreadPoolExecutor(max_workers=6) as pool:
         wins = dict(zip(keys, pool.map(lambda k: go(k, True), keys)))
         ctls = dict(zip(keys, pool.map(lambda k: go(k, False), keys)))
+        rules = [(k, n, v) for k in keys if len(k) == 3
+                 for n, v in enumerate(violations(todo[k[2]][2], DEFTEXT[k[2]]))]
+        broken = list(pool.map(lambda r: (r[0], run(r[0][0], r[0][1], True, r[2], f'-c{r[0][2]}-v{r[1]}')[0]), rules))
+        bads = {}
+        for k, trig in broken:
+            bads.setdefault(k, [[]])[0].extend(trig)
     report, passed = {}, []
     for ident, (b, w, c) in sorted(todo.items()):
         bw = (b, w) if c is None else (b, w, ident)
         (tw, bat, crash), (tc, _, crash2) = wins[bw], ctls[bw]
-        ok = ident in tw and ident not in tc and not crash and not crash2
+        tv = bads[bw][0] if bw in bads else []
+        ok = ident in tw and ident not in tc and ident not in tv and not crash and not crash2
         report[ident] = dict(battle=bw[0], world=bw[1], setup=c, battle_mode=bat, win=ident in tw, control=ident in tc,
                              crash=crash or crash2, ok=ok)
         passed += [ident] if ok else []
         print(f'{ident:7d} battle {bw[0]} world {bw[1]:2d}: win={"Y" if ident in tw else "-"} '
-              f'control={"Y" if ident in tc else "-"} battle={bat} {"PASS" if ok else ""}', flush=True)
+              f'control={"Y" if ident in tc else "-"} '
+              f'{"rule-broken=" + ("Y" if ident in tv else "-") + " " if bw in bads else ""}battle={bat} {"PASS" if ok else ""}',
+              flush=True)
     (OUT / 'report.json').write_text(json.dumps(report, indent=1))
     print(f'{len(passed)}/{len(todo)} pass: {passed}')
 

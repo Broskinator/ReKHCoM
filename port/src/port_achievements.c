@@ -21,8 +21,10 @@ static uint32_t PortRaRead(uint32_t address, uint8_t* out, uint32_t size, void* 
 }
 #ifdef VERSION_EU
 /* Official achievements whose reads are all verified (build/ra-reference-audit/enable.json;
-   the battle ones by ra_battle_dryrun.py: won triggers, lost never). */
-static const uint32_t sOfficialVerified[] = { 15580u, 15582u, 15583u, 15584u, 15585u, 15587u, 15588u, 15590u, 15591u, 15592u, 15594u, 15595u, 15596u, 15597u, 15598u, 15599u, 15600u, 15601u, 15602u, 15603u, 15604u, 15611u, 15612u, 15619u, 15651u, 15652u, 15653u, 15654u, 15655u, 15656u, 15657u, 15658u, 15659u, 15660u, 15661u, 15662u, 15663u, 15664u, 15665u, 156793u, 160363u, 160364u, 160365u, 160367u, 160369u, 160371u, 160372u, 160373u, 160376u, 160377u, 160383u, 160385u, 160387u, 160390u, 160391u, 160392u, 160393u, 160394u, 160395u, 160396u, 160397u, 160398u, 160400u, 160403u, 160404u, 160405u, 160406u, 160407u, 160408u, 160409u };
+   the battle ones by ra_battle_dryrun.py: won triggers, lost never; the
+   challenge ones also never with any of their rules broken; the endings by
+   ra_ending_dryrun.py). */
+static const uint32_t sOfficialVerified[] = { 15580u, 15582u, 15583u, 15584u, 15585u, 15587u, 15588u, 15590u, 15591u, 15592u, 15594u, 15595u, 15596u, 15597u, 15598u, 15599u, 15600u, 15601u, 15602u, 15603u, 15604u, 15605u, 15611u, 15612u, 15619u, 15651u, 15652u, 15653u, 15654u, 15655u, 15656u, 15657u, 15658u, 15659u, 15660u, 15661u, 15662u, 15663u, 15664u, 15665u, 15666u, 41892u, 156793u, 160363u, 160364u, 160365u, 160366u, 160367u, 160368u, 160369u, 160370u, 160371u, 160372u, 160373u, 160374u, 160375u, 160376u, 160377u, 160378u, 160379u, 160380u, 160381u, 160382u, 160383u, 160384u, 160385u, 160386u, 160387u, 160388u, 160389u, 160390u, 160391u, 160392u, 160393u, 160394u, 160395u, 160396u, 160397u, 160398u, 160399u, 160400u, 160401u, 160402u, 160403u, 160404u, 160405u, 160406u, 160407u, 160408u, 160409u };
 #endif
 #endif
 
@@ -160,13 +162,17 @@ static void DryRunFrame(void) {
            (mode argument, world, card battle root and its +0xCC, the effect
            root's -0x330 and -0x174 neighbours as the official AddAddress reads) */
         if (SDL_getenv("KHCOM_RA_WATCH")) {
-            static char last[160];
-            char line[160];
+            static char last[240];
+            char line[240];
             uint32_t fx = DryPeek(0x3CA28, 3, NULL), cbs = DryPeek(0x423E4, 3, NULL);
-            SDL_snprintf(line, sizeof(line), "arg=%u world=%u cbs=%06x cbs+cc=%u fx=%06x fx-330=%u fx-174=%u",
+            SDL_snprintf(line, sizeof(line),
+                         "arg=%u world=%u cbs=%06x cbs+cc=%u fx=%06x fx-330=%u fx-174=%u fx-1a8=%u fx-364=%u gs=%u/%u/%u x3bbc8=%u",
                          (unsigned)DryPeek(0x749C, 2, NULL), (unsigned)DryPeek(0x42346, 1, NULL), (unsigned)cbs,
                          (unsigned)(cbs ? DryPeek(cbs + 0x80CC, 2, NULL) : 0), (unsigned)fx,
-                         (unsigned)(fx ? DryPeek(fx + 0x7CD0, 2, NULL) : 0), (unsigned)(fx ? DryPeek(fx + 0x7E8C, 2, NULL) : 0));
+                         (unsigned)(fx ? DryPeek(fx + 0x7CD0, 2, NULL) : 0), (unsigned)(fx ? DryPeek(fx + 0x7E8C, 2, NULL) : 0),
+                         (unsigned)(fx ? DryPeek(fx + 0x7E58, 2, NULL) : 0), (unsigned)(fx ? DryPeek(fx + 0x7C9C, 2, NULL) : 0),
+                         (unsigned)DryPeek(0x421CC, 1, NULL), (unsigned)DryPeek(0x421CD, 1, NULL),
+                         (unsigned)DryPeek(0x421CE, 1, NULL), (unsigned)DryPeek(0x3BBC8, 4, NULL));
             if (SDL_strcmp(line, last) != 0) {
                 SDL_strlcpy(last, line, sizeof(last));
                 PortLog("ra-watch: frame %u %s", sDryFrame, line);

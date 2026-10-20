@@ -1,5 +1,10 @@
 # 71 RetroAchievements: vía rápida (propuesta, 19/10)
 
+> **Resuelto el mismo día sin esta tabla (90/90).** Las raíces que faltaban caían dentro de los
+> heaps del juego, que el port ya tiene en sus direcciones GBA. Bastó validar cada logro en su
+> situación real. Ver RETROACHIEVEMENTS_71_VALIDACION.md. La tabla automática queda como idea
+> por si un futuro set lee globales no proyectadas.
+
 Hoy van 28/90 oficiales. Cada variable que lee el set oficial se proyecta a mano a su dirección
 GBA en `port_ra_state.c` (por ejemplo `gPoohGauge` → 0x0203C9D4) y se valida una por una con
 BizHawk. Es lento, porque los 62 restantes leen decenas de variables y cadenas de punteros.

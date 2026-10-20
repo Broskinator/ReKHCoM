@@ -4,6 +4,7 @@
 #include "gba/defines.h"
 #include "gba/io_reg.h"
 #include <stddef.h>
+#include <stdint.h>
 #include "types.h"
 
 #ifdef PLATFORM_PC
@@ -48,9 +49,10 @@ s32 MovieStart(void* a) {
 
     channels = MovieGetChannels(gMoviePlayer);
 #ifdef PLATFORM_PC
-    PortLog("Movie: %ux%u, %.2f fps, %u frames, %u Hz, %u channels",
+    PortLog("Movie: %ux%u, %.2f fps, %u frames, %u Hz, %u channels, frame buffer %08x work %08x",
             gMoviePlayer->width, gMoviePlayer->height, gMoviePlayer->frameRate,
-            gMoviePlayer->frameCount, gMoviePlayer->sampleRate, channels);
+            gMoviePlayer->frameCount, gMoviePlayer->sampleRate, channels,
+            (unsigned)(uintptr_t)gMoviePlayer->frameBuf, (unsigned)(uintptr_t)gMoviePlayer->workBuf);
 #endif
 
     if (channels != 0) {

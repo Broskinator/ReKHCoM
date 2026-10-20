@@ -91,3 +91,38 @@ Comando: python port/tools/test_ra71_scalars.py --achievement 15582.
 También conserva las 300 comparaciones de Pooh. No se publican los datos
 privados ni se envían premios. Se añade 15582 a la lista EU, total 23/90.
 Quedan 67 oficiales; cadenas de batalla/heap continúan pendientes de paridad real.
+
+## 90/90 oficiales (19/10, tarde): cerrado
+
+Clave: el set oficial no necesita una tabla de todas las variables. Las 62 restantes
+leían por cadenas desde dos raíces ya proyectadas (0x02034A28 y 0x0203A3E4 = gCardBattleState),
+y los heaps del juego (EWRAM 0x02000000–0x02034000 e IWRAM hasta 0x03006800) viven en el port
+en sus direcciones GBA, con el mismo asignador (reparte desde el final, cabecera de 32 bytes).
+Lo que faltaba era validar la semántica en la situación real de cada logro, sin emulador.
+
+Qué lee el set (comprobado contra la decomp):
+- 0x0203A346 = GameState.floors[0].world: 10 partida de Sora, 8 de Riku (su primer piso es
+  Hollow Bastion).
+- 0x0300749C = argumento de modo pendiente = id de batalla 148–177.
+- `I:0x02034A28 + 0x7E8C/0x7CD0`: la suma incluye el sesgo de 0x8000 del mapa plano, así que
+  lee 0x174/0x330 bytes **antes** del objeto apuntado: el HP del actor de Sora o Riku.
+  0x1A8/0x364 antes = BtlSoraWork/BtlRikuWork.state, que va 8 bytes antes del actor.
+- 0x0203A2BE = progression.ap; 0x0203A2B8 = progression.maxHp.
+- 0x02033BC8 = dos píxeles (fila 157, columnas 196–197) del frameBuf de la película
+  (0x020213E0, la primera reserva EWRAM tras el reinicio del heap). Los finales se detectan por
+  esos píxeles al arrancar la película final.
+
+Pruebas (el port evalúa las 90 definiciones reales sin conexión, KHCOM_RA_DRYRUN):
+- `ra_battle_dryrun.py`: cada batalla de jefe se inicia en su escenario (harness `battleid`)
+  como Sora o Riku y se gana por la vía de daño del juego (`bosskill`). Control: la misma
+  batalla perdida por la misma vía (`playerkill`); nunca salta. Los desafíos se arman desde su
+  propia definición (mazo activo, cantidad, carta fuera de los rangos prohibidos; harness
+  `deckuse`, `noharm`, `fieldhp`, `darkunlock`, `darkpoints`). Cada uno se repite rompiendo
+  **cada regla** (carta prohibida, tamaño de mazo, AP sobre el tope, tres golpes, victoria
+  antes de tiempo, sin invocación, sin Modo Oscuro, HP alto al entrar) y no salta.
+- `ra_ending_dryrun.py`: los finales con el flujo real (evento final → película con el heap
+  reiniciado), con controles (sin la carta de Marluxia, HP máximo subido, otra película, otro
+  piso). Se corre de a uno: la película avanza con ticks de tiempo real (temporizador del GBA)
+  y un equipo cargado atrasa sus cuadros.
+
+Resultado: 90 de 90 en sOfficialVerified (EU). Ningún logro salta en un control.

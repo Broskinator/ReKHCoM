@@ -285,7 +285,7 @@ int PortHarnessMode(const char* name, int arg) {
     static Mode* const modes[] = {
         &gModeTitle, &gModeDeck, &gModeStatus, &gModeJiminy, &gModeAllmap, &gModeMapinspect, &gModeWorldinspect,
         &gModeWorldselect, &gModeWORLDSELECT, &gModeWorldwarp, &gModeMsTop, &gModePremire,
-        &gModeSioBtlOption, &gModeDebug, &gModePooh,
+        &gModeSioBtlOption, &gModeDebug, &gModePooh, &gModeStaffRoll, &gModeMovie,
     };
     u32 i;
 
@@ -445,6 +445,60 @@ int PortHarnessMode(const char* name, int arg) {
         gCardCount = (u16)count;
         gDecks[deck].cardCount = (u16)count;
         SetActiveDeckIndex((u8)deck);
+        return 1;
+    }
+    /* movieend:ID - a movie as the final events hand over to it
+       (mode_event.c EVENT_EXIT_MOVIE_ENDING: with the heap reset) */
+    if (strcmp(name, "movieend") == 0) {
+        ModeRequestHeapReset(&gModeMovie, arg);
+        return 1;
+    }
+    /* jiminy:FLAG - a journal record, as the game sets it (SetJiminyFlag) */
+    if (strcmp(name, "jiminy") == 0) {
+        extern void SetJiminyFlag(u32 flag);
+        SetJiminyFlag((u32)arg);
+        return 1;
+    }
+    /* darkunlock - what EVENT_156_RIKU_B12F_GOAL_2 does early in Riku's story
+       (mode_event.c): dark points count from then on */
+    if (strcmp(name, "darkunlock") == 0) {
+        extern void LearnStock(u32 stock);
+        gGameState.flags &= ~GAME_FLAG_DARK_POINTS_LOCKED;
+        LearnStock(LEARNED_STOCK_DARK_BREAK);
+        LearnStock(LEARNED_STOCK_DARK_FIRAGA);
+        LearnStock(LEARNED_STOCK_DARK_AURA);
+        return 1;
+    }
+    /* darkpoints:N - dark points as won card breaks add them (AddDarkPoints);
+       past 29, Riku's next single card starts his Dark Mode */
+    if (strcmp(name, "darkpoints") == 0 && gBtlWork != NULL) {
+        extern void AddDarkPoints(s16 points);
+        AddDarkPoints((s16)arg);
+        return 1;
+    }
+    /* fieldhp:N - the HP the player walks into the next battle with (HP is not
+       restored between battles in this game) */
+    if (strcmp(name, "fieldhp") == 0) {
+        gGameState.hp = (s16)arg;
+        return 1;
+    }
+    /* actorlog: where the player's battle object and its fields sit (to name
+       the fields the official graphs read next to its HP) */
+    if (strcmp(name, "actorlog") == 0 && gBtlWork != NULL && gBtlWork->actor != NULL) {
+        extern void PortLog(const char* format, ...);
+        PortLog("harness: actor %08x hp@%08x kind=%d size=%u btlwork=%08x", (unsigned)(uintptr_t)gBtlWork->actor,
+                (unsigned)(uintptr_t)&gBtlWork->actor->hp, (int)gBtlWork->actor->kind, (unsigned)sizeof(*gBtlWork->actor),
+                (unsigned)(uintptr_t)gBtlWork);
+        return 1;
+    }
+    /* gsplace:FLOOR|STAGE<<8|WORLD<<16|FIRST<<24 - where the story stands when
+       an event of the debug event list plays (it starts from a reset game
+       state); FIRST is the first floor's world (10 Sora's game, 8 Riku's) */
+    if (strcmp(name, "gsplace") == 0) {
+        gGameState.floor = (s8)(arg & 0xFF);
+        gGameState.battleStage = (u8)(arg >> 8);
+        gGameState.world = (u8)(arg >> 16);
+        gGameState.floors[0].world = (u8)((arg >> 24) & 0x7F);
         return 1;
     }
     /* noharm: the player cannot be hurt for the rest of the battle (the
