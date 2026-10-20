@@ -661,6 +661,11 @@ void PickupCardDraw(PickupCardWork* work) {
 
         affine = AllocObjAffine(work->angle, work->scaleX,
                                 work->scaleY, FALSE);
+        // @bug Leaving a battle frees gCardBattleState before this card is destroyed (NULL read).
+#ifdef PLATFORM_PC
+        /* the cartridge draws the back from stray tiles for that frame; the port skips it */
+        if (gCardBattleState != NULL)
+#endif
         DrawSprite(x, y - 8,
                    gCardBacks[work->cardDef->category].gfx,
                    gCardBattleState->tiles[work->cardDef->category],
