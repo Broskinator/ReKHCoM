@@ -16,6 +16,16 @@
 - Launcher: the controller diagram is the same pink controller as in the game.
 - Updates: the ZIP and the Linux archives no longer have a versioned top folder, so a new
   version can be extracted over the old one (saves, settings and ROMs are kept).
+- Achievements: titles and descriptions in Spanish, French, German, Italian and Japanese (the
+  game's language; the launcher and the web page follow theirs). The unlock popup shows the
+  achievement's own badge and no longer says "RetroAchievements".
+- Achievements menu (in the game): left/right jump five rows; L/R (Q/E on the keyboard) change tab.
+- Launcher: PLAY and Install ROM sit at the top of Home, visible without scrolling.
+- Android, web and Linux ARM: the game no longer closes when stocking cards (#30). The original
+  writes through an empty pointer there; the GBA ignores it and the desktop versions recover it.
+- Gamepads: Nintendo controllers (Switch Pro, Joy-Cons, 8BitDo in Switch mode) are detected and
+  their A/B and X/Y match the labels (#23); the menus use whatever is bound to the game's A and B.
+  New "Gamepad face buttons" option (Auto / Xbox / Nintendo) in the options and the launcher.
 
 ## v1.9.10 — 2026-10-19
 
