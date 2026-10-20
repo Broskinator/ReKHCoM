@@ -231,7 +231,7 @@ def main():
                 if not (build_dir(v) / 'build.ninja').exists():
                     subprocess.run([sys.executable, 'port/configure_pc.py', '--version', v, '--out', f'build/pc-{v}'],
                                    cwd=ROOT, check=True, env=env)
-                subprocess.run(['ninja', '-f', str(build_dir(v) / 'build.ninja')], cwd=ROOT, check=True, env=env)
+                subprocess.run([shutil.which('ninja', path=env['PATH']) or 'ninja', '-f', str(build_dir(v) / 'build.ninja')], cwd=ROOT, check=True, env=env)
         OUT.mkdir(parents=True, exist_ok=True)
         for v in versions:
             if not (build_dir(v) / 'khcom.exe').exists():
