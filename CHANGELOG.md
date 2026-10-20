@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.9.13 — in progress (prerelease v1.9.13-pre1, 2026-10-20)
+
+- Nintendo Switch (alpha, never run on a console yet): a homebrew `ReKHCoM.nro` for custom
+  firmware (Atmosphère, Homebrew Menu in title takeover). Copy it and your cartridge dump (EU, US
+  or JP) to `sdmc:/switch/ReKHCoM/`. Same game as the PC version: widescreen, HD text, options,
+  achievements. Minus + L3 / R3 save and load a state.
+
 ## v1.9.12 — 2026-10-20
 
 v1.9.11 came out only as two test prereleases; this stable release carries all of it.
