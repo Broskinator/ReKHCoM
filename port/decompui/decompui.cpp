@@ -944,6 +944,8 @@ static void PageHome(SDL_Window* window) {
     if (ready && ImGui::Button(T("Crear acceso directo en el escritorio", "Create a desktop shortcut"),
                                ImVec2(ImGui::GetContentRegionAvail().x, 0)))
         CreateDesktopShortcut();
+    if (ImGui::Button(T("Instalar ROM...", "Install ROM..."), ImVec2(ImGui::GetContentRegionAvail().x, 0)))
+        PickRom(window);
     if (!ready) {
         ImGui::PushFont(sFontSmall);
         ImGui::TextColored(kMuted, "%s",
@@ -1037,8 +1039,6 @@ static void PageHome(SDL_Window* window) {
         }
     }
     ImGui::Spacing();
-    if (ImGui::Button(T("Instalar ROM...", "Install ROM..."), ImVec2(-FLT_MIN, 0)))
-        PickRom(window);
     ImGui::PushFont(sFontSmall);
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("Elige tu volcado del cartucho (o arrástralo a esta ventana). Se comprueba su SHA-1 "
