@@ -18,7 +18,6 @@ Reglas del usuario:
 | **Claude** | 51–54: alphas de Vita, PS4 y Switch, compiladas como la de PS5 (VM) |
 | **Claude** | Release v1.9.11: candidato listo en main; se publica solo cuando el usuario diga |
 | **Claude** | Auditoría de accesos NULL y divisiones por cero (#30). Hecho: 65 jefes en Android x86 con UBSan (Cloud, Axel y Parasite Cage parchados con `DIV0`/`MOD0`, valen para todas las plataformas). En curso (20/10): `test_battles.py` de escritorio US/EU/JP + Riku con main, simbolizar cada `bios:` y parchear; luego eventos (`test_events.py`) |
-| **Claude** | Traducciones de logros: español revisado (bien; nombres del cartucho, VT/PN/PA); falta fr, de, it, ja |
 | **Claude** | Insignias de logros fuera de Windows/Linux: arreglado en main (`PortLoadAsset`, APK y web llevan el atlas); falta verlo en el emulador Android y en una build web cuando haya RAM libre. PS5: su carpeta de datos no trae el atlas, probar en la VM |
 | **Claude** | Prerelease v1.9.11 tras lo anterior: `release_check.py` antes y después, web publicada, stable solo con OK del usuario |
 | **Claude** | #30 en ARM físico: verificado solo en emulador x86; pedir logcat si sigue en el equipo de quien lo reportó |

@@ -295,7 +295,7 @@ T = {
 },
 41892: {
  'es': ("Competidor crítico", "Completa la historia de Sora sin subir los VT."),
- 'fr': ("Compétiteur critique", "Termine l'histoire de Sora sans augmenter ses HP."),
+ 'fr': ("Compétiteur critique", "Termine l'histoire de Sora sans augmenter tes HP."),
  'de': ("Kritischer Wettkämpfer", "Schließe Soras Geschichte ab, ohne die LP zu steigern."),
  'it': ("Concorrente critico", "Completa la storia di Sora senza aumentare i PV."),
  'ja': ("クリティカルな挑戦者", "HPを上げずにソラ編をクリアする。"),
@@ -473,7 +473,7 @@ T = {
  'fr': ("Viens à moi, Dragon Blanc aux Yeux Bleus !", "Achève Marluxia lors de sa deuxième phase avec une invocation."),
  'de': ("Erscheine, Blauäugiger w. Drache!", "Erledige Marluxia in seiner zweiten Phase mit einer Beschwörung."),
  'it': ("Vieni a me, Drago Bianco Occhi Blu!", "Finisci Marluxia nella sua seconda fase con un'invocazione."),
- 'ja': ("出でよ、青眼の白龍！", "マールーシャの第2形態を召喚でとどめを刺す。"),
+ 'ja': ("出でよ、青眼の白龍！", "第2形態のマールーシャに召喚でとどめを刺す。"),
 },
 160387: {
  'es': ("Repetir plato", "Derrota a Maléfica en Reverse/Rebirth sin recargar más de una vez con tu naipe de recarga (máx. 10 PA)."),
@@ -501,7 +501,7 @@ T = {
  'fr': ("Le sol est empoisonné", "Bats la Parasitocage dans Reverse/Rebirth sans toucher le sol plus de 0:45 d'affilée (12 AP max.)."),
  'de': ("Der Boden ist Gift", "Besiege das Parasitakel in Reverse/Rebirth, ohne länger als 0:45 am Stück den Boden zu berühren (max. 12 AP)."),
  'it': ("Il pavimento è veleno", "Sconfiggi la Parassigabbia in Reverse/Rebirth senza toccare il suolo per più di 0:45 di fila (max 12 PA)."),
- 'ja': ("床は毒", "リバース／リバースで0:45を超えて地面に触れずにパラサイトケージを倒す（AP12以下）。"),
+ 'ja': ("床は毒", "リバース／リバースで地面に0:45を超えて続けて触れずにパラサイトケージを倒す（AP12以下）。"),
 },
 160391: {
  'es': ("Furia sin fin", "Derrota a Vexen en Reverse/Rebirth sin salir del Modo Oscuro una vez activado (máx. 12 PA)."),
@@ -543,7 +543,7 @@ T = {
  'fr': ("Jouer petit", "Bats Oogie Boogie dans Reverse/Rebirth en utilisant 40 cartes ou moins (12 AP max.)."),
  'de': ("Tiefstapeln", "Besiege Oogie Boogie in Reverse/Rebirth mit höchstens 40 Karten (max. 12 AP)."),
  'it': ("Giocare al ribasso", "Sconfiggi il Baubau in Reverse/Rebirth usando 40 carte o meno (max 12 PA)."),
- 'ja': ("控えめなプレイ", "リバース／リバースでカードを40枚以下しか使わずにブギーを倒す（AP12以下）。"),
+ 'ja': ("控えめなプレイ", "リバース／リバースで使うカードを40枚以下にしてブギーを倒す（AP12以下）。"),
 },
 160397: {
  'es': ("Sin pecado", "Derrota a Hades en Reverse/Rebirth sin activar el Modo Oscuro (máx. 12 PA)."),
