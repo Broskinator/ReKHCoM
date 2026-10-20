@@ -11,7 +11,10 @@ static void AchievementMenuBadge(const PortAchievementInfo* info, int index, int
     if (!sAchievementAtlasTried) {
         int w, h, channels;
         sAchievementAtlasTried = 1;
-        sAchievementAtlas = stbi_load(PortConfigPath("assets/achievements/badges.png"), &w, &h, &channels, 4);
+        size_t size;
+        void* file = PortLoadAsset("assets/achievements/badges.png", &size);
+        sAchievementAtlas = file ? stbi_load_from_memory(file, (int)size, &w, &h, &channels, 4) : NULL;
+        SDL_free(file);
         if (sAchievementAtlas && (w != 640 || h % 64)) { stbi_image_free(sAchievementAtlas); sAchievementAtlas = NULL; }
         sAchievementAtlasRows = sAchievementAtlas ? h / 64 : 0;
     }
@@ -135,6 +138,6 @@ static void DrawAchievementMenu(int l, int width, int height) {
 #endif
         AchievementMenuText(note, x, height - 22, right, MENU_DIM);
     }
-    AchievementMenuText(es ? "Arriba/abajo: lista  Izq/der: filtro  B: volver" : "Up/down: list  Left/right: filter  B: back",
+    AchievementMenuText(es ? "Arriba/abajo: lista  L/R: filtro  B: volver" : "Up/down: list  L/R: filter  B: back",
         x, height - 11, right, MENU_DIM);
 }

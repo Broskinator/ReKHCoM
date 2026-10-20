@@ -178,6 +178,7 @@ int PortConfigZoomScale(int level);    /* ...rounded down (HUD, labels) */
 int PortConfigZoomExact(int level);    /* the pixel scale is whole */
 int PortConfigZoomHeavy(int zoom);     /* the step draws more than full speed allows */
 const char* PortConfigPath(const char* name);
+void* PortLoadAsset(const char* name, size_t* size);
 
 /* ---- memory (port_memory.c) -------------------------------------------- */
 

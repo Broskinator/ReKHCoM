@@ -145,6 +145,9 @@ android {
         shutil.copy2(source,libs/name);run([strip,'--strip-unneeded',libs/name])
     notices=stage/'app/src/main/assets/licenses';notices.mkdir(parents=True,exist_ok=True)
     shutil.copytree(ROOT/'port/assets/fonts',stage/'app/src/main/assets/fonts',dirs_exist_ok=True)
+    # achievement badges: the game reads APK assets without the "assets/" prefix (PortLoadAsset)
+    (stage/'app/src/main/assets/achievements').mkdir(parents=True,exist_ok=True)
+    shutil.copy2(ROOT/'port/assets/achievements/badges.png',stage/'app/src/main/assets/achievements/badges.png')
     for name in ['FTL.TXT','GPLv2.TXT']:
         shutil.copy2(ROOT.parent/'toolchain/freetype-2.14.3/docs'/name,notices/('FreeType-'+name))
     for source,name in [(sdl/'LICENSE.txt','SDL3.txt'),(ROOT/'LICENSE.md','ReKHCoM.md'),(ROOT/'port/android/assets/NOTICE.md','touch.md')]:shutil.copy2(source,notices/name)

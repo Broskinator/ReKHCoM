@@ -189,6 +189,24 @@ const char* PortConfigPath(const char* name) {
     return out;
 }
 
+/* A file shipped with the game (e.g. "assets/achievements/badges.png"): the data
+   folder, then the executable's folder, then the package itself (Android's APK
+   assets and the web build's embedded files, stored without "assets/").
+   Free with SDL_free. */
+void* PortLoadAsset(const char* name, size_t* size) {
+    const char* base = SDL_GetBasePath();
+    char path[1024];
+    void* data = SDL_LoadFile(PortConfigPath(name), size);
+
+    if (!data && base) {
+        SDL_snprintf(path, sizeof(path), "%s%s", base, name);
+        data = SDL_LoadFile(path, size);
+    }
+    if (!data && SDL_strncmp(name, "assets/", 7) == 0)
+        data = SDL_LoadFile(name + 7, size);
+    return data;
+}
+
 void PortConfigView(int mode, int* w, int* h) {
     switch (mode) {
         case PORT_VIEW_ORIGINAL:

@@ -1,7 +1,7 @@
 """Render real preview toasts at output resolutions, without granting awards.
 
 Uses the original ROM privately, fresh data directories, SDL's software backend,
-and a room fixture. This validates presentation, not approval of map artwork.
+a room fixture and the badge atlas where the Android and web packages keep it. This validates presentation, not approval of map artwork.
 """
 from pathlib import Path
 import json
@@ -13,13 +13,18 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'build/achievement-presentation'
 OUT.mkdir(parents=True, exist_ok=True)
-exe = ROOT / 'build/ra-eu/khcom.exe'
+exe = ROOT / 'build/pc-eu/khcom.exe'
 rom = ROOT / 'roms/B8CP.gba'
 ffmpeg = shutil.which('ffmpeg')
 report = []
 for width, height in [(240, 160), (640, 360), (1920, 1080), (2560, 1080)]:
     work = OUT / f'{width}x{height}'
-    work.mkdir(exist_ok=True)
+    if work.exists():
+        shutil.rmtree(work)
+    # The badge atlas only where Android's APK and the web build keep it (relative
+    # "achievements/", no "assets/"), so the popup must find it through that fallback.
+    (work / 'achievements').mkdir(parents=True)
+    shutil.copy(ROOT / 'port/assets/achievements/badges.png', work / 'achievements/badges.png')
     (work / 'kh_com.ini').write_text('config_version=11\nview_mode=4\nzoom=6\n'
         'scale_mode=0\ninteger_zoom=1\nwindow_scale=1\nfullscreen=0\nvsync=0\n', encoding='ascii')
     env = {k: v for k, v in os.environ.items() if not k.startswith(('KHCOM_', 'SDL_'))}
@@ -44,6 +49,10 @@ for width, height in [(240, 160), (640, 360), (1920, 1080), (2560, 1080)]:
     left, top, right, bottom = box
     assert abs((left + right) / 2 - width / 2) <= 3, (width, box)
     assert top >= 0 and bottom <= height and left > 0 and right < width, (width, box)
+    # The badge sits at the panel's left: colour, not the red placeholder square.
+    badge = image.crop((left, top, left + (bottom - top), bottom))
+    colours = {p for p in badge.get_flattened_data() if max(p) - min(p) > 40}
+    assert len(colours) > 30, (width, 'popup badge missing', len(colours))
     report.append(dict(resolution=[width, height], holding_panel_bounds=box, status='PASS'))
     if width == 1920 and ffmpeg:
         subprocess.run([ffmpeg, '-y', '-loglevel', 'error', '-i', str(work / 'toast.mov'),

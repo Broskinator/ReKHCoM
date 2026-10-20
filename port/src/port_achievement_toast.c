@@ -50,7 +50,10 @@ static int Badge(uint32_t* pixels, int index) {
     if (!sAtlasTried) {
         int w, h, channels;
         sAtlasTried = 1;
-        sAtlas = stbi_load(PortConfigPath("assets/achievements/badges.png"), &w, &h, &channels, 4);
+        size_t size;
+        void* file = PortLoadAsset("assets/achievements/badges.png", &size);
+        sAtlas = file ? stbi_load_from_memory(file, (int)size, &w, &h, &channels, 4) : NULL;
+        SDL_free(file);
         if (sAtlas && (w != 640 || h % 64)) { stbi_image_free(sAtlas); sAtlas = NULL; }
         sAtlasRows = sAtlas ? h / 64 : 0;
     }

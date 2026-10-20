@@ -136,7 +136,10 @@ def main():
                '-sSTACK_SIZE=1048576', '-sMODULARIZE=1', '-sEXPORT_NAME=createReKHCoM',
                '-sENVIRONMENT=web', '-sFORCE_FILESYSTEM=1', '-lidbfs.js',
                '-sEXPORTED_FUNCTIONS=["_main","_PortWebRomReady","_PortWebSetVisible","_PortWebClearInput","_PortWebTouchEnable","_PortWebTouchPersist","_PortWebResize","_PortWebFlushSave","_PortWebActiveBank","_PortWebSetHdReady","_PortWebOption"]',
-               '-sEXPORTED_RUNTIME_METHODS=["FS","IDBFS","HEAPU8","callMain","ccall"]', '-o', str(output)]
+               '-sEXPORTED_RUNTIME_METHODS=["FS","IDBFS","HEAPU8","callMain","ccall"]',
+               # achievement badges for the in-game popup and list (PortLoadAsset)
+               '--embed-file', str(ROOT / 'port/assets/achievements/badges.png') + '@/achievements/badges.png',
+               '-o', str(output)]
     # A response file avoids Windows' command-line length limit.
     response = work / 'link.rsp'
     response.write_text('\n'.join(json.dumps(str(p)) for p in objects) + '\n' +
