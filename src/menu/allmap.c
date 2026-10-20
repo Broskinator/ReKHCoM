@@ -943,7 +943,9 @@ void task_allmap_pusha_3(AllmapPushaWork* work) {
 }
 
 u8 IsStockMesDispActive() {
-    if (gStockMesDispWork == NULL || !IsTaskActive(((AllmapPushaWork*)gStockMesDispWork)->task)) {
+    // @bug The map's title bar also registers itself here (task_allmap_bar_0); read as a
+    // pusha, its steps (16) is the task pointer, so the flags are read at 0x1A (BIOS area).
+    if (gStockMesDispWork == NULL || !IsTaskActive(BIOS_LOW_PTR(((AllmapPushaWork*)gStockMesDispWork)->task))) {
         return FALSE;
     }
 

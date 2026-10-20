@@ -36,6 +36,8 @@
 typedef uint32_t DWORD;
 #endif
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "port/port.h"
 #include "port/port_state.h"
 
@@ -231,6 +233,34 @@ static int DivLength(const uint8_t* p, int* bytes) {
     return (int)(p - start);
 }
 
+static int InGameCode(DWORD eip);
+static DWORD sFaultEsp; /* stack pointer of the fault being handled */
+static int sStackScan = -1;
+
+/* KHCOM_BIOS_STACK=1 (debug kit): the game-code addresses found on the stack
+   right after the site, newest first. The release build has no frame pointers,
+   so these are candidate callers, not an exact backtrace. */
+static void LogStack(uint32_t eip) {
+    char line[160];
+    int i, n = 0, len;
+    const DWORD* sp = (const DWORD*)(uintptr_t)sFaultEsp;
+
+    if (sStackScan < 0) {
+        const char* env = getenv("KHCOM_BIOS_STACK");
+        sStackScan = env && *env == '1';
+    }
+    if (!sStackScan || !sp)
+        return;
+    len = snprintf(line, sizeof(line), "bios-stack: %08lx <-", (unsigned long)eip);
+    for (i = 0; i < 96 && n < 8; i++) {
+        if (InGameCode(sp[i])) {
+            len += snprintf(line + len, sizeof(line) - (size_t)len, " %08lx", (unsigned long)sp[i]);
+            n++;
+        }
+    }
+    PortLog("%s", line);
+}
+
 /* kind: 0 read, 1 write, 2 division by zero. */
 static void LogSite(int kind, uint32_t addr, uint32_t eip) {
     int i;
@@ -244,6 +274,7 @@ static void LogSite(int kind, uint32_t addr, uint32_t eip) {
         PortLog("bios: division by zero at eip %08lx", (unsigned long)eip);
     else
         PortLog("bios: %s %08lx at eip %08lx", kind ? "write" : "read", (unsigned long)addr, (unsigned long)eip);
+    LogStack(eip);
 }
 
 /* Division by zero: quotient and remainder 0, as libgcc returns on the GBA.
@@ -301,6 +332,8 @@ static int RedirectAccess(uint32_t fault, int write, DWORD eip, int* reg, uint32
 static LONG CALLBACK BiosFaultHandler(EXCEPTION_POINTERS* info) {
     EXCEPTION_RECORD* r = info->ExceptionRecord;
     CONTEXT* c = info->ContextRecord;
+
+    sFaultEsp = c->Esp;
 
     if (r->ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO)
         return SkipDivision(&c->Eip, &c->Eax, &c->Edx) ? EXCEPTION_CONTINUE_EXECUTION : EXCEPTION_CONTINUE_SEARCH;
@@ -361,6 +394,8 @@ static void Chain(int sig, siginfo_t* si, void* uc) {
 static void BiosSignal(int sig, siginfo_t* si, void* ucv) {
     mcontext_t* c = &((ucontext_t*)ucv)->uc_mcontext;
     DWORD* eip = (DWORD*)&c->gregs[REG_EIP];
+
+    sFaultEsp = (DWORD)c->gregs[REG_ESP];
 
     if (sig == SIGFPE) {
         if (si->si_code == FPE_INTDIV && SkipDivision(eip, Reg(c, 0), Reg(c, 2)))

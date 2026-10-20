@@ -35,8 +35,12 @@ typedef volatile u32 vu32;
 #ifdef PLATFORM_PC
 extern unsigned char gPortBiosArea[];
 #define BIOS_PTR(p) ((p) != 0 ? (p) : (__typeof__(p))(void*)gPortBiosArea)
+/* BIOS_LOW_PTR(p): the same for any pointer into the first 64 KiB (a small
+   number read as a pointer, e.g. a counter of another task's work). */
+#define BIOS_LOW_PTR(p) ((unsigned long)(p) < 0x10000ul ?     (__typeof__(p))(void*)(gPortBiosArea + (unsigned long)(p)) : (p))
 #else
 #define BIOS_PTR(p) (p)
+#define BIOS_LOW_PTR(p) (p)
 #endif
 
 /*

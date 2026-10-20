@@ -20,6 +20,8 @@ run    builds nothing unless --build (ninja for build/pc-<version>), then runs e
          wide     the same events in the 16:9 view (port-only drawing paths)
          rooms    every world and castle hall, walked (test_rooms.py)
          monkey   random reproducible play from each floor entrance (test_monkey.py)
+         scenes   the Android runner's menus and fixtures (every menu mode, doors, saving,
+                  Moogle, level up, victory, death...) on the desktop build
        --quick shortens frames/minutes for a fast sweep. --jobs defaults to what free RAM
        allows (about 300 MB per game process), so the PC stays usable.
 report scans build/{battletest,eventtest,roomtest_*,monkeytest} and writes
@@ -74,6 +76,45 @@ def build_dir(version):
     return ROOT / f'build/pc-{version}'
 
 
+def run_scenes(version, jobs):
+    """test_android_scenarios.py's menus and fixtures, each in its own hidden desktop process."""
+    from concurrent.futures import ThreadPoolExecutor
+    sys.path.insert(0, str(TOOLS))
+    import test_android_scenarios as scn
+    rom = ROOT / 'roms' / (scn.CODES[version] + '.gba')
+    work = ROOT / 'build/scenetest' / version
+    work.mkdir(parents=True, exist_ok=True)
+
+    def one(item):
+        name, frames, timeout, text = item
+        d = work / name
+        shutil.rmtree(d, ignore_errors=True)
+        d.mkdir(parents=True)
+        for f in ('khcom.exe', 'SDL3.dll'):
+            shutil.copy2(build_dir(version) / f, d / f)
+        env = {k: v for k, v in os.environ.items() if not k.startswith(('KHCOM_', 'SDL_'))}
+        env.update(SDL_VIDEO_DRIVER='dummy', SDL_AUDIO_DRIVER='dummy', KHCOM_FAST='1', KHCOM_QUIT=str(frames))
+        for line in text.splitlines():
+            if '=' in line:
+                k, v = line.split('=', 1)
+                env[k] = v
+        try:
+            code = subprocess.run([str(d / 'khcom.exe'), '--rom', str(rom), '--language', 'es'], cwd=d, env=env,
+                                  stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                  timeout=timeout * 4).returncode
+        except subprocess.TimeoutExpired:
+            code = 'timeout'
+        return f'{name:40s} {"ok" if code == 0 else code}'
+
+    items = scn.scenarios(['menus', 'fixtures'], [], False)
+    with ThreadPoolExecutor(jobs) as pool:
+        lines = list(pool.map(one, items))
+    bad = sum(not l.endswith(' ok') for l in lines)
+    lines.append(f'{len(lines) - bad}/{len(lines)} scenes exited normally')
+    (work / 'report.txt').write_text(chr(10).join(lines) + chr(10), encoding='utf-8')
+    return lines[-1]
+
+
 def suite_commands(suite, version, jobs, quick):
     b = ['--build', str(build_dir(version).relative_to(ROOT)), '--version', version, '--jobs', str(jobs)]
     py = [sys.executable, '-u']
@@ -97,7 +138,7 @@ def case_dirs():
     out = []
     build = ROOT / 'build'
     for base, suite in ((build / 'battletest', 'battles'), (build / 'eventtest', 'events'),
-                        (build / 'monkeytest', 'monkey')):
+                        (build / 'monkeytest', 'monkey'), (build / 'scenetest', 'scenes')):
         if not base.is_dir():
             continue
         for vdir in sorted(p for p in base.iterdir() if p.is_dir()):
@@ -218,7 +259,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('command', choices=('run', 'report'))
     ap.add_argument('--versions', default='us,eu,jp')
-    ap.add_argument('--suites', default='battles,riku,events,wide,rooms,monkey')
+    ap.add_argument('--suites', default='battles,riku,events,wide,rooms,monkey,scenes')
     ap.add_argument('--jobs', type=int, default=0)
     ap.add_argument('--quick', action='store_true')
     ap.add_argument('--build', action='store_true', help='ninja the desktop test builds first')
@@ -238,6 +279,10 @@ def main():
                 raise SystemExit(f'{build_dir(v)}/khcom.exe missing: run with --build')
             for suite in [s for s in args.suites.split(',') if s]:
                 jobs = args.jobs or default_jobs()
+                if suite == 'scenes':
+                    print(f'== scenes {v} (jobs {jobs})', flush=True)
+                    print(run_scenes(v, jobs), flush=True)
+                    continue
                 cmd = suite_commands(suite, v, jobs, args.quick)
                 print(f'== {suite} {v} (jobs {jobs})', flush=True)
                 with open(OUT / f'{suite}-{v}.txt', 'w', encoding='utf-8') as log:
