@@ -50,7 +50,13 @@ at [retroachievements.org](https://retroachievements.org/)). From v1.9.11 they a
 you play, **with or without an account**, and kept on your computer; each one was checked
 against the official definitions in the situation it rewards. The launcher, the web page and
 the in-game Options list show the set with its badges. Signing in to RetroAchievements in the
-launcher is optional and also shows your account's progress.
+launcher is optional: while you are signed in, each unlock is also sent to your RetroAchievements
+account the moment it pops (softcore), so it shows up on your profile, and the launcher shows your
+account's progress. Unlocks earned without an account stay on your computer.
+
+<p align="center"><img src="docs/screenshots/achievement_unlock.png" width="49%"> <img src="docs/screenshots/achievement_unlock2.png" width="49%"></p>
+
+Two real unlocks from beating Axel on the first floor, with their badges and the game's language.
 
 The gameplay, menu, language and launcher screenshots below were captured from
 v1.8.3. The unchanged new-game selection screens remain reference images.
