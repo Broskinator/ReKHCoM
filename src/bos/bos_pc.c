@@ -5584,7 +5584,7 @@ u8 BosPcUpdateIdle(PcWork* work, Task* task) {
         } else {
             work->cardDelay = 4;
         }
-    } else if (work->cardDelay % (work->shared.hpRatio >> 4) == 0) {
+    } else if (MOD0(work->cardDelay, work->shared.hpRatio >> 4) == 0) {
         if (gBtlWork->flags & BTL_FLAG_PLAYER_CARD_ACTION) {
             threshold = ((work->shared.hpRatio * 5) >> 3) + 96;
 
