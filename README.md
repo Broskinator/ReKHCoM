@@ -3,12 +3,13 @@
 PC and browser port of **Kingdom Hearts: Chain of Memories** (Game Boy Advance), built
 on top of the matching decompilation by [Pheenoh/khcom](https://github.com/Pheenoh/khcom).
 
-The decompiled game runs as a real Windows program, with its own renderer, audio
-and launcher, with widescreen and ultrawide support at the cartridge's original speed.
+The decompiled game runs as a native program (Windows, Linux, Steam Deck, Android, the
+browser and PS5), with its own renderer, audio and launcher, with widescreen and
+ultrawide support at the cartridge's original speed.
 
 <p align="center">
-  <a href="https://github.com/MatyMeatBoy/ReKHCoM/releases/latest"><b>⬇ Download ReKHCoM v1.9 for Windows</b></a>
-  &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCoM/"><b>▶ Play in your browser · Alpha 3</b></a>
+  <a href="https://github.com/MatyMeatBoy/ReKHCoM/releases/latest"><b>⬇ Download the latest release (v1.9.10)</b></a>
+  &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCoM/"><b>▶ Play in your browser · Alpha</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCoM/tags">Previous version tags</a>
 </p>
@@ -19,25 +20,33 @@ included), in all five European languages, English (US) and Japanese.
 <p align="center"><img src="docs/screenshots/battle.png" width="49%"> <img src="docs/screenshots/field.png" width="49%"></p>
 
 Development versions are tracked in [Git tags](https://github.com/MatyMeatBoy/ReKHCoM/tags).
-Only stable versions appear as public releases. The current Windows stable is **v1.9**. Android and browser builds are alpha.
+Only stable versions appear as public releases. The current stable is **v1.9.10**.
 
-## What's new in v1.9
+| Platform | Download | Status |
+|---|---|---|
+| Windows | `ReKHCoM-v1.9.10-windows-x86.zip` | Stable |
+| Linux (x86) | `ReKHCoM-v1.9.10-linux-x86.tar.gz` | Stable, tested in virtual machines |
+| Steam Deck | `ReKHCoM-v1.9.10-steamdeck-i386.tar.gz` | Stable, tested in virtual machines |
+| Anbernic (RG34XX and similar) | `ReKHCoM-v1.9.10-linux-armhf-anbernic-alpha.zip` | Alpha |
+| Android | `ReKHCoM-v1.9.10-android-alpha.apk` | Alpha |
+| Browser | [matymeatboy.github.io/ReKHCoM](https://matymeatboy.github.io/ReKHCoM/) | Alpha |
+| PS5 | `PPSA98511.zip` in the [v1.9.10-ps5 release](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9.10-ps5) | Alpha |
 
-- **Cleaner Riku cinematics.** The opening keeps one shaded circle; scenery
-  fills added borders using native tiles, with the original picture preserved.
-- **Safer save handling.** Riku's unlock setting survives relaunches. His save
-  slots appear when the cheat is enabled or Sora's story has been completed.
-  Existing saves stay intact when the option is switched off.
-- **More display choices.** x4 remains the default; 4:3 and the original GBA
-  3:2 aspect ratios can also use the numbered zoom levels.
-- **Lower rendering cost.** Reused buffers and tile-row processing reduce CPU
-  work, especially at the widest zooms.
-- **Optional return-stock control.** Under Experimental, off by default: hold V
-  or the right stick for half a second to return Sora's stocked cards to his hand.
-- **Android and browser alpha updates.** Touch controls, local ROM/save file
-  selection and browser resizing improvements. Android currently uses ARMv7;
-  some 64-bit-only devices are not supported. Native Linux/Steam Deck and RG34XX
-  packages are still in development.
+## What's new in v1.9.10
+
+- **Deck editor fix.** The game no longer closes after editing a deck. This was a
+  bug in the original game: harmless on the GBA, a crash on PC.
+- **Save crystals.** The save window no longer appears shifted over the party after
+  a message window with a portrait.
+- **Crash reports.** If the game ever closes unexpectedly, `kh_com.log` lists where
+  it happened, so it can be attached to a bug report.
+
+## Achievements
+
+- **Local challenges:** 16 per region, shown in Options and in the launcher.
+- **RetroAchievements:** the official set of the European cartridge (softcore). v1.9.10
+  has 28 of its 90 achievements active; **the next update enables all 90**, each one
+  checked against the official definitions in the situation it rewards.
 
 The gameplay, menu, language and launcher screenshots below were captured from
 v1.8.3. The unchanged new-game selection screens remain reference images.
@@ -133,10 +142,12 @@ Each region uses its own save file; the launcher picks the matching version.
 - `port/` holds the platform layer: software PPU (all modes, affine, windows, blending,
   mosaic, HBlank effects), m4a sequencer/mixer in C, PSG emulation, BIOS, DMA, input,
   settings and the wide-view renderer.
+- Where the original game reads stray memory (harmless on the GBA's open bus), the port
+  answers as the GBA bus would instead of crashing.
 
 ## Play in your browser
 
-Open [ReKHCoM Web · Alpha 2](https://matymeatboy.github.io/ReKHCoM/), select your ROM and
+Open [ReKHCoM Web · Alpha](https://matymeatboy.github.io/ReKHCoM/), select your ROM and
 press **Play**. Your ROM stays on your device. The web alpha supports keyboard,
 gamepad and centered touch controls, optional HD text with the PC fonts, and normal save import
 and export. The website starts in English and also offers Spanish; game language
@@ -149,8 +160,8 @@ Export a backup before clearing browser data.
 
 ## Running (Windows)
 
-1. Download the [stable v1.9 ZIP](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9)
-   and extract `ReKHCoM-v1.9-windows-x86.zip` into a writable folder.
+1. Download the [latest stable ZIP](https://github.com/MatyMeatBoy/ReKHCoM/releases/latest)
+   and extract `ReKHCoM-v1.9.10-windows-x86.zip` into a writable folder.
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
 3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`
@@ -161,7 +172,8 @@ The launcher also sets the European game's language, shows each version's save
 graphics, sound, enhancement and control settings shared with the game.
 
 The ZIP includes SDL3; you do not need to install it separately. The executables
-are 32-bit x86 and have been tested locally on Windows only.
+are 32-bit x86. The Linux and Steam Deck packages carry their own launcher script and
+libraries; they have been tested in virtual machines, not yet on every device.
 
 Settings (`kh_com.ini`), your cartridge saves (`kh_com.sav`, `kh_com_us.sav`,
 `kh_com_jp.sav`), and the diagnostic log (`kh_com.log`) are stored next to the
@@ -174,7 +186,7 @@ to the build that created them.
 - Movie transitions during events and the ending still need verification.
 - Neither Sora's story nor Reverse/Rebirth has a verified full playthrough.
 - Some rendering, audio streaming, and widescreen scenes still need verification.
-- Linux and macOS builds are not available.
+- macOS builds are not available.
 
 ## Building (Windows)
 
@@ -206,7 +218,7 @@ your dump during the first configure step.
 To make a distributable ZIP without ROMs, saves or local settings:
 
 ```sh
-python port/tools/package_release.py --version v1.7.1 --sdl ../toolchain/SDL3-3.4.18
+python port/tools/package_release.py --version v1.9.10 --sdl ../toolchain/SDL3-3.4.18
 ```
 
 ## Controls
