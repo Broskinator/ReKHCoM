@@ -71,3 +71,5 @@ header{align-items:flex-start;padding-bottom:14px!important}
 .game-language{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px 14px;margin:0 0 18px}
 .game-language[hidden]{display:none}
 .game-language small{grid-column:1/-1;color:var(--muted,#6b6466);font-size:.85em}
+/* easy-access fullscreen under the game picture (hidden while expanded: the toolbar's button exits) */
+.fullscreen-bar{display:block;width:100%;margin-top:8px;padding:12px 16px;font-size:18px;letter-spacing:.06em}#game.expanded .fullscreen-bar{display:none}

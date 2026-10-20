@@ -270,15 +270,17 @@ static const Setting kSettings[] = {
 };
 
 static std::map<std::string, int> sIni;
+/* kh_com.ini as this launcher last read or wrote it: the game may change the
+   file meanwhile (its language, in-game options), and those values win over
+   the launcher's stale copy unless the launcher changed that key itself. */
+static std::map<std::string, int> sIniOnDisk;
 
 static int& Ini(const char* key) {
     return sIni[key];
 }
 
-static void LoadIni() {
-    sIni.clear();
-    for (const Setting& s : kSettings)
-        sIni[s.key] = s.def;
+static std::map<std::string, int> ReadIniFile() {
+    std::map<std::string, int> values;
     std::ifstream f(sRoot / "kh_com.ini");
     std::string line;
     while (std::getline(f, line)) {
@@ -288,8 +290,17 @@ static void LoadIni() {
         std::string key = line.substr(0, eq);
         while (!key.empty() && std::isspace((unsigned char)key.back()))
             key.pop_back();
-        sIni[key] = std::atoi(line.c_str() + eq + 1);
+        values[key] = std::atoi(line.c_str() + eq + 1);
     }
+    return values;
+}
+
+static void LoadIni() {
+    sIni.clear();
+    for (const Setting& s : kSettings)
+        sIni[s.key] = s.def;
+    for (const auto& kv : ReadIniFile())
+        sIni[kv.first] = kv.second;
     for (const char* retired : {"unstock_button"})
         sIni.erase(retired);
     /* Files from before the auto view switch to it once, as the game does. */
@@ -334,7 +345,7 @@ static void LoadIni() {
     if (sIni["zoom"] == PORT_ZOOM_CLASSIC) sIni["zoom"] = PORT_ZOOM_DEFAULT;
     sIni["integer_zoom"] = 0;
     sIni["config_version"] = PORT_ZOOM_CONFIG_VERSION;
-
+    sIniOnDisk = sIni;
 }
 
 /* The monitor's fullscreen resolutions, largest first, as the game's own
@@ -356,6 +367,12 @@ static std::vector<std::pair<int, int>> DisplayModes() {
 }
 
 static void SaveIni() {
+    for (const auto& kv : ReadIniFile()) {
+        auto seen = sIniOnDisk.find(kv.first);
+        if (seen == sIniOnDisk.end() || sIni[kv.first] == seen->second)
+            sIni[kv.first] = kv.second; /* the game's change, not the launcher's */
+    }
+    sIniOnDisk = sIni;
     std::ofstream f(sRoot / "kh_com.ini", std::ios::trunc);
     f << "# Kingdom Hearts: Chain of Memories (PC) settings\n";
     for (const Setting& s : kSettings)

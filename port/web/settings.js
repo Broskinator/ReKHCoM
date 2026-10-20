@@ -45,7 +45,9 @@ const optionInputs=new Map();
 function preferenceNotice(en,es){$('preferences-status').textContent=optionWord(en,es);}
 function keyName(v){return ReKHWeb.keyboardName(v)||optionWord('Unknown key','Tecla desconocida');}
 function rememberPreferences(){try{localStorage.setItem('rekhcom-options',JSON.stringify(preferences));}catch{preferenceNotice('Browser settings storage is unavailable.','No se pueden conservar las opciones del navegador.');}}
-function mergeIni(){let text=baseIni||'config_version=11\n';for(const[k,v]of Object.entries(preferences)){const line=new RegExp('^'+k+'=.*$','m');text=line.test(text)?text.replace(line,k+'='+v):text+'\n'+k+'='+v;}return text+'\n';}
+function mergeIni(){let current='';try{if(core)current=core.FS.readFile('/saves/kh_com.ini',{encoding:'utf8'});}catch{}
+  /* the file as it is now: the game and the language selector write it too */
+  let text=current||baseIni||'config_version=11\n';for(const[k,v]of Object.entries(preferences)){const line=new RegExp('^'+k+'=.*$','m');text=line.test(text)?text.replace(line,k+'='+v):text+'\n'+k+'='+v;}return text+'\n';}
 function changePreference(key,value){
   preferences[key]=Number(value);dirtyPreferences.add(key);rememberPreferences();
   if(started){
