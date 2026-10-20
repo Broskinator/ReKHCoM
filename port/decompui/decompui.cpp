@@ -937,6 +937,22 @@ static void PageHome(SDL_Window* window) {
     ImGui::SameLine(0, Px(20));
 
     ImGui::BeginGroup();
+    /* play first: visible from the start, without scrolling */
+    bool ready = sState[sSelected].installed && fs::exists(sState[sSelected].exe);
+    if (PlayButton(T("JUGAR", "PLAY"), ImVec2(ImGui::GetContentRegionAvail().x, Px(72)), ready))
+        sLaunch = true;
+    if (ready && ImGui::Button(T("Crear acceso directo en el escritorio", "Create a desktop shortcut"),
+                               ImVec2(ImGui::GetContentRegionAvail().x, 0)))
+        CreateDesktopShortcut();
+    if (!ready) {
+        ImGui::PushFont(sFontSmall);
+        ImGui::TextColored(kMuted, "%s",
+                           sState[sSelected].installed
+                               ? T("No se encontró el ejecutable de esta versión.", "This version's executable is missing.")
+                               : T("Instala la ROM de esta versión para jugar.", "Install this version's ROM to play."));
+        ImGui::PopFont();
+    }
+    ImGui::Spacing();
     BeginCard("versions");
     Eyebrow(T("VERSIONES", "VERSIONS"));
     for (int v = 0; v < kVersionCount; v++) {
@@ -1034,20 +1050,6 @@ static void PageHome(SDL_Window* window) {
     ImGui::EndChild();
 
     ImGui::Spacing();
-    bool ready = sState[sSelected].installed && fs::exists(sState[sSelected].exe);
-    if (PlayButton(T("JUGAR", "PLAY"), ImVec2(ImGui::GetContentRegionAvail().x, Px(72)), ready))
-        sLaunch = true;
-    if (ready && ImGui::Button(T("Crear acceso directo en el escritorio", "Create a desktop shortcut"),
-                               ImVec2(ImGui::GetContentRegionAvail().x, 0)))
-        CreateDesktopShortcut();
-    if (!ready) {
-        ImGui::PushFont(sFontSmall);
-        ImGui::TextColored(kMuted, "%s",
-                           sState[sSelected].installed
-                               ? T("No se encontró el ejecutable de esta versión.", "This version's executable is missing.")
-                               : T("Instala la ROM de esta versión para jugar.", "Install this version's ROM to play."));
-        ImGui::PopFont();
-    }
     ImGui::Spacing();
     BeginCard("save");
     Eyebrow(T("PARTIDA", "SAVE"));
