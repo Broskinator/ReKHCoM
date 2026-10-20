@@ -39,6 +39,14 @@ u16 gCardCount EWRAM_COMMON(4);
 void map_anim_0(MapTileAnimationWork* work) {
     u8 i;
 
+#ifdef PLATFORM_PC
+    // @bug Events without a background read mapAnim from the BIOS area (event_message.c):
+    // the index falls far outside this table and the cartridge reads stray memory, which
+    // animates nothing. Outside the table the port animates nothing directly.
+    if ((u32)gEventState->mapAnim >= ARRAY_COUNT(gMapTileAnimationDefs))
+        work->definition = NULL;
+    else
+#endif
     work->definition = gMapTileAnimationDefs[gEventState->mapAnim];
 
     if (work->definition != NULL) {
