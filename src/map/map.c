@@ -6397,8 +6397,8 @@ static void MapSaveSelectTarget(MapSaveWork* work, u8 slot) {
 #endif
 
 s32 MapSaveInput(MapSaveWork* work) {
-    u8 targetSlot = (gGameState.flags & GAME_FLAG_SECOND_FILE) ? 1 : 0;
 #ifdef PLATFORM_PC
+    u8 targetSlot = (gGameState.flags & GAME_FLAG_SECOND_FILE) ? 1 : 0;
     if (PortSaveSlotSelectEnabled()) {
         if (GetKeysRepeat() & (DPAD_UP | DPAD_DOWN)) {
             MapSaveSelectTarget(work, sMapSaveTargetSlot ^ 1);
@@ -6439,7 +6439,6 @@ s32 MapSaveInput(MapSaveWork* work) {
             gGameState.flags |= GAME_FLAG_SECOND_FILE;
         else
             gGameState.flags &= ~GAME_FLAG_SECOND_FILE;
-#endif
 
         if (gGameState.flags & GAME_FLAG_RIKU) {
             SaveWriteFileSmall(targetSlot);
@@ -6448,6 +6447,25 @@ s32 MapSaveInput(MapSaveWork* work) {
             SaveWriteFileLarge(targetSlot);
             MapSaveShowSummary(work, targetSlot);
         }
+#else
+        if (gGameState.flags & GAME_FLAG_RIKU) {
+            if (gGameState.flags & GAME_FLAG_SECOND_FILE) {
+                SaveWriteFileSmall(1);
+                MapSaveShowSummary(work, 3);
+            } else {
+                SaveWriteFileSmall(0);
+                MapSaveShowSummary(work, 2);
+            }
+        } else {
+            if (gGameState.flags & GAME_FLAG_SECOND_FILE) {
+                SaveWriteFileLarge(1);
+                MapSaveShowSummary(work, 1);
+            } else {
+                SaveWriteFileLarge(0);
+                MapSaveShowSummary(work, 0);
+            }
+        }
+#endif
 
         work->textSlotCount2 = LoadTextSlots(LOCALIZED_STRING(gMapSaveCompleteText), work->textSlots2);
         work->textSlotCount3 = 0;

@@ -382,13 +382,18 @@ enum TitleMenuLayout {
     TITLE_MENU_LAYOUT_NEW_GAME
 };
 
-static int TitleRikuAvailable(void) {
 #ifdef PLATFORM_PC
+static int TitleRikuAvailable(void) {
     return PortRikuAvailable(gGameState.flags & GAME_FLAG_SORA_CLEAR);
-#else
-    return (gGameState.flags & GAME_FLAG_SORA_CLEAR) != 0;
-#endif
 }
+/* Riku can be unlocked before Sora's story is cleared: the menus then have one row fewer */
+#define TITLE_MENU_FULL_COUNT ((gGameState.flags & GAME_FLAG_SORA_CLEAR) ? 3 : 2)
+#define TITLE_MENU_FULL_ROWS ((gGameState.flags & GAME_FLAG_SORA_CLEAR) ? 4 : 3)
+#else
+#define TitleRikuAvailable() (gGameState.flags & GAME_FLAG_SORA_CLEAR)
+#define TITLE_MENU_FULL_COUNT 3
+#define TITLE_MENU_FULL_ROWS 4
+#endif
 
 void task_title_menu_0(TitleMenuWork* work, s16* choice) {
     s32 paletteOffset;
@@ -617,7 +622,7 @@ u8 task_title_menu_1(TitleMenuWork* work) {
     if (work->layout == TITLE_MENU_LAYOUT_BASIC) {
         TitleMenuMoveBasic(work->choice);
     } else if (work->layout == TITLE_MENU_LAYOUT_FULL) {
-        TitleMenuMoveOrdered(work->choice, (gGameState.flags & GAME_FLAG_SORA_CLEAR) ? 3 : 2);
+        TitleMenuMoveOrdered(work->choice, TITLE_MENU_FULL_COUNT);
     } else if (work->layout == TITLE_MENU_LAYOUT_NEW_GAME) {
         TitleMenuMoveOrdered(work->choice, 1);
     }
@@ -669,7 +674,7 @@ void TitleMenuDrawFull(TitleMenuWork* work) {
 
     y = 16;
 
-    for (i = 0; i < ((gGameState.flags & GAME_FLAG_SORA_CLEAR) ? 4 : 3); i++) {
+    for (i = 0; i < TITLE_MENU_FULL_ROWS; i++) {
 #ifdef VERSION_EU
         void** spr = sTitleMenuEntrySpritesEu[gLanguage];
 
