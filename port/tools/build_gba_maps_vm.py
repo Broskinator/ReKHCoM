@@ -29,8 +29,8 @@ AGBCC_REVISION = 'da598c1d918402c42c0c0d7128ba14567f3175e9'
 SCRIPT = r'''#!/bin/bash
 set -ex
 export DEBIAN_FRONTEND=noninteractive
-command -v arm-none-eabi-as >/dev/null && command -v bison >/dev/null && python3 -c 'import yaml' && command -v ninja >/dev/null \
-  || { apt-get update -qq && apt-get install -y -qq build-essential bison flex binutils-arm-none-eabi python3-yaml ninja-build libpng-dev git curl ca-certificates; }
+command -v arm-none-eabi-as >/dev/null && command -v arm-none-eabi-cpp >/dev/null && command -v bison >/dev/null && python3 -c 'import yaml' && command -v ninja >/dev/null \
+  || { apt-get update -qq && apt-get install -y -qq build-essential bison flex binutils-arm-none-eabi gcc-arm-none-eabi python3-yaml ninja-build libpng-dev git curl ca-certificates; }
 mkdir -p /root/gba /root/gba-cache
 cd /root/gba
 find . -mindepth 1 -maxdepth 1 ! -name tools ! -name build -exec rm -rf {} +

@@ -2062,7 +2062,7 @@ static void VBlankCycle(void) {
     const char* frameLogPath = SDL_getenv("KHCOM_FRAMELOG");
     uint64_t frameLogStart = frameLogPath ? SDL_GetPerformanceCounter() : 0;
     uint64_t frameLogWork = 0;
-    *(volatile uint16_t*)(uintptr_t)0x03007FF8 &= ~1; /* BIOS IntrCheck */
+    *(volatile uint16_t*)(uintptr_t)(GBA_IWRAM + 0x7FF8) &= ~1; /* BIOS IntrCheck */
     PortBiosAreaRefresh();
     sFit = sFitMark;
     sFitMark = 0;

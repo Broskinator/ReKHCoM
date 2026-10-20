@@ -313,8 +313,24 @@ static int InGameCode(DWORD eip) {
 }
 
 static int RedirectAccess(uint32_t fault, int write, DWORD eip, int* reg, uint32_t* delta) {
+#ifdef PORT_GBA_RELOC
+    /* The relocatable build: the bus range itself is not mapped; the game reaching it through a bus address goes to
+       the region's array (logged, as the sites to translate). */
+    if (fault >= GBA_SPACE_LOW && fault < GBA_SPACE_HIGH) {
+        uint32_t target = BusTarget(fault, write);
+        if (target >= GBA_SPACE_LOW && target < GBA_SPACE_HIGH) {
+            void* p = GbaSpacePtr(target);
+            target = p ? (uint32_t)(uintptr_t)p : (uint32_t)(uintptr_t)gPortBiosArea;
+        }
+        if (!AddressRegister((const uint8_t*)(uintptr_t)eip, target - fault, reg, delta))
+            return 0;
+        LogSite(write, fault, eip);
+        return 1;
+    }
+#else
     if (fault >= GBA_SPACE_LOW && fault < GBA_SPACE_HIGH)
         return 0; /* only addresses outside the GBA space */
+#endif
     /* The system's own address range: a fault there is the port's own bug,
        unless the game's code made it. On the GBA everything below EWRAM past
        the BIOS is open bus, and the game does read it: a stale panelsVisible
@@ -322,8 +338,17 @@ static int RedirectAccess(uint32_t fault, int write, DWORD eip, int* reg, uint32
        0x0003FFFC, harmless on the cartridge. */
     if (fault >= BIOS_AREA_SIZE && fault < GBA_SPACE_LOW && !InGameCode(eip))
         return 0;
-    if (!AddressRegister((const uint8_t*)(uintptr_t)eip, BusTarget(fault, write) - fault, reg, delta))
-        return 0;
+    {
+        uint32_t target = BusTarget(fault, write);
+#ifdef PORT_GBA_RELOC
+        if (target >= GBA_SPACE_LOW && target < GBA_SPACE_HIGH) {
+            void* p = GbaSpacePtr(target);
+            target = p ? (uint32_t)(uintptr_t)p : (uint32_t)(uintptr_t)gPortBiosArea;
+        }
+#endif
+        if (!AddressRegister((const uint8_t*)(uintptr_t)eip, target - fault, reg, delta))
+            return 0;
+    }
     LogSite(write, fault, eip);
     return 1;
 }

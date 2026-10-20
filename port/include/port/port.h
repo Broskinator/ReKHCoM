@@ -34,6 +34,14 @@
 #define GBA_SRAM GBA_SRAM_BASE
 #define GBA_SRAM_SIZE 0x10000u
 
+/* p lies in the GBA space from work RAM to the end of the ROM (0x02000000-0x09FFFFFF on the bus) */
+#ifdef PORT_GBA_RELOC
+unsigned int GbaSpaceBusAddress(const void* p);
+#define PORT_GBA_MAP_MEMORY(p) (GbaSpaceBusAddress(p) - 0x02000000u < 0x08000000u)
+#else
+#define PORT_GBA_MAP_MEMORY(p) ((uintptr_t)(p) - 0x02000000u < 0x08000000u)
+#endif
+
 #define GBA_SCREEN_W 240
 #define GBA_SCREEN_H 160
 #define GBA_FPS 59.7275

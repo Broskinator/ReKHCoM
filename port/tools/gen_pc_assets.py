@@ -190,7 +190,7 @@ class Gen:
         fixed = {}
         for line in (ROOT / "port/src/port_symbols.s").read_text().splitlines():
             parts = line.split()
-            if len(parts) == 2 and parts[0] == ".set":
+            if len(parts) == 3 and parts[0] == ".set":
                 sym, value = parts[1].rstrip(",").lstrip("_"), int(line.split(",")[1], 16)
                 fixed[sym] = value
         for name, address in sorted({**self.rom_symbols, **fixed}.items(), key=lambda kv: (kv[1], kv[0])):

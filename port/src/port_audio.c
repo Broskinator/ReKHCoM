@@ -352,7 +352,7 @@ static int FifoDma(int fifo) {
 
     for (dma = 1; dma <= 2; dma++) {
         uint32_t cnt = IO32(0xB8 + dma * 12);
-        if ((cnt & 0x80000000u) && ((cnt >> 28) & 3) == 3 && IO32(0xB4 + dma * 12) == 0x040000A0u + fifo * 4)
+        if ((cnt & 0x80000000u) && ((cnt >> 28) & 3) == 3 && IO32(0xB4 + dma * 12) == (uint32_t)(GBA_IO + 0xA0 + fifo * 4))
             return dma;
     }
     return 0;

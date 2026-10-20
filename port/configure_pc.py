@@ -47,6 +47,8 @@ def main():
     parser.add_argument("--debug", action="store_true", help="no optimisation, console window")
     parser.add_argument("--version", default="eu", choices=VERSIONS, help="cartridge version (default: eu)")
     parser.add_argument("--out", help="output directory (default: build/pc, or build/pc-<version>)")
+    parser.add_argument("--reloc", action="store_true",
+                        help="relocatable GBA space (PORT_GBA_RELOC, as on Vita/Switch), checked on Windows (build/pc-reloc-<version>)")
     parser.add_argument("--hd2d", action="store_true",
                         help="alternative build with the experimental HD-2D look on by default (build/pc-hd2d)")
     args = parser.parse_args()
@@ -56,6 +58,8 @@ def main():
     GEN = ROOT / "build" / VERSION / "gen"
     PC_GEN = ROOT / "build" / VERSION / "pc"
     default_out = "build/pc" if VERSION == "eu" else f"build/pc-{VERSION}"
+    if args.reloc:
+        default_out = f"build/pc-reloc-{VERSION}"
     BUILD = ROOT / (args.out or (default_out + "-hd2d" if args.hd2d else default_out))
     toolchain = args.toolchain or find_default("toolchain", "llvm-mingw-*")
     sdl = args.sdl or find_default("sdl", "SDL3-*")
@@ -65,7 +69,7 @@ def main():
         sys.exit(f"error: {cc} does not exist")
 
     # Asset glue (headers, text fragments, ROM symbol table).
-    if not (PC_GEN / "rom_symbols.s").exists():
+    if not (PC_GEN / "rom_symbols.s").exists() or not (PC_GEN / "rom_symbols_reloc.s").exists():
         env = dict(os.environ, PYTHONUTF8="1")
         subprocess.check_call([sys.executable, str(ROOT / "port" / "tools" / "gen_pc_assets.py"),
                                "--version", VERSION], env=env)
@@ -75,17 +79,21 @@ def main():
     includes = " ".join(f"-I{d}" for d in include_dirs + [rel(GEN), "port/include"])
     opt = "-O0 -g" if args.debug else "-O2 -g"
     common = (f"{opt} -std=gnu89 -funsigned-char -fno-strict-aliasing -fwrapv -fno-common "
-              f"-mno-ms-bitfields -DVERSION_{VERSION.upper()} -DPLATFORM_PC")
+              f"-mno-ms-bitfields -DVERSION_{VERSION.upper()} -DPLATFORM_PC"
+              + (" -DPORT_GBA_RELOC" if args.reloc else ""))
     game_cflags = f"{common} -w -include port/game_prefix.h {includes}"
     # Port sources see the game headers only through #include "...", so names
     # such as malloc.h cannot shadow the system headers.
     quoted = " ".join(f"-iquote {d}" for d in include_dirs + [rel(GEN)])
     port_cflags = (f"{opt} -std=gnu11 -Wall -Wno-unused-function -Wno-missing-braces -mno-ms-bitfields "
                    f"-DVERSION_{VERSION.upper()} -DPLATFORM_PC {quoted} -Iport/include -I{rel(sdl_arch / 'include')}"
-                   + (" -DPORT_HD2D" if args.hd2d else ""))
+                   + (" -DPORT_HD2D" if args.hd2d else "") + (" -DPORT_GBA_RELOC" if args.reloc else ""))
     port_cflags += " -DPORT_RETROACHIEVEMENTS -DRC_CLIENT_SUPPORTS_HASH -Iport/third_party/rcheevos/include"
     ldflags = (f"-L{rel(sdl_arch / 'lib')} -lSDL3 -lgdi32 -lwinhttp -lcrypt32 -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic -Wl,--disable-dynamicbase -Wl,--large-address-aware "
                + ("" if args.debug else "-Wl,--subsystem,windows"))
+    if args.reloc:
+        # above the bus range, which the check build reserves without access (port_memory.c)
+        ldflags += " -Wl,--image-base=0x10000000"
 
     BUILD.mkdir(parents=True, exist_ok=True)
     with open(BUILD / "build.ninja", "w") as f:
@@ -131,7 +139,8 @@ def main():
             objs.append(obj)
         n.build("$builddir/port/rom_relocs.o", "cc_port", rel(PC_GEN / "rom_relocs.c"))
         objs.append("$builddir/port/rom_relocs.o")
-        for src in [ROOT / "port" / "src" / "port_symbols.s", PC_GEN / "rom_symbols.s"]:
+        asm = [PC_GEN / "rom_symbols_reloc.s"] if args.reloc else [ROOT / "port" / "src" / "port_symbols.s", PC_GEN / "rom_symbols.s"]
+        for src in asm:
             obj = f"$builddir/port/{src.stem}_s.o"
             n.build(obj, "as", rel(src))
             objs.append(obj)

@@ -831,7 +831,7 @@ static struct {
 
 static int MapTile(const BgLatch* l, int tx, int ty) {
     const uint16_t* block = (const uint16_t*)l->map[(ty >> 5) * l->width + (tx >> 5)];
-    if ((uintptr_t)block < 0x02000000u || (uintptr_t)block >= 0x0A000000u)
+    if (!PORT_GBA_MAP_MEMORY(block))
         return -1;
     return block[(ty & 31) * 32 + (tx & 31)];
 }
@@ -923,7 +923,7 @@ static int WorldEntry(const BgLatch* l, int wx, int wy) {
         return -1;
     block = (const uint16_t*)l->map[(wy >> 8) * l->width + (wx >> 8)];
     /* Blocks live in work RAM or the ROM; anything else is not a world map. */
-    if ((uintptr_t)block < 0x02000000u || (uintptr_t)block >= 0x0A000000u)
+    if (!PORT_GBA_MAP_MEMORY(block))
         return -1;
     return block[((wy & 255) >> 3) * 32 + ((wx & 255) >> 3)];
 }

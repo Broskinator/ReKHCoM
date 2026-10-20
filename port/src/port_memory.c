@@ -24,10 +24,12 @@
 #define GBA_SPACE_END 0x0E010000u
 #define GBA_SPACE_SIZE (GBA_SPACE_END - 0x00400000u)
 
+#ifndef PORT_GBA_RELOC
 /* Its own uninitialised section: no file space, whatever follows it. */
 #pragma clang section bss = "gbaspace"
 __attribute__((used, aligned(4096))) static uint8_t sGbaSpace[GBA_SPACE_SIZE];
 #pragma clang section bss = ""
+#endif
 
 /* Stand-in for the BIOS area behind BIOS_PTR(): reads see the open-bus value
    left by the BIOS (the opcode after the SWI return), writes are undone every
@@ -45,6 +47,20 @@ void PortBiosAreaRefresh(void) {
 static uint8_t sSramShadow[GBA_SRAM_SIZE];
 static int sSramLoaded;
 
+#ifdef PORT_GBA_RELOC
+/* The relocatable build (include/gba/gba_space.h) keeps its regions in arrays elsewhere. Its Windows check build
+   reserves the hardware range without access, so any access the game still makes through a bus address faults and
+   the stray-pointer handler (port_biosfault.c) logs it and sends it to the array, as a console's handler would. */
+int PortMemoryInit(void) {
+    uint32_t a, reserved = 0, total = 0;
+    /* in 64 KiB pieces: libraries and heaps loaded before this keep the pieces they took */
+    for (a = 0x02000000u; a < GBA_SPACE_END; a += 0x10000u, total++)
+        reserved += VirtualAlloc((void*)(uintptr_t)a, 0x10000u, MEM_RESERVE, PAGE_NOACCESS) != NULL;
+    PortLog("GBA space: %u of %u pieces of the bus range reserved", (unsigned)reserved, (unsigned)total);
+    PortLog("GBA space: relocatable, EWRAM %p VRAM %p ROM %p", (void*)gGbaEwram, (void*)gGbaVram, (void*)gGbaRom);
+    return 1;
+}
+#else
 int PortMemoryInit(void) {
     uint32_t start = (uint32_t)(uintptr_t)sGbaSpace;
     uint32_t end = start + GBA_SPACE_SIZE;
@@ -57,6 +73,7 @@ int PortMemoryInit(void) {
     }
     return 1;
 }
+#endif
 
 const char* gPortRomPath;
 
@@ -124,9 +141,15 @@ int PortRomLoad(void) {
                   "as \"baserom.gba\".");
         return 0;
     }
+#ifdef PORT_GBA_RELOC
+    {
+        extern int GbaSpaceMoveRomPointers(void);
+        PortLog("GBA space: %d ROM pointers moved", GbaSpaceMoveRomPointers());
+    }
+#endif
     /* ROM words that referenced code or data now compiled natively. */
     for (r = gPortRomRelocs; r->romAddress != 0; r++)
-        *(uint32_t*)(uintptr_t)r->romAddress = (uint32_t)(uintptr_t)r->target;
+        *(uint32_t*)(uintptr_t)(GBA_ROM + (r->romAddress - 0x08000000u)) = (uint32_t)(uintptr_t)r->target;
     return 1;
 }
 
