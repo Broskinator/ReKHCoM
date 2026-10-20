@@ -30,6 +30,8 @@
   The launcher follows it too (A confirms, B goes back, bindings and the controller test).
 - Battles against Cloud, Axel and Parasite Cage no longer close the game on Android x86 and the
   web: a few divisions by zero of the original now return 0, as on the GBA.
+- Deck editor: moving the last copy of a card into the deck no longer risks closing the game on
+  Android, the web and Linux ARM (same kind of division by zero).
 
 ## v1.9.10 — 2026-10-19
 
