@@ -1,4 +1,4 @@
-# Cola vigente (19/10/2026)
+# Cola vigente (20/10/2026)
 
 Única cola de trabajo; los demás .md son evidencia. Lo terminado sale de aquí
 (queda en el historial de git y en CHANGELOG.md). Numeración histórica conservada.
@@ -15,7 +15,8 @@ Reglas del usuario:
 
 | Quién | Pendiente |
 |---|---|
-| **Claude** | 51–54: alphas de Vita, PS4 y Switch, compiladas como la de PS5 (VM) |
+| **Claude** | 51–54 PS4: alpha hecha (20/10, `port/ps4`): host OpenOrbis para la misma imagen x32 de PS5, .pkg desde Windows; probado el host en Linux (VM) hasta el menú, nunca en consola. Entra en el próximo prerelease |
+| **Claude** | 51–54 Vita y Switch: bloqueadas por diseño (ver abajo). Decisión del usuario pendiente |
 | **Claude** | Release v1.9.11: candidato listo en main; se publica solo cuando el usuario diga |
 | **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, ver KIT_DEPURACION.md). Hecho: 65 jefes en Android x86 con UBSan, 209/209 combates y 52/52 salas US en escritorio sin fallos; arreglados Cloud/Axel/Parasite Cage y el editor de baraja (DIV0). En curso (20/10): Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
 | **Claude** | Insignias de logros fuera de Windows/Linux: arreglado en main (`PortLoadAsset`, APK y web llevan el atlas); falta verlo en el emulador Android y en una build web cuando haya RAM libre. PS5: su carpeta de datos no trae el atlas, probar en la VM |
@@ -24,6 +25,16 @@ Reglas del usuario:
 | **Usuario** | Revisar 61–62 (escenas de Ciudad de Paso con márgenes incompletos) cuando Claude las muestre |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
 | **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después |
+
+## Vita y Switch (20/10)
+
+El núcleo necesita punteros de 32 bits y las regiones GBA en sus direcciones reales
+(0x02000000-0x0E010000). PS5/PS4 lo resuelven con la imagen x32 mapeada abajo; en Vita
+(ARM32, espacio de usuario desde 0x81000000) y Switch (AArch64, sin 32 bits para homebrew,
+región de código desde 0x08000000) no se puede mapear ahí. Hace falta reubicar todo el espacio
+GBA (macros de hardware, enlazado, punteros de recursos, manejador de fallos ARM): proyecto
+propio de semanas, que serviría para las dos. Alternativa Vita: ggdrn/KH_COM_VITA (MIT) ya lo
+hizo con su propio parche.
 
 ## Esperando a terceros (no se trabaja)
 

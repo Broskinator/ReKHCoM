@@ -44,6 +44,8 @@
   Android, the web and Linux ARM (same kind of division by zero).
 - Cheats: "Complete the journal" fills Jiminy's Journal (and Riku's reports) the way the
   cartridge's debug menu does, without shrinking the card collection's room (#31).
+- PS4 (alpha, not yet run on a console): a package for consoles with GoldHEN, the same game as the PS5
+  version. Copy your cartridge dump to /data/ReKHCom/.
 
 ## v1.9.10 — 2026-10-19
 
