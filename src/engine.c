@@ -651,10 +651,10 @@ ObjAffine* AllocObjAffine(u8 angle, s32 sx, s32 sy, u8 doubleSize) {
     cos = gSineTable[angle + 0x40];
     affine = &gSpriteWork->affine[gSpriteWork->affineCount];
     // @bug sx or sy can be 0 (division by zero).
-    affine->pa = (cos << 8) / sx;
-    affine->pb = (sin << 8) / sy;
-    affine->pc = (-sin << 8) / sx;
-    affine->pd = (cos << 8) / sy;
+    affine->pa = DIV0(cos << 8, sx);
+    affine->pb = DIV0(sin << 8, sy);
+    affine->pc = DIV0(-sin << 8, sx);
+    affine->pd = DIV0(cos << 8, sy);
     affine->index = gSpriteWork->affineCount;
     affine->doubleSize = doubleSize;
     affine->sx = sx;
@@ -678,10 +678,10 @@ ObjAffine* AllocObjAffineScaleFirst(u8 angle, s32 sx, s32 sy, u8 doubleSize) {
     cos = gSineTable[angle + 0x40];
     affine = &gSpriteWork->affine[gSpriteWork->affineCount];
     // @bug sx or sy can be 0 (division by zero).
-    affine->pa = (cos << 8) / sx;
-    affine->pb = (sin << 8) / sx;
-    affine->pc = (-sin << 8) / sy;
-    affine->pd = (cos << 8) / sy;
+    affine->pa = DIV0(cos << 8, sx);
+    affine->pb = DIV0(sin << 8, sx);
+    affine->pc = DIV0(-sin << 8, sy);
+    affine->pd = DIV0(cos << 8, sy);
     affine->index = gSpriteWork->affineCount;
     affine->doubleSize = doubleSize;
     affine->sx = sx;

@@ -39,6 +39,20 @@ extern unsigned char gPortBiosArea[];
 #define BIOS_PTR(p) (p)
 #endif
 
+/*
+ * DIV0/MOD0: the cartridge's division routines return 0 for a zero divisor (quotient and
+ * remainder). Hardware x86 raises SIGFPE and WebAssembly traps instead, so the places the
+ * original reaches with a zero divisor (marked "@bug ... division by zero") use these.
+ */
+#ifdef PLATFORM_PC
+/* both operands are evaluated once and in the original's order (GetRandom() still advances) */
+#define DIV0(a, b) ({ __typeof__((a) / 1) _a = (a); __typeof__(b) _b = (b); _b == 0 ? 0 : _a / _b; })
+#define MOD0(a, b) ({ __typeof__((a) % 1) _a = (a); __typeof__(b) _b = (b); _b == 0 ? 0 : _a % _b; })
+#else
+#define DIV0(a, b) ((a) / (b))
+#define MOD0(a, b) ((a) % (b))
+#endif
+
 #define TRUE 1
 #define FALSE 0
 

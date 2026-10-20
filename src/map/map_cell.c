@@ -1911,7 +1911,7 @@ void MapPlaceDoorOnPlatform(MapPlatform* platform, s32 side) {
 
     if (doorSide == MAP_DOOR_SIDE_UP_RIGHT) {
         // @bug width >> 2 is 0 on platforms narrower than four cells (division by zero).
-        x = platform->left + width * 5 / 8 + GetRandom() % (width >> 2);
+        x = platform->left + width * 5 / 8 + MOD0(GetRandom(), width >> 2);
 
         for (i = 0; i < width; i++) {
             for (y = sMapTopRow; y <= sMapBottomRow; y++) {
@@ -1938,7 +1938,7 @@ void MapPlaceDoorOnPlatform(MapPlatform* platform, s32 side) {
 
     if (doorSide == MAP_DOOR_SIDE_DOWN_RIGHT) {
         // @bug width >> 2 is 0 on platforms narrower than four cells (division by zero).
-        x = platform->left + width * 5 / 8 + GetRandom() % (width >> 2);
+        x = platform->left + width * 5 / 8 + MOD0(GetRandom(), width >> 2);
 
         for (i = 0; i < width; i++) {
             for (y = sMapTopRow; y <= sMapBottomRow; y++) {
@@ -1961,7 +1961,7 @@ void MapPlaceDoorOnPlatform(MapPlatform* platform, s32 side) {
 
     if (doorSide == MAP_DOOR_SIDE_DOWN_LEFT) {
         // @bug width >> 2 is 0 on platforms narrower than four cells (division by zero).
-        x = platform->left + width * 3 / 8 - GetRandom() % (width >> 2);
+        x = platform->left + width * 3 / 8 - MOD0(GetRandom(), width >> 2);
 
         for (i = 0; i < width; i++) {
             for (y = sMapTopRow; y <= sMapBottomRow; y++) {
@@ -1984,7 +1984,7 @@ void MapPlaceDoorOnPlatform(MapPlatform* platform, s32 side) {
 
     if (doorSide == MAP_DOOR_SIDE_UP_LEFT) {
         // @bug width >> 2 is 0 on platforms narrower than four cells (division by zero).
-        x = platform->left + width * 3 / 8 - GetRandom() % (width >> 2);
+        x = platform->left + width * 3 / 8 - MOD0(GetRandom(), width >> 2);
 
         for (i = 0; i < width; i++) {
             for (y = sMapTopRow; y <= sMapBottomRow; y++) {
