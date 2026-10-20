@@ -3396,6 +3396,11 @@ void ClearStockedCardSlots(CardBattleWork* work) {
 
     for (i = 0; i < ARRAY_COUNT(work->slots); i++) {
         slots = work->slots[i];
+#ifdef PLATFORM_PC
+        /* A NULL list: on the GBA these stores hit the BIOS and are ignored. Platforms
+           without fault recovery (Android, web, Linux ARM) would crash here. */
+        if (slots == NULL) continue;
+#endif
 
         // @bug? Should be slotCounts[i].
         for (j = 0; j < work->slotCounts[j]; j++) {
