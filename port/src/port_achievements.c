@@ -13,6 +13,15 @@
 #include "game_state.h"
 #include "mode.h"
 #include "../achievements/offline_achievements.c"
+/* the language of the official set's text (index into KhOfficialAchievement.text) */
+#ifdef VERSION_EU
+extern uint32_t gLanguage;
+#define ACHIEVEMENT_TEXT_LANGUAGE ((int)gLanguage)
+#elif defined(VERSION_JP)
+#define ACHIEVEMENT_TEXT_LANGUAGE 5 /* Japanese */
+#else
+#define ACHIEVEMENT_TEXT_LANGUAGE 0 /* English */
+#endif
 /* the official set is evaluated by the game itself (rcheevos' runtime, no
    account): the European cartridge, wherever rcheevos is built in */
 #if defined(VERSION_EU) && (defined(PORT_RETROACHIEVEMENTS) || defined(PORT_OFFLINE_ACHIEVEMENTS))
@@ -37,14 +46,6 @@ static const uint32_t sOfficialVerified[] = { 15580u, 15582u, 15583u, 15584u, 15
 
 #ifdef PORT_RETROACHIEVEMENTS
 #include "../achievements/ra_client.h"
-#ifdef VERSION_EU
-extern uint32_t gLanguage;
-#define ACHIEVEMENT_TEXT_LANGUAGE ((int)gLanguage)
-#elif defined(VERSION_JP)
-#define ACHIEVEMENT_TEXT_LANGUAGE 5 /* Japanese */
-#else
-#define ACHIEVEMENT_TEXT_LANGUAGE 0 /* English */
-#endif
 static KhRa* sRa;
 #endif
 
