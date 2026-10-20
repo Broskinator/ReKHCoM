@@ -173,6 +173,7 @@ bool SDL_SetRenderScale(SDL_Renderer* renderer, float x, float y);
 bool SDL_GetRenderScale(SDL_Renderer* renderer, float* x, float* y);
 bool SDL_RenderClear(SDL_Renderer* renderer);
 bool SDL_RenderFillRect(SDL_Renderer* renderer, const SDL_FRect* rect);
+bool SDL_RenderFillRects(SDL_Renderer* renderer, const SDL_FRect* rects, int count);
 bool SDL_RenderTexture(SDL_Renderer* renderer, SDL_Texture* texture, const SDL_FRect* src, const SDL_FRect* dst);
 bool SDL_RenderTextureRotated(SDL_Renderer* renderer, SDL_Texture* texture, const SDL_FRect* src, const SDL_FRect* dst,
                               double angle, const SDL_FPoint* center, SDL_FlipMode flip);
@@ -229,6 +230,10 @@ typedef int SDL_Scancode;
 #define SDLK_S 0x73u
 #define SDLK_V 0x76u
 #define SDLK_W 0x77u
+#define SDLK_E 0x65u
+#define SDLK_Q 0x71u
+#define SDLK_PAGEUP 0x4000004Bu
+#define SDLK_PAGEDOWN 0x4000004Eu
 #define SDLK_X 0x78u
 #define SDLK_Z 0x7Au
 #define SDLK_RIGHT 0x4000004Fu
@@ -283,6 +288,13 @@ const bool* SDL_GetKeyboardState(int* numkeys);
 SDL_Scancode SDL_GetScancodeFromKey(SDL_Keycode key, SDL_Keymod* modstate);
 
 typedef struct SDL_Gamepad SDL_Gamepad;
+typedef enum SDL_GamepadType {
+    SDL_GAMEPAD_TYPE_UNKNOWN, SDL_GAMEPAD_TYPE_STANDARD, SDL_GAMEPAD_TYPE_XBOX360, SDL_GAMEPAD_TYPE_XBOXONE,
+    SDL_GAMEPAD_TYPE_PS3, SDL_GAMEPAD_TYPE_PS4, SDL_GAMEPAD_TYPE_PS5, SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO,
+    SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_LEFT, SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT,
+    SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR, SDL_GAMEPAD_TYPE_COUNT
+} SDL_GamepadType;
+SDL_GamepadType SDL_GetGamepadType(SDL_Gamepad* gamepad);
 typedef struct SDL_Joystick SDL_Joystick;
 typedef enum SDL_GamepadButton {
     SDL_GAMEPAD_BUTTON_INVALID = -1,

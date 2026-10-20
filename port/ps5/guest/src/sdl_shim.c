@@ -372,6 +372,12 @@ bool SDL_RenderFillRect(SDL_Renderer* r, const SDL_FRect* rect) {
     return true;
 }
 
+bool SDL_RenderFillRects(SDL_Renderer* r, const SDL_FRect* rects, int count) {
+    int i;
+    for (i = 0; i < count; i++) SDL_RenderFillRect(r, &rects[i]);
+    return true;
+}
+
 void PortPs5LockSettings(void);
 
 bool SDL_RenderPresent(SDL_Renderer* r) {
@@ -772,6 +778,8 @@ SDL_Gamepad* SDL_GetGamepadFromID(SDL_JoystickID id) {
     return &sPadHandles[id - 1];
 }
 SDL_Gamepad* SDL_OpenGamepad(SDL_JoystickID id) { return SDL_GetGamepadFromID(id); }
+/* the console's own controllers: never a Nintendo layout */
+SDL_GamepadType SDL_GetGamepadType(SDL_Gamepad* gamepad) { (void)gamepad; return SDL_GAMEPAD_TYPE_STANDARD; }
 const char* SDL_GetGamepadStringForButton(SDL_GamepadButton button) {
     static const char* const names[SDL_GAMEPAD_BUTTON_COUNT] = {
         "South", "East", "West", "North", "Back", "Guide", "Start", "L3", "R3",

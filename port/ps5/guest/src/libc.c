@@ -254,6 +254,26 @@ unsigned long strtoul(const char* s, char** end, int base) {
     return v;
 }
 
+unsigned long long strtoull(const char* s, char** end, int base) {
+    unsigned long long v = 0;
+    int any = 0;
+    while (*s == ' ' || (*s >= 9 && *s <= 13)) s++;
+    if (*s == '+') s++;
+    if ((base == 0 || base == 16) && s[0] == '0' && (s[1] | 32) == 'x') { s += 2; base = 16; }
+    else if (base == 0) base = s[0] == '0' ? 8 : 10;
+    for (;; s++) {
+        int d;
+        if (*s >= '0' && *s <= '9') d = *s - '0';
+        else if ((*s | 32) >= 'a' && (*s | 32) <= 'z') d = (*s | 32) - 'a' + 10;
+        else break;
+        if (d >= base) break;
+        v = v * (unsigned)base + (unsigned)d;
+        any = 1;
+    }
+    if (end) *end = (char*)(any ? s : (const char*)0);
+    return v;
+}
+
 long strtol(const char* s, char** end, int base) {
     const char* t = s;
     int neg = 0;

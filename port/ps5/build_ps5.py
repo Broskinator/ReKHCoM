@@ -164,7 +164,7 @@ def build_guest(region, jobs):
     run([LLD, '-m', 'elf32_x86_64', '-static', '--no-gc-sections', '-T', HERE / 'guest/guest.ld', '-Map', out / 'guest.map',
          '-o', elf, *objects])
     binary = out / 'guest.bin'
-    run(['llvm-objcopy-18', '-O', 'binary', elf, binary])
+    run([os.environ.get('OBJCOPY', 'llvm-objcopy-18'), '-O', 'binary', elf, binary])
     print(f'guest {region}: {binary} ({binary.stat().st_size} bytes)')
     return binary
 
