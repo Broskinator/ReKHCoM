@@ -12,6 +12,26 @@
       "file": "../drafts/card-keyblade-gradient-v2.png",
       "notes": "Pending: keep approved weapon shape, correct handle shading without changing geometry, retain blue gradient; exterior alpha cleanup needed.",
       "status": "pending-style-review"
+    },
+    {
+      "id": "attack-card-frame",
+      "source_hash": "eb44c4995bbce401",
+      "native_size": [32, 32],
+      "family": "card-frame",
+      "file": "eb44c4995bbce401.png",
+      "status": "approved",
+      "notes": "Preliminary red frame only. Crown extension, card art and values are separate native objects. EU frame 180/380 comparison: native anchors, transparent picture opening, empty medallion and dynamic values retained. Affine states currently retain native art; other card colours remain pending.",
+      "review": {
+        "silhouette": true,
+        "orientation": true,
+        "perspective": true,
+        "gradient": true,
+        "shadows": true,
+        "internal_layout": true,
+        "runtime_bounds": true,
+        "gba_palette": true,
+        "toon_style": true
+      }
     }
   ]
 }

@@ -145,6 +145,9 @@ void PortHdHudDrawSprites(SDL_Renderer* renderer, int width, int height) {
     if (!gPortConfig.hdHud || !scale || PortUiActive()) return;
     for (i=0; i<sAssetDrawCount; i++) {
         HudAssetDraw* d=&sAssetDraws[i]; HudAsset* a=&sAssets[d->asset];
+        if (SDL_getenv("KHCOM_HDHUDLOG"))
+            PortLog("HD HUD sprite bounds: frame=%u slot=%d box=%.1f,%.1f,%.1f,%.1f", PortFrameCount(), d->slot,
+                    ox+d->x*scale, oy+d->y*scale, d->w*scale, d->h*scale);
         SDL_FlipMode flip=(SDL_FlipMode)(((d->flip&1)?SDL_FLIP_HORIZONTAL:0)|((d->flip&2)?SDL_FLIP_VERTICAL:0));
         SDL_SetTextureColorMod(a->image,tint,tint,tint);
         SDL_SetTextureAlphaMod(a->image,d->alpha);

@@ -177,6 +177,8 @@ int PortPpuEnemyHudRect(int* rect);
 uint32_t* PortHdHudExportBuffer(void);
 void PortHdHudExportSprite(int w, int h, int part, int ax, int ay);
 extern int gPortHudDigit; /* 0 none, 1..10 for digits 0..9 */
+extern int gPortHudCounter; /* 0 none; displayed deck count + 1 */
+void PortOamCounterPart(int slot, int x, int y, int w, int h);
 typedef struct PortHudDigit {
     int x, y, w, h, code, slot;
     uint32_t color;

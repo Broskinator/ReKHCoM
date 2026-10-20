@@ -273,6 +273,7 @@ typedef struct SpriteTag {
     uint8_t header; /* a menu header (DrawMenuHeader) */
     uint8_t hdHudPart; /* HD enemy panel: frame, cap, live bar */
     uint8_t digit;
+    uint8_t counter;
 } SpriteTag;
 static SpriteTag sEntryTag[128];
 static SpriteTag sOamTag[128];
@@ -280,6 +281,7 @@ static int sHudLayer;
 static int sHdText;
 int gPortHdHudPart;
 int gPortHudDigit;
+int gPortHudCounter;
 static PortHudDigit* sHudDigits;
 static int sHudDigitCount;
 static uint8_t* sHudDigitOwners;
@@ -424,6 +426,7 @@ void PortSpriteTag(int entry) {
         sEntryTag[entry].header = gPortHeaderDraw != 0;
         sEntryTag[entry].hdHudPart = (uint8_t)gPortHdHudPart;
         sEntryTag[entry].digit = (uint8_t)gPortHudDigit;
+        sEntryTag[entry].counter = (uint8_t)gPortHudCounter;
     }
 }
 
@@ -457,6 +460,19 @@ void PortOamSetText(int oamIndex, int code, int style) {
 void PortOamSetSource(int oamIndex, int entry) {
     if (oamIndex >= 0 && oamIndex < 128 && entry >= 0 && entry < 128)
         sOamTag[oamIndex] = sEntryTag[entry];
+}
+
+void PortOamCounterPart(int slot, int x, int y, int w, int h) {
+    int value;
+    if (slot >= 0 && slot < 128 && sOamTag[slot].counter && getenv("KHCOM_HUD_LAYOUT") &&
+        (uint32_t)atoi(getenv("KHCOM_HUD_LAYOUT")) == PortFrameCount())
+        PortLog("hud-counter: slot=%d value=%d x=%d y=%d w=%d h=%d",slot,sOamTag[slot].counter-1,x,y,w,h);
+    if (slot < 0 || slot >= 128 || !sOamTag[slot].counter || w != 8 || h != 8 || y != -4) return;
+    value = sOamTag[slot].counter - 1;
+    /* Native REV_COUNT frames keep units at x=14 and tens at x=8, y=-4.
+       The border is a separate 32x16 object, never a numeric glyph. */
+    if (x == 14) sOamTag[slot].digit = value % 10 + 1;
+    if (x == 8 && value >= 10) sOamTag[slot].digit = value / 10 + 1;
 }
 
 int PortPpuOverlayActive(void) {

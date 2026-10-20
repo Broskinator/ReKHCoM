@@ -36,6 +36,9 @@
 #include "card_label_data.h"
 #include "macros.h"
 #include "card_ids.h"
+#ifdef PLATFORM_PC
+#include "port/port.h"
+#endif
 
 static const s16 sSoraReloadChildOffsetX[4] = { 16, 29, 42, 51 };
 
@@ -440,7 +443,12 @@ static void REV_COUNT_2_Body(RevCountWork* work);
 /* Deck counter: bottom-left corner, with the deck. */
 void REV_COUNT_2(RevCountWork* work) {
     PortHudBegin(-1, 1);
+    /* Follow the value whose tiles the native task selected, excluding the
+       reload card from the main list. Invalid/empty slide-out stays native. */
+    int value = work->shownCount - (work->list == CARD_LIST_MAIN);
+    gPortHudCounter = PortHdHudEnemy(1, 0, 0) && value >= 1 && value <= 99 ? value + 1 : 0;
     REV_COUNT_2_Body(work);
+    gPortHudCounter = 0;
     PortHudEnd();
 }
 

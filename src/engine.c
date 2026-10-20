@@ -946,6 +946,7 @@ void UpdateSpriteOam() {
             /* Full-range position for the wide view (OAM keeps 9/8 bits). */
             PortOamSetPosition(emitted, x, y);
             PortOamSetSource(emitted, (int)(entry - gSpriteWork->entries));
+            PortOamCounterPart(emitted, x - (s16)entry->x, y - (s16)entry->y, width, height);
 #endif
             tiles = entry->tiles;
 
