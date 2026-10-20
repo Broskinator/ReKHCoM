@@ -6,13 +6,20 @@
 #endif
 #if __has_include(<time.h>)
 #include <time.h>
-#define KH_LOCAL_WALL_CLOCK 1
+#define KH_WALL_CLOCK 1
 #endif
 #include "port/port.h"
 #include "port/port_ui.h"
 #include "game_state.h"
 #include "mode.h"
-#include "../achievements/local_achievements.c"
+#include "../achievements/offline_achievements.c"
+/* the official set is evaluated by the game itself (rcheevos' runtime, no
+   account): the European cartridge, wherever rcheevos is built in */
+#if defined(VERSION_EU) && (defined(PORT_RETROACHIEVEMENTS) || defined(PORT_OFFLINE_ACHIEVEMENTS))
+#define KH_OFFLINE_EVAL 1
+#include "rc_runtime.h"
+int PortRaReadMemory(uint32_t address, uint8_t* buffer, uint32_t size);
+#endif
 #ifdef PORT_RETROACHIEVEMENTS
 int PortRaReadMemory(uint32_t address, uint8_t* buffer, uint32_t size);
 static uint32_t PortRaRead(uint32_t address, uint8_t* out, uint32_t size, void* userdata) {
@@ -35,31 +42,60 @@ static KhRa* sRa;
 
 extern Mode* gCurrentMode;
 extern Mode gModeMapFld, gModeBattle, gModeTitle;
-static KhLocalState sLocal;
-static int sLocalEnabled = 1, sInvalidated, sStarted;
-static uint32_t sPendingNotices;
+static int sInvalidated, sStarted;
 static unsigned sPreviewFrame;
-static char sLocalPath[1200];
+#ifdef KH_OFFLINE_EVAL
+static KhOfflineState sOffline;
+static char sOfflinePath[1200];
+static rc_runtime_t sOfflineRuntime;
+static int sOfflineReady;
+static uint64_t sPendingNotices[(KH_OFFLINE_MAX + 63) / 64];
+
+static uint32_t OfflinePeek(uint32_t address, uint32_t bytes, void* ud) {
+    uint8_t b[4] = { 0, 0, 0, 0 };
+    (void)ud;
+    if (bytes > 4 || !PortRaReadMemory(address, b, bytes))
+        return 0;
+    return b[0] | (uint32_t)b[1] << 8 | (uint32_t)b[2] << 16 | (uint32_t)b[3] << 24;
+}
+
+static void OfflineEvent(const rc_runtime_event_t* event) {
+    int index;
+    uint64_t now = 1; /* a guest without a wall clock stores an unknown time */
+    if (event->type != RC_RUNTIME_EVENT_ACHIEVEMENT_TRIGGERED)
+        return;
+    index = KhOfficialIndex(event->id);
+    rc_runtime_deactivate_achievement(&sOfflineRuntime, event->id);
+    if (index < 0 || sOffline.when[index])
+        return;
+#ifdef KH_WALL_CLOCK
+    now = (uint64_t)time(NULL);
+#endif
+    sOffline.when[index] = now ? now : 1;
+    PortLog("achievement: %u unlocked", (unsigned)event->id);
+    if (!KhOfflineSave(&sOffline, sOfflinePath)) PortLog("achievements: could not save progress");
+#ifdef __EMSCRIPTEN__
+    else EM_ASM({ if (Module.persistSoon) Module.persistSoon();
+                  if (Module.onAchievementsChanged) Module.onAchievementsChanged(); });
+#endif
+    sPendingNotices[index / 64] |= 1ull << (index % 64);
+}
+#endif
+
 #include "port_achievement_list.inc"
 
 void PortAchievementsInit(void) {
-    FILE* config;
-    snprintf(sLocalPath, sizeof(sLocalPath), "%s", PortConfigPath("achievements_"
-#ifdef VERSION_US
-        "us"
-#elif defined(VERSION_JP)
-        "jp"
-#else
-        "eu"
+#ifdef KH_OFFLINE_EVAL
+    int i;
+    snprintf(sOfflinePath, sizeof(sOfflinePath), "%s", PortConfigPath("achievements_official_eu.dat"));
+    KhOfflineLoad(&sOffline, sOfflinePath);
+    rc_runtime_init(&sOfflineRuntime);
+    for (i = 0; i < KhOfficialCount(); ++i)
+        if (!sOffline.when[i] &&
+            rc_runtime_activate_achievement(&sOfflineRuntime, KhOfficialAt(i)->id, KhOfficialAt(i)->definition, NULL, 0) == RC_OK)
+            sOfflineReady++;
+    PortLog("achievements: %d of %d official achievements to earn", sOfflineReady, KhOfficialCount());
 #endif
-        ".dat"));
-    KhLocalLoad(&sLocal, sLocalPath);
-    config = fopen(PortConfigPath("achievements_local.ini"), "r");
-    if (config) {
-        char line[64]; int value = 1;
-        if (fgets(line, sizeof(line), config) && sscanf(line, "enabled=%d", &value) == 1) sLocalEnabled = value == 1;
-        fclose(config);
-    }
 #ifdef PORT_RETROACHIEVEMENTS
     /* Official set (EU cartridge): evaluated from the port's memory as the
      * cartridge lays it out (port_ra_memory.c / port_ra_state.c). Only the
@@ -71,8 +107,10 @@ void PortAchievementsInit(void) {
     KhRaStartOfficial(sRa, sOfficialVerified, sizeof(sOfficialVerified) / sizeof(sOfficialVerified[0]));
 #endif
 #endif
-    if (SDL_getenv("KHCOM_MODE") || SDL_getenv("KHCOM_BOT") || SDL_getenv("KHCOM_BATTLE") ||
-        SDL_getenv("KHCOM_EVENT") || SDL_getenv("KHCOM_KEYS")) sInvalidated = 1;
+    /* harness runs earn nothing, unless a test checks the unlocks themselves
+       (KHCOM_ACHIEVEMENTS_LIVE=1, with its own data folder) */
+    if ((SDL_getenv("KHCOM_MODE") || SDL_getenv("KHCOM_BOT") || SDL_getenv("KHCOM_BATTLE") ||
+         SDL_getenv("KHCOM_EVENT") || SDL_getenv("KHCOM_KEYS")) && !SDL_getenv("KHCOM_ACHIEVEMENTS_LIVE")) sInvalidated = 1;
 }
 
 void PortAchievementsRomLoaded(const uint8_t* rom, size_t size) {
@@ -85,7 +123,7 @@ void PortAchievementsRomLoaded(const uint8_t* rom, size_t size) {
 
 void PortAchievementsInvalidate(const char* reason) {
     if (sInvalidated) return;
-    sInvalidated = 1; sPendingNotices = 0;
+    sInvalidated = 1;
     PortLog("achievements: session paused (%s)", reason);
 #ifdef PORT_RETROACHIEVEMENTS
     KhRaInvalidate(sRa, reason);
@@ -183,22 +221,24 @@ static void DryRunFrame(void) {
 #endif
 
 void PortAchievementsFrame(void) {
-    KhLocalSnapshot snapshot;
-    int i;
+    int evaluate;
 #ifdef PORT_RETROACHIEVEMENTS
     DryRunFrame();
 #endif
     ++sPreviewFrame;
     if (SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW") &&
         sPreviewFrame == (unsigned)SDL_atoi(SDL_getenv("KHCOM_ACHIEVEMENT_PREVIEW")))
-        PortAchievementToast("Primeros recuerdos", "Alcanza el nivel 10.", "VISTA PREVIA - LOGRO LOCAL");
+        PortAchievementToast("Heartless Hunter", "Defeat your first Heartless in Castle Oblivion.", "VISTA PREVIA - LOGRO");
     /* Invalidate before this frame can evaluate or submit an official award. */
     if (gPortConfig.cheatOneHit || gPortConfig.cheatInfiniteHp || gPortConfig.cheatUnlockRiku ||
         gPortConfig.ps2Mode)
         PortAchievementsInvalidate("Gameplay modifiers enabled");
+    if (gCurrentMode == &gModeTitle) sStarted = 0;
+    if (gCurrentMode == &gModeMapFld || gCurrentMode == &gModeBattle) sStarted = 1;
+    evaluate = !sInvalidated && (gCurrentMode == &gModeMapFld || gCurrentMode == &gModeBattle ||
+                                 gCurrentMode == &gModeTitle || sStarted);
 #ifdef PORT_RETROACHIEVEMENTS
-    KhRaPump(sRa, !sInvalidated && (gCurrentMode == &gModeMapFld || gCurrentMode == &gModeBattle ||
-                                     gCurrentMode == &gModeTitle || sStarted));
+    KhRaPump(sRa, evaluate);
     {
         const char* notice = KhRaTakeNotice(sRa);
         if (notice) {
@@ -209,54 +249,29 @@ void PortAchievementsFrame(void) {
         }
     }
 #endif
-    if (!sLocalEnabled || sInvalidated) return;
-    if (gCurrentMode == &gModeTitle) {
-        sStarted = 0; sLocal.initialized = 0; sLocal.previous = 0;
-    }
-    if (gCurrentMode == &gModeMapFld || gCurrentMode == &gModeBattle) sStarted = 1;
-    if (!sStarted) return;
-    memset(&snapshot, 0, sizeof(snapshot));
-    snapshot.playing = gGameState.progression.level >= 1 && gGameState.progression.level <= 99 &&
-                       gGameState.progression.maxHp > 0;
-    snapshot.flags = gGameState.flags;
-    snapshot.level = gGameState.progression.level;
-    snapshot.max_hp = gGameState.progression.maxHp;
-    snapshot.cp = gGameState.progression.cp;
-    snapshot.floor = gGameState.floor;
-    snapshot.moogle_points = gGameState.progression.mooglePoints;
-    snapshot.learned = gGameState.progression.learnedStocks;
-    snapshot.learned2 = gGameState.progression.learnedStocks2;
-    snapshot.card_kinds = gGameState.progression.obtainedCardKinds;
-    snapshot.friends = gGameState.progression.friendFlags;
-    {
-        uint64_t now = 0; /* A guest without a wall clock stores an unknown time. */
-#ifdef KH_LOCAL_WALL_CLOCK
-        now = (uint64_t)time(NULL);
-#endif
-        uint32_t added = KhLocalObserve(&sLocal, &snapshot, now);
-        if (added) {
-            if (!KhLocalSave(&sLocal, sLocalPath)) PortLog("achievements: could not save local progress");
-#ifdef __EMSCRIPTEN__
-            else EM_ASM({ if (Module.persistSoon) Module.persistSoon();
-                          if (Module.onAchievementsChanged) Module.onAchievementsChanged(); });
-#endif
-            sPendingNotices |= added;
-        }
-    }
-    if (sPendingNotices && !PortUiActive()) {
-        int spanish = 0;
-#ifdef VERSION_EU
+#ifdef KH_OFFLINE_EVAL
+    if (evaluate && sOfflineReady)
+        rc_runtime_do_frame(&sOfflineRuntime, OfflineEvent, OfflinePeek, NULL, NULL);
+    if (!PortUiActive()) {
+        int i, account = 0, spanish;
         extern uint32_t gLanguage;
-        spanish = gLanguage == 4;
-#endif
-        for (i = 0; i < KH_LOCAL_COUNT; ++i) if (sPendingNotices & (1u << i)) {
-            const KhLocalDefinition* def = &gKhLocalDefinitions[i];
-            PortAchievementToast(spanish ? def->title_es : def->title_en,
-                spanish ? def->description_es : def->description_en, spanish ? "LOGRO LOCAL" : "LOCAL ACHIEVEMENT");
-            PortLog("achievement local: %d", i);
-            sPendingNotices &= ~(1u << i);
+#ifdef PORT_RETROACHIEVEMENTS
+        /* signed in: RetroAchievements' own notice announces it; here it is only kept */
+        {
+            rc_client_t* client = KhRaClient(sRa);
+            account = client && rc_client_get_user_info(client) && rc_client_is_game_loaded(client);
         }
+#endif
+        spanish = gLanguage == 4;
+        for (i = 0; i < KhOfficialCount(); ++i)
+            if (sPendingNotices[i / 64] & (1ull << (i % 64))) {
+                sPendingNotices[i / 64] &= ~(1ull << (i % 64));
+                if (!account)
+                    PortAchievementToast(KhOfficialAt(i)->title, KhOfficialAt(i)->description,
+                                         spanish ? "LOGRO DESBLOQUEADO" : "ACHIEVEMENT UNLOCKED");
+            }
     }
+#endif
 }
 
 void PortAchievementsShutdown(void) {

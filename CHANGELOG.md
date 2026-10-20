@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.9.11 — 2026-10-19
+
+- Achievements: the official RetroAchievements set (90, European version) is now earned as you
+  play, with or without an account, and kept on your computer. The launcher, the web page and
+  the in-game Options list show only that set, with its badges. The 16 placeholder local
+  challenges are gone. RetroAchievements' "Unknown Emulator" notice no longer counts.
+- Language: the European game asks for its language only the first time and remembers it; the
+  launcher and the web page can set it too, and the game then starts straight in it (#24).
+- Desktop shortcut: a launcher button creates a "ReKHCoM" shortcut that starts the game without
+  the launcher (with the region in its name when several versions are installed).
+- Scanlines: the MiSTer-style scanlines now also cover the widescreen margins (#27, #29).
+- Card selection: option to invert the card scrolling direction (Experimental, #28).
+- Options menu: opening and leaving it sound like the game's own field menu.
+- Launcher: the controller diagram is the same pink controller as in the game.
+- Updates: the ZIP and the Linux archives no longer have a versioned top folder, so a new
+  version can be extracted over the old one (saves, settings and ROMs are kept).
+
 ## v1.9.10 — 2026-10-19
 
 Stable. Fixes on top of v1.9.9:

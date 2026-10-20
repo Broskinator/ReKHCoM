@@ -1,7 +1,9 @@
 /* ---- controller diagram for the Controls page (included by decompui.cpp) ------- *
- * An Xbox 360-style layout drawn as pixels of a fixed 64x36 grid at one whole
- * scale (no logo, no photograph): the binding of the focused action lights up,
- * and while a gamepad binding is captured, what is being pressed does too. */
+ * The game's own Ultimate 2C sprite (port_controller_art.inc), with the same
+ * regions, lighting and LT/LB/RB/RT tabs as its Options menu
+ * (port_control_diagram.inc) and the web page, at one whole scale: the binding
+ * of the focused action lights up, and while a gamepad binding is captured,
+ * what is being pressed does too. */
 
 enum PadRegion {
     PR_A, PR_B, PR_X, PR_Y, PR_BACK, PR_GUIDE, PR_START, PR_LS, PR_RS, PR_LB, PR_RB,
@@ -50,84 +52,70 @@ static std::string PadSymbol(int b) {
     return PadName(b);
 }
 
-/* which region a logical pixel belongs to (PR_NONE: body or outside) */
-struct PadShape {
-    unsigned char body[36][64]; /* 0 outside, 1 body, 2 outline */
-    signed char region[36][64];
-};
+#include <cstdint>
+#include "../src/port_controller_art.inc"
 
-static const PadShape& PadLayout() {
-    static PadShape s;
+enum { PAD_TOP = 7, PAD_H = CONTROL_ART_H + PAD_TOP }; /* the tabs sit above the art */
+
+/* which region each pixel lights as (PR_NONE: shell or outside); PR_* follow
+   SDL's button numbers, so these are the game's own discs and masks */
+static const signed char (&PadLayout())[PAD_H][CONTROL_ART_W] {
+    static signed char region[PAD_H][CONTROL_ART_W];
     static bool made;
     if (made)
-        return s;
+        return region;
     made = true;
-    std::memset(s.region, PR_NONE, sizeof(s.region));
-    auto disc = [&](int cx, int cy, int r, int reg) {
-        for (int y = cy - r; y <= cy + r; y++)
-            for (int x = cx - r; x <= cx + r; x++)
-                if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r + r && y >= 0 && y < 36 && x >= 0 && x < 64)
-                    s.region[y][x] = (signed char)reg;
+    std::memset(region, PR_NONE, sizeof(region));
+    static const struct { int x, y, radius, id; } discs[] = {
+        { 20, 27, 7, PR_LS }, { 68, 44, 7, PR_RS }, { 83, 20, 4, PR_Y }, { 75, 28, 4, PR_X },
+        { 90, 28, 4, PR_B },  { 83, 36, 4, PR_A },  { 37, 18, 3, PR_BACK }, { 67, 18, 3, PR_START },
+        { 52, 18, 4, PR_GUIDE }
     };
-    auto rect = [&](int x0, int y0, int x1, int y1, int reg) {
-        for (int y = y0; y <= y1; y++)
-            for (int x = x0; x <= x1; x++)
-                s.region[y][x] = (signed char)reg;
-    };
-    /* the body: wide top, two handles below */
-    for (int y = 6; y < 35; y++) {
-        int l, r;
-        if (y < 8) { l = 9 - (y - 6) * 2; r = 54 + (y - 6) * 2; }
-        else if (y < 22) { l = 4; r = 59; }
-        else { l = 4 + (y - 22) / 2; r = 59 - (y - 22) / 2; }
-        for (int x = l; x <= r; x++) {
-            bool handleGap = y >= 26 && x > 22 + (y - 26) && x < 41 - (y - 26);
-            if (!handleGap)
-                s.body[y][x] = 1;
+    for (const auto& d : discs)
+        for (int dy = -d.radius; dy <= d.radius; dy++)
+            for (int dx = -d.radius; dx <= d.radius; dx++)
+                if (dx * dx + dy * dy <= d.radius * d.radius + 1)
+                    region[d.y + dy][d.x + dx] = (signed char)d.id;
+    /* four arms of the cross; the middle is neutral */
+    for (int y = 35; y <= 54; y++)
+        for (int x = 28; x <= 46; x++) {
+            if (x >= 34 && x <= 39)
+                region[y][x] = y < 42 ? PR_UP : y > 47 ? PR_DOWN : PR_NONE;
+            else if (y >= 42 && y <= 47)
+                region[y][x] = x < 34 ? PR_LEFT : PR_RIGHT;
         }
-    }
-    for (int y = 0; y < 36; y++)
-        for (int x = 0; x < 64; x++)
-            if (s.body[y][x] && (y == 0 || x == 0 || y == 35 || x == 63 || !s.body[y - 1][x] || !s.body[y + 1][x] ||
-                                 !s.body[y][x - 1] || !s.body[y][x + 1]))
-                s.body[y][x] = 2;
-    /* shoulders and triggers above the body */
-    rect(10, 0, 18, 2, PR_LT);
-    rect(45, 0, 53, 2, PR_RT);
-    rect(8, 4, 20, 5, PR_LB);
-    rect(43, 4, 55, 5, PR_RB);
-    /* left stick high, d-pad and right stick low, face buttons high right */
-    disc(14, 13, 4, PR_LS);
-    rect(22, 20, 24, 21, PR_UP);
-    rect(22, 25, 24, 26, PR_DOWN);
-    rect(19, 22, 21, 24, PR_LEFT);
-    rect(25, 22, 27, 24, PR_RIGHT);
-    rect(22, 22, 24, 24, PR_NONE);
-    disc(41, 23, 4, PR_RS);
-    disc(49, 9, 2, PR_Y);
-    disc(45, 13, 2, PR_X);
-    disc(53, 13, 2, PR_B);
-    disc(49, 17, 2, PR_A);
-    rect(26, 13, 28, 14, PR_BACK);
-    rect(35, 13, 37, 14, PR_START);
-    disc(31, 10, 2, PR_GUIDE);
-    return s;
+    /* the front shoulder caps; the triggers sit behind the shell: only their tabs light */
+    for (int y = 7; y <= 10; y++)
+        for (int x = 16; x <= 30; x++) {
+            region[y][x] = PR_LB;
+            region[y][CONTROL_ART_W - 1 - x] = PR_RB;
+        }
+    return region;
+}
+
+/* lit[r]: direction bits up 1, down 2, left 4, right 8 (a stick axis lights its side) */
+static bool PadPixelLit(int r, int x, int y, const unsigned* lit) {
+    if (r < 0 || r >= PR_COUNT || !lit[r])
+        return false;
+    if (r != PR_LS && r != PR_RS)
+        return true;
+    int dx = x - (r == PR_LS ? 20 : 68), dy = y - (r == PR_LS ? 27 : 44);
+    return ((lit[r] & 1) && dy <= 0) || ((lit[r] & 2) && dy >= 0) || ((lit[r] & 4) && dx <= 0) ||
+           ((lit[r] & 8) && dx >= 0);
 }
 
 /* what the pad's binding of this action lights; while capturing a gamepad
    binding, the controls being pressed on the first gamepad as well */
 static void PadDiagram(const char* focusKey) {
-    const PadShape& s = PadLayout();
-    bool lit[PR_COUNT] = {};
-    int litDirection[PR_COUNT];
-    std::fill(litDirection, litDirection + PR_COUNT, -1);
-    if (focusKey != nullptr) {
-        int direction, region = PadRegionOf(Ini(focusKey), &direction);
-        if (region >= 0) {
-            lit[region] = true;
-            litDirection[region] = direction;
-        }
-    }
+    const auto& region = PadLayout();
+    unsigned lit[PR_COUNT] = {};
+    auto light = [&](int binding) {
+        int direction, r = PadRegionOf(binding, &direction);
+        if (r >= 0)
+            lit[r] |= direction >= 0 ? 1u << direction : 15u;
+    };
+    if (focusKey != nullptr)
+        light(Ini(focusKey));
     if (!sCapture.empty() && sCapturePad) {
         int count = 0;
         SDL_JoystickID* ids = SDL_GetGamepads(&count);
@@ -135,74 +123,64 @@ static void PadDiagram(const char* focusKey) {
         if (pad != nullptr) {
             for (int b = 0; b <= SDL_GAMEPAD_BUTTON_DPAD_RIGHT; b++)
                 if (SDL_GetGamepadButton(pad, (SDL_GamepadButton)b))
-                    lit[b] = true;
+                    lit[b] = 15;
             for (int a = 0; a < SDL_GAMEPAD_AXIS_COUNT; a++) {
-                int v = SDL_GetGamepadAxis(pad, (SDL_GamepadAxis)a), direction;
-                if (std::abs(v) > 16000) {
-                    int region = PadRegionOf(PORT_PAD_AXIS_BASE + a * 2 + (v < 0), &direction);
-                    if (region >= 0) {
-                        lit[region] = true;
-                        litDirection[region] = direction;
-                    }
-                }
+                int v = SDL_GetGamepadAxis(pad, (SDL_GamepadAxis)a);
+                if (std::abs(v) > 16000)
+                    light(PORT_PAD_AXIS_BASE + a * 2 + (v < 0));
             }
         }
         SDL_free(ids);
     }
 
-    /* one whole scale for the drawing; centred in the card */
+    /* one whole scale for the sprite; centred in the card */
     float avail = ImGui::GetContentRegionAvail().x;
-    int scale = std::max(2, std::min((int)(avail / 64), (int)Px(7)));
+    int scale = std::max(1, std::min((int)(avail / CONTROL_ART_W), (int)Px(4)));
     ImVec2 p = ImGui::GetCursorScreenPos();
-    float ox = std::floor(p.x + (avail - 64 * scale) * 0.5f), oy = std::floor(p.y);
+    float ox = std::floor(p.x + (avail - CONTROL_ART_W * scale) * 0.5f), oy = std::floor(p.y);
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    const ImU32 body = IM_COL32(214, 211, 206, 255), outline = IM_COL32(70, 68, 66, 255),
-                part = IM_COL32(96, 94, 92, 255), light = ImGui::GetColorU32(kAccent);
-    const ImU32 face[4] = { IM_COL32(72, 160, 64, 255), IM_COL32(200, 56, 48, 255), IM_COL32(56, 104, 200, 255),
-                            IM_COL32(220, 176, 40, 255) };
-    for (int y = 0; y < 36; y++)
-        for (int x = 0; x < 64; x++) {
-            int reg = s.region[y][x];
-            ImU32 c;
-            if (reg >= 0) {
-                c = reg <= PR_Y ? face[reg] : part;
-                bool on = lit[reg];
-                /* a stick axis: only its side of the stick */
-                if (on && (reg == PR_LS || reg == PR_RS) && litDirection[reg] >= 0) {
-                    int cx = reg == PR_LS ? 14 : 41, cy = reg == PR_LS ? 13 : 23;
-                    on = litDirection[reg] == 0 ? y < cy : litDirection[reg] == 1 ? y > cy
-                       : litDirection[reg] == 2 ? x < cx : x > cx;
-                }
-                if (on) {
-                    /* its own colour lightened, ringed with the accent */
-                    bool edge = x == 0 || y == 0 || x == 63 || y == 35 || s.region[y - 1][x] != reg ||
-                                s.region[y + 1][x] != reg || s.region[y][x - 1] != reg || s.region[y][x + 1] != reg;
-                    ImVec4 v = ImGui::ColorConvertU32ToFloat4(c);
-                    c = edge ? light : ImGui::GetColorU32(ImVec4(v.x + (1 - v.x) * 0.45f, v.y + (1 - v.y) * 0.45f,
-                                                                  v.z + (1 - v.z) * 0.45f, 1));
-                }
-            } else if (s.body[y][x] == 2) {
-                c = outline;
-            } else if (s.body[y][x] == 1) {
-                c = body;
-            } else {
-                continue;
+    auto pixel = [&](int x, int y, int w, int h, uint32_t argb) {
+        dl->AddRectFilled(ImVec2(ox + x * scale, oy + y * scale), ImVec2(ox + (x + w) * scale, oy + (y + h) * scale),
+                          IM_COL32((argb >> 16) & 255, (argb >> 8) & 255, argb & 255, 255));
+    };
+    for (int y = PAD_TOP; y < PAD_H; y++)
+        for (int x = 0; x < CONTROL_ART_W; x++) {
+            unsigned index = sControlArt[y - PAD_TOP][x];
+            if (!index)
+                continue; /* transparent: no plate behind the sprite */
+            uint32_t c = sControlArtPalette[index];
+            int r = region[y][x];
+            if (PadPixelLit(r, x, y, lit)) {
+                bool edge = !x || y == PAD_TOP || x == CONTROL_ART_W - 1 || y == PAD_H - 1 || region[y - 1][x] != r ||
+                            region[y + 1][x] != r || region[y][x - 1] != r || region[y][x + 1] != r;
+                unsigned red = (c >> 16) & 255, green = (c >> 8) & 255, blue = c & 255;
+                if (edge)
+                    c = 0xFF9C1000u; /* the menu's dark red ring */
+                else if (red + green + blue > 180) /* warm tint; dark lettering stays legible */
+                    c = 0xFF000000u | (((red + 255) / 2) << 16) | (((green + 158) / 2) << 8) | ((blue + 52) / 2);
+            } else if ((x > 0 && PadPixelLit(region[y][x - 1], x - 1, y, lit)) ||
+                       (x + 1 < CONTROL_ART_W && PadPixelLit(region[y][x + 1], x + 1, y, lit)) ||
+                       (y > PAD_TOP && PadPixelLit(region[y - 1][x], x, y - 1, lit)) ||
+                       (y + 1 < PAD_H && PadPixelLit(region[y + 1][x], x, y + 1, lit))) {
+                c = 0xFFFFE68Eu; /* one-pixel light rim */
             }
-            dl->AddRectFilled(ImVec2(ox + x * scale, oy + y * scale), ImVec2(ox + (x + 1) * scale, oy + (y + 1) * scale), c);
+            pixel(x, y, 1, 1, c);
         }
-    /* letters on the face buttons and labels on shoulders and triggers */
-    if (scale >= 4) {
-        struct Label { int x, y; const char* text; };
-        static const Label labels[] = { { 49, 17, "A" }, { 53, 13, "B" }, { 45, 13, "X" }, { 49, 9, "Y" },
-                                        { 14, 1, "LT" }, { 49, 1, "RT" }, { 14, 4, "LB" }, { 49, 4, "RB" } };
-        ImGui::PushFont(sFontSmall);
-        for (const Label& lb : labels) {
-            ImVec2 ts = ImGui::CalcTextSize(lb.text);
-            dl->AddText(ImVec2(std::floor(ox + (lb.x + 0.5f) * scale - ts.x * 0.5f),
-                               std::floor(oy + (lb.y + 0.5f) * scale - ts.y * 0.5f)),
-                        IM_COL32(255, 255, 255, 255), lb.text);
+    /* LT LB RB RT tabs with the game's 3x5 lettering */
+    static const struct { int x, id; const char* name; } tabs[] = {
+        { 4, PR_LT, "LT" }, { 22, PR_LB, "LB" }, { 65, PR_RB, "RB" }, { 83, PR_RT, "RT" }
+    };
+    for (const auto& t : tabs) {
+        bool on = lit[t.id] != 0;
+        pixel(t.x, 0, 17, 7, on ? 0xFF9C1000u : 0xFF43343Cu);
+        pixel(t.x + 1, 1, 15, 5, on ? 0xFFCB563Du : 0xFF78626Bu);
+        for (int c = 0; t.name[c]; c++) {
+            unsigned bits = t.name[c] == 'L' ? 0x4927 : t.name[c] == 'R' ? 0x6BAD : t.name[c] == 'T' ? 0x7492 : 0x6BAE;
+            for (int yy = 0; yy < 5; yy++)
+                for (int xx = 0; xx < 3; xx++)
+                    if (bits & (1u << (14 - yy * 3 - xx)))
+                        pixel(t.x + 5 + c * 4 + xx, 1 + yy, 1, 1, 0xFFFFF2CDu);
         }
-        ImGui::PopFont();
     }
-    ImGui::Dummy(ImVec2(avail, 36.0f * scale + Px(6)));
+    ImGui::Dummy(ImVec2(avail, (float)PAD_H * scale + Px(6)));
 }

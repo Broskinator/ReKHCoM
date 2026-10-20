@@ -193,6 +193,12 @@ void PortMenuSoundDecide(int confirm) {
     m4aMPlayVolumeControl(gMPlayTable[gSongTable[song].ms].info, 0xFFFF, MENU_CLICK_VOLUME);
 }
 
+/* the overlay has closed and the game's sound is back: SYS_CLOSE, as the
+   game's field menu sounds closing (it plays on in the game's own mixer) */
+void PortMenuSoundClose(void) {
+    m4aSongNumStart(SONG_SYS_CLOSE);
+}
+
 /* the mixer for one menu frame (the port then sends it out) */
 void PortMenuSoundFrame(void) {
     if (sMenuSound.held)

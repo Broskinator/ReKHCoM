@@ -1,4 +1,7 @@
-"""Production local/RA regressions; account/server fixtures never contact RA.
+"""Production RA regressions; account/server fixtures never contact RA.
+
+The official set the game evaluates offline is checked in real play by
+ra_battle_dryrun.py / ra_ending_dryrun.py (KHCOM_RA_DRYRUN).
 
 If the user's EU ROM is present, also exercise its real rhash identification
 and catalog/evaluation through a synthetic server. No real unlock is submitted.
@@ -24,15 +27,6 @@ subprocess.run([str(ROOT.parent / 'toolchain/bin/ninja.exe'), '-f', 'build/ra-eu
 def run(name, sources, flags=(), args=()):
     folder = OUT / name
     folder.mkdir(exist_ok=True)
-    if name.startswith('native-'):
-        cache = folder / 'cache'; cache.mkdir(exist_ok=True)
-        data = b'KHRACAT1' + struct.pack('<I', 2)
-        for id, title in [(101, 'Locked test'), (102, 'Earned test')]:
-            data += struct.pack('<II', id, 5)
-            for value in (title, 'Fixture description', '12345'):
-                encoded = value.encode(); data += struct.pack('<I', len(encoded)) + encoded
-        (cache / 'achievements-768.dat').write_bytes(data)
-        (cache / 'achievement-unlocks.dat').write_bytes(b'KHRAPRG1' + struct.pack('<III', 1, 1, 102))
     exe = folder / (name + '.exe')
     shutil.copy2(SDL / 'bin/SDL3.dll', folder / 'SDL3.dll')
     command = [str(CC), '-O2', '-std=gnu11', '-Wall', '-mno-ms-bitfields',
@@ -43,30 +37,24 @@ def run(name, sources, flags=(), args=()):
                 '-Wl,-Bstatic', '-lwinpthread', '-Wl,-Bdynamic', '-o', str(exe)]
     subprocess.run(command, cwd=ROOT, check=True)
     subprocess.run([str(exe), *map(str, args)], cwd=folder, check=True)
-    if name.startswith('native-'):
-        subprocess.run([str(exe), 'invalidate'], cwd=folder, check=True)
 
 includes = [ROOT / 'include'] + [p for p in (ROOT / 'include').iterdir() if p.is_dir() and p.name != 'gba']
 game_flags = ['-DPLATFORM_PC', *['-iquote' + str(p) for p in includes]]
 run('memory', ['port/src/port_ra_memory.c', 'port/src/port_ra_state.c', 'port/tools/test_ra_memory.c'], game_flags)
-run('local', ['port/achievements/local_achievements.c', 'port/tools/local_achievements_conformance.c'])
 for version in ['eu', 'us', 'jp']:
     run('state-' + version, ['port/src/port_ra_state.c', 'port/tools/test_ra_state.c'],
         [*game_flags, '-DVERSION_' + version.upper()])
-    run('native-' + version, ['port/src/port_achievements.c', 'port/tools/native_achievements_conformance.c'],
-        ['-DPLATFORM_PC', '-DVERSION_' + version.upper(), *['-iquote' + str(p) for p in includes]])
 
 rom = ROOT / 'roms/B8CP.gba'
 objects = sorted((ROOT / 'build/ra-eu/ra').glob('*.o'))
 run('ra-client', ['port/tools/ra_client_conformance.c'],
     ['-DRC_CLIENT_SUPPORTS_HASH', *map(str, objects)], [rom] if rom.exists() else [])
 (OUT / 'report.json').write_text(json.dumps({
-    'memory': 'PASS', 'local': 'PASS', 'native_regions': ['eu', 'us', 'jp'],
-    'local_triggers_per_region': 16,
+    'memory': 'PASS',
     'scalar_game_state_projection': ['eu', 'us', 'jp'],
     'windows_crlf_progress_on_portable_parser': 'PASS',
     'physical_console_execution': 'NOT TESTED: requires each device',
     'ra_contract': 'PASS', 'eu_rom_hash_and_synthetic_catalog': 'PASS' if rom.exists() else 'SKIPPED: ROM absent',
-    'real_account_login': 'NOT TESTED', 'official_set_native_mapping': 'PENDING',
+    'real_account_login': 'NOT TESTED', 'official_set_offline': 'see ra_battle_dryrun.py / ra_ending_dryrun.py',
     'physical_controller': 'NOT TESTED',
 }, indent=2), encoding='utf-8')

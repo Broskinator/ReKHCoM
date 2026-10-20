@@ -2121,7 +2121,11 @@ static void VBlankCycle(void) {
 #endif
     if (PortUiActive()) {
         extern void PortMenuSoundBegin(void);
+        extern void PortMenuSoundDecide(int confirm);
+        extern int PortUiTakeMenuSound(int open);
         PortMenuSoundBegin();
+        if (PortUiTakeMenuSound(1))
+            PortMenuSoundDecide(0); /* SYS_CANSEL: the field menu's opening */
     }
     while (PortUiActive()) {
         extern void PortMenuSoundFrame(void);
@@ -2150,7 +2154,11 @@ static void VBlankCycle(void) {
         }
         if (!PortUiActive()) {
             extern void PortMenuSoundEnd(void);
+            extern void PortMenuSoundClose(void);
+            extern int PortUiTakeMenuSound(int open);
             PortMenuSoundEnd();
+            if (PortUiTakeMenuSound(0))
+                PortMenuSoundClose(); /* back in the game's own sound */
         }
     }
     IO16(0x130) = (uint16_t)(~PortInputResolve(PortInputKeys() | HarnessKeys(sFrameCount) | PortBotKeys(sFrameCount)) & 0x3FF);

@@ -174,8 +174,9 @@ def decompui(n, toolchain, sdl_arch, debug, ra_objs):
         n.build(obj, "cxx_ui", rel(src))
         objs.append(obj)
     objs.append("$builddir/port/rekhcom_rc.o")
-    n.build("$builddir/decompui/local_achievements.o", "cc_port", "port/achievements/local_achievements.c")
-    objs += ra_objs + ["$builddir/decompui/local_achievements.o"]
+    n.build("$builddir/decompui/offline_achievements.o", "cc_port", "port/achievements/offline_achievements.c",
+            implicit=["port/achievements/official_set_eu.inc"])
+    objs += ra_objs + ["$builddir/decompui/offline_achievements.o"]
     n.build("$builddir/ReKHCoM.exe", "link_ui", objs)
     art = ui / "assets" / "boxart.jpg"
     n.rule("copy_asset", 'cmd /c (if not exist "$dir_win" mkdir "$dir_win") & copy /y "$in_win" "$out_win" >nul',

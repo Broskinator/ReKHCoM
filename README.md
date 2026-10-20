@@ -43,10 +43,12 @@ Only stable versions appear as public releases. The current stable is **v1.9.10*
 
 ## Achievements
 
-- **Local challenges:** 16 per region, shown in Options and in the launcher.
-- **RetroAchievements:** the official set of the European cartridge (softcore). v1.9.10
-  has 28 of its 90 achievements active; **the next update enables all 90**, each one
-  checked against the official definitions in the situation it rewards.
+The official RetroAchievements set of the European cartridge (90 achievements, by its authors
+at [retroachievements.org](https://retroachievements.org/)). From v1.9.11 they are earned as
+you play, **with or without an account**, and kept on your computer; each one was checked
+against the official definitions in the situation it rewards. The launcher, the web page and
+the in-game Options list show the set with its badges. Signing in to RetroAchievements in the
+launcher is optional and also shows your account's progress.
 
 The gameplay, menu, language and launcher screenshots below were captured from
 v1.8.3. The unchanged new-game selection screens remain reference images.
@@ -161,11 +163,18 @@ Export a backup before clearing browser data.
 ## Running (Windows)
 
 1. Download the [latest stable ZIP](https://github.com/MatyMeatBoy/ReKHCoM/releases/latest)
-   and extract `ReKHCoM-v1.9.10-windows-x86.zip` into a writable folder.
+   and extract `ReKHCoM-v1.9.10-windows-x86.zip` into a writable folder of its own
+   (for example `ReKHCoM`).
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
 3. Press **Play**. The launcher starts `khcom_eu.exe`, `khcom_us.exe` or `khcom_jp.exe`
    for the version you chose.
+
+To update (from v1.9.11 on), extract the new ZIP over the same folder and replace the
+files: the package carries no saves, settings or ROM, so those are kept.
+
+**Create a desktop shortcut** (below **Play**) makes a shortcut that starts the game
+directly, without the launcher.
 
 The launcher also sets the European game's language, shows each version's save
 (open its folder, or back it up to `backups/` with a date stamp), and edits the

@@ -75,18 +75,23 @@ def main():
     for p in includes:
         common += ['-iquote', str(p)]
     common += ['-I', str(args.sdl_source.resolve() / 'include')]
+    common += ['-DPORT_OFFLINE_ACHIEVEMENTS', '-I', str(ROOT / 'port/third_party/rcheevos/include')]
     game = list((ROOT / 'src').rglob('*.c'))
     excluded = {'port_memory', 'port_sections', 'port_state', 'port_hdtext', 'port_watchdog', 'port_biosfault'}
     port = [p for p in (ROOT / 'port/src').glob('*.c') if p.stem not in excluded]
     port += list((ROOT / 'port/web/native').glob('*.c'))
     port += [ROOT / 'port/android/native/touch_android.c', reloc_path]
+    # rcheevos' runtime (no network): the official set evaluated offline
+    rcheevos = ROOT / 'port/third_party/rcheevos/src'
+    port += sorted((rcheevos / 'rcheevos').glob('*.c')) + [rcheevos / 'rc_compat.c', rcheevos / 'rc_util.c']
     jobs = [(p, True) for p in game] + [(p, False) for p in port]
     headers = sorted([*ROOT.joinpath('include').rglob('*.h'),
                       *ROOT.joinpath('port/include').rglob('*.h'), *gen.rglob('*.h'),
                       *ROOT.joinpath('port/include').rglob('*.inc'),
                       *ROOT.joinpath('port/src').glob('*.inc'),
                       *ROOT.joinpath('port/achievements').glob('*.h'),
-                      ROOT / 'port/achievements/local_achievements.c',
+                      ROOT / 'port/achievements/offline_achievements.c',
+                      ROOT / 'port/achievements/official_set_eu.inc',
                       *ROOT.joinpath('port/android/native').glob('*.h'), work / 'web_sjis.h'])
     header_hash = hashlib.sha256()
     for path in headers:

@@ -1,73 +1,40 @@
-/* The launcher cache contains public metadata and last-query unlock IDs only. */
+/* The official set as the Options menu lists it: this game's own unlocks
+   (achievements_official_eu.dat) and, when the launcher has read the account,
+   the account's (cache/achievement-unlocks.dat: public ids only). */
 #include "port/port_achievement_list.h"
-static struct {
-    uint32_t id;
-    PortAchievementInfo info;
-} sOfficialList[256];
-static int sOfficialCount;
+static unsigned char sAccountUnlocked[KH_OFFLINE_MAX];
 static int AchievementReadU32(FILE* file, uint32_t* value) {
     unsigned char b[4];
     if (fread(b, 1, 4, file) != 4) return 0;
     *value = b[0] | (uint32_t)b[1]<<8 | (uint32_t)b[2]<<16 | (uint32_t)b[3]<<24;
     return 1;
 }
-static int AchievementReadString(FILE* file, char* out, size_t capacity) {
-    uint32_t length;
-    size_t keep;
-    if (!AchievementReadU32(file, &length) || length > 16384) return 0;
-    keep = length < capacity ? length : capacity - 1;
-    if (fread(out, 1, keep, file) != keep) return 0;
-    out[keep] = 0;
-    return !length || fseek(file, (long)(length - keep), SEEK_CUR) == 0;
-}
 void PortAchievementsListRefresh(void) {
     FILE* file;
-    char signature[8], badge[40];
-    uint32_t count, points, known, id;
-    int i, j;
-    sOfficialCount = 0;
-    file = fopen(PortConfigPath("cache/achievements-768.dat"), "rb");
-    if (!file) return;
-    if (fread(signature, 1, 8, file) != 8 || memcmp(signature, "KHRACAT1", 8) ||
-        !AchievementReadU32(file, &count) || count > 256) { fclose(file); return; }
-    for (i = 0; i < (int)count; ++i) {
-        PortAchievementInfo* info = &sOfficialList[i].info;
-        if (!AchievementReadU32(file, &sOfficialList[i].id) || !AchievementReadU32(file, &points) ||
-            !AchievementReadString(file, info->title, sizeof(info->title)) ||
-            !AchievementReadString(file, info->description, sizeof(info->description)) ||
-            !AchievementReadString(file, badge, sizeof(badge))) { fclose(file); return; }
-        if (strlen(badge) < sizeof(info->badge)) SDL_strlcpy(info->badge, badge, sizeof(info->badge));
-        else info->badge[0] = 0;
-        /* Only numeric names can become cache paths. */
-        for (j = 0; info->badge[j]; ++j) if (info->badge[j] < '0' || info->badge[j] > '9') { info->badge[0] = 0; break; }
-        info->state = -1;
-    }
-    fclose(file); sOfficialCount = (int)count;
+    char signature[8];
+    uint32_t count, known, id;
+    int i, index;
+    memset(sAccountUnlocked, 0, sizeof(sAccountUnlocked));
     file = fopen(PortConfigPath("cache/achievement-unlocks.dat"), "rb");
     if (!file) return;
-    if (fread(signature, 1, 8, file) != 8 || memcmp(signature, "KHRAPRG1", 8) ||
-        !AchievementReadU32(file, &known) || known != 1 ||
-        !AchievementReadU32(file, &count) || count > 2000) { fclose(file); return; }
-    /* A truncated progress snapshot leaves every account state unknown. */
-    for (i = 0; i < (int)count; ++i) {
-        if (!AchievementReadU32(file, &id)) {
-            for (j = 0; j < sOfficialCount; ++j) sOfficialList[j].info.state = -1;
-            fclose(file); return;
-        }
-        for (j = 0; j < sOfficialCount; ++j) if (sOfficialList[j].id == id) sOfficialList[j].info.state = 1;
-    }
-    for (j = 0; j < sOfficialCount; ++j) if (sOfficialList[j].info.state < 0) sOfficialList[j].info.state = 0;
+    if (fread(signature, 1, 8, file) == 8 && !memcmp(signature, "KHRAPRG1", 8) &&
+        AchievementReadU32(file, &known) && known == 1 && AchievementReadU32(file, &count) && count <= 2000)
+        for (i = 0; i < (int)count && AchievementReadU32(file, &id); ++i)
+            if ((index = KhOfficialIndex(id)) >= 0) sAccountUnlocked[index] = 1;
     fclose(file);
 }
-int PortAchievementsListCount(int official) { return official ? sOfficialCount : KH_LOCAL_COUNT; }
-int PortAchievementsListGet(int official, int index, int spanish, PortAchievementInfo* out) {
-    const KhLocalDefinition* def;
-    if (!out || index < 0 || index >= PortAchievementsListCount(official)) return 0;
-    if (official) { *out = sOfficialList[index].info; return 1; }
-    def = &gKhLocalDefinitions[index];
-    SDL_strlcpy(out->title, spanish ? def->title_es : def->title_en, sizeof(out->title));
-    SDL_strlcpy(out->description, spanish ? def->description_es : def->description_en, sizeof(out->description));
-    out->badge[0] = 0;
-    out->state = (sLocal.unlocked & (1u << index)) != 0;
+int PortAchievementsListCount(void) { return KhOfficialCount(); }
+int PortAchievementsListGet(int index, PortAchievementInfo* out) {
+    const KhOfficialAchievement* a = KhOfficialAt(index);
+    if (!out || !a) return 0;
+    SDL_strlcpy(out->title, a->title, sizeof(out->title));
+    SDL_strlcpy(out->description, a->description, sizeof(out->description));
+    if (SDL_strlen(a->badge) < sizeof(out->badge)) SDL_strlcpy(out->badge, a->badge, sizeof(out->badge));
+    else out->badge[0] = 0;
+    out->points = a->points;
+    out->state = sAccountUnlocked[index];
+#ifdef KH_OFFLINE_EVAL
+    out->state |= sOffline.when[index] != 0;
+#endif
     return 1;
 }

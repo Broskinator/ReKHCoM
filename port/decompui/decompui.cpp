@@ -58,11 +58,11 @@ namespace fs = std::filesystem;
 #include "save_editor.h"
 #include "card_table.h"
 #include "../achievements/ra_client.h"
-#include "../achievements/local_achievements.h"
+#include "../achievements/offline_achievements.h"
 #include "../achievements/toast_layout.h"
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.9.10"
+#define REKHCOM_VERSION "v1.9.11"
 #endif
 
 static bool sSpanish;
@@ -1696,7 +1696,14 @@ static void CreateDesktopShortcut() {
         folder = fs::path(desktop);
         CoTaskMemFree(desktop);
     }
-    fs::path link = folder / (L"Kingdom Hearts - Chain of Memories (" + std::wstring(region, region + std::strlen(region)) + L").lnk");
+    /* "ReKHCoM"; the region only tells them apart when more than one version is installed */
+    int installed = 0;
+    for (const VersionState& v : sState)
+        installed += v.installed;
+    std::wstring name = L"ReKHCoM";
+    if (installed > 1)
+        name += L" (" + std::wstring(region, region + std::strlen(region)) + L")";
+    fs::path link = folder / (name + L".lnk");
     HRESULT com = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     IShellLinkW* shell = nullptr;
     if (SUCCEEDED(CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (void**)&shell))) {
@@ -1853,7 +1860,6 @@ int main(int, char**) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    LocalAchievementSettings(false);
     sRaUi = KhRaCreate(sRoot.u8string().c_str(), nullptr, nullptr, nullptr);
     sScale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
     if (sScale < 1.0f)
@@ -1867,8 +1873,6 @@ int main(int, char**) {
         }
     }
     sRaAccountShot = shotDir && SDL_getenv("DECOMPUI_RA_ACCOUNT");
-    if (shotDir && SDL_getenv("DECOMPUI_ACHIEVEMENT_REGION"))
-        sSelected = std::clamp(SDL_atoi(SDL_getenv("DECOMPUI_ACHIEVEMENT_REGION")), 0, 2);
     SDL_Window* window = SDL_CreateWindow("ReKHCoM", windowW, windowH,
                                           SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
                                               (shotDir != nullptr ? SDL_WINDOW_HIDDEN : 0));

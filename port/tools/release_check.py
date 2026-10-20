@@ -123,8 +123,11 @@ if not args.post:
     win = next((STAGE / 'main' / n for n in main if n.endswith('windows-x86.zip')), None)
     if win:
         with zipfile.ZipFile(win) as z:
-            exe = next(n for n in z.namelist() if n.endswith('/ReKHCoM.exe'))
-            check(V.encode() in z.read(exe), 'Windows launcher inside the zip shows ' + V)
+            names = z.namelist()
+            check('ReKHCoM.exe' in names and not any(n.startswith('ReKHCoM-') for n in names),
+                  'Windows zip has no top folder (updates extract over the old install)')
+            check('ReKHCoM.exe' in names and V.encode() in z.read('ReKHCoM.exe'),
+                  'Windows launcher inside the zip shows ' + V)
     quiver(main)
 else:
     def view(tag):

@@ -43,6 +43,7 @@ def main():
         "assets/boxart.jpg": ROOT / "port/decompui/assets/boxart.jpg",
         "assets/logo.png": ROOT / "port/decompui/assets/logo.png",
         "assets/NOTICE.md": ROOT / "port/decompui/assets/NOTICE.md",
+        "assets/achievements/badges.png": ROOT / "port/assets/achievements/badges.png",
         "assets/fonts/KHMenu.otf": ROOT / "port/assets/fonts/KHMenu.otf",
         "assets/fonts/ComicHearts.otf": ROOT / "port/assets/fonts/ComicHearts.otf",
         "assets/fonts/NOTICE.md": ROOT / "port/assets/fonts/NOTICE.md",
@@ -66,11 +67,12 @@ def main():
             files["assets/hd-hud/sprites/" + piece["file"]] = manifest.parent / piece["file"]
     args.out.mkdir(parents=True, exist_ok=True)
     archive = args.out / f"ReKHCoM-{args.version}-windows-x86.zip"
-    prefix = archive.stem
+    # No versioned top folder: an update is extracted over the old install
+    # (saves and kh_com.ini are not in the package, so they are kept).
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for name, source in files.items():
-            z.write(source, f"{prefix}/{name}")
-        z.writestr(f"{prefix}/roms/", "")
+            z.write(source, name)
+        z.writestr("roms/", "")
     digest = hashlib.sha256(archive.read_bytes()).hexdigest()
     checksum = archive.with_suffix(".zip.sha256")
     checksum.write_text(f"{digest}  {archive.name}\n", encoding="ascii")

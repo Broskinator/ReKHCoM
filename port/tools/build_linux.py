@@ -188,6 +188,8 @@ def bundle(arch, base, versions, dest):
     for name in ('KHMenu.otf', 'ComicHearts.otf', 'NOTICE.md'):
         (dest / 'assets/fonts').mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / 'port/assets/fonts' / name, dest / 'assets/fonts' / name)
+    (dest / 'assets/achievements').mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(ROOT / 'port/assets/achievements/badges.png', dest / 'assets/achievements/badges.png')
     # Window icon (set by the game) and a launcher entry for desktops/Steam Deck.
     shutil.copyfile(ROOT / 'port/assets/icon.bmp', dest / 'assets/icon.bmp')
     shutil.copyfile(ROOT / 'port/assets/icon.png', dest / 'ReKHCoM.png')
@@ -212,15 +214,16 @@ def executable(name):
     return name.endswith('.sh') or '/bin/' in name or '/lib/' in name
 
 
-def make_tar(src, archive, top):
+def make_tar(src, archive):
+    """No versioned top folder: an update extracts over the old install."""
     import tarfile
     with tarfile.open(archive, 'w:gz', compresslevel=9) as t:
         for f in sorted(src.rglob('*')):
-            name = f'{top}/{f.relative_to(src).as_posix()}'
+            name = f.relative_to(src).as_posix()
             info = t.gettarinfo(f, name)
             info.uid = info.gid = 0
             info.uname = info.gname = ''
-            info.mode = 0o755 if f.is_dir() or executable(name) else 0o644
+            info.mode = 0o755 if f.is_dir() or executable('/' + name) else 0o644
             if f.is_file():
                 with open(f, 'rb') as fh:
                     t.addfile(info, fh)
@@ -258,14 +261,14 @@ def package(version, base_i386, base_armhf):
     bundle('i386', base_i386, ['eu', 'us', 'jp'], pc)
     shutil.copyfile(ROOT / 'port/linux/LINUX.md', pc / 'LINUX.md')
     archive = out / f'ReKHCoM-{version}-linux-x86.tar.gz'
-    make_tar(pc, archive, f'ReKHCoM-{version}-linux-x86')
+    make_tar(pc, archive)
     made.append(archive)
     # Steam Deck: the same build, fullscreen from the first launch.
     deck = stage / 'deck'
     shutil.copytree(pc, deck)
-    (deck / 'kh_com.ini').write_text(f'# Steam Deck preset\nconfig_version={cfg}\nfullscreen=1\n')
+    (deck / 'kh_com.default.ini').write_text(f'# Steam Deck preset\nconfig_version={cfg}\nfullscreen=1\n')
     archive = out / f'ReKHCoM-{version}-steamdeck.tar.gz'
-    make_tar(deck, archive, f'ReKHCoM-{version}-steamdeck')
+    make_tar(deck, archive)
     made.append(archive)
     # Anbernic (PortMaster layout): launcher + rekhcom/ with the armhf build.
     arm = stage / 'anbernic'

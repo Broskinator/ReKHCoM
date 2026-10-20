@@ -4,7 +4,7 @@ $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $projectRoot = Split-Path -Parent $repoRoot
 $releaseZip = Join-Path $repoRoot "build/releases/ReKHCoM-$Version-windows-x86.zip"
 $destination = [IO.Path]::GetFullPath((Join-Path $projectRoot "ReKHCoM-$Version"))
-$application = Join-Path $destination "ReKHCoM-$Version-windows-x86"
+$application = $destination  # the zip has no top folder
 if (-not $destination.StartsWith($projectRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid release destination' }
 if (-not (Test-Path -LiteralPath (Join-Path $application 'ReKHCoM.exe'))) {
     if (-not (Test-Path -LiteralPath $releaseZip)) { throw "Missing package: $releaseZip" }
@@ -33,8 +33,10 @@ $previous = Get-ChildItem -LiteralPath $projectRoot -Directory | ForEach-Object 
     if ($_.Name -match '^ReKHCoM-(v\d+\.\d+(?:\.\d+)?)$') {
         $olderVersion = [version]$Matches[1].Substring(1)
         if ($olderVersion -lt [version]$Version.Substring(1)) {
+            # up to v1.9.10 the zip had a top folder; from v1.9.11 it extracts flat
             $path = Join-Path $_.FullName ($_.Name + '-windows-x86')
-            if (Test-Path -LiteralPath $path) { [pscustomobject]@{ Version=$olderVersion; Path=$path } }
+            if (-not (Test-Path -LiteralPath $path)) { $path = $_.FullName }
+            if (Test-Path -LiteralPath (Join-Path $path 'ReKHCoM.exe')) { [pscustomobject]@{ Version=$olderVersion; Path=$path } }
         }
     }
 } | Sort-Object -Property Version -Descending

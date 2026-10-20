@@ -13,7 +13,7 @@ import shutil
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
-FILES = ['index.html', 'web.css', 'web.js', 'runtime.js', 'i18n.js', 'settings.js', 'save-editor.js', 'editor-ui.js', 'achievement-data.js', 'achievements.js', 'cards.js', 'controller.png', 'favicon.png', 'apple-touch-icon.png', '.nojekyll', 'LICENSE.md', 'SDL-LICENSE.txt',
+FILES = ['index.html', 'web.css', 'web.js', 'runtime.js', 'i18n.js', 'settings.js', 'save-editor.js', 'editor-ui.js', 'achievement-data.js', 'achievements.js', 'cards.js', 'controller.png', 'achievement-badges.png', 'favicon.png', 'apple-touch-icon.png', '.nojekyll', 'LICENSE.md', 'SDL-LICENSE.txt',
          'fonts/KHMenu.otf', 'fonts/ComicHearts.otf', 'fonts/NOTICE.md', 'logo.png', 'boxart.jpg']
 FILES += [f'rekhcom-{r}.{ext}' for r in ['eu','us','jp'] for ext in ['js','wasm']]
 
@@ -33,6 +33,7 @@ def main():
     shutil.copy2(args.sdl_source / 'LICENSE.txt', site / 'SDL-LICENSE.txt')
     for name in ['web.css','web.js','runtime.js','i18n.js','settings.js','save-editor.js','editor-ui.js', 'achievement-data.js', 'achievements.js','cards.js','controller.png','favicon.png','apple-touch-icon.png']:
         shutil.copy2(ROOT / 'port/web' / name, site / name)
+    shutil.copy2(ROOT / 'port/assets/achievements/badges.png', site / 'achievement-badges.png')
     # Version the shell too: a cached alpha1 web.js must never drive alpha2.
     html = (ROOT / 'port/web/index.html').read_text(encoding='utf-8')
     for name in ['web.css','runtime.js','i18n.js','web.js','settings.js','save-editor.js','editor-ui.js', 'achievement-data.js', 'achievements.js','cards.js']:

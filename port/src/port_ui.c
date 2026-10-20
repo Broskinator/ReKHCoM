@@ -464,6 +464,10 @@ static const int sViewOrder[PORT_VIEW_COUNT] = { PORT_VIEW_AUTO, PORT_VIEW_ORIGI
                                                  PORT_VIEW_EXTENDED, PORT_VIEW_MAXIMUM };
 
 static int sOpen;
+/* the game's own menu sounds as the overlay opens and closes (taken by
+   port_main once the menu's sound context is set up / the game's is back):
+   its field menu opens with SYS_CANSEL and closes with SYS_CLOSE */
+static int sOpenSound, sCloseSound;
 static int sCursor;
 static int sScroll;
 static int sTitleHintFrames;
@@ -1134,6 +1138,7 @@ static void Change(int item, int dir) {
         case ITEM_NG_START:
             PortRecomSetActive(sNgRecom);
             Close();
+            sCloseSound = 0; /* the new game begins */
             break;
         case ITEM_NG_DIFFICULTY:
         case ITEM_PS2_DIFFICULTY:
@@ -1193,10 +1198,19 @@ int PortUiSceneFade(void) {
     return 0;
 }
 
+int PortUiTakeMenuSound(int open) {
+    int* flag = open ? &sOpenSound : &sCloseSound;
+    int take = *flag;
+    *flag = 0;
+    return take;
+}
+
 void PortUiOpenOptions(void) {
     if (sOpen)
         return;
     sOpen = 1;
+    sOpenSound = !SDL_getenv("KHCOM_OPTIONS_SHOT");
+    sCloseSound = 0;
     sFade = SDL_getenv("KHCOM_OPTIONS_SHOT") ? MENU_FADE * 2 : 0; /* test shots: no fade */
     sClosing = 0;
     sReturn = 0;
@@ -1222,6 +1236,7 @@ void PortUiOpenNewGame(void) {
         return;
     }
     PortUiOpenOptions();
+    sOpenSound = 0; /* the game's own confirm has just sounded */
     sPage = PAGE_NEWGAME;
     sNgRecom = 0;
     gPortConfig.hdText = 0;
@@ -1235,6 +1250,7 @@ void PortUiOpenNewGame(void) {
 }
 
 void PortUiForceClose(void) {
+    sOpenSound = sCloseSound = 0;
     sOpen = 0;
     sClosing = 0;
     sReturn = 0;
@@ -1254,6 +1270,7 @@ static void Close(void) {
     if (sClosing > 0)
         return;
     sClosing = MENU_FADE;
+    sCloseSound = 1;
     PortConfigSave();
     PortInputSuppressUntilRelease();
 }
@@ -1787,6 +1804,7 @@ static int WizRows(void) {
 static void WizFinish(void) {
     PortRecomSetActive(sNgRecom);
     Close();
+    sCloseSound = 0; /* the new game begins: not a return from a menu */
 }
 
 /* key: 0 up, 1 down, 2 left/right (toggle), 3 A, 4 B */
@@ -2153,7 +2171,7 @@ static int HarnessOptionsAction(void) {
                 if (key < 0) { event.type = SDL_EVENT_GAMEPAD_BUTTON_DOWN; event.gbutton.button = -(key + 1); }
                 else { event.type = SDL_EVENT_KEY_DOWN; event.key.key = (SDL_Keycode)key; }
                 PortUiHandleEvent(&event); changed = 1;
-                PortLog("achievement-menu-test: group=%d filter=%d choice=%d", sAchievementGroup, sAchievementView, sAchievementChoice);
+                PortLog("achievement-menu-test: filter=%d choice=%d", sAchievementView, sAchievementChoice);
             }
             p = comma ? comma + 1 : NULL;
         }

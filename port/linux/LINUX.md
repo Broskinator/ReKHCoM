@@ -7,12 +7,14 @@ its own loader and libraries in `lib/`: no 32-bit system packages are needed.
 You need your own cartridge dump (EU, US or JP, 32 MiB, unpatched). No ROM is
 included. Copy it into `roms/` with any file name: the version is read from
 the ROM header. Saves (`kh_com.sav`), settings (`kh_com.ini`) and quick states
-(`states/`) are kept in the game folder.
+(`states/`) are kept in the game folder. The archives have no top folder: to
+update, extract the new one over the old install; saves, settings and the ROM
+stay.
 
 ## Linux PC (`linux-x86`)
 
-    tar xf ReKHCoM-*-linux-x86.tar.gz
-    cd ReKHCoM-*-linux-x86
+    mkdir ReKHCoM && cd ReKHCoM
+    tar xf /path/to/ReKHCoM-*-linux-x86.tar.gz
     cp /path/to/your/rom.gba roms/
     ./ReKHCoM.sh
 
@@ -29,8 +31,8 @@ game's own resolution.
 
 Same program, set to fullscreen from the first launch.
 
-1. In Desktop Mode, extract the archive (for example in `~/Games`) and copy
-   your ROM into its `roms/` folder.
+1. In Desktop Mode, extract the archive into a folder of its own (for example
+   `~/Games/ReKHCoM`) and copy your ROM into its `roms/` folder.
 2. Steam > Games > *Add a Non-Steam Game to My Library* > Browse, show all
    file types, pick `ReKHCoM.sh`.
 3. Back in Game Mode, start it from the library. The default *Gamepad* Steam

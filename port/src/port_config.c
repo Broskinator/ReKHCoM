@@ -258,6 +258,11 @@ void PortConfigLoad(void) {
     FILE* f = fopen(PortConfigPath("kh_com.ini"), "r");
     char line[256];
 
+    /* a package preset (the Steam Deck's fullscreen) ships as
+       kh_com.default.ini, so an update extracted over an install never
+       replaces the player's own kh_com.ini */
+    if (f == NULL)
+        f = fopen(PortConfigPath("kh_com.default.ini"), "r");
     if (f == NULL)
         return;
     while (fgets(line, sizeof(line), f)) {

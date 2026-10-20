@@ -4,7 +4,7 @@ $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $projectRoot = Split-Path -Parent $repoRoot
 $releaseZip = Join-Path $repoRoot "build/releases/ReKHCoM-$Version-windows-x86.zip"
 $destination = [IO.Path]::GetFullPath((Join-Path $projectRoot "ReKHCoM-$Version"))
-$application = Join-Path $destination "ReKHCoM-$Version-windows-x86"
+$application = $destination  # the zip has no top folder
 if (-not $destination.StartsWith($projectRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
     throw 'Invalid nightly destination'
 }

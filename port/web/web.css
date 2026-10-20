@@ -26,7 +26,7 @@ button:focus-visible,.file:focus-within,select:focus-visible,input:focus-visible
 @media(prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
 .binding-row{min-height:46px}.binding-row select{max-width:none;width:100%}.binding-row button{font-size:12px;padding:6px 4px}
 .achievement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}.achievement-row{display:flex;align-items:center;gap:14px;padding:18px 0;border-bottom:1px solid #b9b3b3;min-width:0}.achievement-row h2{font-size:17px;margin:0 0 8px}.achievement-row p{font-size:14px;margin:0 0 8px}.achievement-row small{color:#716b6b}.achievement-badge{width:48px;height:48px;flex:none;image-rendering:pixelated;filter:grayscale(1);opacity:.68}.achievement-row.unlocked .achievement-badge{filter:none;opacity:1}.achievement-row.unlocked small{color:#8c1818}.achievement-filters{display:flex;gap:12px;margin:18px 0}.achievement-filters input{flex:1;min-width:0}.achievement-setting{display:flex;align-items:center;gap:10px}#achievement-meter{width:100%;height:16px;accent-color:#c79b15}@media(max-width:650px){.achievement-grid{grid-template-columns:1fr}.achievement-filters{flex-wrap:wrap}.achievement-filters input{width:100%}}
-.achievement-badge{background:transparent}
+.achievement-badge{display:block;background:url(achievement-badges.png) 0 0/480px auto no-repeat}
 .controller canvas{display:block;width:min(100%,416px);height:auto;background:transparent;image-rendering:pixelated;margin:auto}.controller #controller-binding{font-size:14px;color:#9c1000;min-height:1.5em}
 
 /* 55+70 (19/10): the Play tab as the launcher's home page. Game card with
