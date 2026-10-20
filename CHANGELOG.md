@@ -1,6 +1,9 @@
 # Changelog
 
-## v1.9.11 — 2026-10-20
+## v1.9.12 — 2026-10-20
+
+v1.9.11 came out only as two test prereleases; this stable release carries all of it.
+
 
 - Achievements: the official RetroAchievements set (90, European version) is now earned as you
   play, with or without an account, and kept on your computer. The launcher, the web page and

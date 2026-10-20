@@ -13,7 +13,7 @@ Quiver's catalog entry picks the Windows file by its releaseAssetFilter
 "windows-x86.zip" (docs/quiver/submission-draft.json), so the second .zip does not
 compete with it. Never edit a published stable's existing files: Quiver pins them.
 
-    python port/tools/stage_release.py v1.9.11    # -> build/publish/v1.9.11/main
+    python port/tools/stage_release.py v1.9.12    # -> build/publish/v1.9.12/main
 """
 import hashlib
 import shutil
@@ -31,6 +31,7 @@ MAIN = {
     f'ReKHCoM-{V}-anbernic-alpha.zip': f'ReKHCoM-{V}-linux-armhf-anbernic-alpha.zip',
     f'ReKHCoM-{V}-android-alpha.apk': f'ReKHCoM-{V}-android-alpha.apk',
     'PPSA98511.zip': 'PPSA98511.zip',
+    f'ReKHCoM-{V}-ps4-alpha.pkg': f'ReKHCoM-{V}-ps4-alpha.pkg',
 }
 
 
