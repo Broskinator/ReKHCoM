@@ -16,6 +16,18 @@
 #if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
 #include "port/port_android.h"
 #endif
+#include "port/pad_layout.h"
+
+/* A pad button in the menus: whatever is bound to the game's A confirms and to B goes back
+   (as the in-game controls), so the menu follows the player's mapping; the face buttons
+   bound to something else do nothing there. */
+static int UiPadButton(const SDL_Event* ev) {
+    int b = ev->gbutton.button;
+    if (b == gPortConfig.pad[PORT_ACT_A]) return SDL_GAMEPAD_BUTTON_SOUTH;
+    if (b == gPortConfig.pad[PORT_ACT_B]) return SDL_GAMEPAD_BUTTON_EAST;
+    if (b == SDL_GAMEPAD_BUTTON_SOUTH || b == SDL_GAMEPAD_BUTTON_EAST) return -1;
+    return b;
+}
 
 extern void* gMsgLatinFontFrames[];
 extern const uint8_t gMsgLatinFontTiles[];
@@ -1357,8 +1369,8 @@ int PortUiHandleEvent(const void* p) {
             int start = gPortConfig.pad[PORT_ACT_START], select = gPortConfig.pad[PORT_ACT_SELECT];
             int b = ev->gbutton.button;
             if (b == SDL_GAMEPAD_BUTTON_GUIDE
-                || (pad != NULL && b == start && select >= 0 && SDL_GetGamepadButton(pad, (SDL_GamepadButton)select))
-                || (pad != NULL && b == select && start >= 0 && SDL_GetGamepadButton(pad, (SDL_GamepadButton)start))) {
+                || (pad != NULL && b == start && select >= 0 && KhPadButtonDown(pad, select, gPortConfig.padLayout))
+                || (pad != NULL && b == select && start >= 0 && KhPadButtonDown(pad, start, gPortConfig.padLayout))) {
                 PortUiOpenOptions();
                 return 1;
             }
@@ -1412,7 +1424,7 @@ int PortUiHandleEvent(const void* p) {
                 case SDLK_ESCAPE: case SDLK_BACKSPACE: case SDLK_Z: case SDLK_J: key = ev->key.repeat ? -1 : 4; break;
             }
         } else {
-            switch (ev->gbutton.button) {
+            switch (UiPadButton(ev)) {
                 case SDL_GAMEPAD_BUTTON_DPAD_UP: key = 0; break;
                 case SDL_GAMEPAD_BUTTON_DPAD_DOWN: key = 1; break;
                 case SDL_GAMEPAD_BUTTON_DPAD_LEFT: case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: key = 2; break;
@@ -1491,7 +1503,7 @@ int PortUiHandleEvent(const void* p) {
         return 1;
     }
     if (ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-        switch (ev->gbutton.button) {
+        switch (UiPadButton(ev)) {
             case SDL_GAMEPAD_BUTTON_DPAD_UP:
                 Move(-1);
                 break;
@@ -2354,7 +2366,7 @@ static int ScenePauseEvent(const SDL_Event* ev) {
             case SDLK_ESCAPE: case SDLK_BACKSPACE: case SDLK_Z: case SDLK_J: key = 3; break;
         }
     } else if (ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-        switch (ev->gbutton.button) {
+        switch (UiPadButton(ev)) {
             case SDL_GAMEPAD_BUTTON_DPAD_UP: key = 0; break;
             case SDL_GAMEPAD_BUTTON_DPAD_DOWN: key = 1; break;
             case SDL_GAMEPAD_BUTTON_SOUTH: key = 2; break;

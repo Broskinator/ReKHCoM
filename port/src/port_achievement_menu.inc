@@ -58,7 +58,7 @@ static int AchievementMenuInput(const SDL_Event* ev) {
         case SDLK_ESCAPE: case SDLK_BACKSPACE: case SDLK_F1: case SDLK_Z: case SDLK_J: back = !ev->key.repeat; break;
         }
     } else if (ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-        switch (ev->gbutton.button) {
+        switch (UiPadButton(ev)) {
         case SDL_GAMEPAD_BUTTON_DPAD_UP: move = -1; break;
         case SDL_GAMEPAD_BUTTON_DPAD_DOWN: move = 1; break;
         case SDL_GAMEPAD_BUTTON_DPAD_LEFT: move = -5; break;

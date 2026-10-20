@@ -7,6 +7,7 @@
  */
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include "port/pad_layout.h"
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -1937,6 +1938,7 @@ static void PumpEvents(void) {
     SDL_Event ev;
 
     while (SDL_PollEvent(&ev)) {
+        KhPadNormalizeEvent(&ev, gPortConfig.padLayout);
 #ifdef __EMSCRIPTEN__
         if(ev.type==SDL_EVENT_RENDER_DEVICE_RESET) {
             extern void PortWebHdClear(void);PortWebHdClear();

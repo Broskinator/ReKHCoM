@@ -136,6 +136,7 @@ typedef struct PortConfig {
     int gbaMapLogic;            /* cheats > debug mode, off: field enemies leave at the GBA screen's edges */
     int gameLanguage;          /* European game: 0 asks (once), 1..5 English, French, German, Italian, Spanish */
     int invertCardScroll;      /* off by default: reverse L/R and right-stick card scrolling in battle */
+    int padLayout;             /* face buttons: 0 detect (Nintendo pads swap A/B, X/Y), 1 Xbox positions, 2 Nintendo */
 } PortConfig;
 
 extern PortConfig gPortConfig;

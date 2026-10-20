@@ -4,6 +4,7 @@
 #include <SDL3/SDL.h>
 
 #include "port/port.h"
+#include "port/pad_layout.h"
 #include "mode.h"
 #include "text_types.h"
 #include "msg.h"
@@ -168,7 +169,7 @@ static uint16_t GamepadKeys(SDL_Gamepad* pad) {
             if (axis >= SDL_GAMEPAD_AXIS_COUNT) continue;
             value = SDL_GetGamepadAxis(pad, (SDL_GamepadAxis)axis);
             if ((!negative && value <= TRIGGER_THRESHOLD) || (negative && value >= -TRIGGER_THRESHOLD)) continue;
-        } else if (!SDL_GetGamepadButton(pad, (SDL_GamepadButton)binding)) continue;
+        } else if (!KhPadButtonDown(pad, binding, gPortConfig.padLayout)) continue;
         /* with the one-button options off, their buttons are B and A again */
         if (i == PORT_ACT_DODGE && !gPortConfig.dodgeButton)
             bit = KEY_B;

@@ -116,6 +116,7 @@ static const Key sKeys[] = {
     { "sfx_volume", &gPortConfig.sfxVolume, 0, 100 },
     { "dodge_button", &gPortConfig.dodgeButton, 0, 1 },
     { "stock_button", &gPortConfig.stockButton, 0, 1 },
+    { "pad_layout", &gPortConfig.padLayout, 0, 2 },
     { "invert_card_scroll", &gPortConfig.invertCardScroll, 0, 1 },
     { "game_language", &gPortConfig.gameLanguage, 0, 5 },
     { "experimental_moogle_notice", &gPortConfig.moogleNotice, 0, 1 },
