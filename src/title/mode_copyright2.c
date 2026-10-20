@@ -12,6 +12,12 @@
 #include "display.h"
 #include "mode.h"
 #include "types.h"
+#ifdef PLATFORM_PC
+#include "key.h"
+#include "gba/keys.h"
+#include "port/port_ui.h"
+static u8 sCopyright2Skipping;
+#endif
 
 static u16 sCopyright2Timer;
 
@@ -36,6 +42,20 @@ void mode_copyright2_0(s32 arg) {
 }
 
 void mode_copyright2_1() {
+#ifdef PLATFORM_PC
+    /* #24: A twice skips to the title (see mode_copyright1.c) */
+    if (!sCopyright2Skipping && PortUiIntroSkip(GetKeysPressed() & A_BUTTON)) {
+        sCopyright2Skipping = TRUE;
+        FadeStartOut(FADE_MODE_BLACK, 0x10);
+    }
+    if (sCopyright2Skipping) {
+        if (!FadeIsActive()) {
+            sCopyright2Skipping = FALSE;
+            ModeRequest(&gModeTitle, 0);
+        }
+        return;
+    }
+#endif
     if (!FadeIsActive()) {
         if (sCopyright2Timer != 0) {
             if (--sCopyright2Timer == 0) {

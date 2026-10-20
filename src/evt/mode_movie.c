@@ -458,6 +458,14 @@ static u16 sMovieSubUpperWidths[MOVIE_SUB_MAX_CHARS];
 static u16 sMovieSubLowerWidths[MOVIE_SUB_MAX_CHARS];
 #endif
 
+#ifdef PLATFORM_PC
+static u8 sPortMovieSkip;
+
+void PortMovieSkipRequest(void) {
+    sPortMovieSkip = TRUE;
+}
+#endif
+
 s32 HandleMovieFrame(s32 arg) {
     s32 i;
     u16 keys;
@@ -470,6 +478,24 @@ s32 HandleMovieFrame(s32 arg) {
     }
 
 #ifdef PLATFORM_PC
+    /* START pauses any cinematic under the scene pause (#24); its "skip cinematic"
+       ends the movie here, after the pause has closed. */
+    {
+        static u16 sPrevStart;
+        u16 start = keys & START_BUTTON;
+
+        if (sMovieFrame == 0)
+            sPrevStart = start;
+        if (start && !sPrevStart)
+            PortUiOpenMoviePause();
+        sPrevStart = start;
+        if (sPortMovieSkip) {
+            sPortMovieSkip = FALSE;
+            PortUiSkipPrompt(FALSE);
+            return 1;
+        }
+    }
+
     /* A shows a prompt; A again while it is up skips the opening. */
     if (sMovieId == MOVIE_OPENING) {
         static u16 sPrevKeys;

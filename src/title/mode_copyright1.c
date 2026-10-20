@@ -16,6 +16,12 @@
 #include "save_api.h"
 #include "save_types.h"
 #include "types.h"
+#ifdef PLATFORM_PC
+#include "key.h"
+#include "gba/keys.h"
+#include "port/port_ui.h"
+static u8 sCopyrightSkipping;
+#endif
 
 #ifndef VERSION_JP
 static u8 sCopyrightExtraScreen;
@@ -98,6 +104,20 @@ void mode_copyright1_0(s32 arg) {
 }
 
 void mode_copyright1_1() {
+#ifdef PLATFORM_PC
+    /* #24: A twice skips the copyright and logo screens to the title */
+    if (!sCopyrightSaveCorrupted && !sCopyrightSkipping && PortUiIntroSkip(GetKeysPressed() & A_BUTTON)) {
+        sCopyrightSkipping = TRUE;
+        FadeStartOut(FADE_MODE_BLACK, 0x10);
+    }
+    if (sCopyrightSkipping) {
+        if (!FadeIsActive()) {
+            sCopyrightSkipping = FALSE;
+            ModeRequest(&gModeTitle, 0);
+        }
+        return;
+    }
+#endif
     if (sCopyrightSaveCorrupted) {
         ModeRequest(&gModeMenuMsg, 0);
     } else if (!FadeIsActive()) {

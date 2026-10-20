@@ -159,8 +159,13 @@ void TitleFadeOut() {
     sTitleState = TITLE_STATE_FADE_OUT;
 }
 
+#ifdef PLATFORM_PC
+void PortUiIntroSkipReset(void);
+#endif
+
 void mode_title_0() {
 #ifdef PLATFORM_PC
+    PortUiIntroSkipReset(); /* the logos' skip prompt, if it was still up */
     PortTitleBands(0);
     PortSideStyle(PORT_SIDE_COLOR); /* side bars in the screen's background colour */
 #endif

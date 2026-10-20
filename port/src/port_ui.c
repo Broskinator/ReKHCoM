@@ -1584,6 +1584,29 @@ void PortUiSkipPrompt(int visible) {
     sSkipPrompt = visible;
 }
 
+/* Copyright and logo screens (#24): A shows the prompt for 4 seconds, A again
+   while it is up confirms. Called once per game frame; reset when leaving. */
+static int sIntroSkipTimer;
+
+int PortUiIntroSkip(int pressed) {
+    if (pressed) {
+        if (sIntroSkipTimer > 0) {
+            PortUiIntroSkipReset();
+            return 1;
+        }
+        sIntroSkipTimer = 4 * 60;
+        PortUiSkipPrompt(1);
+    } else if (sIntroSkipTimer > 0 && --sIntroSkipTimer == 0) {
+        PortUiSkipPrompt(0);
+    }
+    return 0;
+}
+
+void PortUiIntroSkipReset(void) {
+    sIntroSkipTimer = 0;
+    PortUiSkipPrompt(0);
+}
+
 static void MenuButton(int x, int y, const char* text, int key);
 
 /* Bottom right of the GBA picture: a debug-menu button with the text. */
@@ -2306,7 +2329,16 @@ static const char* const sScenePauseYesNo[2][LANG_COUNT] = {
     { "Yes", "Oui", "Ja", "Sì", "Sí", "はい" },
     { "No", "Non", "Nein", "No", "No", "いいえ" },
 };
-static int sSceneSkippable, sSceneStep, sSceneCursor;
+/* The same pause over a cinematic (mode_movie.c, #24): START opens it. */
+static const char* const sMoviePauseSkip[LANG_COUNT] = {
+    "Skip cinematic", "Passer la cinématique", "Filmsequenz überspringen", "Salta filmato", "Saltar cinemática",
+    "ムービーをスキップ",
+};
+static const char* const sMoviePauseAsk[LANG_COUNT] = {
+    "Skip this cinematic?", "Passer cette cinématique ?", "Diese Filmsequenz überspringen?", "Saltare questo filmato?",
+    "¿Saltar esta cinemática?", "このムービーをスキップしますか？",
+};
+static int sSceneSkippable, sSceneStep, sSceneCursor, sSceneMovie;
 
 void PortUiOpenScenePause(int skippable) {
     if (sOpen || sScenePause)
@@ -2315,15 +2347,28 @@ void PortUiOpenScenePause(int skippable) {
     sSceneSkippable = skippable;
     sSceneStep = 0;
     sSceneCursor = 0;
+    sSceneMovie = 0;
+}
+
+void PortUiOpenMoviePause(void) {
+    if (sOpen || sScenePause)
+        return;
+    PortUiOpenScenePause(1);
+    sSceneMovie = 1;
 }
 
 static void ScenePauseClose(int skip) {
     extern void PortInputSuppressUntilRelease(void);
     extern void PortEventSkipScene(void);
+    extern void PortMovieSkipRequest(void);
     sScenePause = 0;
     PortInputSuppressUntilRelease(); /* the closing press does not reach the scene */
-    if (skip)
-        PortEventSkipScene();
+    if (skip) {
+        if (sSceneMovie)
+            PortMovieSkipRequest();
+        else
+            PortEventSkipScene();
+    }
 }
 
 /* 0 up, 1 down, 2 confirm, 3 back, 4 START (resume) */
@@ -2396,11 +2441,13 @@ static int ScenePauseEvent(const SDL_Event* ev) {
 }
 
 static void DrawScenePause(int l, int width, int height) {
-    const char* title = sSceneStep == 0 ? sScenePauseTitle[l] : sScenePauseAsk[l];
+    const char* title = sSceneStep == 0 ? sScenePauseTitle[l] : (sSceneMovie ? sMoviePauseAsk[l] : sScenePauseAsk[l]);
     const char* rows[2];
     int i, panelW, h = 22 + 2 * 16 + 6, x0, y0, y;
     for (i = 0; i < 2; i++)
         rows[i] = sSceneStep == 0 ? sScenePauseRows[i][l] : sScenePauseYesNo[i][l];
+    if (sSceneStep == 0 && sSceneMovie)
+        rows[1] = sMoviePauseSkip[l];
     panelW = SDL_max(TextWidth(title) + 16, SDL_max(TextWidth(rows[0]), TextWidth(rows[1])) + 48);
     panelW = SDL_min(SDL_max(panelW, 120), width - 8);
     x0 = (width - panelW) / 2;

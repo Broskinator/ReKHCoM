@@ -29,6 +29,9 @@ int PortUiRenderTextLine(uint32_t* pixels, int width, int height, const char* te
 int PortUiTextWidth(const char* text);
 /* Opening movie: show or hide the "A again skips" prompt. */
 void PortUiSkipPrompt(int visible);
+int PortUiIntroSkip(int pressed);
+void PortUiOpenMoviePause(void);
+void PortUiIntroSkipReset(void);
 /* Movies shown cropped and enlarged: the presenter draws the prompt itself
    (PortUiDrawSkipLayer) at the picture's normal size and place, so it is
    left out of the frame while on is set. */
