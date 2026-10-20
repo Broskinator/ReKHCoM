@@ -53,6 +53,7 @@ namespace fs = std::filesystem;
 /* ---- strings (Spanish / English) ------------------------------------------- */
 
 #include "../include/port/port_aspect.h"
+#include "../include/port/pad_layout.h"
 #include "save_import.h"
 #include "save_file.h"
 #include "save_editor.h"
@@ -1418,7 +1419,10 @@ static bool CaptureEvent(const SDL_Event& ev) {
         return true;
     }
     if (ev.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN && sCapturePad) {
-        Ini(sCapture.c_str()) = ev.gbutton.button;
+        /* stored as the game reads it: on a Nintendo pad the button labelled A is A */
+        SDL_Event normalized = ev;
+        KhPadNormalizeEvent(&normalized, Ini("pad_layout"));
+        Ini(sCapture.c_str()) = normalized.gbutton.button;
         sCapture.clear();
         SaveIni();
         return true;
@@ -1928,6 +1932,10 @@ int main(int, char**) {
         while (SDL_PollEvent(&ev)) {
             if (CaptureEvent(ev))
                 continue;
+            /* Nintendo pads: the button labelled A confirms and B goes back, as in the game */
+            if (ev.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
+                ImGui::GetIO().ConfigNavSwapGamepadButtons =
+                    KhPadIsNintendo(SDL_GetGamepadFromID(ev.gbutton.which), Ini("pad_layout")) != 0;
             ImGui_ImplSDL3_ProcessEvent(&ev);
             if (ev.type == SDL_EVENT_QUIT || ev.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED)
                 running = false;

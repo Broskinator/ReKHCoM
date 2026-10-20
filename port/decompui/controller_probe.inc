@@ -30,7 +30,7 @@ static void ControllerProbeTick() {
     if (!p.pad || !p.active) return;
     unsigned buttons = 0;
     for (int b = 0; b <= SDL_GAMEPAD_BUTTON_DPAD_RIGHT; ++b)
-        if (SDL_GetGamepadButton(p.pad, (SDL_GamepadButton)b)) buttons |= 1u << b;
+        if (KhPadButtonDown(p.pad, b, Ini("pad_layout"))) buttons |= 1u << b;
     p.down |= buttons;
     p.released |= p.lastButtons & ~buttons;
     p.lastButtons = buttons;
