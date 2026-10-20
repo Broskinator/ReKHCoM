@@ -21,10 +21,12 @@ ADB = str(R.parent / 'toolchain/android/sdk/platform-tools/adb.exe')
 PKG = 'com.rekhcom.android.smoke'
 CODES = {'eu': 'B8CP', 'us': 'B8CE', 'jp': 'B8CJ'}
 OUT = R / 'build/android-scenarios'
+UBSAN = set()
 
-MENU_MODES = ['mode_status', 'mode_worldselect', 'Mode_Deck', 'mode_deckexchange', 'mode_jiminy', 'mode_ms_top',
-              'mode_allmap', 'mode_worldinspect', 'mode_worldwarp', 'mode_pooh', 'mode_staffroll', 'mode_continue',
-              'mode_premire', 'mode_wlogo', 'mode_title']
+MENU_MODES = ['mode_status', 'mode_worldselect', 'Mode_Deck', 'Mode_Premire', 'mode_jiminy', 'mode_ms_top',
+              'mode_ms_shop', 'mode_ms_charge', 'mode_allmap', 'mode_worldinspect', 'mode_worldwarp', 'mode_pooh',
+              'mode_StaffRoll', 'Continue', 'mode_wLogo', 'mode_mapinspect', 'mode_eventselect', 'mode_title',
+              'WORLDSELECT', 'Mode_riku_deckTutorial', 'mode_vsbattle']
 
 FIXTURES = {
     'room-castle': 'KHCOM_MODE=60:room:10901,120:fieldfreeze',
@@ -63,7 +65,7 @@ def battle_keys(frames):
     return ','.join(keys)
 
 
-def scenarios(groups, only, riku):
+def scenarios(groups, only, riku, from_battle=0):
     out = []
     if 'menus' in groups:
         for m in MENU_MODES:
@@ -73,8 +75,15 @@ def scenarios(groups, only, riku):
             out.append((f'fx-{name}', 900, 120, env.replace(';', '\n') + '\nKHCOM_KEYS=300-303:A,360-363:A,420-423:A'))
     if 'bosses' in groups or 'battles' in groups:
         stages = test_battles.stage_table()
-        for i, world, battle in test_battles.battle_entries():
-            if 'bosses' in groups and 'battles' not in groups and not re.search(r'BOSS|BOS_|_BTL_[A-Z_]*(LEXAEUS|VEXEN|LARXENE|MARLUXIA|AXEL|RIKU|ANSEM)', battle):
+        entries = test_battles.battle_entries()
+        if 'battles' not in groups:
+            # the debug menu lists each world's battles in order; the last two of a world hold its bosses
+            last = {}
+            for i, world, battle in entries:
+                last.setdefault(re.sub(r'_[0-9]+$', '', battle), []).append((i, world, battle))
+            entries = [e for group in last.values() for e in group[-2:]]
+        for i, world, battle in entries:
+            if i < from_battle:
                 continue
             stage = next((k for k, s in enumerate(stages) if s.replace('BATTLE_STAGE_', 'WORLD_') == world), 0)
             out.append((f'battle-{i:03d}-{battle}', 1800, 150,
@@ -112,6 +121,10 @@ def run(region, name, frames, timeout, env):
         time.sleep(3)
     log = private('cat', 'files/kh_com.log').stdout.decode(errors='replace')
     detail = ''
+    ubsan = sorted(set(re.findall(r'ReKHCoM-UBSAN.*?: (\w[\w-]* pc=0x[0-9a-f]+)', adb('logcat', '-d', '-s', 'ReKHCoM-UBSAN:W').stdout.decode(errors='replace'))))
+    if ubsan:
+        print('  ubsan:', ' '.join(ubsan), flush=True)
+        UBSAN.update(ubsan)
     if status == 'CRASH':
         crashes = adb('logcat', '-d', '-b', 'crash').stdout.decode(errors='replace')
         detail = '\n'.join(l.split(': ', 1)[-1] for l in crashes.splitlines() if re.search(r'Fatal signal|#0[0-6] pc', l))
@@ -133,6 +146,7 @@ def main():
                    choices=['menus', 'fixtures', 'bosses', 'battles', 'bot'])
     p.add_argument('--only', default='')
     p.add_argument('--riku', action='store_true')
+    p.add_argument('--from-battle', type=int, default=0, help='skip battle entries below this index')
     args = p.parse_args()
     SERIAL = args.serial
     OUT.mkdir(parents=True, exist_ok=True)
@@ -142,13 +156,14 @@ def main():
         private('mkdir', '-p', 'files/roms')
         adb('push', R / 'roms' / f'{code}.gba', f'/data/local/tmp/{code}.gba')
         private('cp', f'/data/local/tmp/{code}.gba', f'files/roms/{code}.gba')
-        for name, frames, timeout, env in scenarios(args.groups, [o for o in args.only.split(',') if o], args.riku):
+        for name, frames, timeout, env in scenarios(args.groups, [o for o in args.only.split(',') if o], args.riku, args.from_battle):
             status, detail, tail = run(region, name, frames, timeout, env)
             print(f'{region} {name}: {status}', flush=True)
             if status != 'ok':
                 print(detail or tail, flush=True)
             report.append(dict(region=region, name=name, status=status, detail=detail))
             (OUT / f'report-{"-".join(args.regions)}.json').write_text(json.dumps(report, indent=1))
+    (OUT / 'ubsan-sites.txt').write_text(chr(10).join(sorted(UBSAN)))
     bad = [r for r in report if r['status'] != 'ok']
     print(f'{len(report) - len(bad)}/{len(report)} scenarios ok')
     sys.exit(1 if bad else 0)

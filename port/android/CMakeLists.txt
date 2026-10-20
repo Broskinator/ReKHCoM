@@ -21,6 +21,8 @@ set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "" FORCE)
 set(FT_DISABLE_BROTLI ON CACHE BOOL "" FORCE)
 add_subdirectory("${FREETYPE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/freetype")
 set(REGIONS "eu" CACHE STRING "Cartridge regions to compile: eu;us;jp")
+option(REKHCOM_UBSAN "Test build: log shifts by 32+, divisions by zero, NULL and misaligned accesses (ubsan_log.c)" OFF)
+set(UBSAN_FLAGS -fsanitize=shift,integer-divide-by-zero,null,alignment -fsanitize-minimal-runtime -fsanitize-recover=all)
 file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS "${ROOT}/src/*.c")
 file(GLOB PORT_SOURCES CONFIGURE_DEPENDS "${ROOT}/port/src/*.c")
 foreach(name port_memory port_sections port_state port_hdtext port_watchdog port_biosfault)
@@ -51,6 +53,9 @@ foreach(region IN LISTS REGIONS)
     target_compile_options(game_${region} PRIVATE -O2 -w -std=gnu89 -funsigned-char -fno-strict-aliasing -fwrapv -fno-common
         -include "${ROOT}/port/include/port/game_prefix.h")
     target_compile_definitions(game_${region} PRIVATE PLATFORM_PC VERSION_${upper})
+    if(REKHCOM_UBSAN)
+        target_compile_options(game_${region} PRIVATE ${UBSAN_FLAGS})
+    endif()
     # Game malloc.h must never shadow bionic's <malloc.h> from <stdlib.h>.
     foreach(dir ${GAME_INCLUDES} "${gen}" "${ROOT}/port/include")
         target_compile_options(game_${region} PRIVATE "-iquote${dir}")
@@ -59,8 +64,12 @@ foreach(region IN LISTS REGIONS)
         "${glue}/rom_relocs.c" "${CMAKE_CURRENT_BINARY_DIR}/rom_symbols_${region}.S"
         "${CMAKE_CURRENT_BINARY_DIR}/fixed_symbols_${region}.S"
         native/port_memory_android.c native/platform_android.c native/touch_android.c
+        $<$<BOOL:${REKHCOM_UBSAN}>:native/ubsan_log.c>
         "${ROOT}/port/portable/hdtext_freetype.c")
     target_compile_definitions(rekhcom_${region} PRIVATE PLATFORM_PC VERSION_${upper})
+    if(REKHCOM_UBSAN)
+        target_compile_options(rekhcom_${region} PRIVATE ${UBSAN_FLAGS})
+    endif()
     target_compile_options(rekhcom_${region} PRIVATE -O2 -funsigned-char -fno-strict-aliasing -fwrapv)
     foreach(dir ${GAME_INCLUDES} "${gen}")
         target_compile_options(rekhcom_${region} PRIVATE "-iquote${dir}")

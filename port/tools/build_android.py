@@ -53,6 +53,7 @@ def main():
     p.add_argument('--jobs',type=int,default=3)
     p.add_argument('--abi',choices=['armeabi-v7a','x86'],default='armeabi-v7a')
     p.add_argument('--native-only',action='store_true')
+    p.add_argument('--ubsan',action='store_true',help='Test build: log shifts by 32+, divisions by zero, NULL and misaligned accesses to logcat (tag ReKHCoM-UBSAN)')
     p.add_argument('--smoke',action='store_true',help='Separate test app: starts a debug battle, captures frame 600 and exits at 900')
     p.add_argument('--smoke-env',default='',help='Smoke app only: KEY=VALUE;KEY=VALUE harness settings replacing the debug battle')
     args=p.parse_args()
@@ -85,7 +86,7 @@ def main():
          f'-DCMAKE_TOOLCHAIN_FILE={ndk}/build/cmake/android.toolchain.cmake','-DANDROID_ABI='+args.abi,
          '-DANDROID_PLATFORM=android-21',f'-DSDL_SOURCE_DIR={sdl}','-DCMAKE_BUILD_TYPE=Release',
          f'-DFREETYPE_SOURCE_DIR={ROOT.parent / "toolchain/freetype-2.14.3"}',
-         '-DREGIONS='+';'.join(args.regions)])
+         '-DREGIONS='+';'.join(args.regions)]+(['-DREKHCOM_UBSAN=ON'] if args.ubsan else []))
     run([ninja,'-C',native,'-j',args.jobs])
     for region in args.regions:
         verify_fixed_symbols(native/f'librekhcom_{region}.so')
