@@ -601,6 +601,8 @@ static void GameSquare(ImDrawList* dl, ImVec2 c, float size, bool on) {
 static ImFont* sFontBody;
 static ImFont* sFontTitle;
 static ImFont* sFontSmall;
+static ImFont* sFontMenu; /* the game's menu font (KHMenu): tabs, buttons, headings, as the web page */
+static ImFont* sFontMenuSmall; /* the same, for the section headings */
 
 static void ApplyStyle() {
     ImGuiStyle& s = ImGui::GetStyle();
@@ -669,11 +671,37 @@ static void LoadFonts() {
         sFontTitle = io.Fonts->AddFontFromFileTTF(fs::exists(semibold) ? semibold.c_str() : regular.c_str(),
                                                   Px(34), &cfg, ranges);
     }
+    /* KHMenu (assets/fonts, the game's menu lettering): has the Latin accents but not the arrows, which come from
+       Segoe UI merged into it */
+    {
+        std::string kh = (sRoot / "assets" / "fonts" / "KHMenu.otf").string();
+        static const ImWchar khRanges[] = { 0x0020, 0x00FF, 0 };
+        static const ImWchar arrows[] = { 0x2190, 0x2193, 0x25B6, 0x25C0, 0 };
+        if (fs::exists(kh)) {
+            auto load = [&](float size) {
+                ImFont* f = io.Fonts->AddFontFromFileTTF(kh.c_str(), size, &cfg, khRanges);
+                if (f && fs::exists(regular)) {
+                    ImFontConfig merge = cfg;
+                    merge.MergeMode = true;
+                    io.Fonts->AddFontFromFileTTF(regular.c_str(), size * 0.9f, &merge, arrows);
+                }
+                return f;
+            };
+            sFontMenu = load(Px(18));
+            sFontMenuSmall = load(Px(15));
+            if (ImFont* title = load(Px(34)))
+                sFontTitle = title;
+        }
+    }
     if (sFontBody == nullptr) {
         ImFontConfig def;
         def.SizePixels = Px(16);
         sFontBody = sFontSmall = sFontTitle = io.Fonts->AddFontDefault(&def);
     }
+    if (sFontMenu == nullptr)
+        sFontMenu = sFontBody;
+    if (sFontMenuSmall == nullptr)
+        sFontMenuSmall = sFontSmall;
 }
 
 /* ---- widgets ----------------------------------------------------------------- */
@@ -690,9 +718,9 @@ static void Background(ImVec2 size) {
 static void Eyebrow(const char* text) {
     ImDrawList* dl = ImGui::GetWindowDrawList();
     ImVec2 p = ImGui::GetCursorScreenPos();
-    ImGui::PushFont(sFontSmall);
+    ImGui::PushFont(sFontMenuSmall);
     float h = ImGui::GetTextLineHeight();
-    GameSquare(dl, ImVec2(p.x + h * 0.4f, p.y + h * 0.5f), h * 0.8f, true);
+    GameSquare(dl, ImVec2(p.x + h * 0.35f, p.y + h * 0.5f), h * 0.6f, true);
     float x = p.x + h * 1.1f;
     for (const char* q = text; *q;) {
         char one[5] = {};
@@ -702,7 +730,7 @@ static void Eyebrow(const char* text) {
         while (n < bytes && q[n]) { one[n] = q[n]; ++n; }
         q += n;
         dl->AddText(ImVec2(x, p.y), ImGui::GetColorU32(kText), one);
-        x += ImGui::CalcTextSize(one).x + Px(2.2f);
+        x += ImGui::CalcTextSize(one).x + Px(1.5f);
     }
     ImGui::Dummy(ImVec2(x - p.x, h));
     ImGui::PopFont();
@@ -946,7 +974,7 @@ static void CreateDesktopShortcut();
 
 static void PageHome(SDL_Window* window) {
     float avail = ImGui::GetContentRegionAvail().x;
-    float coverW = std::clamp(avail * 0.34f, Px(240), Px(360));
+    float coverW = std::clamp(avail * 0.28f, Px(220), Px(330));
 
     BeginCard("cover", ImVec2(coverW + Px(48), 0));
     Eyebrow(T("JUEGO", "GAME"));
@@ -957,13 +985,23 @@ static void PageHome(SDL_Window* window) {
     ImGui::BeginGroup();
     /* play first: visible from the start, without scrolling */
     bool ready = sState[sSelected].installed && fs::exists(sState[sSelected].exe);
-    if (PlayButton(T("JUGAR", "PLAY"), ImVec2(ImGui::GetContentRegionAvail().x, Px(72)), ready))
+    if (PlayButton(T("JUGAR", "PLAY"), ImVec2(ImGui::GetContentRegionAvail().x, Px(76)), ready))
         sLaunch = true;
-    if (ready && ImGui::Button(T("Crear acceso directo en el escritorio", "Create a desktop shortcut"),
-                               ImVec2(ImGui::GetContentRegionAvail().x, 0)))
-        CreateDesktopShortcut();
-    if (ImGui::Button(T("Instalar ROM...", "Install ROM..."), ImVec2(ImGui::GetContentRegionAvail().x, 0)))
-        PickRom(window);
+    /* the two secondary actions side by side, under the play bar */
+    {
+        float gap = Px(10), full = ImGui::GetContentRegionAvail().x;
+        float half = ready ? (full - gap) * 0.5f : full;
+        if (ImGui::Button(T("Instalar ROM...", "Install ROM..."), ImVec2(half, 0)))
+            PickRom(window);
+        if (ready) {
+            ImGui::SameLine(0, gap);
+            if (ImGui::Button(T("Acceso directo", "Desktop shortcut"), ImVec2(half, 0)))
+                CreateDesktopShortcut();
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("%s", T("Un acceso \"ReKHCoM\" que abre el juego sin pasar por el launcher.",
+                                          "A \"ReKHCoM\" shortcut that opens the game without the launcher."));
+        }
+    }
     if (!ready) {
         ImGui::PushFont(sFontSmall);
         ImGui::TextColored(kMuted, "%s",
@@ -981,7 +1019,7 @@ static void PageHome(SDL_Window* window) {
         bool selected = sSelected == v;
         ImVec2 rowMin = ImGui::GetCursorScreenPos();
         float rowW = ImGui::GetContentRegionAvail().x;
-        float rowH = Px(64);
+        float rowH = Px(58);
         ImDrawList* dl = ImGui::GetWindowDrawList();
         if (ImGui::InvisibleButton("##row", ImVec2(rowW, rowH), ImGuiButtonFlags_EnableNav) && sState[v].installed) {
             sSelected = v;
@@ -999,11 +1037,11 @@ static void PageHome(SDL_Window* window) {
         GameSquare(dl, ImVec2(rowMin.x + Px(22), rowMin.y + rowH * 0.5f), Px(16), selected);
         /* region, code and languages */
         float tx = rowMin.x + Px(44);
-        dl->AddText(sFontBody, sFontBody->FontSize, ImVec2(tx, rowMin.y + Px(10)), ImGui::GetColorU32(kText),
+        dl->AddText(sFontMenu, sFontMenu->FontSize, ImVec2(tx, rowMin.y + Px(7)), ImGui::GetColorU32(kText),
                     T(ver.regionEs, ver.regionEn));
         {
             /* the code, then each language with its flag */
-            float fs = sFontSmall->FontSize, y = rowMin.y + Px(36), x = tx;
+            float fs = sFontSmall->FontSize, y = rowMin.y + Px(33), x = tx;
             dl->AddText(sFontSmall, fs, ImVec2(x, y), ImGui::GetColorU32(kMuted), ver.code);
             x += sFontSmall->CalcTextSizeA(fs, FLT_MAX, 0, ver.code).x + Px(14);
             for (const char* l = ver.languages; *l; ) {
@@ -1588,54 +1626,92 @@ static void PageControls() {
 
 /* ---- header and frame ---------------------------------------------------------- */
 
+/* One band, as the web page's header: the logo, the project line beside it, the interface language on the right;
+   then the tabs between two rules (the active one boxed, with the game's red square). */
 static void Header() {
-    ImGui::PushFont(sFontSmall);
-    ImGui::TextColored(kAccent, "REKHCOM  \xC2\xB7  DECOMP PORT  \xC2\xB7  " REKHCOM_VERSION);
-    ImGui::SameLine(0, Px(14));
-    ImGui::TextColored(kText, "%s MatyMeatBoy", T("por", "by"));
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    ImVec2 top = ImGui::GetCursorScreenPos();
+    float right = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+    float logoH = Px(78);
+    float x = top.x;
+    if (sLogo != 0) {
+        float lw = logoH * sLogoW / sLogoH;
+        ImGui::Image((ImTextureID)(intptr_t)sLogo, ImVec2(lw, logoH));
+        x += lw + Px(22);
+    } else {
+        ImGui::Dummy(ImVec2(0, logoH));
+    }
+    /* the project line, centred on the logo's height */
+    {
+        ImGui::PushFont(sFontMenu);
+        float lh = ImGui::GetTextLineHeight();
+        float y = top.y + logoH * 0.5f - lh;
+        dl->AddText(ImVec2(x, y), ImGui::GetColorU32(kAccent), "REKHCOM  \xC2\xB7  DECOMP PORT  \xC2\xB7  " REKHCOM_VERSION);
+        ImGui::PopFont();
+        ImGui::PushFont(sFontSmall);
+        char by[64];
+        std::snprintf(by, sizeof(by), "%s MatyMeatBoy", T("por", "by"));
+        dl->AddText(ImVec2(x, y + lh + Px(4)), ImGui::GetColorU32(kMuted), by);
+        ImGui::PopFont();
+    }
+    /* the interface language, at the right end of the band */
     {
         const char* uis[] = { "", "Idioma: Espa\xC3\xB1ol", "Language: English" };
-        float w = Px(190);
-        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - w);
-        ImGui::PushStyleColor(ImGuiCol_Button, kControl);
+        ImGui::PushFont(sFontSmall);
+        float w = ImGui::CalcTextSize(uis[sUiLanguage]).x + Px(36);
+        float h = ImGui::GetFrameHeight();
+        ImVec2 after = ImGui::GetCursorScreenPos();
+        ImGui::SetCursorScreenPos(ImVec2(right - w, top.y + (logoH - h) * 0.5f));
         if (ImGui::Button(uis[sUiLanguage], ImVec2(w, 0))) {
             sUiLanguage = sUiLanguage == 1 ? 2 : 1;
             ApplyUiLanguage();
             SaveLauncherState();
         }
-        ImGui::PopStyleColor();
-    }
-    ImGui::PopFont();
-    if (sLogo != 0) {
-        /* the game's logo in place of the title */
-        float lh = Px(124), lw = lh * sLogoW / sLogoH;
-        ImGui::Image((ImTextureID)(intptr_t)sLogo, ImVec2(lw, lh));
-    } else {
-        ImGui::PushFont(sFontTitle);
-        ImGui::TextUnformatted("Kingdom Hearts: Chain of Memories");
         ImGui::PopFont();
+        ImGui::SetCursorScreenPos(after);
     }
 
     const char* tabs[PAGE_COUNT] = { T("Inicio", "Home"), T("Gráficos", "Graphics"), T("Sonido", "Sound"),
                                      T("Mejoras", "Enhancements"), T("Controles", "Controls"),
                                      T("Editor de partidas", "Save editor"), T("Logros", "Achievements") };
-    ImGui::Spacing();
+    ImGui::SetCursorScreenPos(ImVec2(top.x, top.y + logoH + Px(10)));
+    ImVec2 band = ImGui::GetCursorScreenPos();
+    dl->AddRectFilled(band, ImVec2(right, band.y + Px(3)), ImGui::GetColorU32(kText));
+    ImGui::Dummy(ImVec2(0, Px(3)));
+    ImGui::PushFont(sFontMenu);
+    float tabH = ImGui::GetTextLineHeight() + Px(20);
+    ImVec2 row = ImGui::GetCursorScreenPos();
+    float tx = row.x;
     for (int i = 0; i < PAGE_COUNT; i++) {
         bool active = sPage == i;
-        /* the current page: black like the debug menu's selected row */
-        ImGui::PushStyleColor(ImGuiCol_Button, active ? kText : kControl);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, active ? kText : kControlHover);
-        ImGui::PushStyleColor(ImGuiCol_Text, active ? kInk : kText);
-        if (ImGui::Button(tabs[i]))
+        float sq = active ? Px(12) : 0, pad = Px(14);
+        float w = ImGui::CalcTextSize(tabs[i]).x + pad * 2 + (active ? sq + Px(8) : 0);
+        if (tx + w > right) { /* a narrow window: the tabs wrap */
+            tx = row.x;
+            row.y += tabH;
+        }
+        ImGui::SetCursorScreenPos(ImVec2(tx, row.y));
+        ImGui::PushID(i);
+        if (ImGui::InvisibleButton("##tab", ImVec2(w, tabH), ImGuiButtonFlags_EnableNav))
             sPage = i;
-        ImGui::PopStyleColor(3);
-        if (i + 1 < PAGE_COUNT && ImGui::GetItemRectMax().x + Px(6) +
-            ImGui::CalcTextSize(tabs[i + 1]).x + ImGui::GetStyle().FramePadding.x * 2 <
-            ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x)
-                ImGui::SameLine(0, Px(6));
+        bool hover = ImGui::IsItemHovered();
+        ImGui::PopID();
+        ImVec2 mn(tx, row.y), mx(tx + w, row.y + tabH);
+        if (active) {
+            dl->AddRectFilled(mn, mx, ImGui::GetColorU32(kPanelHover));
+            dl->AddRectFilled(ImVec2(mn.x, mx.y - Px(3)), mx, ImGui::GetColorU32(kAccent));
+            GameSquare(dl, ImVec2(mn.x + pad + sq * 0.5f, row.y + tabH * 0.5f), sq, true);
+        } else if (hover) {
+            dl->AddRectFilled(ImVec2(mn.x, mx.y - Px(3)), mx, ImGui::GetColorU32(kBorder));
+        }
+        dl->AddText(ImVec2(mn.x + pad + (active ? sq + Px(8) : 0), row.y + Px(10)), ImGui::GetColorU32(kText), tabs[i]);
+        tx += w + Px(4);
     }
-    ImGui::Spacing();
-    ImGui::Spacing();
+    ImGui::PopFont();
+    ImGui::SetCursorScreenPos(ImVec2(band.x, row.y + tabH));
+    ImVec2 rule = ImGui::GetCursorScreenPos();
+    dl->AddRectFilled(rule, ImVec2(right, rule.y + Px(1)), ImGui::GetColorU32(kBorder));
+    ImGui::Dummy(ImVec2(0, Px(14)));
 }
 
 #include "save_editor_page.inc"
@@ -1844,7 +1920,7 @@ static bool ShotFrames(SDL_Window* window, const char* dir) {
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplSDL3_NewFrame();
             ImGui::NewFrame();
-            ImGui::PushFont(sFontBody);
+            ImGui::PushFont(sFontMenu);
             Frame(window);
             ImGui::PopFont();
             ImGui::Render();
@@ -1966,7 +2042,7 @@ int main(int, char**) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
-        ImGui::PushFont(sFontBody);
+        ImGui::PushFont(sFontMenu);
         Frame(window);
         ImGui::PopFont();
         ImGui::Render();
