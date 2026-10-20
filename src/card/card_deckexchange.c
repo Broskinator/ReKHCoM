@@ -30,6 +30,7 @@ void PortClearBgTextTiles(void);
 
 /* Keep cartridge tile transfers intact; attach optional HD metadata to
    numeric cells. The renderer checks the tile signature before using it. */
+#ifdef PLATFORM_PC
 static void PortCopyDeckDigit(const void* source, void* destination, u16 size) {
     RequestDma3Copy(source, destination, size);
 #ifdef PLATFORM_PC
@@ -71,6 +72,12 @@ static void PortCopyDeckValueDigit(const void* source, void* destination, u16 si
                           zero ? "deck-value-zero" : "deck-value", offset,
                           2 | ((zero ? 4 : 2) << 8) | (3 << 12) | (1 << 16));
 }
+#else
+/* the cartridge copies these tiles directly */
+#define PortCopyDeckDigit RequestDma3Copy
+#define PortCopyDeckCategoryDigit RequestDma3Copy
+#define PortCopyDeckValueDigit RequestDma3Copy
+#endif
 
 #include "gba/keys.h"
 #include "songs.h"
