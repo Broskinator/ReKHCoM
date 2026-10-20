@@ -9,8 +9,8 @@ and the top CHANGELOG section; the tree is committed; every staged file
 (build/publish/<v>) is newer than HEAD, the Windows zip carries the version,
 and Quiver Launcher finds exactly one file for Windows, Linux x64 and Android
 (its rule for automatic installs and updates). After: the main release is the
-stable Latest with every staged file, the PS5 release <v>-ps5 is stable but not
-Latest with PPSA98511.zip, and GitHub Pages serves the same version.
+stable Latest with every staged file (PPSA98511.zip, the PS5 package, included),
+and GitHub Pages serves the same version.
 Never edit or re-upload a published stable release: Quiver pins each file's
 SHA-256 and verifies a release only after it stays unchanged (about 48 h).
 """
@@ -88,9 +88,16 @@ def android(s):
     return any_of(s, 'android', 'arm64-v8a') or s.endswith('.apk')
 
 
+# The catalog entry's releaseAssetFilter narrows the Windows pick (the PS5 .zip
+# shares the release; docs/quiver/submission-draft.json).
+WIN_FILTER = json.loads((ROOT / 'docs/quiver/submission-draft.json').read_text(encoding='utf-8'))     .get('launcher', {}).get('releaseAssetFilter') if (ROOT / 'docs/quiver/submission-draft.json').is_file() else None
+
+
 def quiver(names):
     for platform, rule in (('Windows', windows), ('Linux-X64', linux_x64), ('Android', android)):
         hits = [n for n in names if rule(n.lower())]
+        if platform == 'Windows' and WIN_FILTER:
+            hits = [n for n in hits if WIN_FILTER.lower() in n.lower()]
         check(len(hits) == 1, f'Quiver {platform}: exactly one automatic download ({", ".join(hits) or "none"})')
 
 
@@ -112,7 +119,7 @@ if not args.post:
         check(bool(hit) and all((STAGE / 'main' / n).stat().st_mtime >= head - 60 for n in hit),
               f'staged {kind} built after HEAD')
     if not args.no_ps5:
-        check((STAGE / 'ps5/PPSA98511.zip').is_file(), 'staged PS5 PPSA98511.zip')
+        check((STAGE / 'main/PPSA98511.zip').is_file(), 'staged PS5 PPSA98511.zip (same release)')
     win = next((STAGE / 'main' / n for n in main if n.endswith('windows-x86.zip')), None)
     if win:
         with zipfile.ZipFile(win) as z:
@@ -134,9 +141,7 @@ else:
                             capture_output=True).stdout.strip()
     check(args.prerelease or latest == V, f'GitHub Latest is {latest or "none"}')
     if not args.no_ps5:
-        ps5 = view(V + '-ps5')
-        check(not ps5['isDraft'] and not ps5['isPrerelease'], 'PS5 release stable (its updater skips prereleases)')
-        check('PPSA98511.zip' in {a['name'] for a in ps5['assets']}, 'PS5 release carries PPSA98511.zip')
+        check('PPSA98511.zip' in assets, 'PS5 PPSA98511.zip in the release (its updater needs a stable vX.Y.Z)')
     page = ''
     for attempt in range(10):
         try:

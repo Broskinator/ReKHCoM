@@ -30,7 +30,7 @@ Only stable versions appear as public releases. The current stable is **v1.9.10*
 | Anbernic (RG34XX and similar) | `ReKHCoM-v1.9.10-linux-armhf-anbernic-alpha.zip` | Alpha |
 | Android | `ReKHCoM-v1.9.10-android-alpha.apk` | Alpha |
 | Browser | [matymeatboy.github.io/ReKHCoM](https://matymeatboy.github.io/ReKHCoM/) | Alpha |
-| PS5 | `PPSA98511.zip` in the [v1.9.10-ps5 release](https://github.com/MatyMeatBoy/ReKHCoM/releases/tag/v1.9.10-ps5) | Alpha |
+| PS5 | `PPSA98511.zip` (shown as ReKHCoM-v1.9.10-ps5-alpha) | Alpha |
 
 ## What's new in v1.9.10
 
