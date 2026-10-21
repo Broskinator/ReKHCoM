@@ -48,6 +48,46 @@ Diferencias para Android:
 - Android: `test_android_scenarios.py` en emuladores Android 13/14/15 (x86_64, perfiles Pixel y
   genérico) con el APK de 64 bits.
 
+## Hoja de ruta (en orden; marcar en "Estado" al terminar cada paso)
+
+1. **Emuladores.** SDK: `toolchain/android/sdk` (JDK en `toolchain/android/java/jdk-17.0.20.1+1`,
+   `JAVA_HOME` apuntando ahí). AVDs en `D:/ReKHCoM-build/android-avd` (`ANDROID_AVD_HOME`). D: anda
+   justo de espacio: `disk.dataPartition.size=4G` en el `config.ini` del AVD y `-partition-size 4096`.
+   Crear con `avdmanager create avd -n <nombre> -k "system-images;android-<API>;google_apis;x86_64"
+   -d <perfil>` (el `.bat` parte los `;` de la línea de comandos: para `sdkmanager` usar
+   `--package_file`). Perfiles: `pixel_6` (teléfono grande), `pixel_tablet` o `Nexus 10` (tablet),
+   `pixel_fold` (plegable, como el Mate XT de #34), `small_phone`. Arrancar sin ventana ni audio:
+   `emulator -avd X -no-window -no-audio -no-snapshot -gpu swiftshader_indirect`.
+2. **Dirección de la imagen.** Con el emulador arriba, leer `/proc/<pid>/maps` de una app de 64
+   bits (p. ej. `com.android.settings`) en API 33/34/35 y en un perfil arm64 traducido; anotar acá
+   los rangos libres por debajo de 4 GB. Elegir una base que esté libre en todos (candidata
+   0xA0000000-0xE0000000) y cambiar `BASE` de una copia del enlace de Switch.
+3. **Imagen del juego.** `port/switch/build_switch.py guest` ya genera `guest-<región>.macho`
+   (arm64_32, `PORT_GBA_RELOC`, Cortex-A57). Para Android: misma compilación con
+   `-pagezero_size <base>` (o un `build_android64.py` que importe `build_switch` y solo cambie la base
+   y `-mcpu` genérico ARMv8.0), sin `PORT_SWITCH`.
+4. **Host.** `port/android64/host/android_host.c`, a partir de `port/switch/host/switch_host.c`:
+   - carga del Mach-O igual que el host de prueba Linux (mmap fijo en la base, desde el constructor
+     de la librería para ganarle a ART);
+   - gfx con SDL3 `SDL_RenderGeometry` (los `HostVertex` del puente son triángulos) en vez del
+     rasterizador por software; audio con `SDL_AudioStream`; mandos SDL; archivos bajo
+     `getFilesDir()` (el argumento `--data-dir` que ya pasa `GameActivity.java`);
+   - controles táctiles: mover `port/android/native/touch_android.c` al host y sumar sus botones al
+     `HostPad`; lo que use de la configuración se lee de `kh_com.ini`;
+   - JNI de `platform_android.c` (2 llamadas) al host.
+5. **APK.** `build_android.py --abi arm64-v8a` que empaquete el host de 64 bits y las imágenes en
+   `assets/`; un solo APK con armeabi-v7a (la de 32 bits actual, respaldo) y arm64-v8a: Android
+   elige la de 64 bits donde puede.
+6. **Batería Android.** `port/tools/test_android_scenarios.py` (arranque, combate, escena, sala,
+   guardar/cargar, captura) en cada AVD del paso 1, vertical y horizontal. Las imágenes x86_64 de
+   API 30+ ejecutan arm64 traducido (`abilist64=x86_64,arm64-v8a`), así que el APK arm64 corre en
+   ellas.
+7. **Batería escritorio.** `debug_kit.py run --build --versions eu,us,jp` y `report`; cada sitio
+   `bios:` nuevo se arregla con `BIOS_PTR` / `DIV0` / `MOD0` (como #33). `test_events.py` para las
+   escenas.
+8. **Publicar.** Prerelease (Windows + APK) para que prueben quienes abrieron #22 y #34; responder
+   en los issues con el enlace. Estable solo con el OK del usuario.
+
 ## Estado
 
 - [x] #33 (cierre antes del combate con Trickmaster): reproducido en PC (EVENT_099, actor NULL en
