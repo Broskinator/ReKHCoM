@@ -18,11 +18,14 @@
 #include "port/port.h"
 #include "port/port_hd2d.h"
 #include "engine.h"
+#include "sprite.h"
 #include "port/port_state.h"
 #include "port/port_battle_backdrop.h"
 #include "port/port_scene057_tiles.h"
 #include "port/port_scene061_tiles.h"
 #include "port/port_scene074_tiles.h"
+#include "port/port_agrabah_tiles.h"
+#include "port/port_agrabah109_tiles.h"
 
 extern const void* gMsgwinMapBlocks[4];
 
@@ -72,6 +75,11 @@ static int sBgIso[4];
 static int sBgIsoLatched[4];
 static int sEventBackdropProfile = -1; /* derived at frame start, not saved */
 static int sUseSceneProfiles;
+static int sAgrabahLayer[4]; /* rebuilt from actual map data each frame */
+static int sAgrabah109Layer[4];
+static int sAgrabah109ShopPal[2]; /* live OBJ palette slots, rebuilt per frame */
+extern const uint8_t gMapGmkAgrabah00Tiles[], gMapGmkAgrabah09Tiles[];
+extern const uint16_t gMapGmkAgrabah00Palette[], gMapGmkAgrabah01Palette[];
 
 /* Scenes reviewed with the continued floor. Many maps end in an authored
    dark void past their walls, which must stay; only listed scenes extend.
@@ -934,6 +942,14 @@ static int WorldEntry(const BgLatch* l, int wx, int wy) {
  * so apply profiles before testing declared map bounds. */
 static int ExtendedWorldEntry(const BgLatch* l, int wx, int wy) {
     int bg = (int)(l - sBgLatch), tx = wx >> 3, ty = wy >> 3, supported = 0, ok = 0;
+    if (sAgrabah109Layer[bg]) {
+        ok = PortAgrabah109TileSource(sAgrabah109Layer[bg], &tx, &ty);
+        return ok ? MapTile(l, tx, ty) : -1;
+    }
+    if (sAgrabahLayer[bg]) {
+        ok = PortAgrabahTileSource(sAgrabahLayer[bg], &tx, &ty);
+        return ok ? MapTile(l, tx, ty) : -1;
+    }
     if (!sBattleView && l->map && sUseSceneProfiles) {
         if (sEventBackdropProfile == 57 && (bg == 2 || bg == 3)) {
             supported = 1;
@@ -1126,6 +1142,52 @@ static uint16_t SinglePanelColor(const BgLatch* l, uint16_t cnt, int wx, int wy)
 
 /* ---- backgrounds --------------------------------------------------------- */
 
+/* Requested market dressing, rendered as backdrop pixels rather than new
+ * game objects/OAM entries. Original props, actors and the GBA stay intact. */
+static int Agrabah109DecorPixel(const BgLatch* l, const uint8_t* chars,
+                               int wx, int wy, uint16_t* color) {
+    static const struct { int x, kind; } stalls[] = {
+        {-752, 1}, {-544, 0}, {-304, 1}, {-64, 0},
+        {296, 0}, {536, 1}, {760, 0}, {1008, 1}
+    };
+    static const int pots[] = {-864, -640, -424, -176, 248, 408, 648, 896, 1128};
+    int i, dx, dy, sx, sy, entry, ci, diagonal = 2 * wy + wx;
+    if ((wx >= 0 && wx < 256 && wy >= 0 && wy < 256) || diagonal < 112 || diagonal > 328)
+        return 0;
+    for (i = 0; i < (int)(sizeof(stalls) / sizeof(stalls[0])); i++) {
+        int kind = stalls[i].kind;
+        int anchorY = ((kind ? 262 : 244) - stalls[i].x) / 2;
+        const uint8_t* tiles = kind ? gMapGmkAgrabah09Tiles : gMapGmkAgrabah00Tiles;
+        dx = wx - (stalls[i].x - 32); dy = wy - (anchorY - 48);
+        if (dx < 0 || dx >= 64 || dy < 0 || dy >= 64 || sAgrabah109ShopPal[kind] < 0)
+            continue;
+        /* Both authored frames are one 64x64, 4bpp, unflipped 1D piece. */
+        ci = (tiles[((dy >> 3) * 8 + (dx >> 3)) * 32 + (dy & 7) * 4 + ((dx & 7) >> 1)]
+              >> ((dx & 1) * 4)) & 15;
+        if (ci) {
+            *color = PLTT16[256 + sAgrabah109ShopPal[kind] * 16 + ci] & 0x7FFF;
+            return 1;
+        }
+    }
+    for (i = 0; i < (int)(sizeof(pots) / sizeof(pots[0])); i++) {
+        dx = pots[i] - 24; dy = -dx / 2;
+        sx = wx - dx; sy = wy - dy;
+        /* Complete urn-and-bowl group, including its authored ground contact. */
+        if (sx < 8 || sx >= 40 || sy < 80 || sy >= 112) continue;
+        entry = MapTile(l, sx >> 3, sy >> 3);
+        if (entry < 0) continue;
+        sx &= 7; sy &= 7;
+        if (entry & 0x400) sx = 7 - sx;
+        if (entry & 0x800) sy = 7 - sy;
+        ci = (chars[(entry & 1023) * 32 + sy * 4 + sx / 2] >> ((sx & 1) * 4)) & 15;
+        if (ci) {
+            *color = PLTT16[(entry >> 12) * 16 + ci] & 0x7FFF;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
     uint16_t cnt = IO16(0x08 + bg * 2);
     int hofs = IO16(0x10 + bg * 4) & 0x1FF;
@@ -1202,6 +1264,14 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             const BgWorld* wd = &sBgWorldLatched[bg];
             int wx = l->valid ? l->x + gx + (hofs - l->hofs) : wd->x + gx + (hofs - wd->hofs);
             int wy = l->valid ? l->y + gy + (vofs - l->vofs) : wd->y + gy + (vofs - wd->vofs);
+            if (sAgrabah109Layer[bg] == 2) {
+                if (Agrabah109DecorPixel(l, chars, wx, wy, &out[x])) {
+                    sInWorld[x] = 1;
+                    continue;
+                }
+                /* A prop's transparent silhouette can start within a tile. */
+                goto scalar_world;
+            }
             /* Reflected bands can change direction within a tile: retain the
                scalar sampler there rather than assuming a forward tile run. */
             if (bg == sTiledBackdropBg) goto scalar_world;
@@ -2748,6 +2818,51 @@ void PortPpuBeginFrame(void) {
         sBgLatch[b].valid = ValidateBgLatch(b, dispcnt);
         sBgWorldLatched[b].valid = !sBgLatch[b].valid && ValidateBgWorld(b, dispcnt);
         any |= sBgLatch[b].valid | sBgWorldLatched[b].valid;
+    }
+    /* EU decompresses these maps into RAM; US/JP use cartridge maps directly.
+     * Identify their tile data, never an event/mode or a cached RAM address.
+     * Recompute to handle exits, reused allocations and state loads alike.
+     * Preview is opt-in until visually approved. */
+    memset(sAgrabahLayer, 0, sizeof(sAgrabahLayer));
+    if (getenv("KHCOM_AGRABAH_WIDE")) {
+        for (b = 2; b <= 3; b++) {
+            const BgLatch* l = &sBgLatch[b];
+            if (l->valid && l->width == 2 && l->height == 2) {
+                uint32_t hash = 2166136261u;
+                int xx, yy, e;
+                for (yy = 0; yy < 64; yy++)
+                    for (xx = 0; xx < 64; xx++) {
+                        e = MapTile(l, xx, yy);
+                        hash = (hash ^ (uint32_t)e) * 16777619u;
+                    }
+                if (hash == 0x76732a49u) sAgrabahLayer[b] = 3;
+                if (hash == 0x30fe052eu) sAgrabahLayer[b] = 2;
+            }
+        }
+    }
+    memset(sAgrabah109Layer, 0, sizeof(sAgrabah109Layer));
+    sAgrabah109ShopPal[0] = sAgrabah109ShopPal[1] = -1;
+    if (getenv("KHCOM_AGRABAH109_WIDE")) {
+        for (b = 2; b <= 3; b++) {
+            const BgLatch* l = &sBgLatch[b];
+            if (l->valid && l->width == 1 && l->height == 1) {
+                uint32_t hash = 2166136261u;
+                int xx, yy;
+                for (yy = 0; yy < 32; yy++)
+                    for (xx = 0; xx < 32; xx++)
+                        hash = (hash ^ (uint32_t)MapTile(l, xx, yy)) * 16777619u;
+                if (hash == 0xc704bad0u) sAgrabah109Layer[b] = 3;
+                if (hash == 0xe1940c58u) sAgrabah109Layer[b] = 2;
+            }
+        }
+    }
+    if (sAgrabah109Layer[2] && gSpriteWork) {
+        for (b = 0; b < 16; b++) {
+            const ObjPalette* p = &gSpriteWork->palettes[b];
+            if (p->self != p || !(p->node.flags & LIST_NODE_FLAG_ACTIVE) || p->index >= 16) continue;
+            if (p->src == (const void*)gMapGmkAgrabah00Palette) sAgrabah109ShopPal[0] = p->index;
+            if (p->src == (const void*)gMapGmkAgrabah01Palette) sAgrabah109ShopPal[1] = p->index;
+        }
     }
     /* Large affine stages (battle arenas) are fully in VRAM and extend as is. */
     for (b = 2; b < 4; b++) {

@@ -33,6 +33,9 @@ fondo sin la extensión, porque esta exigía el modo combate.
      se continúa con su propio período y dirección.
    - **Borde** (festón, cornisa, bordillo): cierra el mundo donde el original
      termina en corte recto.
+   - **Decoración ambiental repetible** (puestos, grupos de jarrones): piezas
+     completas del propio escenario que pueden poblar su continuación cuando
+     encajan con el ambiente; distinguirlas de los adornos únicos.
 
 ## 3. Generar el arte, en este orden de preferencia
 
@@ -49,7 +52,26 @@ fondo sin la extensión, porque esta exigía el modo combate.
    - el dibujo continúa el del original (perspectiva, período, luz);
    - va en el repo con una nota de qué tile imita y por qué no bastaba copiar.
 
-En los tres casos:
+### Mejoras aprendidas en Agrabah 107/108/109 (aprobadas con honores, 21/10)
+
+- Cerrar primero la estructura: una tienda no sustituye la reparación de un
+  borde cortado. Seguir cada diagonal por separado y conservar todas las filas
+  de sus tiles, incluidas las dos paridades de una línea 2:1.
+- Comprobar que el donante contiene dibujo en cada columna. Si lo corta el
+  límite del mapa, avanzar hacia otra tira intacta por la misma diagonal;
+  no reemplazar parte del bordillo por pared lisa.
+- Para dar continuidad al ambiente, reutilizar piezas decorativas completas
+  del propio juego. Intercalar tipos y grupos, variar las separaciones y dejar
+  descansos; mantener anclaje al suelo, perspectiva y escala. No repetir una
+  cuadrícula de puestos ni clonar marcos, relieves o figuras únicos. Las
+  posiciones concretas se deducen del fondo nuevo, no se copian de Agrabah.
+- La decoración adicional es arte de fondo: no añadir objetos de lógica,
+  colisiones, personajes o entradas OAM. Respetar la paleta activa de la fuente,
+  también cuando la pieza original usa paleta OBJ.
+- Comparar la misma instantánea y ejecutable antes/después: el avance del
+  texto y la animación pueden diferir entre arranques independientes.
+
+En todos los casos:
 - Guardar **índices de paleta** y resolverlos con la paleta activa en cada
   frame: los fundidos y efectos de color del juego siguen funcionando.
 - Dibujar solo fuera de los 240x160; el rectángulo GBA queda idéntico.
@@ -70,11 +92,23 @@ En los tres casos:
   idéntico; los demás fondos, idénticos en toda la imagen.
 - Revisar a ojo en las capturas anchas: costuras, escalones en diagonales,
   bandas que no casan, adornos cortados o repetidos.
+- Compilar y ejecutar las comprobaciones en serie, una tarea de juego a la vez,
+  para cuidar RAM/CPU mientras el usuario juega.
 
 ## 5. Entregar y cerrar
 
-1. Copia jugable + `Probar <tema>.bat` (PRUEBAS_VISUALES.md), con las
-   capturas x3 de cada ancho y un antes/después.
-2. Esperar la aprobación del usuario; no activar por defecto ni subir antes.
-3. Aprobado: commit con la receta y sus límites, y una línea en
-   LOGICA_APROBADOS.md.
+Pedido actualizado del usuario (21/10): preparar **Preliminar V1** con todas
+las escenas que necesitan extensión y todas las peleas de jefes pendientes.
+No parar a pedir aprobación de cada pieza. Aplicar el workflow mejorado a toda
+la tanda; conservar las versiones ya aprobadas y sus recetas.
+
+1. Implementaciones reales, listas para integrar: código del renderizador,
+   paletas activas, pruebas y documentación. No entregar montajes ni conceptos
+   como sustituto de los fondos funcionando en el juego.
+2. Copia jugable completa + lanzadores, índice de escenas/jefes y capturas x3
+   antes/después en los cuatro anchos. Registrar por pieza qué se comprobó,
+   qué cambia y sus límites; los vacíos intencionados no se rellenan por sistema.
+3. El usuario comenta el conjunto Preliminar V1. No marcar cada propuesta como
+   aprobada ni publicarla por el mero hecho de formar parte de la tanda.
+4. Congelar recetas y mejoras en commits revisables. **Codex hace los commits;
+   Claude integra**. Registrar las aprobaciones reales en LOGICA_APROBADOS.md.
