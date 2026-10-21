@@ -76,9 +76,10 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
   el push original, que ahora se llama `GamePush`), remuestreando lineal de 48 kHz a la tasa del juego.
   Sin hilos: sigue el reloj de audio del juego. PC y Android 32 bits siguen con su stream SDL propio.
   Una pista que no abre se intenta una sola vez por canción (antes se releía el archivo cada cuadro).
-  Compilado: PC, APK (arm64 + armv7), host PS4. Pendiente: probar en el emulador Android 64
-  (`test_android_scenarios.py --groups battles --only battle-000- --slow 6` con
-  `files/hd/music/31_Twilight_B.ogg/.loop` copiados) y compilar Switch/Vita/PS5 en la VM.
+  Compilado: PC, APK (arm64 + armv7), host PS4. Probado en el emulador Android 14 con el host de 64
+  bits (`test_android_scenarios.py --groups battles --only battle-000- --slow 6`, con
+  `files/hd/music/01F_Town_B.ogg/.loop`: el combate de Ciudad de Paso pide esa pista): abre a 48 kHz,
+  "song 12 -> 01F_Town_B", termina sin fallos (21/10). Switch/Vita/PS5 en la VM: compilando.
 - [ ] Android: botón "Importar mod HD" en el launcher de Android (selector de carpeta SAF que copia la
   carpeta `hd` hecha por el launcher de PC a `files/hd`); sirve para 32 y 64 bits.
 - [ ] Videos en Android (32 y 64 bits): NDK `AMediaExtractor`/`AMediaCodec` (API 21+) a textura SDL NV12,
