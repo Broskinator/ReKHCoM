@@ -8,7 +8,7 @@ Platforms without fault recovery (Android, web, Linux ARM) die on a stray NULL a
 the desktop ports silently recover, so this is the check for those.
 
     python port/tools/test_android_scenarios.py --serial emulator-5554 --regions us \
-        --groups menus fixtures bosses bot [--only name,name]
+        --groups menus fixtures bosses issues bot [--only name,name]
 """
 import argparse, json, re, subprocess, sys, time
 from pathlib import Path
@@ -28,7 +28,9 @@ UBSAN = set()
 MENU_MODES = ['mode_status', 'mode_worldselect', 'Mode_Deck', 'mode_jiminy', 'mode_ms_top',
               'mode_ms_shop', 'mode_ms_charge', 'mode_allmap', 'mode_worldinspect', 'mode_worldwarp', 'mode_pooh',
               'mode_StaffRoll', 'Continue', 'mode_wLogo', 'mode_mapinspect', 'mode_eventselect', 'mode_title',
-              'WORLDSELECT', 'Mode_riku_deckTutorial', 'mode_vsbattle']
+              'WORLDSELECT', 'Mode_riku_deckTutorial']
+# mode_vsbattle is left out too: the link battle opened with no link partner reads gLinkPartnerDeck NULL (the game
+# only enters it after the cable exchange; debug_kit.py HARNESS_ONLY)
 
 FIXTURES = {
     'room-castle': 'KHCOM_MODE=60:room:10901,120:fieldfreeze',
@@ -47,6 +49,14 @@ FIXTURES = {
     'battlewin': 'KHCOM_BATTLE=0:1:0;KHCOM_MODE=400:battlewin',
     'bosskill': 'KHCOM_BATTLE=10:1:0;KHCOM_MODE=400:bosskill',
     'playerkill': 'KHCOM_BATTLE=0:1:0;KHCOM_MODE=400:playerkill',
+}
+
+
+# what players reported, kept as cases so they stay fixed; run them also with --env KHCOM_IMAGE_MOVE=1 (#22, #34:
+# phones where 0x01000000 is taken load the 64-bit image elsewhere)
+ISSUES = {
+    'issue33-trickmaster-scene': 'KHCOM_EVENT=0:98',  # EVENT_099_WONDERLAND_BOSS, into the battle
+    'issue-100acre-lv1': 'KHCOM_EVENT=0:133',  # EVENT_136: the BUS_PTR sites the desktop battery found
 }
 
 
@@ -100,6 +110,11 @@ def scenarios(groups, only, riku, from_battle=0):
             stage = next((k for k, s in enumerate(stages) if s.replace('BATTLE_STAGE_', 'WORLD_') == world), 0)
             out.append((f'battle-{i:03d}-{battle}', 1800, 150,
                         f'KHCOM_BATTLE={i}:{stage}:{int(riku)}\nKHCOM_KEYS={battle_keys(1800)}'))
+    if 'issues' in groups:
+        keys = ','.join(f'{f}-{f + 3}:A' for f in range(30, 2400, 40))
+        for name, env in ISSUES.items():
+            out.append((name, 2400, 200, f'{env}
+KHCOM_KEYS={keys}'))
     if 'bot' in groups:
         out.append(('bot-playthrough', 60000, 1500, 'KHCOM_BOT=1\nKHCOM_SHOTS=5000,15000,30000,45000,60000'))
     if only:
@@ -172,7 +187,7 @@ def main():
     p.add_argument('--serial', required=True)
     p.add_argument('--regions', nargs='+', choices=CODES, default=['us'])
     p.add_argument('--groups', nargs='+', default=['menus', 'fixtures', 'bosses'],
-                   choices=['menus', 'fixtures', 'bosses', 'battles', 'bot'])
+                   choices=['menus', 'fixtures', 'bosses', 'battles', 'issues', 'bot'])
     p.add_argument('--only', default='')
     p.add_argument('--riku', action='store_true')
     p.add_argument('--from-battle', type=int, default=0, help='skip battle entries below this index')

@@ -34,6 +34,9 @@ for _suite in ('scenes', 'events', 'wide', 'rooms'):
         STEPS.append((f'desktop {_suite} {_v}', KIT + ['--versions', _v, '--suites', _suite]))
 STEPS += [
     ('android', None),
+    # the players' reports (#22/#34 image moved, #33 Trickmaster scene) first, on the image loaded away from home
+    ('android eu move', [PY, SCN, '--serial', 'emulator-5554', '--regions', 'eu', '--groups', 'issues', 'menus',
+                         'fixtures', 'bosses', '--resume', '--slow', '6', '--env', 'KHCOM_IMAGE_MOVE=1']),
     ('android eu bosses', [PY, SCN, '--serial', 'emulator-5554', '--regions', 'eu', '--groups', 'bosses',
                            '--from-battle', '30', '--resume', '--slow', '6']),
     ('android eu bosses riku', [PY, SCN, '--serial', 'emulator-5554', '--regions', 'eu', '--groups', 'bosses',
@@ -56,7 +59,8 @@ def progress(name):
             cases = ROOT / f'build/roomcases_{v}'
         return f'{len(list(cases.glob("*/result.json")))} cases finished' if cases.is_dir() else 'not started'
     if parts[0] == 'android' and len(parts) > 1:
-        tag = '-'.join(p for p in parts[1:] if p in ('eu', 'us', 'jp')) + ('-riku' if 'riku' in parts else '')
+        tag = ('-'.join(p for p in parts[1:] if p in ('eu', 'us', 'jp')) + ('-riku' if 'riku' in parts else '')
+               + ('-khcom_image_move' if 'move' in parts else ''))
         rep = ROOT / f'build/android-scenarios/report-{tag}.json'
         if rep.exists():
             rows = json.loads(rep.read_text())

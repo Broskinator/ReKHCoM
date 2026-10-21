@@ -65,6 +65,10 @@ HARNESS_ONLY = {
     ('UpdateLevelUpSelect', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
     ('WorldToScreen', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
     ('LVUP_EFFECT_3', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
+    ('CountLinkPartnerDeckCards', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
+    ('FillCardSlotsFromIds', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
+    ('task_btl_hpply_1', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
+    ('task_btl_hpoth_1', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
     ('Event_0', 'events/'): 'debug-menu events carry 0x8000; the game passes plain ids',
 }
 

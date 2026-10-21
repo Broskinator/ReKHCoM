@@ -33,7 +33,27 @@ def event_lists():
     return out
 
 
-def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False, resume=False):
+def prune_shots(d, wide):
+    """A clean case keeps its log and result.json; its screenshots go (--prune), leaving the last one's hash and a
+    thumbnail for the report's checks, so long batteries do not fill the disk."""
+    import hashlib
+    shots = sorted(d.glob("shot_*.bmp"))
+    if not shots:
+        return
+    (d / "last_shot.sha1").write_text(hashlib.sha1(shots[-1].read_bytes()).hexdigest())
+    try:
+        from PIL import Image
+        Image.open(shots[-1]).convert("RGB").resize((160, 90) if wide else (120, 80)).save(d / "thumb.png")
+    except Exception:
+        pass
+    for shot in shots:
+        shot.unlink()
+    # the exe copy only serves to symbolize fault sites, which a clean case has none of (a full copy across drives)
+    for name in ("khcom.exe", "SDL3.dll"):
+        (d / name).unlink(missing_ok=True)
+
+
+def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False, resume=False, prune=False):
     d = work / f"{list_id}_{index:03d}"
     # each finished case leaves result.json: --resume keeps it and goes on from the first case without one
     if resume and (d / "result.json").exists():
@@ -66,6 +86,8 @@ def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False, res
     bios = sorted(set(re.findall(r"bios: \w+ \w+ at eip (\w+)", log)))
     (d / "result.tmp").write_text(json.dumps([code, crash, bios]))
     os.replace(d / "result.tmp", d / "result.json")
+    if prune and code == 0 and not crash and not bios and "MISMATCH" not in log:
+        prune_shots(d, wide)
     return code, crash, bios
 
 
@@ -79,6 +101,8 @@ def main():
     ap.add_argument("--build", help="folder with khcom.exe (default build/pc or build/pc-<version>)")
     ap.add_argument("--wide", action="store_true", help="16:9 auto view instead of the GBA picture")
     ap.add_argument("--resume", action="store_true", help="keep the cases that already finished (their result.json)")
+    ap.add_argument("--prune", action="store_true",
+                    help="delete a clean case's screenshots once it finishes (keeps log, result.json, hash, thumbnail)")
     ap.add_argument("--work", help="folder for the cases (default build/eventtest/<version>): keeps a side run apart")
     args = ap.parse_args()
 
@@ -93,7 +117,7 @@ def main():
     results = {}
     with ThreadPoolExecutor(args.jobs) as pool:
         futures = {pool.submit(run, exe_dir, work, args.version, l, i, args.frames, args.timeout, args.wide,
-                               args.resume): (l, i, n) for l, i, n in events}
+                               args.resume, args.prune): (l, i, n) for l, i, n in events}
         for k, fut in enumerate(as_completed(futures), 1):
             l, i, n = futures[fut]
             results[(l, i)] = (n,) + fut.result()
@@ -115,8 +139,9 @@ def main():
     hashes = {}
     for (l, i) in results:
         shots = sorted((work / f"{l}_{i:03d}").glob("shot_*.bmp"))
-        if shots:
-            h = hashlib.sha1(shots[-1].read_bytes()).hexdigest()
+        pruned = work / f"{l}_{i:03d}" / "last_shot.sha1"
+        h = hashlib.sha1(shots[-1].read_bytes()).hexdigest() if shots else (pruned.read_text() if pruned.exists() else None)
+        if h:
             hashes[h] = hashes.get(h, 0) + 1
     if hashes and max(hashes.values()) > len(results) // 4:
         lines.append(f"WARNING: {max(hashes.values())} events end on the same picture; were they started?")
@@ -128,7 +153,7 @@ def main():
         cells = []
         for (l, i) in sorted(results):
             d = work / f"{l}_{i:03d}"
-            shots = sorted(d.glob("shot_*.bmp"))
+            shots = sorted(d.glob("shot_*.bmp")) or sorted(d.glob("thumb.png"))
             if shots:
                 cells.append(Image.open(shots[-1]).convert("RGB").resize((160, 90) if args.wide else (120, 80)))
         cols = 16
