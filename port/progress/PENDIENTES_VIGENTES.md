@@ -29,6 +29,14 @@ Otro Claude nuevo retoma (el anterior sin actividad desde las 12:53). La baterí
 porque adb no arrancó (0xC0000142, no es fallo del juego); se retoma desde el combate 30 de EU. Codex integrado hasta
 457d10854 (Atlántica 102).
 
+## Baterías 21/10 13:13
+
+Las baterías se cortaron dos veces al cerrarse la sesión de Claude (Windows mata el árbol de procesos; no son
+fallos del juego). Desde 2f37b099f corren con `python port/tools/run_batteries.py --detach`, fuera de la sesión
+y reanudables (`--resume`); progreso en `build/batteries.log`. Orden (pedido del usuario: eventos y mundos antes de
+pedir nada a los testers y de dar una beta): kit de escritorio events/wide/rooms EU/US/JP, luego Android 64 (EU jefes
+desde el 30, Riku, US/JP menús y jefes).
+
 ## Reparto
 
 | Quién | Pendiente |
