@@ -37,13 +37,13 @@ porque adb no arrancó (0xC0000142, no es fallo del juego); se retoma desde el c
 | **Claude** | **B. Batería de escritorio** con el kit (`debug_kit.py run --build --versions eu,us,jp`, `--jobs 2`): Riku, eventos, eventos 16:9, juego aleatorio; cada `bios:` nuevo se arregla (#30, `KIT_DEPURACION.md`) |
 | **Claude** | **C. Videos HD en Android**: rama `claude/android-hd-movies` (rebasada sobre main 21/10); el emulador se cuelga en la primera textura YUV (`glCreateProgram`). `KHCOM_HDMOVIE_RGB=1` (b4cb4730d) convierte a RGB en la CPU: probarlo en el emulador cuando acabe la batería; a main solo verificado (`HD_MOD.md`) |
 | **Claude** | **D. Videos HD en consolas y Linux** (Switch/Vita/PS4/PS5, MP4 en Linux): después de Android |
-| **Claude** | **E. Issues de la pre2** (#22, #33, #34, #35; #36 nuevo 21/10: Switch V1 se cierra al cargar el título, sin versión ni log: comentario con preguntas listo en `build/issue36-comment.md`, espera el OK del usuario para publicarlo): leer las respuestas de los testers, arreglar lo que reporten y cerrar con su confirmación; #35 Switch: si sigue lento con la GPU actual, evaluar deko3d. #25 (escenas HD): agradecer a DL-6-case y cerrar cuando salga el mod HD en una estable |
-| **Claude** | **F. Discord Rich Presence**: hecho; falta el Application ID que crea el usuario (`REKHCOM_DISCORD_APP_ID`) y probar Linux |
+| **Claude** | **E. Issues de la pre2** (#22, #33, #34, #35; #36 nuevo 21/10: Switch V1 se cierra al cargar el título, sin versión ni log: comentario con preguntas listo en `build/issue36-comment.md`, no se publica todavía: el usuario quiere terminar antes la batería de eventos y mundos y dar una beta): leer las respuestas de los testers, arreglar lo que reporten y cerrar con su confirmación; #35 Switch: si sigue lento con la GPU actual, evaluar deko3d. #25 (escenas HD): agradecer a DL-6-case y cerrar cuando salga el mod HD en una estable |
+| **Claude** | **F. Discord Rich Presence**: hecho, con el Application ID del usuario (718b5d212, 20/10); falta probar Linux |
 | **Claude** | **G. Integración de Codex**: traer sus commits de `khcom-codex` (rama codex/preliminar-v1) y `khcom` a main con build y prueba antes de cada push (al día hasta 457d10854, 21/10) |
 | **Claude** | **H. Próxima estable**: con el OK del usuario; `release_check.py` antes/después, todas las plataformas (Switch y Vita incluidas), web, CHANGELOG ya al día con v1.9.13 |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
 | **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después, con el método de abajo ("Para Codex: cómo hacer el arte") |
-| **Usuario** | Crear la aplicación de Discord y pasar su Application ID; probar `Probar Discord.bat` y `Probar ReKHCoM v1.9.13 pre2.bat` (pantalla completa sin parpadeo, mod HD, volver al título) |
+| **Usuario** | Probar `Probar Discord.bat` y `Probar ReKHCoM v1.9.13 pre2.bat` (pantalla completa sin parpadeo, mod HD, volver al título) |
 | **Usuario** | Aprobar el launcher nuevo (`Probar launcher nuevo.bat`, commit 07a6fa9ab); revisar 61–62 cuando Claude las muestre |
 
 ## Para Codex: cómo hacer el arte (16–24), según lo aprobado (21/10/2026)
