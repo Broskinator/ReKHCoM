@@ -105,7 +105,7 @@ def run(region, name, frames, timeout, env):
     adb('shell', 'am', 'force-stop', PKG)
     adb('logcat', '-c')
     code = CODES[region]
-    adb('shell', 'run-as', PKG, 'am', 'start', '--user', '0', '-n', PKG + '/com.rekhcom.android.GameActivity',
+    adb('shell', 'am', 'start', '--user', '0', '-n', PKG + '/com.rekhcom.android.GameActivity',
         '--es', 'region', region, '--es', 'rom', f'/data/user/0/{PKG}/files/roms/{code}.gba')
     start = time.monotonic()
     time.sleep(6)

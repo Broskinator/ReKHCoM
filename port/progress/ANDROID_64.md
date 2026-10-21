@@ -106,5 +106,12 @@ Diferencias para Android:
   0xebad6000). Base elegida para la imagen: **0x01000000** (la imagen ocupa ~150 MB, termina antes
   de 0x0b000000), reservada desde el constructor de la librería. Repetir la medición en Android 13 y
   15 y con un APK arm64 traducido.
-- [ ] Host Android de 64 bits.
+- [x] Imagen del juego para Android (`port/android64/build_android64.py`, base 0x01000000, PORT_ANDROID64:
+  controles táctiles y pausa en segundo plano por las entradas nuevas del puente `touch_poll`/`app_state`).
+- [x] Host Android de 64 bits (`port/android64/host/android64_host.c`): SDL3 con GPU (SDL_RenderGeometry),
+  audio por stream SDL, mandos, toques, archivos normales o `apk:/` del APK, imagen reservada desde el
+  constructor, capturas de prueba `KHCOM_HOST_SHOT`.
+- [x] APK único: armeabi-v7a (32 bits, teléfonos viejos) + arm64-v8a (host de 64 bits) + `assets/guest-*.macho`;
+  `GameActivity` usa `rekhcom64` donde Android instaló las librerías de 64 bits. Misma firma y paquete:
+  actualiza encima y conserva las partidas (verificado: certificado 3a5a17… igual al de v1.9.12).
 - [ ] Batería en emuladores; responder #22 y #34 con el APK de 64 bits.

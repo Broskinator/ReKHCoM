@@ -164,10 +164,10 @@ static int HdImported(const char* file) {
     static Uint64 when;
     Uint64 now = SDL_GetTicks();
     if (strcmp(last, file) != 0 || now - when > 1000) {
-        SDL_IOStream* f = SDL_IOFromFile(PortConfigPath(file), "rb");
+        FILE* f = fopen(PortConfigPath(file), "rb");
         result = f != NULL;
         if (f)
-            SDL_CloseIO(f);
+            fclose(f);
         SDL_strlcpy(last, file, sizeof(last));
         when = now;
     }

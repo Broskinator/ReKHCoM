@@ -8,7 +8,14 @@ public class GameActivity extends SDLActivity {
         String r=getIntent().getStringExtra("region");
         return "us".equals(r)||"jp".equals(r)?r:"eu";
     }
-    @Override protected String[] getLibraries() { return new String[]{"SDL3","rekhcom_"+region()}; }
+    /** The 64-bit host where Android installed the 64-bit libraries (any 64-bit phone: ANDROID_64.md), else the
+     *  region's 32-bit core. */
+    private boolean use64() {
+        return new java.io.File(getApplicationInfo().nativeLibraryDir,"librekhcom64.so").exists();
+    }
+    @Override protected String[] getLibraries() {
+        return use64() ? new String[]{"SDL3","rekhcom64"} : new String[]{"SDL3","rekhcom_"+region()};
+    }
     /** Test app only (application id ending in ".smoke"): KEY=VALUE lines of files/smoke_env.txt become
      *  environment variables, so one APK runs many harness scenarios. The normal app never reads them. */
     private void smokeEnvironment() {
