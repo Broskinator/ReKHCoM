@@ -23,9 +23,28 @@ Reglas del usuario:
 | **Claude** | Reportes de hardware de Switch/Vita cuando lleguen; meterlas en la próxima release (stage_release ya las incluye) |
 | **ChatGPT/Codex** | NUEVO (pedido del usuario 21/10): opción "Volver a la pantalla de título" en cualquier momento, en la sección Re:CoM de Opciones (in-game `port_ui.c`, launcher `decompui.cpp`, `kh_com.ini`), justo encima de "Devolver cartas acumuladas" (`ITEM_UNSTOCK`). Por la lógica del juego (reinicio suave), no objetos del port. Copia jugable + .bat para aprobar |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
-| **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después |
+| **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después, con el método de abajo ("Para Codex: cómo hacer el arte") |
 | **Usuario** | Crear la aplicación de Discord y pasar su Application ID; probar `Probar Discord.bat` y `Probar ReKHCoM v1.9.13 pre1.bat` (arranque en pantalla completa sin parpadeo, df56a0a2d) |
 | **Usuario** | Aprobar el launcher nuevo (`Probar launcher nuevo.bat`, commit 07a6fa9ab); revisar 61–62 cuando Claude las muestre |
+
+## Para Codex: cómo hacer el arte (16–24), según lo aprobado (21/10/2026)
+
+Pedido del usuario: seguir el mismo método con que se aprobaron los arreglos visuales.
+
+- **Procedimiento:** `WORKFLOW_ARTE_AMPLIO.md` (paso a paso), reglas en `LOGICA_APROBADOS.md`
+  (mandan ante la duda), entrega en `PRUEBAS_VISUALES.md`, técnica de combates en
+  `BATTLE_SCENERY_TECHNIQUE.md`.
+- **Modelo "aprobado con honores" (20/10): Guard Armor, escena 008.** El patio del combate cubre
+  también el evento previo: la extensión se elige por los cuatro mapas del fondo, no por el modo
+  (`port_ppu.c`, `guardPatio`). Lección: buscar TODAS las apariciones de un fondo (combate, evento
+  previo, derrota, revancha) e identificarlo por sus datos, nunca por modo/número de combate/bandera.
+- **Arte:** solo tiles del juego (repetir/voltear); bordes cortados se cierran con el borde propio
+  volteado; nunca ornamentos repetidos o cortados a la mitad (relleno de pared lisa); pixel art
+  nuevo solo donde falte, con píxeles y paleta del juego. El rectángulo GBA queda idéntico.
+- **Pruebas:** zoom x3 entero (`zoom=6`) a 1920x1080, 2560x1080, 3440x1440 y 3840x1080
+  (`KHCOM_WINDOW`), antes/después.
+- **Entrega:** copia jugable + `.bat`, de a un jefe/escena, y esperar la aprobación del usuario;
+  lo aprobado se documenta en `LOGICA_APROBADOS.md`.
 
 ## Vita y Switch (20/10, 17:00)
 

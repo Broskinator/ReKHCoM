@@ -1,3 +1,24 @@
+## Para Codex: cómo hacer el arte (16–24), según lo aprobado (21/10/2026)
+
+Pedido del usuario: seguir el mismo método con que se aprobaron los arreglos visuales.
+
+- **Procedimiento:** `WORKFLOW_ARTE_AMPLIO.md` (paso a paso), reglas en `LOGICA_APROBADOS.md`
+  (mandan ante la duda), entrega en `PRUEBAS_VISUALES.md`, técnica de combates en
+  `BATTLE_SCENERY_TECHNIQUE.md`.
+- **Modelo "aprobado con honores" (20/10): Guard Armor, escena 008.** El patio del combate cubre
+  también el evento previo: la extensión se elige por los cuatro mapas del fondo, no por el modo
+  (`port_ppu.c`, `guardPatio`). Lección: buscar TODAS las apariciones de un fondo (combate, evento
+  previo, derrota, revancha) e identificarlo por sus datos, nunca por modo/número de combate/bandera.
+- **Arte:** solo tiles del juego (repetir/voltear); bordes cortados se cierran con el borde propio
+  volteado; nunca ornamentos repetidos o cortados a la mitad (relleno de pared lisa); pixel art
+  nuevo solo donde falte, con píxeles y paleta del juego. El rectángulo GBA queda idéntico.
+- **Pruebas:** zoom x3 entero (`zoom=6`) a 1920x1080, 2560x1080, 3440x1440 y 3840x1080
+  (`KHCOM_WINDOW`), antes/después.
+- **Entrega:** copia jugable + `.bat`, de a un jefe/escena, y esperar la aprobación del usuario;
+  lo aprobado se documenta en `LOGICA_APROBADOS.md`.
+
+Tareas vigentes de Codex: ver el reparto en `PENDIENTES_VIGENTES.md` (opción "Volver a la pantalla de título", 39, 16–24).
+
 ## Integración Nightly 2 — 18/10/2026
 
 Guard Armor aceptado y perfiles de escenas 057/061/074 conectados al juego,
