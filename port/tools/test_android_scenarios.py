@@ -51,7 +51,16 @@ FIXTURES = {
 
 
 def adb(*args, check=True):
-    return subprocess.run([ADB, '-s', SERIAL, *map(str, args)], capture_output=True, check=check)
+    # adb.exe itself can fail to start (0xC0000142 / 0xC000026B: Windows refusing new processes for a moment):
+    # that is not the game's result, so it is retried instead of ending the battery
+    for attempt in range(10):
+        r = subprocess.run([ADB, '-s', SERIAL, *map(str, args)], capture_output=True)
+        if r.returncode not in (0xC0000142, 0xC000026B, -1073741502, -1073741205):
+            break
+        time.sleep(5 + attempt * 5)
+    if check and r.returncode:
+        raise subprocess.CalledProcessError(r.returncode, r.args, r.stdout, r.stderr)
+    return r
 
 
 def private(*args):
@@ -154,24 +163,32 @@ def main():
     p.add_argument('--only', default='')
     p.add_argument('--riku', action='store_true')
     p.add_argument('--from-battle', type=int, default=0, help='skip battle entries below this index')
+    p.add_argument('--resume', action='store_true', help="skip what the report file already has as ok")
     p.add_argument('--slow', type=float, default=1.0,
                    help='timeout multiplier: an x86_64 emulator runs the arm64 build translated, several times slower')
     args = p.parse_args()
     SERIAL = args.serial
     OUT.mkdir(parents=True, exist_ok=True)
     report = []
+    tag = '-'.join(args.regions) + ('-riku' if args.riku else '')
+    done = set()
+    if args.resume and (OUT / f'report-{tag}.json').exists():
+        report = [r for r in json.loads((OUT / f'report-{tag}.json').read_text()) if r['status'] == 'ok']
+        done = {(r['region'], r['name']) for r in report}
     for region in args.regions:
         code = CODES[region]
         private('mkdir', '-p', 'files/roms')
         adb('push', R / 'roms' / f'{code}.gba', f'/data/local/tmp/{code}.gba')
         private('cp', f'/data/local/tmp/{code}.gba', f'files/roms/{code}.gba')
         for name, frames, timeout, env in scenarios(args.groups, [o for o in args.only.split(',') if o], args.riku, args.from_battle):
+            if (region, name) in done:
+                continue
             status, detail, tail = run(region, name, frames, int(timeout * args.slow), env)
             print(f'{region} {name}: {status}', flush=True)
             if status != 'ok':
                 print(detail or tail, flush=True)
             report.append(dict(region=region, name=name, status=status, detail=detail))
-            (OUT / f'report-{"-".join(args.regions)}.json').write_text(json.dumps(report, indent=1))
+            (OUT / f'report-{tag}.json').write_text(json.dumps(report, indent=1))
     (OUT / 'ubsan-sites.txt').write_text(chr(10).join(sorted(UBSAN)))
     bad = [r for r in report if r['status'] != 'ok']
     print(f'{len(report) - len(bad)}/{len(report)} scenarios ok')

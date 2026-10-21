@@ -286,6 +286,8 @@ def main():
     ap.add_argument('--jobs', type=int, default=0)
     ap.add_argument('--quick', action='store_true')
     ap.add_argument('--build', action='store_true', help='ninja the desktop test builds first')
+    ap.add_argument('--resume', action='store_true',
+                    help='skip the suites that already finished (a run killed from outside leaves no .done mark)')
     args = ap.parse_args()
     if args.command == 'run':
         versions = [v for v in args.versions.split(',') if v]
@@ -302,14 +304,23 @@ def main():
                 raise SystemExit(f'{build_dir(v)}/khcom.exe missing: run with --build')
             for suite in [s for s in args.suites.split(',') if s]:
                 jobs = args.jobs or default_jobs()
+                done = OUT / f'{suite}-{v}.done'
+                if args.resume and done.exists():
+                    print(f'== {suite} {v}: done before, skipped', flush=True)
+                    continue
+                done.unlink(missing_ok=True)
                 if suite == 'scenes':
                     print(f'== scenes {v} (jobs {jobs})', flush=True)
                     print(run_scenes(v, jobs), flush=True)
+                    done.write_text('', encoding='utf-8')
                     continue
                 cmd = suite_commands(suite, v, jobs, args.quick)
                 print(f'== {suite} {v} (jobs {jobs})', flush=True)
                 with open(OUT / f'{suite}-{v}.txt', 'w', encoding='utf-8') as log:
-                    subprocess.run(cmd, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env)
+                    code = subprocess.run(cmd, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env).returncode
+                # killed from outside (0x40010004 on Windows, or a signal): not finished, --resume runs it again
+                if code not in (0x40010004, 0xC000013A) and code >= 0:
+                    done.write_text('', encoding='utf-8')
                 print((OUT / f'{suite}-{v}.txt').read_text(encoding='utf-8', errors='replace').strip().splitlines()[-1:],
                       flush=True)
     report()
