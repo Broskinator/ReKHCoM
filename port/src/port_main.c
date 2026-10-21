@@ -2090,12 +2090,19 @@ static int FrameSkipDue(int sizeChanged) {
         return 0;
     }
     now = SDL_GetPerformanceCounter();
-    if (now > sNextFrame + (uint64_t)(sPerfFreq / GBA_FPS / 2) && skipped < 3) {
-        skipped++;
-        return 1;
+    {
+        /* the log says how often it acts: "frame skip: N of the last 600 frames" when any were skipped */
+        static int window, total;
+        int skip = now > sNextFrame + (uint64_t)(sPerfFreq / GBA_FPS / 2) && skipped < 3;
+        skipped = skip ? skipped + 1 : 0;
+        total += skip;
+        if (++window == 600) {
+            if (total)
+                PortLog("frame skip: %d of the last 600 frames not drawn", total);
+            window = total = 0;
+        }
+        return skip;
     }
-    skipped = 0;
-    return 0;
 }
 
 /* One display frame: draw, vertical blank, present, input, pacing. */

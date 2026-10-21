@@ -22,7 +22,7 @@ PortConfig gPortConfig = {
     1,                  /* narrowFit */
     0,                  /* scanlines */
     0,                  /* colorCorrection */
-    0,                  /* frameSkip: off; on by default only where the CPU cannot draw every frame (below) */
+    1,                  /* frameSkip: a late frame is not drawn, the logic stays exact (test_frameskip.py) */
     0,                  /* showFps */
     4,                  /* windowScale */
     0,                  /* fullscreenWidth: 0 = the desktop's resolution */
@@ -303,9 +303,6 @@ void PortConfigLoad(void) {
     gPortConfig.discordPresence = 1; /* on unless the file says otherwise */
 #ifdef PORT_SWITCH
     gPortConfig.hideTouchControls = 1; /* the console has buttons; Minus + Plus held opens the options (issue #36) */
-#endif
-#if defined(PORT_SWITCH) || defined(PORT_VITA)
-    gPortConfig.frameSkip = 1; /* the CPU cannot draw every frame: draw less, keep the game at its speed (#35, #36) */
 #endif
     gPortConfig.hdSubtitles = 1;
     gPortConfig.hdMovies = 1;        /* the HD mod is used once imported (HD_MOD.md); the full scenes mod is opt-in */
