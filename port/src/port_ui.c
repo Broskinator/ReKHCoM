@@ -7,6 +7,7 @@
  * gamepad, as bound) / Guide anywhere. The game is paused while it is open.
  */
 #include <SDL3/SDL.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "port/port.h"
