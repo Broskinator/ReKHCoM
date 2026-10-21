@@ -288,7 +288,7 @@ static int sFieldSeen;
 
 /* The activity's JSON for what is on screen now. */
 static void Describe(char* out, size_t size) {
-    char details[128], state[128], large[64], largeText[32], small[192] = "";
+    char details[128], state[128], large[64], largeText[96], small[256] = "";
     int riku = (gGameState.flags & GAME_FLAG_RIKU) != 0, floor = gGameState.floor + 1;
     const char* world;
     Mode* m = gCurrentMode;
@@ -316,20 +316,22 @@ static void Describe(char* out, size_t size) {
         }
         SDL_snprintf(state, sizeof(state), "%s - %s %d%s", Text(riku ? T_RIKU : T_SORA), Text(T_LEVEL),
                      gGameState.progression.level, extra);
-        SDL_strlcpy(large, riku ? "riku" : "sora", sizeof(large));
-        SDL_strlcpy(largeText, Text(riku ? T_RIKU : T_SORA), sizeof(largeText));
-        /* the small picture: the world's achievement badge (port/assets/discord/world<id>.png), the logo in the
-           castle and while choosing a world */
+        /* the large picture: the boss's achievement badge (port/assets/discord/badge<n>.png), else the world's
+           (world<id>.png), the logo in the castle and while choosing a world; the small one: the character */
         badge = boss < 0 ? 0 : riku ? kBosses[boss].riku : kBosses[boss].sora;
-        if (badge)
-            SDL_snprintf(small, sizeof(small), ",\"small_image\":\"" DISCORD_ART "badge%d.png\",\"small_text\":\"%s\"",
-                         badge, kBosses[boss].name);
-        else if (known && m != &gModeWorldselect && m != &gModeWORLDSELECT && gGameState.world >= 1 &&
-            gGameState.world <= WORLD_100_ACRE_WOOD && gGameState.world != WORLD_CASTLE_OBLIVION)
-            SDL_snprintf(small, sizeof(small), ",\"small_image\":\"" DISCORD_ART "world%d.png\",\"small_text\":\"%s\"",
-                         gGameState.world, world);
-        else
-            SDL_strlcpy(small, ",\"small_image\":\"" DISCORD_ART "logo.png\",\"small_text\":\"ReKHCoM\"", sizeof(small));
+        if (badge) {
+            SDL_snprintf(large, sizeof(large), "badge%d", badge);
+            SDL_strlcpy(largeText, kBosses[boss].name, sizeof(largeText));
+        } else if (known && m != &gModeWorldselect && m != &gModeWORLDSELECT && gGameState.world >= 1 &&
+                   gGameState.world <= WORLD_100_ACRE_WOOD && gGameState.world != WORLD_CASTLE_OBLIVION) {
+            SDL_snprintf(large, sizeof(large), "world%d", gGameState.world);
+            SDL_strlcpy(largeText, world, sizeof(largeText));
+        } else {
+            SDL_strlcpy(large, "logo", sizeof(large));
+            SDL_strlcpy(largeText, world != NULL ? world : "ReKHCoM", sizeof(largeText));
+        }
+        SDL_snprintf(small, sizeof(small), ",\"small_image\":\"" DISCORD_ART "%s.png\",\"small_text\":\"%s\"",
+                     riku ? "riku" : "sora", Text(riku ? T_RIKU : T_SORA));
     }
     SDL_snprintf(out, size,
                  "\"details\":\"%s\",%s%s%s\"timestamps\":{\"start\":%lld},"
