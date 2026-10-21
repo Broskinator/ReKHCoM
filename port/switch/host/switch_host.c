@@ -333,25 +333,28 @@ static void H_gfx_clip(int x, int y, int w, int h) {
 }
 static void H_gfx_blend(int on) { sBlend = on; }
 
-/* HostVertex triangles; a u of 2 or more marks crisp (nearest) sampling, as the software hosts read it */
+/* HostVertex triangles; the shim adds 2, 4 or 6 to u for pixel art and the MMPX filters (port/ps5/guest/src/sdl_shim.c):
+   those are drawn crisp (nearest), as the software hosts read them */
 static void H_gfx_draw(int id, const void* verts, int count) {
     const HostVertex* v = verts;
     SDL_Texture* t = id >= 0 && id < 4096 ? sGpuTex[id] : NULL;
     static SDL_Vertex out[8192];
     int crisp = 0;
+    float shift = 0;
     if ((id >= 0 && !t) || !sRenderer)
         return;
     if (count > 8192)
         count = 8192;
     if (count > 0 && t) {
-        crisp = v[0].u >= 1.75f;
+        shift = floorf((v[0].u + 0.25f) / 2.0f) * 2.0f;
+        crisp = shift > 0;
         SDL_SetTextureScaleMode(t, crisp || !sGpuSmooth[id] ? SDL_ScaleModeNearest : SDL_ScaleModeLinear);
         SDL_SetTextureBlendMode(t, sBlend ? SDL_BLENDMODE_BLEND : SDL_BLENDMODE_NONE);
     }
     for (int i = 0; i < count; i++) {
         out[i].position.x = v[i].x;
         out[i].position.y = v[i].y;
-        out[i].tex_coord.x = crisp ? v[i].u - 2.0f : v[i].u;
+        out[i].tex_coord.x = v[i].u - shift;
         out[i].tex_coord.y = v[i].v;
         out[i].color.r = (v[i].argb >> 16) & 255;
         out[i].color.g = (v[i].argb >> 8) & 255;
