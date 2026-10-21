@@ -24,7 +24,12 @@ Reglas del usuario:
   - #38: "ocultar controles táctiles" con un mando conectado no dibuja nada, ni en menús (sin mando queda el botón
     de opciones). Solo Android.
   - I, PPU en varios núcleos (Windows): falta la verificación.
-- **Baterías corriendo, fuera de la sesión:**
+- **21/10 ~17:00, pausadas por espacio:** el emulador reservaba 9 GB y el pagefile creció a 35,7 GB (C: llegó a
+  0,3 GB). Android (menús y fixtures con imagen movida: todo ok salvo el selector de eventos, ya arreglado) y la PPU
+  (80/194, 0 `MISMATCH`) se retoman con `--resume` cuando haya RAM/disco; la de escritorio sigue. Reiniciar Windows
+  devuelve el pagefile. Arreglados después: Event_0 (selector de eventos) y los dos sitios del Bosque de los 100 Acres
+  (`BUS_PTR`, `port/src/port_bus.c`), vistos en el informe de escritorio (`scenes` ahora va primero en las baterías).
+- **Baterías (estado anterior):**
   - Android, imagen movida, EU menús/fixtures/jefes: `build/android-move-battery.log`,
     `build/android-scenarios/report-eu-khcom_image_move.json`. Relanzar: el mismo comando con `--resume`
     (`build/move_cmd.txt`).
