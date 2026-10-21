@@ -2,6 +2,10 @@
 
 Publicado: v1.9.12 estable (Latest) con Windows, Linux, Steam Deck, Anbernic, Android, PS5, PS4 y ahora las alphas de Switch y Vita; web en Pages. Issues #23, #24, #30 y #31 cerrados; #25 abierto. PR #32 integrado.
 
+Prerelease de prueba v1.9.13-pre2 (21/10, pedido del usuario): Windows + APK (32 y 64 bits) + Switch .nro (GPU).
+Comentado en #22, #33, #34 y #35 pidiendo que prueben y dejen modelo/versión de su equipo; se cierran con su
+confirmación. Copia local: `Probar ReKHCoM v1.9.13 pre2.bat`.
+
 Única cola de trabajo; los demás .md son evidencia. Lo terminado sale de aquí
 (queda en el historial de git y en CHANGELOG.md). Numeración histórica conservada.
 
@@ -28,7 +32,7 @@ tal cual (build PC verificada); falta lo anotado en `HD_MOD.md` (emulador Androi
 | **Claude** | Discord Rich Presence (c7326c6a4, 584f8315a): hecho y probado con un Discord falso (`fake_discord_ipc.py`); falta el Application ID de Discord que crea el usuario (`Probar Discord.bat`) y fijarlo en `REKHCOM_DISCORD_APP_ID`; luego probar Linux |
 | **Claude** | SmartScreen: hecho (el launcher quita la marca de descarga de sus .exe, commit siguiente); entra en la próxima release |
 | **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, KIT_DEPURACION.md): sigue con Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
-| **Claude** | Reportes de hardware de Switch/Vita cuando lleguen; meterlas en la próxima release (stage_release ya las incluye) |
+| **Claude** | Batería Android 64 en el emulador (corriendo 21/10: menús, fixtures, jefes Sora/Riku EU, menús+jefes US/JP); arreglar lo que salga. Videos HD de Android en la rama `claude/android-hd-movies` (sin verificar). Reportes de hardware de Switch/Vita cuando lleguen; meterlas en la próxima release (stage_release ya las incluye) |
 | **Claude** | Volver a la pantalla de título: HECHO por Claude (el usuario lo pidió integrado ya, 21/10) |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
 | **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después, con el método de abajo ("Para Codex: cómo hacer el arte") |
