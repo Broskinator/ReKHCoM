@@ -619,7 +619,7 @@ static bool HdModCard() {
     bool haveBase = fs::exists(movies / "ROP.mp4", ec);
     int haveScenes = haveMovies - (int)haveBase - (int)fs::exists(movies / "RSE.mp4", ec) - (int)fs::exists(movies / "RRE.mp4", ec);
 
-    Eyebrow(T("MOD HD · KINGDOM HEARTS 1.5+2.5", "HD MOD · KINGDOM HEARTS 1.5+2.5"));
+    Eyebrow(T("MOD HD (BETA) · KINGDOM HEARTS 1.5+2.5", "HD MOD (BETA) · KINGDOM HEARTS 1.5+2.5"));
     ImGui::TextWrapped("%s", T("Usa los videos y la banda sonora de Re:Chain of Memories de tu Kingdom Hearts HD 1.5+2.5 ReMIX "
                                "de PC (Steam o Epic). ReKHCoM no incluye nada de ese juego: lo copia de tu instalación.",
                                "Uses the Re:Chain of Memories movies and soundtrack of your PC Kingdom Hearts HD 1.5+2.5 ReMIX "

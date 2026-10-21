@@ -9,6 +9,7 @@ Progress: build/batteries.log; a step's own output is in its log (build/debugkit
 """
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -82,9 +83,14 @@ def emulator():
         return r.stdout.strip() == '1'
     if booted():
         return True
+    # the AVD (13 GB) lives outside the user profile: without ANDROID_AVD_HOME the emulator finds none and never boots
+    env = dict(os.environ)
+    for home in (ROOT.parent / 'toolchain/android/avd', Path('D:/ReKHCoM-build/android-avd')):
+        if 'ANDROID_AVD_HOME' not in env and (home / 'Pixel6_API34.ini').exists():
+            env['ANDROID_AVD_HOME'] = str(home)
     subprocess.Popen([str(SDK / 'emulator/emulator.exe'), '-avd', 'Pixel6_API34', '-no-window', '-no-audio',
                       '-no-snapshot', '-gpu', 'swiftshader_indirect', '-memory', '3072'],
-                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=0x08000000)
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=0x08000000, env=env)
     for _ in range(120):
         time.sleep(5)
         if booted():
