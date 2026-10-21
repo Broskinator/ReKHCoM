@@ -27,16 +27,17 @@ tal cual (build PC verificada); falta lo anotado en `HD_MOD.md` (emulador Androi
 
 | Quién | Pendiente |
 |---|---|
-| **Claude** | v1.9.21 (pedido del usuario 21/10): mod HD de videos/música/escenas desde KH 1.5+2.5 (`HD_MOD.md`), Android 64 bits (`ANDROID_64.md`), fuente HD (a/r), cerrar todos los issues |
-| **Claude** | Android de 64 bits y batería (pedido del usuario 21/10; arregla #22 y #34, #33 ya arreglado): plan y estado en `ANDROID_64.md` |
-| **Claude** | Discord Rich Presence (c7326c6a4, 584f8315a): hecho y probado con un Discord falso (`fake_discord_ipc.py`); falta el Application ID de Discord que crea el usuario (`Probar Discord.bat`) y fijarlo en `REKHCOM_DISCORD_APP_ID`; luego probar Linux |
-| **Claude** | SmartScreen: hecho (el launcher quita la marca de descarga de sus .exe, commit siguiente); entra en la próxima release |
-| **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, KIT_DEPURACION.md): sigue con Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
-| **Claude** | Batería Android 64 en el emulador (corriendo 21/10: menús, fixtures, jefes Sora/Riku EU, menús+jefes US/JP); arreglar lo que salga. Videos HD de Android en la rama `claude/android-hd-movies` (sin verificar). Reportes de hardware de Switch/Vita cuando lleguen; meterlas en la próxima release (stage_release ya las incluye) |
-| **Claude** | Volver a la pantalla de título: HECHO por Claude (el usuario lo pidió integrado ya, 21/10) |
+| **Claude** | **A. Batería Android 64** (corriendo 21/10 en el emulador Android 14: EU menús/fixtures/jefes, EU jefes con Riku, US/JP menús y jefes). Al terminar: rehacer el APK de prueba y repetir las 7 pantallas agregadas al arnés (f15eee5dd y anterior); arreglar cada fallo real; luego otros perfiles (Android 13/15, tablet, plegable) y el bot de partida. Estado en `ANDROID_64.md` |
+| **Claude** | **B. Batería de escritorio** con el kit (`debug_kit.py run --build --versions eu,us,jp`, `--jobs 2`): Riku, eventos, eventos 16:9, juego aleatorio; cada `bios:` nuevo se arregla (#30, `KIT_DEPURACION.md`) |
+| **Claude** | **C. Videos HD en Android**: rama `claude/android-hd-movies`; el emulador se cuelga en la primera textura YUV (`glCreateProgram`). Probar otra imagen de emulador o subir los cuadros como RGB; a main solo verificado (`HD_MOD.md`) |
+| **Claude** | **D. Videos HD en consolas y Linux** (Switch/Vita/PS4/PS5, MP4 en Linux): después de Android |
+| **Claude** | **E. Issues de la pre2** (#22, #33, #34, #35): leer las respuestas de los testers, arreglar lo que reporten y cerrar con su confirmación; #35 Switch: si sigue lento con la GPU actual, evaluar deko3d. #25 (escenas HD): agradecer a DL-6-case y cerrar cuando salga el mod HD en una estable |
+| **Claude** | **F. Discord Rich Presence**: hecho; falta el Application ID que crea el usuario (`REKHCOM_DISCORD_APP_ID`) y probar Linux |
+| **Claude** | **G. Integración de Codex**: traer sus commits de `khcom-codex` (rama codex/preliminar-v1) y `khcom` a main con build y prueba antes de cada push (al día hasta 46d6f679c, 21/10) |
+| **Claude** | **H. Próxima estable**: con el OK del usuario; `release_check.py` antes/después, todas las plataformas (Switch y Vita incluidas), web, CHANGELOG ya al día con v1.9.13 |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
 | **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después, con el método de abajo ("Para Codex: cómo hacer el arte") |
-| **Usuario** | Crear la aplicación de Discord y pasar su Application ID; probar `Probar Discord.bat` y `Probar ReKHCoM v1.9.13 pre1.bat` (arranque en pantalla completa sin parpadeo, df56a0a2d) |
+| **Usuario** | Crear la aplicación de Discord y pasar su Application ID; probar `Probar Discord.bat` y `Probar ReKHCoM v1.9.13 pre2.bat` (pantalla completa sin parpadeo, mod HD, volver al título) |
 | **Usuario** | Aprobar el launcher nuevo (`Probar launcher nuevo.bat`, commit 07a6fa9ab); revisar 61–62 cuando Claude las muestre |
 
 ## Para Codex: cómo hacer el arte (16–24), según lo aprobado (21/10/2026)
