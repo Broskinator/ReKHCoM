@@ -85,8 +85,14 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
   archivo entero (temporal + renombrar). Los videos todavía no: Android no los reproduce y pesan GB.
   Probado en el emulador Android 14: Descargas/hd → 2 pistas, idénticas por md5 (21/10). Android no deja
   elegir la raíz de Descargas: hay que elegir `hd` (el texto del botón lo dice).
-- [ ] Videos en Android (32 y 64 bits): NDK `AMediaExtractor`/`AMediaCodec` (API 21+) a textura SDL NV12,
-  con los mismos subtítulos; en 64 bits como entrada del puente `hd_movie` en el host.
+- [ ] Videos en Android (32 y 64 bits): escrito en la rama `claude/android-hd-movies` (21/10, no en main):
+  `port/portable/hdmovie_android.c` (MediaExtractor + MediaCodec a un AImageReader, textura NV12/YUV, subtítulos
+  con FreeType, cargado con dlopen: Android 7+), entrada del puente `hd_movie` en el host de 64 bits, y el
+  importador copia también videos y subtítulos. En el emulador Android 14 el audio y la decodificación andan
+  (decodificador `c2.android.avc.decoder` con `KHCOM_HDMOVIE_DECODER`), pero la primera textura YUV se cuelga en
+  `glCreateProgram` (SwiftShader y GPU del host; el decodificador goldfish igual). Falta verificar en un teléfono
+  real o con otra imagen de emulador antes de llevarlo a main. Switch (.nro), Vita (.vpk) y PS5 compilan con la
+  música HD (21/10).
 - [ ] Videos en consolas: decodificador de cada una (Vita/PS4 sceAvPlayer, Switch nvdec); sin hardware
   para probar, después de Android.
 - [ ] Linux: reproducción de MP4 (la música HD ya funciona en Linux).
