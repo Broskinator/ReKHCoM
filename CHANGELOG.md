@@ -1,11 +1,23 @@
 # Changelog
 
-## v1.9.13 — in progress (prerelease v1.9.13-pre1, 2026-10-20)
+## v1.9.13 — 2026-10-21
 
 - Nintendo Switch (alpha, never run on a console yet): a homebrew `ReKHCoM.nro` for custom
   firmware (Atmosphère, Homebrew Menu in title takeover). Copy it and your cartridge dump (EU, US
-  or JP) to `sdmc:/switch/ReKHCoM/`. Same game as the PC version: widescreen, HD text, options,
-  achievements. Minus + L3 / R3 save and load a state.
+  or JP) to `sdmc:/switch/ReKHCoM/`. Minus + L3 / R3 save and load a state.
+- PS Vita (alpha, never run on a console yet): `ReKHCoM.vpk` for HENkaku/Ensō, installed with
+  VitaShell; the cartridge dump goes in `ux0:data/ReKHCoM/`. Select + L / R save and load a state.
+- Discord: with the Discord app open, your profile shows the world and floor, Sora or Riku with
+  the level, the boss you are fighting and the session time, in the game's language, with the
+  world's or boss's achievement badge. On by default; Options and the launcher can turn it off.
+- Options: "Return to title screen" in the Re:CoM section (confirm twice), the game's own reset.
+- Android: no more crash right before the Trickmaster battle in Wonderland (#33). The game claims
+  its memory as soon as it loads, and if a phone still keeps it busy (#22, #34) the message says
+  what is in the way; a 64-bit version that avoids this is in progress.
+- Windows: the game opens straight in fullscreen, without a window flashing first, and Windows
+  SmartScreen no longer stops the game after the launcher was allowed.
+- Agrabah: the widescreen margins of the street and the Genie's market are completed.
+- Achievements: "No conseguido" instead of "Pendiente" in Spanish.
 
 ## v1.9.12 — 2026-10-20
 

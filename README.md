@@ -8,7 +8,7 @@ browser and PS5), with its own renderer, audio and launcher, with widescreen and
 ultrawide support at the cartridge's original speed.
 
 <p align="center">
-  <a href="https://github.com/MatyMeatBoy/ReKHCoM/releases/latest"><b>⬇ Download the latest release (v1.9.12)</b></a>
+  <a href="https://github.com/MatyMeatBoy/ReKHCoM/releases/latest"><b>⬇ Download the latest release (v1.9.13)</b></a>
   &nbsp;·&nbsp; <a href="https://matymeatboy.github.io/ReKHCoM/"><b>▶ Play in your browser · Alpha</b></a>
   &nbsp;·&nbsp; <a href="CHANGELOG.md">Changelog</a>
   &nbsp;·&nbsp; <a href="https://github.com/MatyMeatBoy/ReKHCoM/tags">Previous version tags</a>
@@ -20,34 +20,32 @@ included), in all five European languages, English (US) and Japanese.
 <p align="center"><img src="docs/screenshots/battle.png" width="49%"> <img src="docs/screenshots/field.png" width="49%"></p>
 
 Development versions are tracked in [Git tags](https://github.com/MatyMeatBoy/ReKHCoM/tags).
-Only stable versions appear as public releases. The current stable is **v1.9.12**.
+Only stable versions appear as public releases. The current stable is **v1.9.13**.
 
 | Platform | Download | Status |
 |---|---|---|
-| Windows | `ReKHCoM-v1.9.12-windows-x86.zip` | Stable |
-| Linux (x86) | `ReKHCoM-v1.9.12-linux-x86.tar.gz` | Stable, tested in virtual machines |
-| Steam Deck | `ReKHCoM-v1.9.12-steamdeck-i386.tar.gz` | Stable, tested in virtual machines |
-| Anbernic (RG34XX and similar) | `ReKHCoM-v1.9.12-linux-armhf-anbernic-alpha.zip` | Alpha |
-| Android | `ReKHCoM-v1.9.12-android-alpha.apk` | Alpha |
+| Windows | `ReKHCoM-v1.9.13-windows-x86.zip` | Stable |
+| Linux (x86) | `ReKHCoM-v1.9.13-linux-x86.tar.gz` | Stable, tested in virtual machines |
+| Steam Deck | `ReKHCoM-v1.9.13-steamdeck-i386.tar.gz` | Stable, tested in virtual machines |
+| Anbernic (RG34XX and similar) | `ReKHCoM-v1.9.13-linux-armhf-anbernic-alpha.zip` | Alpha |
+| Android | `ReKHCoM-v1.9.13-android-alpha.apk` | Alpha |
 | Browser | [matymeatboy.github.io/ReKHCoM](https://matymeatboy.github.io/ReKHCoM/) | Alpha |
-| PS5 | `PPSA98511.zip` (shown as ReKHCoM-v1.9.12-ps5-alpha) | Alpha |
-| PS4 (GoldHEN) | `ReKHCoM-v1.9.12-ps4-alpha.pkg` | Alpha, never run on a console yet |
+| PS5 | `PPSA98511.zip` (shown as ReKHCoM-v1.9.13-ps5-alpha) | Alpha |
+| PS4 (GoldHEN) | `ReKHCoM-v1.9.13-ps4-alpha.pkg` | Alpha, never run on a console yet |
+| Nintendo Switch (Atmosphère) | `ReKHCoM-v1.9.13-switch-alpha.nro` | Alpha, never run on a console yet |
+| PS Vita (HENkaku) | `ReKHCoM-v1.9.13-vita-alpha.vpk` | Alpha, never run on a console yet |
 
-## What's new in v1.9.12
+## What's new in v1.9.13
 
-- **Achievements without an account.** The 90 official achievements are earned as you play,
-  translated into Spanish, French, German, Italian and Japanese, with their badges.
-- **Faster start (#24).** A twice skips the logos; START pauses any cinematic and can skip it;
-  the game remembers its language on every version.
-- **Nintendo controllers (#23).** A/B and X/Y follow the labels, in the game and the launcher.
-- **Fewer crashes on Android, web and Linux ARM (#30).** Card stocking, Cloud/Axel/Parasite Cage,
-  the floor map, early story scenes and the deck editor no longer close the game.
-- **Web:** a Fullscreen button right under the game.
-- **HD text:** steady level-up messages; the "/" of numbers such as 095/095 in HD too.
-- **Widescreen:** the Guard Armor courtyard also before the fight, while the armour assembles.
-- **Zoom at any moment:** + / - on the keyboard, Select + Up / Down on a gamepad; optional battle zoom (Experimental).
-- **Force Nintendo layout (#23):** for Nintendo pads that Steam or Lutris report as Xbox ones.
-- **Consoles:** PS5 and a first PS4 alpha (GoldHEN). Switch and Vita are in progress, not in this release.
+- **Nintendo Switch and PS Vita alphas.** Homebrew builds of the same game (never run on a console
+  yet: reports welcome).
+- **Discord status.** Your profile shows the world, floor, character, level and boss, in the game's
+  language. On by default.
+- **Return to title screen** from Options at any moment.
+- **Android:** the Wonderland boss crash is fixed (#33); clearer message where the phone keeps the
+  game's memory busy (#22, #34).
+- **Windows:** clean fullscreen start; no SmartScreen stop after allowing the launcher.
+- **Agrabah widescreen** margins completed.
 
 ## Achievements
 
@@ -177,7 +175,7 @@ Export a backup before clearing browser data.
 ## Running (Windows)
 
 1. Download the [latest stable ZIP](https://github.com/MatyMeatBoy/ReKHCoM/releases/latest)
-   and extract `ReKHCoM-v1.9.12-windows-x86.zip` into a writable folder of its own
+   and extract `ReKHCoM-v1.9.13-windows-x86.zip` into a writable folder of its own
    (for example `ReKHCoM`).
 2. Run `ReKHCoM.exe` and install your cartridge dump with **Install ROM...** (or drag
    the file onto the window). The dump is checked by SHA-1 and copied to `roms/`.
@@ -241,7 +239,7 @@ your dump during the first configure step.
 To make a distributable ZIP without ROMs, saves or local settings:
 
 ```sh
-python port/tools/package_release.py --version v1.9.12 --sdl ../toolchain/SDL3-3.4.18
+python port/tools/package_release.py --version v1.9.13 --sdl ../toolchain/SDL3-3.4.18
 ```
 
 ## Controls
