@@ -17,6 +17,7 @@ Reglas del usuario:
 
 | Quién | Pendiente |
 |---|---|
+| **Claude** | v1.9.21 (pedido del usuario 21/10): mod HD de videos/música/escenas desde KH 1.5+2.5 (`HD_MOD.md`), Android 64 bits (`ANDROID_64.md`), fuente HD (a/r), cerrar todos los issues |
 | **Claude** | Android de 64 bits y batería (pedido del usuario 21/10; arregla #22 y #34, #33 ya arreglado): plan y estado en `ANDROID_64.md` |
 | **Claude** | Discord Rich Presence (c7326c6a4, 584f8315a): hecho y probado con un Discord falso (`fake_discord_ipc.py`); falta el Application ID de Discord que crea el usuario (`Probar Discord.bat`) y fijarlo en `REKHCOM_DISCORD_APP_ID`; luego probar Linux |
 | **Claude** | SmartScreen: hecho (el launcher quita la marca de descarga de sus .exe, commit siguiente); entra en la próxima release |
