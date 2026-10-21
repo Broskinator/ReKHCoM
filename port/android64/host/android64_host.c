@@ -1,5 +1,6 @@
 /* The 64-bit Android host (port/progress/ANDROID_64.md): loads the game image (port/android64/build_android64.py: AArch64
- * code with 32-bit pointers, a Mach-O executable linked at 0x01000000) from the APK, serves the bridge
+ * code with 32-bit pointers, a position-independent Mach-O linked at 0x01000000, moved elsewhere below 4 GiB where that
+ * range is taken) from the APK, serves the bridge
  * (port/ps5/shared/bridge_list.h) with SDL3 and starts the game.
  *
  * The 32-bit app needs the GBA's hardware addresses, which some phones keep busy (issues #22, #34) and 64-bit-only
@@ -24,6 +25,7 @@
 #include <strings.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 #include "bridge.h"
@@ -453,59 +455,268 @@ typedef struct {
     char segname[16];
     uint32_t vmaddr, vmsize, fileoff, filesize, maxprot, initprot, nsects, flags;
 } MachSegment;
+typedef struct {
+    uint32_t cmd, cmdsize, rebase_off, rebase_size; /* the rest of LC_DYLD_INFO_ONLY is not used */
+} MachDyldInfo;
 
+static char sImageError[160]; /* why the image did not load: shown in the error box too (issues #22, #34) */
+
+static int ImageFail(const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(sImageError, sizeof(sImageError), fmt, ap);
+    va_end(ap);
+    Log("%s", sImageError);
+    return 0;
+}
+
+static int MappedSegment(const MachSegment* seg) {
+    return seg->cmd == 1 && seg->vmsize && strncmp(seg->segname, "__PAGEZERO", 16) && strncmp(seg->segname, "__LINKEDIT", 16);
+}
+
+/* The busy ranges below 4 GiB, from /proc/self/maps: logged when the linked address is taken, so a report shows by
+   what, and used to find another place for the image. */
+static int BusyRanges(uint64_t (*out)[2], int max) {
+    FILE* f = fopen("/proc/self/maps", "r");
+    char line[512];
+    int n = 0;
+    if (!f)
+        return 0;
+    while (n < max && fgets(line, sizeof(line), f)) {
+        unsigned long long a, b;
+        if (sscanf(line, "%llx-%llx", &a, &b) == 2 && a < 0x100000000ull) {
+            out[n][0] = a;
+            out[n][1] = b;
+            n++;
+        }
+    }
+    fclose(f);
+    return n;
+}
+
+/* Claims [base, base + size) for the image: the range reserved when this library loaded (the linked address), or a
+   free one below 4 GiB, the image's pointers being 32-bit. Another place is searched downwards from 0xF0000000: ART
+   hands out its own low-memory blocks upwards from the bottom, so the top of the range is the last to fill. */
+static uint32_t ClaimImageSpace(uint32_t linked, uint32_t size) {
+    static uint64_t busy[1024][2];
+    size_t page = (size_t)sysconf(_SC_PAGESIZE);
+    const uint32_t align = 0x00100000u, top = 0xF0000000u;
+    uint32_t base;
+    int n, i;
+    /* KHCOM_IMAGE_MOVE (test harness): load elsewhere even when the linked address is free */
+    if (sReserved && linked >= IMAGE_BASE && linked + (uint64_t)size <= IMAGE_LIMIT && !getenv("KHCOM_IMAGE_MOVE"))
+        return linked;
+    if (sReserved) /* reserved but the image does not fit there: give it back */
+        munmap((void*)(uintptr_t)IMAGE_BASE, IMAGE_LIMIT - IMAGE_BASE);
+    sReserved = 0;
+    n = BusyRanges(busy, 1024);
+    for (i = 0; i < n; i++)
+        if (busy[i][1] > linked && busy[i][0] < (uint64_t)linked + size)
+            Log("0x%08x is taken: %08llx-%08llx", linked, (unsigned long long)busy[i][0], (unsigned long long)busy[i][1]);
+    for (base = (top - size) & ~(align - 1); base >= align; base -= align) {
+        void* p;
+        for (i = 0; i < n; i++)
+            if (busy[i][1] > base && busy[i][0] < (uint64_t)base + size)
+                break;
+        if (i < n) { /* skip below the range in the way */
+            uint64_t below = busy[i][0] > size ? (busy[i][0] - size) & ~(uint64_t)(align - 1) : 0;
+            if (below < align)
+                break;
+            base = (uint32_t)below + align;
+            continue;
+        }
+        p = mmap((void*)(uintptr_t)base, (size + page - 1) & ~(page - 1), PROT_NONE,
+                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0);
+        if (p == (void*)(uintptr_t)base) {
+            sReserved = 1;
+            return base;
+        }
+        if (p != MAP_FAILED)
+            munmap(p, size);
+    }
+    return 0;
+}
+
+/* Where the system refuses to turn written memory executable (an SELinux policy without execmem), the code goes into
+   an anonymous memory file mapped executable over the same addresses: what ART's JIT does. */
+static int ExecFromMemfd(void* p, size_t len) {
+    int fd = (int)syscall(__NR_memfd_create, "rekhcom-code", 1u /* MFD_CLOEXEC */), ok = 0;
+    if (fd < 0)
+        return 0;
+    if (write(fd, p, len) == (ssize_t)len &&
+        mmap(p, len, PROT_READ | PROT_EXEC, MAP_SHARED | MAP_FIXED, fd, 0) == p) {
+        __builtin___clear_cache((char*)p, (char*)p + len);
+        Log("game code mapped from a memory file (no execmem)");
+        ok = 1;
+    }
+    close(fd);
+    return ok;
+}
+
+/* Mach-O rebase opcodes (LC_DYLD_INFO_ONLY): every 32-bit pointer of the image moves by the slide */
+static int Rebase(const uint8_t* op, const uint8_t* end, const uint32_t* segAt, int segs, uint32_t slide) {
+    int seg = -1, type = 0;
+    uint64_t addr = 0, count, skip;
+#define ULEB(v) \
+    do { \
+        int shift_ = 0; \
+        (v) = 0; \
+        while (op < end) { \
+            uint8_t b_ = *op++; \
+            (v) |= (uint64_t)(b_ & 0x7F) << shift_; \
+            shift_ += 7; \
+            if (!(b_ & 0x80)) \
+                break; \
+        } \
+    } while (0)
+#define POINTER() \
+    do { \
+        if (seg < 0 || seg >= segs || type != 1) \
+            return 0; \
+        *(uint32_t*)(uintptr_t)(segAt[seg] + slide + addr) += slide; \
+        addr += 4; \
+    } while (0)
+    while (op < end) {
+        uint8_t imm = *op & 0x0F, code = *op & 0xF0;
+        op++;
+        switch (code) {
+            case 0x00: /* DONE */
+                return 1;
+            case 0x10: /* SET_TYPE_IMM */
+                type = imm;
+                break;
+            case 0x20: /* SET_SEGMENT_AND_OFFSET_ULEB */
+                seg = imm;
+                ULEB(addr);
+                break;
+            case 0x30: /* ADD_ADDR_ULEB */
+                ULEB(skip);
+                addr += skip;
+                break;
+            case 0x40: /* ADD_ADDR_IMM_SCALED */
+                addr += imm * 4u;
+                break;
+            case 0x50: /* DO_REBASE_IMM_TIMES */
+                for (count = imm; count; count--)
+                    POINTER();
+                break;
+            case 0x60: /* DO_REBASE_ULEB_TIMES */
+                ULEB(count);
+                for (; count; count--)
+                    POINTER();
+                break;
+            case 0x70: /* DO_REBASE_ADD_ADDR_ULEB */
+                POINTER();
+                ULEB(skip);
+                addr += skip;
+                break;
+            case 0x80: /* DO_REBASE_ULEB_TIMES_SKIPPING_ULEB */
+                ULEB(count);
+                ULEB(skip);
+                for (; count; count--) {
+                    POINTER();
+                    addr += skip;
+                }
+                break;
+            default:
+                return 0;
+        }
+    }
+#undef POINTER
+#undef ULEB
+    return 1;
+}
+
+/* The image is a position-independent Mach-O linked at 0x01000000: it loads there when that range was free when this
+   library loaded, otherwise at another free range below 4 GiB (issues #22, #34: phones where something sits at the
+   linked address), its pointers moved by the slide. Quick states hold raw pointers: their build id includes where
+   the game's data is (state_ps5.c), so a state from another address is refused, not loaded. */
 static int LoadImage(const char* region, Ps5GuestHeader* header) {
     char name[64];
-    size_t size = 0;
+    size_t size = 0, page = (size_t)sysconf(_SC_PAGESIZE); /* 4 or 16 KiB; the image's segments are 16 KiB aligned */
     SDL_snprintf(name, sizeof(name), "guest-%s.macho", region);
     uint8_t* file = SDL_LoadFile(name, &size);
     const MachHeader* mh = (const MachHeader*)file;
-    uint32_t headerAt = 0, end = 0;
+    const MachDyldInfo* dyld = NULL;
+    uint32_t segAt[16], low = 0xFFFFFFFFu, high = 0, headerAt = 0, base, slide;
+    const uint8_t* lc;
+    int segs = 0;
     if (!file || size < sizeof(MachHeader) || mh->magic != 0xFEEDFACEu) {
-        Log("the game image %s is missing from the APK", name);
         SDL_free(file);
-        return 0;
+        return ImageFail("the game image %s is missing from the APK", name);
     }
-    const uint8_t* lc = file + sizeof(MachHeader);
-    for (uint32_t i = 0; i < mh->ncmds; i++) {
+    lc = file + sizeof(MachHeader);
+    for (uint32_t i = 0; i < mh->ncmds; i++, lc += ((const MachSegment*)lc)->cmdsize) {
         const MachSegment* seg = (const MachSegment*)lc;
-        if (seg->cmd == 1 && seg->vmsize && strncmp(seg->segname, "__PAGEZERO", 16) && strncmp(seg->segname, "__LINKEDIT", 16)) {
-            size_t page = (size_t)sysconf(_SC_PAGESIZE); /* 4 or 16 KiB; the image's segments are 16 KiB aligned */
-            size_t len = (seg->vmsize + page - 1) & ~(page - 1);
-            void* p;
-            if (seg->vmaddr < IMAGE_BASE || seg->vmaddr + len > IMAGE_LIMIT) {
-                Log("segment %.16s at 0x%08x is outside the reserved space", seg->segname, seg->vmaddr);
-                SDL_free(file);
-                return 0;
-            }
-            /* over this library's own reservation (MAP_FIXED is safe here: the range is ours) */
-            p = mmap((void*)(uintptr_t)seg->vmaddr, len, PROT_READ | PROT_WRITE,
-                     MAP_PRIVATE | MAP_ANONYMOUS | (sReserved ? MAP_FIXED : MAP_FIXED_NOREPLACE), -1, 0);
-            if (p != (void*)(uintptr_t)seg->vmaddr) {
-                Log("segment %.16s at 0x%08x: %s", seg->segname, seg->vmaddr, strerror(errno));
-                SDL_free(file);
-                return 0;
-            }
-            if (seg->filesize)
-                memcpy(p, file + seg->fileoff, seg->filesize);
-            if (seg->initprot & 4) {
-                __builtin___clear_cache((char*)p, (char*)p + len);
-                mprotect(p, len, PROT_READ | PROT_EXEC);
-            }
-            if (!strncmp(seg->segname, "__RKHDR", 16))
-                headerAt = seg->vmaddr;
-            if (seg->vmaddr + seg->vmsize > end)
-                end = seg->vmaddr + seg->vmsize;
+        if (seg->cmd == 1 && segs < 16)
+            segAt[segs++] = seg->vmaddr;
+        if (seg->cmd == 0x80000022u) /* LC_DYLD_INFO_ONLY */
+            dyld = (const MachDyldInfo*)lc;
+        if (MappedSegment(seg)) {
+            if (seg->vmaddr < low)
+                low = seg->vmaddr;
+            if (seg->vmaddr + seg->vmsize > high)
+                high = seg->vmaddr + seg->vmsize;
         }
-        lc += seg->cmdsize;
+    }
+    high = (uint32_t)((high + page - 1) & ~(page - 1));
+    if (low >= high || !(mh->flags & 0x200000u) || !dyld || dyld->rebase_off + (uint64_t)dyld->rebase_size > size) {
+        SDL_free(file);
+        return ImageFail("the game image %s is not relocatable", name);
+    }
+    base = ClaimImageSpace(low, high - low);
+    if (!base) {
+        SDL_free(file);
+        return ImageFail("no free %u MB below 4 GB for the game image", (unsigned)((high - low) >> 20));
+    }
+    slide = base - low;
+    lc = file + sizeof(MachHeader);
+    for (uint32_t i = 0; i < mh->ncmds; i++, lc += ((const MachSegment*)lc)->cmdsize) {
+        const MachSegment* seg = (const MachSegment*)lc;
+        size_t len = (seg->vmsize + page - 1) & ~(page - 1);
+        void* p;
+        if (!MappedSegment(seg))
+            continue;
+        /* over the range claimed above (MAP_FIXED is safe here: the range is ours) */
+        p = mmap((void*)(uintptr_t)(seg->vmaddr + slide), len, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED,
+                 -1, 0);
+        if (p != (void*)(uintptr_t)(seg->vmaddr + slide)) {
+            SDL_free(file);
+            return ImageFail("segment %.16s at 0x%08x: %s", seg->segname, seg->vmaddr + slide, strerror(errno));
+        }
+        if (seg->filesize)
+            memcpy(p, file + seg->fileoff, seg->filesize);
+        if (!strncmp(seg->segname, "__RKHDR", 16))
+            headerAt = seg->vmaddr + slide;
+    }
+    if (slide && !Rebase(file + dyld->rebase_off, file + dyld->rebase_off + dyld->rebase_size, segAt, segs, slide)) {
+        SDL_free(file);
+        return ImageFail("the game image's relocations could not be applied");
+    }
+    /* the code becomes executable once its pointers are in place */
+    lc = file + sizeof(MachHeader);
+    for (uint32_t i = 0; i < mh->ncmds; i++, lc += ((const MachSegment*)lc)->cmdsize) {
+        const MachSegment* seg = (const MachSegment*)lc;
+        size_t len = (seg->vmsize + page - 1) & ~(page - 1);
+        char* p = (char*)(uintptr_t)(seg->vmaddr + slide);
+        if (MappedSegment(seg) && (seg->initprot & 4)) {
+            __builtin___clear_cache(p, p + len);
+            if (mprotect(p, len, PROT_READ | PROT_EXEC) && !ExecFromMemfd(p, len)) {
+                SDL_free(file);
+                return ImageFail("the game's code cannot be made executable: %s", strerror(errno));
+            }
+        }
     }
     SDL_free(file);
     if (!headerAt)
-        return 0;
+        return ImageFail("the game image %s has no header", name);
     memcpy(header, (const void*)(uintptr_t)headerAt, sizeof(*header));
-    header->imageEnd = header->regionEnd = end;
-    Log("game image: %s, %s reservation, ends at 0x%08x", name, sReserved ? "early" : "late", end);
-    return header->magic == PS5G_MAGIC;
+    header->imageEnd = header->regionEnd = high + slide;
+    Log("game image: %s at 0x%08x (%s), ends at 0x%08x", name, base, slide ? "moved: the linked address was taken" : "its linked address",
+        high + slide);
+    if (header->magic != PS5G_MAGIC)
+        return ImageFail("the game image %s has another bridge version", name);
+    return 1;
 }
 
 static const char* RegionOf(const char* rom) {
@@ -552,8 +763,12 @@ int main(int argc, char** argv) {
     SDL_setenv_unsafe("KHCOM_ASSETS", "apk:", 1);
     SDL_setenv_unsafe("KHCOM_ROM", rom, 1);
     Ps5GuestHeader header;
-    if (!LoadImage(region, &header))
-        Fatal("The game image could not be loaded. Please send kh_com_host.log (Settings > share log).");
+    if (!LoadImage(region, &header)) {
+        char text[400];
+        SDL_snprintf(text, sizeof(text), "The game image could not be loaded (%s). Please send kh_com_host.log "
+                     "(Settings > share log) or a picture of this message.", sImageError);
+        Fatal(text);
+    }
 
     uint64_t* table = (uint64_t*)(uintptr_t)header.hostTable;
 #define HF(name) [HF_##name] = (uint64_t)(uintptr_t)H_##name

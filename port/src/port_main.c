@@ -2405,8 +2405,11 @@ int main(int argc, char** argv) {
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
     SDL_RenderClear(sRenderer);
     SDL_RenderPresent(sRenderer);
-    SDL_ShowWindow(sWindow);
-    SDL_SyncWindow(sWindow);
+    /* harness: KHCOM_HIDDEN keeps the window hidden, so timing runs draw on the real GPU without showing it */
+    if (!SDL_getenv("KHCOM_HIDDEN")) {
+        SDL_ShowWindow(sWindow);
+        SDL_SyncWindow(sWindow);
+    }
 #endif
     sPerfFreq = SDL_GetPerformanceFrequency();
     sFpsTime = SDL_GetPerformanceCounter();
