@@ -1967,8 +1967,24 @@ static fs::path ExeDir() {
     return fs::path(path).parent_path();
 }
 
+/* The player opened this launcher, so the programs it ships are trusted too: drop the "downloaded from the internet"
+   mark (Zone.Identifier) that the ZIP passed to them, or Windows SmartScreen stops bin\khcom_*.exe. Only this
+   install's own .exe and .dll files. */
+static void UnblockOwnFiles() {
+    std::error_code ec;
+    for (const fs::path& dir : { sRoot, sRoot / "bin" })
+        for (const auto& entry : fs::directory_iterator(dir, ec)) {
+            std::wstring ext = entry.path().extension().wstring();
+            for (auto& ch : ext)
+                ch = (wchar_t)towlower(ch);
+            if (entry.is_regular_file(ec) && (ext == L".exe" || ext == L".dll"))
+                DeleteFileW((entry.path().wstring() + L":Zone.Identifier").c_str());
+        }
+}
+
 int main(int, char**) {
     sRoot = ExeDir();
+    UnblockOwnFiles();
     ApplyUiLanguage();
     ScanInstall();
     LoadIni();
