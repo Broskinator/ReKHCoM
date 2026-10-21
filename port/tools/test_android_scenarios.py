@@ -32,11 +32,12 @@ MENU_MODES = ['mode_status', 'mode_worldselect', 'Mode_Deck', 'mode_jiminy', 'mo
 
 FIXTURES = {
     'room-castle': 'KHCOM_MODE=60:room:10901,120:fieldfreeze',
-    'doorselect': 'KHCOM_MODE=60:room:10901,200:doorselect',
+    # doorselect is left out: it opens the door choice in a room without that door, a harness artifact
+    # (debug_kit.py HARNESS_ONLY); the desktop ports recover from it, Android does not
     'doortutorial': 'KHCOM_MODE=60:room:10901,200:doortutorial',
     'castle': 'KHCOM_MODE=60:castle',
     'obtain': 'KHCOM_MODE=60:room:10901,200:obtain',
-    'deckuse': 'KHCOM_MODE=60:deckuse',
+    'deckuse': 'KHCOM_MODE=60:deckuse:592',  # deck 1, 20 copies of card 1 (DECK|COUNT<<2|CARD<<9)
     'jiminy-fixture': 'KHCOM_MODE=60:jiminy',
     'mapsave': 'KHCOM_MODE=60:room:10901,200:mapsave',
     'moogle': 'KHCOM_MODE=60:room:10901,200:moogle',

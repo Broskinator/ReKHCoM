@@ -114,4 +114,10 @@ Diferencias para Android:
 - [x] APK único: armeabi-v7a (32 bits, teléfonos viejos) + arm64-v8a (host de 64 bits) + `assets/guest-*.macho`;
   `GameActivity` usa `rekhcom64` donde Android instaló las librerías de 64 bits. Misma firma y paquete:
   actualiza encima y conserva las partidas (verificado: certificado 3a5a17… igual al de v1.9.12).
-- [ ] Batería en emuladores; responder #22 y #34 con el APK de 64 bits.
+- [ ] Batería en emuladores (21/10, en curso, Android 14 x86_64 con el APK arm64 traducido, `--slow 6`): EU menús,
+  fixtures, jefes; EU jefes con Riku; US/JP menús y jefes. Hasta ahora sin fallos del juego. Arreglos de la
+  propia batería: 7 pantallas que `KHCOM_MODE` no abría (tienda, carga, continuar, logo, selector de eventos,
+  tutorial de Riku, versus) agregadas a la tabla del arnés (`src/main.c`); `deckuse` ahora con mazo válido;
+  `doorselect` fuera de la lista (artefacto del arnés ya conocido en `debug_kit.py`).
+- [x] #22 y #34 (y #33, #35 Switch) comentados con la prerelease de prueba v1.9.13-pre2 (21/10): se pidió que
+  prueben y dejen modelo y versión de Android; se cierran con su confirmación.
