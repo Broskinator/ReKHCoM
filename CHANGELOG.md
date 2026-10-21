@@ -14,16 +14,15 @@ Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, Anbernic and the web 
   included (#38).
 - Android: no more crash in the debug event select and at two spots of the 100 Acre Wood that the
   PC recovered silently.
-- Windows: the area beyond the GBA picture in widescreen is drawn on several CPU cores (field at
-  1080p: 37 ms to 17 ms per frame on the test PC).
+- Windows: faster widescreen drawing (the area beyond the GBA picture uses several CPU cores).
 - HD mod (beta): marked as beta in the launcher.
 
 ### From v1.9.13 (test prerelease)
 
-- Nintendo Switch (alpha, never run on a console yet): a homebrew `ReKHCoM.nro` for custom
+- Nintendo Switch (beta): a homebrew `ReKHCoM.nro` for custom
   firmware (Atmosphère, Homebrew Menu in title takeover). Copy it and your cartridge dump (EU, US
   or JP) to `sdmc:/switch/ReKHCoM/`. Minus + L3 / R3 save and load a state.
-- PS Vita (alpha, never run on a console yet): `ReKHCoM.vpk` for HENkaku/Ensō, installed with
+- PS Vita (beta): `ReKHCoM.vpk` for HENkaku/Ensō, installed with
   VitaShell; the cartridge dump goes in `ux0:data/ReKHCoM/`. Select + L / R save and load a state.
 - Discord: with the Discord app open, your profile shows the world and floor, Sora or Riku with
   the level, the boss you are fighting and the session time, in the game's language, with the
