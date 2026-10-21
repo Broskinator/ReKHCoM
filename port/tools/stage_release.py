@@ -33,6 +33,7 @@ MAIN = {
     'PPSA98511.zip': 'PPSA98511.zip',
     f'ReKHCoM-{V}-ps4-alpha.pkg': f'ReKHCoM-{V}-ps4-alpha.pkg',
     f'ReKHCoM-{V}-switch-alpha.nro': f'ReKHCoM-{V}-switch-alpha.nro',  # build/switch/ReKHCoM.nro (build_switch.py)
+    f'ReKHCoM-{V}-vita-alpha.vpk': f'ReKHCoM-{V}-vita-alpha.vpk',  # build/vita/ReKHCoM.vpk (build_vita.py)
 }
 
 

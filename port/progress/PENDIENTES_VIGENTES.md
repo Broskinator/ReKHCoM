@@ -17,7 +17,7 @@ Reglas del usuario:
 
 | Quién | Pendiente |
 |---|---|
-| **Claude** | Switch y Vita (pedido del usuario, 20/10): .nro y .vpk compilan y la imagen juega en la VM; falta el OK del usuario para publicarlas como alphas (ver "Vita y Switch") |
+| **Claude** | Discord Rich Presence (pedido del usuario, 20/10). Switch y Vita publicadas como alphas en v1.9.12; reportes de hardware llegan solos |
 | **Usuario** | Aprobar el launcher nuevo (`Probar launcher nuevo.bat`, commit 07a6fa9ab) |
 | **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, ver KIT_DEPURACION.md). Hecho: 65 jefes en Android x86 con UBSan, 209/209 combates y 52/52 salas US en escritorio sin fallos; arreglados Cloud/Axel/Parasite Cage y el editor de baraja (DIV0). En curso (20/10): Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
 | **Usuario** | Revisar 61–62 (escenas de Ciudad de Paso con márgenes incompletos) cuando Claude las muestre |
@@ -64,8 +64,7 @@ audio y mandos del host de Vita, rendimiento. Llega como reporte de quien lo pru
 Siguiente:
 1. Switch: PUBLICADA como alpha dentro de la release v1.9.12 (`ReKHCoM-v1.9.12-switch-alpha.nro`,
    pedido del usuario 20/10; archivos viejos intactos). La próxima release la lleva desde stage_release.
-   Vita: espera OK del usuario (o prueba en Vita3K si lo autoriza).
-2. Sumarlos a stage_release/release_check y build_all cuando se publiquen.
+   Vita: PUBLICADA igual (`ReKHCoM-v1.9.12-vita-alpha.vpk`, 20/10).
 
 ## Esperando a terceros (no se trabaja)
 
