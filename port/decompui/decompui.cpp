@@ -247,7 +247,7 @@ static const Setting kSettings[] = {
     { "experimental_hide_touch_controls", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
-    { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 }, { "discord_presence", 1 },
+    { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 }, { "discord_presence", 1 }, { "hd_movies", 1 }, { "hd_music", 1 }, { "hd_scenes", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "pad_layout", 0 }, { "experimental_moogle_notice", 0 }, { "hd_text", 0 },
@@ -1302,6 +1302,8 @@ static void PageGraphics() {
         SaveIni();
 }
 
+#include "hd_import.inc"
+
 static void PageSound() {
     bool changed = false;
     BeginCard("sound");
@@ -1315,6 +1317,8 @@ static void PageSound() {
                          T("Requiere la ROM japonesa original verificada en roms/B8CJ.gba. Se aplica al iniciar el juego; conserva los textos europeos o ingleses.",
                            "Requires the verified original Japanese ROM in roms/B8CJ.gba. Applied when starting the game; keeps European or English text."), Ini("undub"));
     ImGui::EndDisabled();
+    ImGui::Separator();
+    changed |= HdModCard();
     ImGui::EndChild();
     if (changed)
         SaveIni();
@@ -1982,10 +1986,27 @@ static void UnblockOwnFiles() {
         }
 }
 
-int main(int, char**) {
+int main(int argc, char** argv) {
     sRoot = ExeDir();
     UnblockOwnFiles();
     ApplyUiLanguage();
+    /* ReKHCoM.exe --hd-import [<source folder>] [--scenes]: the HD mod import without the window (power users,
+       tests); without a folder the installed game is looked for */
+    for (int i = 1; i < argc; i++)
+        if (strcmp(argv[i], "--hd-import") == 0) {
+            fs::path source = i + 1 < argc && argv[i + 1][0] != '-' ? fs::u8path(argv[i + 1]) : hd::FindInstall();
+            bool scenes = false;
+            for (int j = 1; j < argc; j++)
+                scenes |= strcmp(argv[j], "--scenes") == 0;
+            if (source.empty()) {
+                fprintf(stderr, "KINGDOM HEARTS -HD 1.5+2.5 ReMIX- not found\n");
+                return 1;
+            }
+            hd::sJob.running = true;
+            hd::Run(source, sRoot, true, scenes, true);
+            fprintf(stderr, "%s\n", hd::sJob.Status().c_str());
+            return 0;
+        }
     ScanInstall();
     LoadIni();
     LoadLauncherState();

@@ -1,0 +1,488 @@
+/* HD mod importer (port/progress/HD_MOD.md): takes the Re:Chain of Memories movies and soundtrack from the player's
+ * own KINGDOM HEARTS -HD 1.5+2.5 ReMIX- (Steam or Epic, found by itself or chosen), or from a folder with those files
+ * loose, and writes plain files the game plays: hd/movies/<name>.mp4 and hd/music/<track>.ogg + .loop.
+ *
+ * Formats (port/tools/khhd_pkg.py, khhd_scd.py and khhd_import.py are the Python reference):
+ * - movies: MP4 whose first 0x100 bytes are XORed with a fixed 16-byte key;
+ * - music: Recom.hed/.pkg (OpenKh's documented format: per-asset seed, XOR on the first 0x100 bytes, zlib) holding
+ *   STREAM/0001/<track>.win32.scd, an Ogg Vorbis stream whose Vorbis header is XORed with one byte. */
+#include <atomic>
+#include <mutex>
+#include <thread>
+
+namespace hd {
+
+static const unsigned char kMovieKey[16] = { 0x3f, 0x1e, 0xc1, 0x93, 0x26, 0x42, 0x58, 0xb8,
+                                             0xaa, 0x9d, 0x53, 0x75, 0xbf, 0x62, 0x9a, 0x97 };
+static const char* const kBaseMovies[] = { "ROP", "RSE", "RRE" };
+static const char* const kTracks[] = {
+    "01F_Town_B", "01F_Town_F", "03F_Hercul", "03F_Hercules_B", "12_Event_Yuttari", "13_Event_Namine",
+    "14_Event_Odayaka", "15_Event_XIII", "16_XIIIBoss1", "17_Halloween_F", "18_Helloween_B", "19_Alice_Field",
+    "20_Event_13thFloor", "21_Alice_Battle", "22_PeterPan_Field", "23_PeterPan_Battle", "24_Pinocchio_Field",
+    "25_Aladdin_F", "26_Aladdin_B", "27_Pinocchio_B", "28_Forget_F", "29_Forget_B", "30_Twilight_F", "31_Twilight_B",
+    "32_Destiny_F", "33_Destiny_B", "34_Boss_RikuAnsem", "35_Boss_NiseRiku", "36_WinnieThePooh", "37_LastBoss1",
+    "38_UnderTheSea", "39_LittleMermaid_B", "40_LastBoss2", "41_LastBoss3", "42_Hollow_F", "43_Hollow_B",
+    "44_PooGame1", "45_PoohGame2", "Boss1", "Boss2_World", "Event_Unrest", "Event1_Kinpak", "Event2_", "Event4",
+    "Title",
+};
+
+/* ---- OpenKh's package format ---------------------------------------------------------------------------------- */
+
+static const unsigned char kMaster[256] = {
+    0x7E, 0x88, 0x97, 0x55, 0x0B, 0x06, 0xF1, 0x08, 0xEB, 0xBB, 0x14, 0x1C, 0xD8, 0x7A, 0xEC, 0x41, 0x34, 0xB2, 0xA3,
+    0x46, 0xEF, 0x6B, 0xFE, 0xE1, 0xCF, 0x53, 0xA5, 0x05, 0x12, 0xD2, 0x8E, 0x52, 0x4A, 0x80, 0xE9, 0x81, 0xB0, 0xF0,
+    0xB4, 0x9C, 0xFF, 0x0F, 0x15, 0x13, 0xDA, 0x73, 0x4E, 0x77, 0xBE, 0xD7, 0x30, 0xE5, 0xF6, 0x5A, 0x11, 0x37, 0x67,
+    0xBC, 0x83, 0x6F, 0x27, 0x76, 0xD0, 0xCD, 0x69, 0x0D, 0x2E, 0x51, 0x42, 0x90, 0xB8, 0xB6, 0x4C, 0xAD, 0xCE, 0x5B,
+    0x1A, 0x1F, 0xF5, 0xAF, 0x01, 0xF8, 0x5E, 0x3A, 0x6E, 0x68, 0x8B, 0xE8, 0x9F, 0xC9, 0xD9, 0x26, 0x92, 0x29, 0xC8,
+    0x33, 0x98, 0x32, 0x54, 0xD4, 0x44, 0x25, 0x66, 0xAC, 0x5F, 0x99, 0x21, 0xE4, 0x8F, 0x1D, 0xC2, 0xD5, 0xA4, 0x62,
+    0xF9, 0x02, 0x61, 0xDE, 0x59, 0xE7, 0x07, 0x9A, 0xFA, 0x2F, 0x95, 0x3F, 0x86, 0xD3, 0x78, 0xA7, 0x75, 0xED, 0xD6,
+    0x2D, 0x64, 0x87, 0xBD, 0xC7, 0xC1, 0xAA, 0xF2, 0x8C, 0x17, 0xCB, 0x31, 0x8A, 0xC3, 0xCC, 0x04, 0xEE, 0x6A, 0xAB,
+    0x5C, 0x22, 0x70, 0xCA, 0x9E, 0x71, 0x6D, 0x85, 0x45, 0x5D, 0xB9, 0xA9, 0xA6, 0x10, 0x47, 0xFB, 0x82, 0x7D, 0x84,
+    0x7B, 0xC6, 0xE2, 0x38, 0xFC, 0x2B, 0x0E, 0x20, 0x9D, 0xC5, 0xF3, 0x39, 0xA8, 0xA0, 0x65, 0x58, 0x43, 0x7C, 0xE3,
+    0x36, 0x18, 0x72, 0x49, 0x79, 0xAE, 0xD1, 0x74, 0x40, 0xC4, 0x91, 0x4F, 0x24, 0x63, 0xBF, 0xBA, 0x23, 0x96, 0x50,
+    0xB3, 0x57, 0xDF, 0x1E, 0x03, 0x48, 0x7F, 0x35, 0x4D, 0x3E, 0xE6, 0xA1, 0xDD, 0x09, 0x3C, 0x3D, 0x3B, 0x56, 0x8D,
+    0x93, 0x2A, 0x9B, 0x4B, 0x0C, 0x28, 0xB1, 0xE0, 0x60, 0x89, 0x19, 0xDB, 0x2C, 0xF7, 0x6C, 0xB5, 0x1B, 0x94, 0xC0,
+    0xDC, 0xEA, 0xB7, 0x0A, 0xF4, 0x16, 0xFD, 0xA2, 0x00,
+};
+static const unsigned char kScramble[10] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36 };
+
+static void MakeKey(const unsigned char seed[16], unsigned char key[0xB0]) {
+    memset(key, 0, 0xB0);
+    for (int i = 0; i < 16; i++)
+        key[i] = seed[i] ? seed[i] : (unsigned char)i;
+    for (int i = 0; i < 40; i++) {
+        unsigned char frame[4] = { key[0x0C + i * 4], key[0x0D + i * 4], key[0x0E + i * 4], key[0x0F + i * 4] };
+        if (i % 4 == 0) {
+            unsigned char f[4] = { (unsigned char)(kMaster[frame[1]] ^ kScramble[i / 4]), kMaster[frame[2]],
+                                   kMaster[frame[3]], kMaster[frame[0]] };
+            memcpy(frame, f, 4);
+        }
+        for (int k = 0; k < 4; k++)
+            key[0x10 + i * 4 + k] = key[i * 4 + k] ^ frame[k];
+    }
+}
+
+static void DecryptHead(const unsigned char key[0xB0], std::vector<unsigned char>& data) {
+    for (size_t off = 0; off < std::min<size_t>(data.size(), 0x100); off += 0x10) {
+        size_t n = std::min<size_t>(data.size() - off, 0x10);
+        for (int p = 10; p >= 0; p--)
+            for (size_t j = 0; j < n; j++)
+                data[off + j] ^= key[0x10 * p + j];
+    }
+}
+
+static std::string Md5Hex(const std::string& text) {
+    BCRYPT_ALG_HANDLE alg = nullptr;
+    BCRYPT_HASH_HANDLE hash = nullptr;
+    unsigned char digest[16] = { 0 };
+    if (BCryptOpenAlgorithmProvider(&alg, BCRYPT_MD5_ALGORITHM, nullptr, 0) != 0)
+        return {};
+    if (BCryptCreateHash(alg, &hash, nullptr, 0, nullptr, 0, 0) == 0) {
+        BCryptHashData(hash, (PUCHAR)text.data(), (ULONG)text.size(), 0);
+        BCryptFinishHash(hash, digest, sizeof(digest), 0);
+        BCryptDestroyHash(hash);
+    }
+    BCryptCloseAlgorithmProvider(alg, 0);
+    static const char* hex = "0123456789abcdef";
+    std::string out;
+    for (unsigned char b : digest) {
+        out += hex[b >> 4];
+        out += hex[b & 15];
+    }
+    return out;
+}
+
+/* One asset of a .pkg (its original data; the remastered extras are not needed here). */
+static bool ReadAsset(std::ifstream& pkg, long long offset, std::vector<unsigned char>& out) {
+    unsigned char seed[16];
+    pkg.seekg(offset);
+    if (!pkg.read((char*)seed, 16))
+        return false;
+    int32_t dlen, rcount, clen;
+    memcpy(&dlen, seed, 4);
+    memcpy(&rcount, seed + 4, 4);
+    memcpy(&clen, seed + 8, 4);
+    pkg.seekg(offset + 16 + (long long)rcount * 0x30);
+    std::vector<unsigned char> packed((size_t)(clen >= 0 ? clen : dlen));
+    if (!pkg.read((char*)packed.data(), (std::streamsize)packed.size()))
+        return false;
+    if (clen > -2) {
+        unsigned char key[0xB0];
+        MakeKey(seed, key);
+        DecryptHead(key, packed);
+    }
+    if (clen <= -1) {
+        out.swap(packed);
+        return true;
+    }
+    out.resize((size_t)dlen);
+    int got = stbi_zlib_decode_noheader_buffer((char*)out.data(), dlen, (const char*)packed.data() + 2, (int)packed.size() - 2);
+    return got == dlen;
+}
+
+/* ---- SCD → Ogg Vorbis ----------------------------------------------------------------------------------------- */
+
+static uint32_t U32(const std::vector<unsigned char>& d, size_t at) {
+    return at + 4 <= d.size() ? (uint32_t)d[at] | (uint32_t)d[at + 1] << 8 | (uint32_t)d[at + 2] << 16 | (uint32_t)d[at + 3] << 24 : 0;
+}
+
+/* The Ogg file and its loop points (samples): the granule of the last page ending before each byte offset. */
+static bool ScdToOgg(const std::vector<unsigned char>& scd, std::vector<unsigned char>& ogg, uint64_t& loopStart, uint64_t& loopEnd) {
+    if (scd.size() < 0x100 || memcmp(scd.data(), "SEDBSSCF", 8) != 0)
+        return false;
+    size_t entry = U32(scd, U32(scd, 0x3C));
+    uint32_t size = U32(scd, entry), codec = U32(scd, entry + 12), ls = U32(scd, entry + 16), le = U32(scd, entry + 20);
+    uint32_t aux = U32(scd, entry + 28);
+    if (codec != 6)
+        return false;
+    size_t pos = entry + 0x20;
+    for (uint32_t i = 0; i < aux; i++)
+        pos += U32(scd, pos + 4);
+    if (pos + 0x20 > scd.size())
+        return false;
+    unsigned version = scd[pos], headerSize = scd[pos + 1], xorByte = scd[pos + 2];
+    uint32_t seekSize = U32(scd, pos + 0x10), vorbisSize = U32(scd, pos + 0x14);
+    size_t head = pos + headerSize + seekSize;
+    if (head + vorbisSize + size > scd.size())
+        return false;
+    ogg.assign(scd.begin() + (long)head, scd.begin() + (long)(head + vorbisSize + size));
+    if (version == 2 && xorByte)
+        for (size_t i = 0; i < vorbisSize; i++)
+            ogg[i] ^= (unsigned char)xorByte;
+    if (memcmp(ogg.data(), "OggS", 4) != 0)
+        return false;
+    auto sampleAt = [&](uint64_t offset) -> uint64_t {
+        uint64_t best = 0, target = vorbisSize + offset;
+        size_t p = 0;
+        while (p + 27 <= ogg.size() && memcmp(&ogg[p], "OggS", 4) == 0) {
+            int64_t granule;
+            memcpy(&granule, &ogg[p + 6], 8);
+            unsigned segs = ogg[p + 26];
+            size_t body = 0;
+            for (unsigned s = 0; s < segs && p + 27 + s < ogg.size(); s++)
+                body += ogg[p + 27 + s];
+            size_t end = p + 27 + segs + body;
+            if (end > target)
+                break;
+            if (granule > 0)
+                best = (uint64_t)granule;
+            p = end;
+        }
+        return best;
+    };
+    uint64_t total = sampleAt(size);
+    loopStart = sampleAt(ls);
+    loopEnd = le > ls ? sampleAt(le) : total;
+    return true;
+}
+
+/* ---- finding the game ----------------------------------------------------------------------------------------- */
+
+static fs::path MovieFolder(const fs::path& install) {
+    for (const char* store : { "STEAM", "EPIC" }) {
+        fs::path p = install / store / "dt" / "KHCReSource" / "BIN" / "movie";
+        std::error_code ec;
+        if (fs::is_directory(p, ec))
+            return p;
+    }
+    return {};
+}
+
+static bool IsInstall(const fs::path& p) {
+    std::error_code ec;
+    return fs::exists(p / "Image" / "dt" / "Recom.hed", ec) || !MovieFolder(p).empty();
+}
+
+/* Steam libraries (registry + libraryfolders.vdf), then Epic's manifests. */
+static fs::path FindInstall() {
+    std::vector<fs::path> roots;
+    WCHAR buf[MAX_PATH];
+    DWORD size = sizeof(buf);
+    if (RegGetValueW(HKEY_CURRENT_USER, L"Software\\Valve\\Steam", L"SteamPath", RRF_RT_REG_SZ, nullptr, buf, &size) == ERROR_SUCCESS) {
+        fs::path steam(buf);
+        roots.push_back(steam);
+        std::ifstream vdf(steam / "steamapps" / "libraryfolders.vdf");
+        std::string line;
+        while (std::getline(vdf, line)) {
+            size_t k = line.find("\"path\"");
+            if (k == std::string::npos)
+                continue;
+            size_t a = line.find('"', k + 6), b = a == std::string::npos ? a : line.find('"', a + 1);
+            if (a == std::string::npos || b == std::string::npos)
+                continue;
+            std::string path = line.substr(a + 1, b - a - 1), clean;
+            for (size_t i = 0; i < path.size(); i++) {
+                if (path[i] == '\\' && i + 1 < path.size() && path[i + 1] == '\\')
+                    i++;
+                clean += path[i];
+            }
+            roots.push_back(fs::u8path(clean));
+        }
+    }
+    for (const fs::path& root : roots) {
+        fs::path p = root / "steamapps" / "common" / "KINGDOM HEARTS -HD 1.5+2.5 ReMIX-";
+        if (IsInstall(p))
+            return p;
+    }
+    std::error_code ec;
+    for (const auto& item : fs::directory_iterator("C:\\ProgramData\\Epic\\EpicGamesLauncher\\Data\\Manifests", ec)) {
+        if (item.path().extension() != ".item")
+            continue;
+        std::ifstream f(item.path());
+        std::string text((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        size_t k = text.find("\"InstallLocation\"");
+        if (k == std::string::npos || text.find("KINGDOM HEARTS") == std::string::npos)
+            continue;
+        size_t a = text.find('"', text.find(':', k) + 1), b = text.find('"', a + 1);
+        std::string path = text.substr(a + 1, b - a - 1), clean;
+        for (size_t i = 0; i < path.size(); i++) {
+            if (path[i] == '\\' && i + 1 < path.size() && path[i + 1] == '\\')
+                i++;
+            clean += path[i];
+        }
+        fs::path p = fs::u8path(clean);
+        if (IsInstall(p))
+            return p;
+    }
+    return {};
+}
+
+/* ---- the import job ------------------------------------------------------------------------------------------- */
+
+struct Job {
+    std::atomic<bool> running{ false };
+    std::atomic<int> done{ 0 }, total{ 0 };
+    std::mutex lock;
+    std::string status;
+    void Say(const std::string& s) {
+        std::lock_guard<std::mutex> g(lock);
+        status = s;
+    }
+    std::string Status() {
+        std::lock_guard<std::mutex> g(lock);
+        return status;
+    }
+};
+static Job sJob;
+
+static bool CopyMovie(const fs::path& src, const fs::path& dst) {
+    std::ifstream in(src, std::ios::binary);
+    std::ofstream out(dst, std::ios::binary | std::ios::trunc);
+    if (!in || !out)
+        return false;
+    std::vector<char> buf(1 << 22);
+    in.read(buf.data(), 0x100);
+    std::streamsize n = in.gcount();
+    if (n >= 8 && memcmp(buf.data() + 4, "ftyp", 4) != 0) /* the game's copy: un-XOR the head */
+        for (std::streamsize i = 0; i < n; i++)
+            buf[i] ^= (char)kMovieKey[i % 16];
+    out.write(buf.data(), n);
+    while (in.read(buf.data(), (std::streamsize)buf.size()) || in.gcount() > 0)
+        out.write(buf.data(), in.gcount());
+    return (bool)out;
+}
+
+static void WriteTrack(const fs::path& folder, const std::string& name, const std::vector<unsigned char>& ogg, uint64_t a, uint64_t b) {
+    std::ofstream(folder / (name + ".ogg"), std::ios::binary).write((const char*)ogg.data(), (std::streamsize)ogg.size());
+    std::ofstream(folder / (name + ".loop")) << a << " " << b << "\n";
+}
+
+/* source: an installation, or a folder with the movies and/or the soundtrack loose (.mp4, .scd or .ogg). */
+static void Run(fs::path source, fs::path data, bool movies, bool scenes, bool music) {
+    std::error_code ec;
+    fs::path outMovies = data / "hd" / "movies", outMusic = data / "hd" / "music";
+    int imported = 0;
+    if (movies || scenes) {
+        fs::create_directories(outMovies, ec);
+        fs::path folder = MovieFolder(source);
+        if (folder.empty())
+            folder = source;
+        std::vector<fs::path> list;
+        for (const char* m : kBaseMovies)
+            if (movies && fs::exists(folder / (std::string(m) + ".mp4"), ec))
+                list.push_back(folder / (std::string(m) + ".mp4"));
+        if (scenes)
+            for (const auto& f : fs::directory_iterator(folder, ec))
+                if (f.path().extension() == ".mp4" && f.path().filename().string().rfind("zz_event_", 0) == 0)
+                    list.push_back(f.path());
+        sJob.total += (int)list.size();
+        for (const fs::path& f : list) {
+            sJob.Say(std::string(T("Copiando ", "Copying ")) + f.filename().string());
+            if (CopyMovie(f, outMovies / f.filename()))
+                imported++;
+            sJob.done++;
+        }
+    }
+    if (music) {
+        fs::create_directories(outMusic, ec);
+        fs::path hed = source / "Image" / "dt" / "Recom.hed";
+        if (fs::exists(hed, ec)) {
+            std::map<std::string, std::string> want;
+            for (const char* t : kTracks)
+                want[Md5Hex(std::string("STREAM/0001/") + t + ".win32.scd")] = t;
+            std::ifstream h(hed, std::ios::binary), pkg(fs::path(hed).replace_extension(".pkg"), std::ios::binary);
+            unsigned char e[0x20];
+            sJob.total += (int)want.size();
+            while (h.read((char*)e, 0x20)) {
+                static const char* hex = "0123456789abcdef";
+                std::string md5;
+                for (int i = 0; i < 16; i++) {
+                    md5 += hex[e[i] >> 4];
+                    md5 += hex[e[i] & 15];
+                }
+                auto it = want.find(md5);
+                if (it == want.end())
+                    continue;
+                long long offset;
+                memcpy(&offset, e + 16, 8);
+                sJob.Say(std::string(T("Música: ", "Music: ")) + it->second);
+                std::vector<unsigned char> scd, ogg;
+                uint64_t a = 0, b = 0;
+                if (ReadAsset(pkg, offset, scd) && ScdToOgg(scd, ogg, a, b)) {
+                    WriteTrack(outMusic, it->second, ogg, a, b);
+                    imported++;
+                }
+                sJob.done++;
+            }
+        } else { /* a folder with the tracks: .scd converted, .ogg copied */
+            for (const auto& f : fs::directory_iterator(source, ec)) {
+                std::string stem = f.path().stem().string();
+                if (size_t d = stem.find(".win32"); d != std::string::npos)
+                    stem = stem.substr(0, d);
+                if (std::find_if(std::begin(kTracks), std::end(kTracks), [&](const char* t) { return stem == t; }) == std::end(kTracks))
+                    continue;
+                std::ifstream in(f.path(), std::ios::binary);
+                std::vector<unsigned char> bytes((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>()), ogg;
+                uint64_t a = 0, b = 0;
+                if (f.path().extension() == ".scd" && ScdToOgg(bytes, ogg, a, b)) {
+                    WriteTrack(outMusic, stem, ogg, a, b);
+                    imported++;
+                } else if (f.path().extension() == ".ogg") {
+                    fs::copy_file(f.path(), outMusic / (stem + ".ogg"), fs::copy_options::overwrite_existing, ec);
+                    imported++;
+                }
+            }
+        }
+    }
+    sJob.Say(imported ? std::string(T("Listo: ", "Done: ")) + std::to_string(imported) + T(" archivos importados.", " files imported.")
+                      : std::string(T("No se encontró nada para importar en esa carpeta.", "Nothing to import was found in that folder.")));
+    sJob.running = false;
+}
+
+static void Start(const fs::path& source, const fs::path& data, bool movies, bool scenes, bool music) {
+    if (sJob.running)
+        return;
+    sJob.running = true;
+    sJob.done = 0;
+    sJob.total = 0;
+    sJob.Say(T("Importando…", "Importing…"));
+    std::thread(Run, source, data, movies, scenes, music).detach();
+}
+
+static int Count(const fs::path& folder, const char* ext) {
+    std::error_code ec;
+    int n = 0;
+    for (const auto& f : fs::directory_iterator(folder, ec))
+        n += f.path().extension() == ext;
+    return n;
+}
+
+/* A folder chosen in the system dialog. */
+static fs::path PickFolder() {
+    fs::path out;
+    IFileOpenDialog* dialog = nullptr;
+    if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&dialog)))) {
+        DWORD options = 0;
+        dialog->GetOptions(&options);
+        dialog->SetOptions(options | FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM);
+        if (SUCCEEDED(dialog->Show(nullptr))) {
+            IShellItem* item = nullptr;
+            if (SUCCEEDED(dialog->GetResult(&item))) {
+                PWSTR path = nullptr;
+                if (SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &path))) {
+                    out = path;
+                    CoTaskMemFree(path);
+                }
+                item->Release();
+            }
+        }
+        dialog->Release();
+    }
+    return out;
+}
+
+}  // namespace hd
+
+/* The launcher card: find or choose the source, import, and the three switches. */
+static bool HdModCard() {
+    static fs::path source;
+    static bool searched;
+    bool changed = false;
+    if (!searched) {
+        searched = true;
+        source = hd::FindInstall();
+    }
+    fs::path movies = sRoot / "hd" / "movies", music = sRoot / "hd" / "music";
+    int haveMovies = hd::Count(movies, ".mp4"), haveTracks = hd::Count(music, ".ogg");
+    std::error_code ec;
+    bool haveBase = fs::exists(movies / "ROP.mp4", ec);
+    int haveScenes = haveMovies - (int)haveBase - (int)fs::exists(movies / "RSE.mp4", ec) - (int)fs::exists(movies / "RRE.mp4", ec);
+
+    Eyebrow(T("MOD HD · KINGDOM HEARTS 1.5+2.5", "HD MOD · KINGDOM HEARTS 1.5+2.5"));
+    ImGui::TextWrapped("%s", T("Usa los videos y la banda sonora de Re:Chain of Memories de tu Kingdom Hearts HD 1.5+2.5 ReMIX "
+                               "de PC (Steam o Epic). ReKHCoM no incluye nada de ese juego: lo copia de tu instalación.",
+                               "Uses the Re:Chain of Memories movies and soundtrack of your PC Kingdom Hearts HD 1.5+2.5 ReMIX "
+                               "(Steam or Epic). ReKHCoM ships none of it: it copies them from your installation."));
+    ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
+    ImGui::TextWrapped("%s %s", T("Origen:", "Source:"),
+                       source.empty() ? T("no se encontró el juego; elige su carpeta o una con los videos/la música.",
+                                          "the game was not found; choose its folder or one with the movies/music.")
+                                      : source.u8string().c_str());
+    ImGui::TextWrapped("%s %d %s · %d %s", T("Importado:", "Imported:"), haveMovies, T("videos", "movies"), haveTracks,
+                       T("pistas", "tracks"));
+    ImGui::PopStyleColor();
+    ImGui::BeginDisabled(hd::sJob.running);
+    if (ImGui::Button(T("Buscar el juego", "Find the game")))
+        source = hd::FindInstall();
+    ImGui::SameLine();
+    if (ImGui::Button(T("Elegir carpeta…", "Choose folder…"))) {
+        fs::path p = hd::PickFolder();
+        if (!p.empty())
+            source = p;
+    }
+    ImGui::BeginDisabled(source.empty());
+    if (ImGui::Button(T("Importar mod base (videos + música)", "Import base mod (movies + music)")))
+        hd::Start(source, sRoot, true, false, true);
+    ImGui::SameLine();
+    if (ImGui::Button(T("Importar escenas (completo, ~7 GB)", "Import scenes (full, ~7 GB)")))
+        hd::Start(source, sRoot, false, true, false);
+    ImGui::EndDisabled();
+    ImGui::EndDisabled();
+    if (hd::sJob.running || !hd::sJob.Status().empty()) {
+        int total = hd::sJob.total, done = hd::sJob.done;
+        if (hd::sJob.running && total > 0)
+            ImGui::ProgressBar((float)done / (float)total, ImVec2(-1, 0));
+        ImGui::TextWrapped("%s", hd::sJob.Status().c_str());
+    }
+    ImGui::Separator();
+    ImGui::BeginDisabled(!haveBase);
+    changed |= ToggleRow(T("Videos HD", "HD movies"),
+                         T("La apertura y los finales de Sora y Riku, en 1080p.", "The opening and Sora's and Riku's endings, in 1080p."),
+                         Ini("hd_movies"));
+    ImGui::EndDisabled();
+    ImGui::BeginDisabled(haveTracks == 0);
+    changed |= ToggleRow(T("Música HD", "HD music"),
+                         T("La banda sonora orquestada de Re:Chain of Memories en lugar de la música de GBA.",
+                           "Re:Chain of Memories' soundtrack in place of the GBA music."),
+                         Ini("hd_music"));
+    ImGui::EndDisabled();
+    ImGui::BeginDisabled(haveScenes <= 0);
+    changed |= ToggleRow(T("Escenas HD (mod completo)", "HD scenes (full mod)"),
+                         T("Las escenas de historia de Re:Chain of Memories en lugar de las de GBA donde coinciden, "
+                           "con subtítulos en el idioma del juego. Desactivado por defecto.",
+                           "Re:Chain of Memories' story scenes in place of the GBA ones where they match, with subtitles "
+                           "in the game's language. Off by default."),
+                         Ini("hd_scenes"));
+    ImGui::EndDisabled();
+    return changed;
+}
