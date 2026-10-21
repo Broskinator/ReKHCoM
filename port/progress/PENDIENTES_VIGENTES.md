@@ -23,6 +23,12 @@ El usuario cambió de chat: un Claude nuevo toma los puntos del Claude anterior 
 las 11:04) y sigue de integrador de Codex. El WIP de música HD en los hosts con puente quedó commiteado
 tal cual (build PC verificada); falta lo anotado en `HD_MOD.md` (emulador Android 64, Switch/Vita/PS5 en la VM).
 
+## Traspaso 21/10 12:55
+
+Otro Claude nuevo retoma (el anterior sin actividad desde las 12:53). La batería Android 64 se cortó a las 12:53
+porque adb no arrancó (0xC0000142, no es fallo del juego); se retoma desde el combate 30 de EU. Codex integrado hasta
+457d10854 (Atlántica 102).
+
 ## Reparto
 
 | Quién | Pendiente |
@@ -33,7 +39,7 @@ tal cual (build PC verificada); falta lo anotado en `HD_MOD.md` (emulador Androi
 | **Claude** | **D. Videos HD en consolas y Linux** (Switch/Vita/PS4/PS5, MP4 en Linux): después de Android |
 | **Claude** | **E. Issues de la pre2** (#22, #33, #34, #35): leer las respuestas de los testers, arreglar lo que reporten y cerrar con su confirmación; #35 Switch: si sigue lento con la GPU actual, evaluar deko3d. #25 (escenas HD): agradecer a DL-6-case y cerrar cuando salga el mod HD en una estable |
 | **Claude** | **F. Discord Rich Presence**: hecho; falta el Application ID que crea el usuario (`REKHCOM_DISCORD_APP_ID`) y probar Linux |
-| **Claude** | **G. Integración de Codex**: traer sus commits de `khcom-codex` (rama codex/preliminar-v1) y `khcom` a main con build y prueba antes de cada push (al día hasta 46d6f679c, 21/10) |
+| **Claude** | **G. Integración de Codex**: traer sus commits de `khcom-codex` (rama codex/preliminar-v1) y `khcom` a main con build y prueba antes de cada push (al día hasta 457d10854, 21/10) |
 | **Claude** | **H. Próxima estable**: con el OK del usuario; `release_check.py` antes/después, todas las plataformas (Switch y Vita incluidas), web, CHANGELOG ya al día con v1.9.13 |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
 | **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después, con el método de abajo ("Para Codex: cómo hacer el arte") |
