@@ -49,12 +49,17 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
 
 - [x] Videos: ubicación y clave XOR (21/10).
 - [x] Paquetes: lector `khhd_pkg.py`, música ubicada.
-- [ ] Conversión SCD → OGG.
-- [ ] Importador en el launcher (+ detección Steam/Epic/carpeta).
-- [ ] Reproducción de MP4 en el juego (Windows) y opción `hd_movies`.
-- [ ] Música HD y opción `hd_music` (tabla de canciones).
-- [ ] Mod completo (`hd_scenes`), subtítulos por idioma.
-- [ ] Android: importar la carpeta `hd`; Linux.
+- [x] Conversión SCD → OGG (`khhd_scd.py`; en el launcher `hd_import.inc`, idéntica byte a byte).
+- [x] Importador en el launcher: detecta Steam (registro + libraryfolders.vdf) y Epic (manifiestos),
+  o carpeta elegida (instalación o archivos sueltos .mp4/.scd/.ogg); `ReKHCoM.exe --hd-import`.
+- [x] Videos HD en el juego (Windows, Media Foundation): apertura, final de Sora, final de Riku.
+- [x] Música HD (`port_hdmusic.c`): 43 canciones de GBA → pistas de Re:CoM, sigue pausa/parada/fundidos.
+- [x] Mod completo (`hd_scenes`): 72 eventos → escenas (filas confiables de #25,
+  `port/src/port_hdscenes.inc`); al terminar, el evento se cierra con el salto de escena del juego.
+  Audio en inglés: el PC no trae otras pistas ni subtítulos de estas escenas.
+- [x] Opciones en el juego (filas visibles solo si se importó) y en el launcher.
+- [ ] Linux: reproducción de MP4 (la música HD ya funciona en Linux y Android).
+- [ ] Android: importar la carpeta `hd` desde el launcher de Android; videos con MediaCodec.
 
 ## Otros pedidos para v1.9.21 (anotados acá para no perderlos)
 

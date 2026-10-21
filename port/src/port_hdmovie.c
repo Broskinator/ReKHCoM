@@ -60,9 +60,30 @@ static int SkipPressed(int* quit) {
     return skip;
 }
 
-/* Plays hd/movies/<name>.mp4 to the end (or until skipped). 0: nothing imported or it could not be opened. */
+static int PlayFile(const char* name);
+
+/* The cartridge movie movieId, if its HD movie is imported and hd_movies is on. */
 int PortHdMoviePlay(int movieId) {
     const char* name = MovieFile(movieId);
+    return gPortConfig.hdMovies && name != NULL && PlayFile(name);
+}
+
+#include "port_hdscenes.inc"
+
+/* The full mod: the story event's Re:CoM scene, if imported and hd_scenes is on (event_message.c then ends the event
+   through the game's own scene skip, so the event's results stay the game's). */
+int PortHdScenePlay(int eventId) {
+    size_t i;
+    if (!gPortConfig.hdScenes)
+        return 0;
+    for (i = 0; i < sizeof(kHdScenes) / sizeof(kHdScenes[0]); i++)
+        if (kHdScenes[i].eventId == eventId)
+            return PlayFile(kHdScenes[i].movie);
+    return 0;
+}
+
+/* Plays hd/movies/<name>.mp4 to the end (or until skipped). 0: nothing imported or it could not be opened. */
+static int PlayFile(const char* name) {
     char path[1024];
     WCHAR wpath[1024];
     IMFSourceReader* reader = NULL;
@@ -78,7 +99,7 @@ int PortHdMoviePlay(int movieId) {
     int quit = 0, videoDone = 0, audioDone = 0, played = 0, shown = 0;
     HRESULT hr;
 
-    if (!gPortConfig.hdMovies || name == NULL || renderer == NULL)
+    if (name == NULL || renderer == NULL)
         return 0;
     SDL_snprintf(path, sizeof(path), "%s", PortConfigPath("hd/movies/"));
     SDL_strlcat(path, name, sizeof(path));
@@ -304,6 +325,10 @@ done:
 #else
 int PortHdMoviePlay(int movieId) {
     (void)movieId;
+    return 0;
+}
+int PortHdScenePlay(int eventId) {
+    (void)eventId;
     return 0;
 }
 #endif

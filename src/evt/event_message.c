@@ -2901,6 +2901,9 @@ void PortEventSkipScene(void) {
     sPortSkipRequest = TRUE;
 }
 
+int PortHdScenePlay(int eventId);
+static const void* sPortHdSceneWork; /* the event whose HD scene was offered (once per event) */
+
 static int PortEventSkippable(u16 eventId) {
     return eventId != EVENT_068_13F_CASTLE_OBLIVION_LAST3 && eventId != EVENT_083_MONSTORO_E3_FAILURE_1 &&
            eventId != EVENT_084_MONSTORO_E3_FAILURE_2;
@@ -2932,6 +2935,12 @@ u8 UpdateEventSeq(EventSeqWork* work, void* task) {
     if (sPortSkipRequest) {
         sPortSkipRequest = FALSE;
         portSkip = PortEventSkippable(work->eventId) && !work->ending;
+    }
+    /* the full HD mod: the event's Re:CoM scene plays first, then the event ends as skipping it does */
+    if (sPortHdSceneWork != work && !work->ending) {
+        sPortHdSceneWork = work;
+        if (PortEventSkippable(work->eventId) && PortHdScenePlay(work->eventId))
+            portSkip = TRUE;
     }
 #endif
 

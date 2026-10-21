@@ -225,6 +225,7 @@ void PortHdMusicFrame(void);     /* port_hdmusic.c: the imported Re:CoM soundtra
 void PortHdMusicShutdown(void);
 const char* PortHdMusicTrack(int song); /* the Re:CoM track of a cartridge song, NULL if none */
 int PortHdMoviePlay(int movieId);  /* port_hdmovie.c: 1 if the imported HD movie played in place of the cartridge's */
+int PortHdScenePlay(int eventId);  /* port_hdmovie.c: 1 if the event's imported Re:CoM scene played (full mod) */
 /* badgeIndex: position in the official set (its badges.png atlas); -1 = none */
 void PortAchievementToast(const char* title, const char* detail, const char* label, int badgeIndex);
 void PortAchievementToastDraw(void* renderer, int width, int height);
