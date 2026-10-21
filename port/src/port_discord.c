@@ -18,7 +18,7 @@
 /* The Discord application (discord.com/developers): its name is the game shown in the profile. KHCOM_DISCORD_APP_ID
    replaces it for tests. */
 #ifndef REKHCOM_DISCORD_APP_ID
-#define REKHCOM_DISCORD_APP_ID ""
+#define REKHCOM_DISCORD_APP_ID "1562303132728426516"
 #endif
 /* Pictures by URL (Discord fetches them): the repository's port/assets/discord. */
 #define DISCORD_ART "https://raw.githubusercontent.com/MatyMeatBoy/ReKHCom/main/port/assets/discord/"
