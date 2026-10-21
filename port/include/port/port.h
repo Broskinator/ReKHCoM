@@ -149,6 +149,9 @@ typedef struct PortConfig {
     int battleZoom;            /* experimental: 0 follows main zoom, otherwise a battle-only pixel scale */
     int padLayout;             /* face buttons: 0 detect (Nintendo pads swap A/B, X/Y), 1 Xbox positions, 2 Nintendo */
     int discordPresence;       /* on by default: Discord shows the world, floor, character and level (port_discord.c) */
+    int hdMovies;              /* HD mod (HD_MOD.md): imported Re:CoM movies replace the cartridge's (on when imported) */
+    int hdMusic;               /* HD mod: the imported Re:CoM soundtrack replaces the background music (port_hdmusic.c) */
+    int hdScenes;              /* HD mod, full: the imported Re:CoM cutscenes replace the story scenes they match (off) */
 } PortConfig;
 
 extern PortConfig gPortConfig;
@@ -218,6 +221,9 @@ void PortAchievementsShutdown(void);
 void PortDiscordFrame(void);     /* port_discord.c: Discord Rich Presence, desktop builds */
 void PortDiscordShutdown(void);
 int PortDiscordAvailable(void);  /* 0 where there is no Discord (Android, web, consoles) */
+void PortHdMusicFrame(void);     /* port_hdmusic.c: the imported Re:CoM soundtrack in place of the BGM */
+void PortHdMusicShutdown(void);
+const char* PortHdMusicTrack(int song); /* the Re:CoM track of a cartridge song, NULL if none */
 /* badgeIndex: position in the official set (its badges.png atlas); -1 = none */
 void PortAchievementToast(const char* title, const char* detail, const char* label, int badgeIndex);
 void PortAchievementToastDraw(void* renderer, int width, int height);

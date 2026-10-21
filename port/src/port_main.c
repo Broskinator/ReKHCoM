@@ -1933,6 +1933,7 @@ static void Quit(void) {
     PortConfigSave();
     PortAchievementsShutdown();
     PortDiscordShutdown();
+    PortHdMusicShutdown();
     PortAudioShutdown();
     PortHdHudShutdown();
     SDL_Quit();

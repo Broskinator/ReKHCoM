@@ -119,6 +119,9 @@ static const Key sKeys[] = {
     { "stock_button", &gPortConfig.stockButton, 0, 1 },
     { "pad_layout", &gPortConfig.padLayout, 0, 2 },
     { "discord_presence", &gPortConfig.discordPresence, 0, 1 },
+    { "hd_movies", &gPortConfig.hdMovies, 0, 1 },
+    { "hd_music", &gPortConfig.hdMusic, 0, 1 },
+    { "hd_scenes", &gPortConfig.hdScenes, 0, 1 },
     { "invert_card_scroll", &gPortConfig.invertCardScroll, 0, 1 },
     { "game_language", &gPortConfig.gameLanguage, 0, 5 },
     { "experimental_moogle_notice", &gPortConfig.moogleNotice, 0, 1 },
@@ -296,6 +299,8 @@ void PortConfigLoad(void) {
     char line[256];
 
     gPortConfig.discordPresence = 1; /* on unless the file says otherwise */
+    gPortConfig.hdMovies = 1;        /* the HD mod is used once imported (HD_MOD.md); the full scenes mod is opt-in */
+    gPortConfig.hdMusic = 1;
 
     /* a package preset (the Steam Deck's fullscreen) ships as
        kh_com.default.ini, so an update extracted over an install never

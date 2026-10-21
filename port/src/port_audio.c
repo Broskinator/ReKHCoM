@@ -559,6 +559,7 @@ void PortAudioFrame(void) {
 
     gPortMix.musicGain = gPortConfig.musicVolume / 100.0f;
     gPortMix.sfxGain = gPortConfig.sfxVolume / 100.0f;
+    PortHdMusicFrame(); /* the imported HD track, if any, silences the cartridge's BGM channels */
 
     if (gPortMix.ready && InM4aBuffer(IO32(0xBC))) {
         /* m4a: FIFO A carries the right mix, FIFO B the left one. */
