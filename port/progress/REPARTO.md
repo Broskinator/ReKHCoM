@@ -1,3 +1,9 @@
+## AVISO ACTUAL AL WORKER PS5
+
+El usuario avisa que llegó un PR con casi todo preparado. Leer
+[AVISO_PR_PS5.md](AVISO_PR_PS5.md) antes de continuar el port.
+Aviso escrito; recepción por el worker aún sin confirmar.
+
 ## Integración Nightly 2 — 18/10/2026
 
 Guard Armor aceptado y perfiles de escenas 057/061/074 conectados al juego,
