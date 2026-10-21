@@ -36,6 +36,8 @@
 #include "registration_data.h"
 #include "btl/mode_battle_data.h"
 #include "evt/mode_event.h"
+#include "btl/battle_ids.h"
+#include "btl/battle_work.h"
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -186,6 +188,40 @@ static const char* WorldName(int world) {
     return world > 0 && world < (int)(sizeof(names) / sizeof(names[0])) ? names[world] : NULL;
 }
 
+/* Boss battles: the boss's name and its achievement badge (port/assets/discord/badge<n>.png, the atlas index of
+   port/assets/achievements/badges.png), Sora's story first, then Reverse/Rebirth's; 0 for the world's badge. */
+static const struct {
+    u16 battle;
+    u8 sora, riku;
+    const char* name;
+} kBosses[] = {
+    { BATTLE_GUARD_ARMOR, 42, 31, "Guard Armor" },   { BATTLE_JAFAR, 44, 27, "Jafar" },
+    { BATTLE_TRICKMASTER, 49, 36, "Trickmaster" },   { BATTLE_URSULA, 55, 33, "Ursula" },
+    { BATTLE_PARASITE_CAGE, 46, 28, "Parasite Cage" }, { BATTLE_DRAGON_MALEFICENT, 54, 25, "Dragon Maleficent" },
+    { BATTLE_DARKSIDE, 60, 38, "Darkside" },         { BATTLE_OOGIE_BOOGIE, 45, 34, "Oogie Boogie" },
+    { BATTLE_MARLUXIA_2, 65, 65, "Marluxia" },       { BATTLE_LEON, 0, 0, "Leon" },
+    { BATTLE_HOOK, 56, 30, "Captain Hook" },         { BATTLE_CLOUD, 0, 0, "Cloud" },
+    { BATTLE_HADES, 48, 35, "Hades" },               { BATTLE_RIKU_1, 10, 39, "Riku" },
+    { BATTLE_AXEL_1, 2, 2, "Axel" },                 { BATTLE_LARXENE_1, 8, 8, "Larxene" },
+    { BATTLE_VEXEN_1, 22, 29, "Vexen" },             { BATTLE_MARLUXIA, 20, 20, "Marluxia" },
+    { BATTLE_ANSEM_1, 26, 26, "Ansem" },             { BATTLE_LEXAEUS, 37, 37, "Lexaeus" },
+    { BATTLE_RIKU_2, 12, 32, "Riku" },               { BATTLE_RIKU_3, 24, 32, "Riku" },
+    { BATTLE_RIKU_4, 18, 32, "Riku" },               { BATTLE_RIKU_5, 18, 32, "Riku" },
+    { BATTLE_RIKU_6, 18, 32, "Riku" },               { BATTLE_AXEL_2, 19, 19, "Axel" },
+    { BATTLE_LARXENE_2, 17, 17, "Larxene" },         { BATTLE_VEXEN_2, 22, 29, "Vexen" },
+    { BATTLE_VEXEN_3, 22, 29, "Vexen" },             { BATTLE_ANSEM_2, 26, 26, "Ansem" },
+};
+
+static int BossIndex(void) {
+    size_t i;
+    if (gCurrentMode != &gModeBattle || gBtlWork == NULL)
+        return -1;
+    for (i = 0; i < sizeof(kBosses) / sizeof(kBosses[0]); i++)
+        if (kBosses[i].battle == gBtlWork->battleId)
+            return (int)i;
+    return -1;
+}
+
 /* The screens before a game is loaded (logos, language, title, file menus): no level yet, or one of those modes. */
 static int OnTitle(void) {
     Mode* m = gCurrentMode;
@@ -203,6 +239,7 @@ static void Describe(char* out, size_t size) {
     int riku = (gGameState.flags & GAME_FLAG_RIKU) != 0, floor = gGameState.floor + 1;
     const char* world;
     Mode* m = gCurrentMode;
+    int boss = BossIndex(), badge;
     int known = (sFieldSeen || m == &gModeBattle) && gGameState.world != 0; /* a battle always has its world */
 
     world = known ? WorldName(gGameState.world) : "Castle Oblivion";
@@ -221,13 +258,21 @@ static void Describe(char* out, size_t size) {
             SDL_snprintf(details, sizeof(details), "%s - choosing a world", where);
         else
             SDL_snprintf(details, sizeof(details), "%s - %s", world, where);
-        SDL_snprintf(state, sizeof(state), "%s - Lv %d%s", riku ? "Riku" : "Sora", gGameState.progression.level,
-                     m == &gModeBattle ? " - In battle" : m == &gModeEvent ? " - In a scene" : "");
+        if (boss >= 0)
+            SDL_snprintf(state, sizeof(state), "%s - Lv %d - vs %s", riku ? "Riku" : "Sora",
+                         gGameState.progression.level, kBosses[boss].name);
+        else
+            SDL_snprintf(state, sizeof(state), "%s - Lv %d%s", riku ? "Riku" : "Sora", gGameState.progression.level,
+                         m == &gModeBattle ? " - In battle" : m == &gModeEvent ? " - In a scene" : "");
         SDL_strlcpy(large, riku ? "riku" : "sora", sizeof(large));
         SDL_strlcpy(largeText, riku ? "Riku" : "Sora", sizeof(largeText));
         /* the small picture: the world's achievement badge (port/assets/discord/world<id>.png), the logo in the
            castle and while choosing a world */
-        if (known && m != &gModeWorldselect && m != &gModeWORLDSELECT && gGameState.world >= 1 &&
+        badge = boss < 0 ? 0 : riku ? kBosses[boss].riku : kBosses[boss].sora;
+        if (badge)
+            SDL_snprintf(small, sizeof(small), ",\"small_image\":\"" DISCORD_ART "badge%d.png\",\"small_text\":\"%s\"",
+                         badge, kBosses[boss].name);
+        else if (known && m != &gModeWorldselect && m != &gModeWORLDSELECT && gGameState.world >= 1 &&
             gGameState.world <= WORLD_100_ACRE_WOOD && gGameState.world != WORLD_CASTLE_OBLIVION)
             SDL_snprintf(small, sizeof(small), ",\"small_image\":\"" DISCORD_ART "world%d.png\",\"small_text\":\"%s\"",
                          gGameState.world, world);
