@@ -18,6 +18,12 @@ GBA en sus direcciones reales (0x02000000-0x0E010000, `port/android/native/port_
 - Otro port de GBA (Pokémon Emerald multiplataforma) tiene la misma limitación: Android solo ARM de
   32 bits.
 
+Proyectos parecidos (revisados 21/10): el port Android de Crash Team Racing (igawa6/ctr-native-android)
+compila en 64 bits (LP64) y traduce los punteros de 32 bits de las estructuras de PSX con un registro
+de regiones; el de Pokémon Emerald sigue en 32 bits. El issue de Flutter #86855 (apps de 32 bits que
+caen en teléfonos de 18 GB) era un desborde de enteros en su motor: no aplica. Nuestra vía (imagen
+ILP32 como en Switch) evita reescribir el juego.
+
 Paliativo ya publicado en main (0b5fce2f4): la librería reserva el rango al cargarse (constructor),
 antes que drivers y heap de Java, y el mensaje de error lista qué hay en el rango.
 
@@ -94,6 +100,11 @@ Diferencias para Android:
   task_bos_tm_1 y event_chara_1), arreglado con BIOS_PTR (0b5fce2f4).
 - [x] Imágenes Android 13/14/15 x86_64 descargadas (SDK en toolchain/android/sdk).
 - [ ] Malla de escritorio completa en EU/US/JP (corriendo 21/10).
-- [ ] Mapa de memoria de procesos de 64 bits → base de la imagen.
+- [x] Mapa de memoria de procesos de 64 bits (Android 14 x86_64, Settings y SystemUI, 21/10):
+  libre todo lo que hay por debajo de 0x12C00000 (heap principal de ART en 0x12c00000-0x2ac00000,
+  objetos grandes de ART en 0x40000000-0x62000000, boot image 0x6f50-0x75fa0000, centinela en
+  0xebad6000). Base elegida para la imagen: **0x01000000** (la imagen ocupa ~150 MB, termina antes
+  de 0x0b000000), reservada desde el constructor de la librería. Repetir la medición en Android 13 y
+  15 y con un APK arm64 traducido.
 - [ ] Host Android de 64 bits.
 - [ ] Batería en emuladores; responder #22 y #34 con el APK de 64 bits.
