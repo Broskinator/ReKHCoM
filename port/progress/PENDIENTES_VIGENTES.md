@@ -13,6 +13,12 @@ Reglas del usuario:
 - La validación en hardware real no es pendiente: llega como reporte.
 - Nunca borrar carpetas ReKHCoM-vX sin que el usuario lo pida.
 
+## Traspaso 21/10 11:10
+
+El usuario cambió de chat: un Claude nuevo toma los puntos del Claude anterior (sin cambios desde
+las 11:04) y sigue de integrador de Codex. El WIP de música HD en los hosts con puente quedó commiteado
+tal cual (build PC verificada); falta lo anotado en `HD_MOD.md` (emulador Android 64, Switch/Vita/PS5 en la VM).
+
 ## Reparto
 
 | Quién | Pendiente |

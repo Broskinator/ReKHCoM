@@ -570,7 +570,9 @@ static void* AudioThread(void* arg) {
 }
 #endif
 
+static int sGameRate = 48000; /* the rate the game opened the audio at */
 static int H_audio_open(int rate) {
+    sGameRate = rate;
     if (rate != 48000)
         Log("audio: the game asked for %d Hz; the output is 48000 Hz", rate);
     if (sAudioOpen)
@@ -597,7 +599,7 @@ static void AudioClose(void) {
 }
 
 /* The game paces audio to its own 59.7275 Hz frame clock and stretches the sound by a hair (linear), as the PS5 does. */
-static void H_audio_push(const int16_t* frames, uint32_t count) {
+static void GamePush(const int16_t* frames, uint32_t count) {
     static int16_t* out;
     static size_t cap;
     if (!count)
@@ -637,6 +639,11 @@ static void H_audio_push(const int16_t* frames, uint32_t count) {
     sLast[1] = frames[count * 2 - 1];
     RingPut(out, (uint32_t)n);
 }
+
+/* HD music: the host decodes the track the game names and mixes it into the game's blocks (shared/hd_music_host.h) */
+#define HD_MUSIC_LOG Log
+#include "hd_music_host.h"
+static void H_audio_push(const int16_t* frames, uint32_t count) { HdMusicPush(frames, count, sGameRate, GamePush); }
 static uint32_t H_audio_queued(void) {
 #ifdef REKHCOM_PS4
     return Queued();
@@ -1215,7 +1222,7 @@ int main(int argc, char** argv) {
         HM(sin, (double (*)(double))sin), HM(cos, (double (*)(double))cos), HM(tan, (double (*)(double))tan),
         HM(atan2, (double (*)(double, double))atan2), HM(pow, (double (*)(double, double))pow), HM(exp, (double (*)(double))exp),
         HM(log_e, (double (*)(double))log), HM(fmod, (double (*)(double, double))fmod), HM(sinf, (float (*)(float))sinf),
-        HM(cosf, (float (*)(float))cosf), HM(powf, (float (*)(float, float))powf), HF(set_title), HF(notify), HF(touch_poll), HF(app_state),
+        HM(cosf, (float (*)(float))cosf), HM(powf, (float (*)(float, float))powf), HF(set_title), HF(notify), HF(touch_poll), HF(app_state), HF(hd_music),
     };
     for (int i = 0; i < HF_COUNT; ++i)
         if (!t[i]) {

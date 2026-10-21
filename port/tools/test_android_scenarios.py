@@ -23,7 +23,9 @@ CODES = {'eu': 'B8CP', 'us': 'B8CE', 'jp': 'B8CJ'}
 OUT = R / 'build/android-scenarios'
 UBSAN = set()
 
-MENU_MODES = ['mode_status', 'mode_worldselect', 'Mode_Deck', 'Mode_Premire', 'mode_jiminy', 'mode_ms_top',
+# Mode_Premire is left out: the level-up screen opened with no battle before it reads gBtlWork NULL (a harness
+# artifact, debug_kit.py lists it as expected)
+MENU_MODES = ['mode_status', 'mode_worldselect', 'Mode_Deck', 'mode_jiminy', 'mode_ms_top',
               'mode_ms_shop', 'mode_ms_charge', 'mode_allmap', 'mode_worldinspect', 'mode_worldwarp', 'mode_pooh',
               'mode_StaffRoll', 'Continue', 'mode_wLogo', 'mode_mapinspect', 'mode_eventselect', 'mode_title',
               'WORLDSELECT', 'Mode_riku_deckTutorial', 'mode_vsbattle']
@@ -96,7 +98,7 @@ def scenarios(groups, only, riku, from_battle=0):
 
 
 def run(region, name, frames, timeout, env):
-    private('rm', '-f', 'files/kh_com.log', 'files/smoke_env.txt')
+    private('rm', '-f', 'files/kh_com.log', 'files/kh_com_host.log', 'files/smoke_env.txt')
     text = f'KHCOM_FAST=1\nKHCOM_QUIT={frames}\n{env}\n'
     tmp = OUT / 'env.txt'
     tmp.write_text(text)
@@ -116,6 +118,10 @@ def run(region, name, frames, timeout, env):
             status = 'CRASH'
             break
         if adb('shell', 'pidof', PKG + ':game', check=False).returncode:
+            status = 'ok'
+            break
+        # the 64-bit host returns from the game and Android may keep the process: its log says so
+        if 'the game ended' in private('cat', 'files/kh_com_host.log').stdout.decode(errors='replace'):
             status = 'ok'
             break
         time.sleep(3)
@@ -147,6 +153,8 @@ def main():
     p.add_argument('--only', default='')
     p.add_argument('--riku', action='store_true')
     p.add_argument('--from-battle', type=int, default=0, help='skip battle entries below this index')
+    p.add_argument('--slow', type=float, default=1.0,
+                   help='timeout multiplier: an x86_64 emulator runs the arm64 build translated, several times slower')
     args = p.parse_args()
     SERIAL = args.serial
     OUT.mkdir(parents=True, exist_ok=True)
@@ -157,7 +165,7 @@ def main():
         adb('push', R / 'roms' / f'{code}.gba', f'/data/local/tmp/{code}.gba')
         private('cp', f'/data/local/tmp/{code}.gba', f'files/roms/{code}.gba')
         for name, frames, timeout, env in scenarios(args.groups, [o for o in args.only.split(',') if o], args.riku, args.from_battle):
-            status, detail, tail = run(region, name, frames, timeout, env)
+            status, detail, tail = run(region, name, frames, int(timeout * args.slow), env)
             print(f'{region} {name}: {status}', flush=True)
             if status != 'ok':
                 print(detail or tail, flush=True)

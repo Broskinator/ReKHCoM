@@ -67,8 +67,25 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
   plano de color se ubica por las filas reales del buffer (1088 en H.264 1080p); con 1080 el color
   quedaba corrido hacia abajo (reporte del usuario, 21/10).
 - [x] Opciones en el juego (filas visibles solo si se importó) y en el launcher.
-- [ ] Linux: reproducción de MP4 (la música HD ya funciona en Linux y Android).
-- [ ] Android: importar la carpeta `hd` desde el launcher de Android; videos con MediaCodec.
+- [x] Música HD en las imágenes con puente (Android 64 bits, Switch, Vita, PS4, PS5), 21/10: la imagen
+  no tiene libc para stb_vorbis, así que `port_hdmusic.c` conserva la lógica del juego (qué canción,
+  pausa, fundido, ganancia) y en esas imágenes llama a la entrada nueva del puente `hd_music(op, ruta,
+  ganancia/1000)` (0 abrir, 1 sonar, 2 pausa, 3 cerrar). Cada host incluye
+  `port/ps5/shared/hd_music_host.h`: lee el .ogg/.loop con sus propios H_fopen/H_fread, decodifica con
+  stb_vorbis y mezcla la pista en cada bloque que el juego empuja (`H_audio_push` = `HdMusicPush` sobre
+  el push original, que ahora se llama `GamePush`), remuestreando lineal de 48 kHz a la tasa del juego.
+  Sin hilos: sigue el reloj de audio del juego. PC y Android 32 bits siguen con su stream SDL propio.
+  Una pista que no abre se intenta una sola vez por canción (antes se releía el archivo cada cuadro).
+  Compilado: PC, APK (arm64 + armv7), host PS4. Pendiente: probar en el emulador Android 64
+  (`test_android_scenarios.py --groups battles --only battle-000- --slow 6` con
+  `files/hd/music/31_Twilight_B.ogg/.loop` copiados) y compilar Switch/Vita/PS5 en la VM.
+- [ ] Android: botón "Importar mod HD" en el launcher de Android (selector de carpeta SAF que copia la
+  carpeta `hd` hecha por el launcher de PC a `files/hd`); sirve para 32 y 64 bits.
+- [ ] Videos en Android (32 y 64 bits): NDK `AMediaExtractor`/`AMediaCodec` (API 21+) a textura SDL NV12,
+  con los mismos subtítulos; en 64 bits como entrada del puente `hd_movie` en el host.
+- [ ] Videos en consolas: decodificador de cada una (Vita/PS4 sceAvPlayer, Switch nvdec); sin hardware
+  para probar, después de Android.
+- [ ] Linux: reproducción de MP4 (la música HD ya funciona en Linux).
 
 ## Otros pedidos para v1.9.21 (anotados acá para no perderlos)
 

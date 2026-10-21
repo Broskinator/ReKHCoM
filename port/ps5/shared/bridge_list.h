@@ -51,3 +51,4 @@ X(set_title)  /* void (const char*): unused where there is no window */
 X(notify)     /* void (const char* name): the app draws the box assets/<name>.rgba over the game for five seconds */
 X(touch_poll) /* int (HostTouch* fingers, int max): fingers on the screen now (Android 64-bit), 0 elsewhere */
 X(app_state)  /* int (void): 1 while the app is in the background (Android 64-bit), 0 elsewhere */
+X(hd_music)   /* int (int op, const char* path, int gain): HD music (shared/hd_music_host.h): 0 open path, 1 play at gain/1000, 2 pause, 3 close */

@@ -7,22 +7,16 @@
  * silences its channels (gPortMix.musicGain) and streams the matching track at 48 kHz on an audio stream of its own,
  * so the track is never resampled down to the GBA's rate. Off with hd_music=0, or when no track was imported.
  *
- * Desktop and Android builds (hosted C library); the web and console images get the empty functions below.
+ * Desktop and 32-bit Android (hosted C library) decode the track here. The bridge images (64-bit Android, Switch,
+ * Vita, PS4, PS5) have no C library for it: they hand the track to their host (bridge entry hd_music,
+ * port/ps5/shared/hd_music_host.h), which mixes it into the game's sound. The web gets the empty functions below.
  */
 #include "port/port.h"
 #include "port/port_ui.h"
 
-#if __STDC_HOSTED__ && !defined(__EMSCRIPTEN__)
-#include <SDL3/SDL.h>
-#include <stdio.h>
-#include <string.h>
-
+#if !defined(__EMSCRIPTEN__)
 #include "lib/m4a.h"
 #include "port/port_audio.h"
-
-#define STB_VORBIS_NO_PUSHDATA_API
-#define STB_VORBIS_NO_INTEGER_CONVERSION
-#include "../third_party/stb/stb_vorbis.c"
 
 extern MusicPlayerInfo gMPlayInfo_BGM;
 
@@ -38,25 +32,10 @@ static const char* const kTracks[44] = {
     "28_Forget_F", "29_Forget_B", "33_Destiny_B", "Boss2_World", "40_LastBoss2", "31_Twilight_B",
 };
 
-static SDL_AudioStream* sStream;
-static stb_vorbis* sVorbis;
-static int sSong = -1, sChannels, sRate;
-static unsigned sLoopStart, sLoopEnd, sPosition;
-static unsigned char* sFile;
+static int sSong = -1, sMissing = -1; /* sMissing: the song whose track did not open (tried once) */
 
 const char* PortHdMusicTrack(int song) {
     return song > 0 && song < (int)(sizeof(kTracks) / sizeof(kTracks[0])) ? kTracks[song] : NULL;
-}
-
-static void Close(void) {
-    if (sVorbis)
-        stb_vorbis_close(sVorbis);
-    sVorbis = NULL;
-    SDL_free(sFile);
-    sFile = NULL;
-    if (sStream)
-        SDL_ClearAudioStream(sStream);
-    sSong = -1;
 }
 
 /* The cartridge song the BGM player has, or -1. */
@@ -69,6 +48,33 @@ static int CurrentSong(void) {
         if (gSongTable[i].header == bgm->songHeader)
             return i;
     return -1;
+}
+
+#if __STDC_HOSTED__
+/* ---- hosted: stb_vorbis on an SDL audio stream of its own --------------------------------------------------- */
+#include <SDL3/SDL.h>
+#include <stdio.h>
+#include <string.h>
+
+#define STB_VORBIS_NO_PUSHDATA_API
+#define STB_VORBIS_NO_INTEGER_CONVERSION
+#include "../third_party/stb/stb_vorbis.c"
+
+static SDL_AudioStream* sStream;
+static stb_vorbis* sVorbis;
+static int sRate;
+static unsigned sLoopStart, sLoopEnd, sPosition;
+static unsigned char* sFile;
+
+static void Close(void) {
+    if (sVorbis)
+        stb_vorbis_close(sVorbis);
+    sVorbis = NULL;
+    SDL_free(sFile);
+    sFile = NULL;
+    if (sStream)
+        SDL_ClearAudioStream(sStream);
+    sSong = -1;
 }
 
 static int Open(int song) {
@@ -90,7 +96,6 @@ static int Open(int song) {
     }
     {
         stb_vorbis_info info = stb_vorbis_get_info(sVorbis);
-        sChannels = info.channels;
         sRate = (int)info.sample_rate;
     }
     sLoopStart = 0;
@@ -145,6 +150,56 @@ static void Feed(float gain) {
     }
 }
 
+static void Pause(void) {
+    if (sStream)
+        SDL_ClearAudioStream(sStream); /* the track resumes from where it was */
+}
+
+static void Shutdown(void) {
+    Close();
+    if (sStream)
+        SDL_DestroyAudioStream(sStream);
+    sStream = NULL;
+}
+#else
+/* ---- bridge images: the host decodes and mixes (port/ps5/shared/hd_music_host.h) ----------------------------- */
+#include <stdio.h>
+
+#include "bridge_calls.h"
+
+enum { HD_MUSIC_OPEN, HD_MUSIC_PLAY, HD_MUSIC_PAUSE, HD_MUSIC_CLOSE };
+
+static void Close(void) {
+    if (sSong >= 0)
+        h_hd_music(HD_MUSIC_CLOSE, "", 0);
+    sSong = -1;
+}
+
+static int Open(int song) {
+    char name[160];
+    Close();
+    snprintf(name, sizeof(name), "hd/music/%s.ogg", kTracks[song]);
+    if (!h_hd_music(HD_MUSIC_OPEN, PortConfigPath(name), 0))
+        return 0;
+    sSong = song;
+    PortLog("hd music: song %d -> %s", song, kTracks[song]);
+    return 1;
+}
+
+static void Feed(float gain) {
+    h_hd_music(HD_MUSIC_PLAY, "", (int)(gain * 1000.0f));
+}
+
+static void Pause(void) {
+    if (sSong >= 0)
+        h_hd_music(HD_MUSIC_PAUSE, "", 0);
+}
+
+static void Shutdown(void) {
+    Close();
+}
+#endif
+
 /* Once per frame, after the mixer gains are set (port_audio.c). */
 void PortHdMusicFrame(void) {
     const MusicPlayerInfo* bgm = &gMPlayInfo_BGM;
@@ -159,14 +214,21 @@ void PortHdMusicFrame(void) {
     song = CurrentSong();
     playing = song > 0 && (bgm->status & MUSICPLAYER_STATUS_TRACK) && !(bgm->status & MUSICPLAYER_STATUS_PAUSE);
     if (!playing || PortUiActive()) {
-        if (sStream)
-            SDL_ClearAudioStream(sStream); /* stopped or paused: the track resumes from where it was */
+        Pause(); /* stopped or paused: the track resumes from where it was */
         if (song != sSong && sSong >= 0 && !(song > 0 && (bgm->status & MUSICPLAYER_STATUS_PAUSE)))
             Close();
         return;
     }
-    if (song != sSong && !Open(song))
-        return;
+    if (song != sSong) {
+        if (song == sMissing)
+            return; /* not imported: the cartridge's song plays */
+        if (!Open(song)) {
+            PortLog("hd music: no track for song %d (%s)", song, kTracks[song]);
+            sMissing = song;
+            return;
+        }
+        sMissing = -1;
+    }
     gain = gPortMix.musicGain * gPortConfig.masterVolume / 100.0f;
     if (bgm->fadeOI)
         gain *= (float)(bgm->fadeOV >> FADE_VOL_SHIFT) / FADE_VOL_MAX;
@@ -175,10 +237,7 @@ void PortHdMusicFrame(void) {
 }
 
 void PortHdMusicShutdown(void) {
-    Close();
-    if (sStream)
-        SDL_DestroyAudioStream(sStream);
-    sStream = NULL;
+    Shutdown();
 }
 #else
 void PortHdMusicFrame(void) {
