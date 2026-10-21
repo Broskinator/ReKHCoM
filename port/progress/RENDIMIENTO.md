@@ -41,3 +41,15 @@ A x1 en campo y escenas la PPU es el cuello de botella; la GPU tarda ~4 ms.
 
 Falta: verificar con `KHCOM_PPU_VERIFY` en toda la batería de eventos/salas/combates (0 diferencias), bajar la parte
 secuencial (las 160 filas de la imagen GBA y la presentación) para llegar a 60 fps con margen a x1, y Linux.
+
+## Salto de cuadros (`experimental_frame_skip`, 21/10/2026, issues #35/#36)
+
+Un cuadro que empieza medio período tarde no se dibuja ni se presenta (máximo tres seguidos): la lógica corre una
+actualización por VBlank con todos sus eventos de línea (VCount, HBlank, DMA de HBlank: `PortPpuRunFrameEvents`), así
+que el juego y el sonido mantienen la velocidad original en equipos que no llegan a dibujar cada cuadro (Switch,
+Vita). Encendido por defecto en todas las plataformas por pedido del usuario, tras comprobar:
+
+- `test_frameskip.py` (`KHCOM_SKIPTEST=1` salta 2 de cada 3 cuadros a la fuerza): 24/24 eventos con las 4 capturas
+  idénticas píxel a píxel a la corrida normal. Está en la batería (`desktop skip eu/us/jp`).
+- Windows en tiempo real con VSync a 60 Hz y las baterías corriendo: 1 cuadro saltado de 3600.
+- El log dice cuánto actúa: `frame skip: N of the last 600 frames not drawn`.
