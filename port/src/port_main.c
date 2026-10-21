@@ -2358,6 +2358,10 @@ int main(int argc, char** argv) {
 #ifndef __EMSCRIPTEN__
                                | SDL_WINDOW_HIGH_PIXEL_DENSITY
 #endif
+#ifdef _WIN32
+                               /* shown once in its final mode: a fullscreen start no longer flashes a window */
+                               | SDL_WINDOW_HIDDEN
+#endif
                                );
     if (sWindow == NULL)
         PortFatal("Could not create the window: %s", SDL_GetError());
@@ -2379,6 +2383,13 @@ int main(int argc, char** argv) {
         PortFatal("Could not create the renderer: %s", SDL_GetError());
     PortLog("Renderer: %s", SDL_GetRendererName(sRenderer));
     ApplyWindowMode();
+#ifdef _WIN32
+    SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
+    SDL_RenderClear(sRenderer);
+    SDL_RenderPresent(sRenderer);
+    SDL_ShowWindow(sWindow);
+    SDL_SyncWindow(sWindow);
+#endif
     sPerfFreq = SDL_GetPerformanceFrequency();
     sFpsTime = SDL_GetPerformanceCounter();
 
