@@ -56,4 +56,3 @@ def stage(mapping, folder):
 if OUT.exists():
     shutil.rmtree(OUT)
 print('\n'.join(stage(MAIN, OUT / 'main')))
-print('\n'.join(stage(PS5, OUT / 'ps5')))

@@ -11,7 +11,15 @@ Reglas del usuario:
 - Nunca borrar carpetas ReKHCoM-vX sin que el usuario lo pida.
 - Publicar (releases, comentarios en issues) solo con el OK del usuario.
 
-## Estado (21/10 ~16:00)
+## Estado (21/10 ~19:15)
+
+- **v1.9.14 publicada (estable, Latest)**, commit a97268171 (main): PC (Windows, Linux, Steam Deck) estable; Android,
+  Switch, Vita, PS4, PS5 (PPSA98511.zip, etiqueta ps5-beta) y Anbernic como `-beta`. Incluye J, #37, #38, I (PPU en
+  varios núcleos, 90 eventos sin MISMATCH), mod HD (beta). Android 64 con imagen movida: 37/37 ok. Comentado en #22,
+  #25, #33-#38; #25 cerrado. Los demás se cierran cuando el reporter confirme. Releases v1.9.12 y v1.9.13-pre2: borrar
+  (el clasificador bloqueó `gh release delete`; lo hace el usuario). Escenas Preliminar V1 de Codex sin aprobar: NO
+  integradas (rama claude/integrate-20261021).
+
 
 - **Publicado:** v1.9.12 estable (Latest), todas las plataformas + alphas de Switch y Vita; web en Pages.
   v1.9.13-pre2 de prueba (Windows, APK 32/64, Switch GPU) comentada en #22, #33, #34, #35.
