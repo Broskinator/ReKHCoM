@@ -69,7 +69,7 @@ public class LauncherActivity extends Activity {
         TextView saveHelp=new TextView(this);saveHelp.setText(t("Importa guardados normales .sav/.srm del port o emuladores. Elige la misma regi\u00f3n y el banco de destino. Se conserva una copia previa. No admite estados r\u00e1pidos ni convierte entre regiones.","Import normal .sav/.srm saves from the port or emulators. Choose the same region and the target bank. A previous copy is kept. Save states are not supported and regions are not converted."));saveHelp.setTextColor(Color.LTGRAY);layout.addView(saveHelp);
         Button saves=button(layout,t("Importar .sav / .srm","Import .sav / .srm"));saves.setOnClickListener(v->{if(busy||pickerPending)return;saveRegion=region.getSelectedItemPosition();saveBank=bank.getSelectedItemPosition()+1;pick(20);});
         Button export=button(layout,t("Exportar partida","Export save"));export.setOnClickListener(v->{if(busy||pickerPending)return;saveRegion=region.getSelectedItemPosition();saveBank=bank.getSelectedItemPosition()+1;pickerPending=true;Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.setType("application/octet-stream");i.addCategory(Intent.CATEGORY_OPENABLE);i.putExtra(Intent.EXTRA_TITLE,SaveImport.bankName(saveRegion,saveBank));startActivityForResult(i,30);});
-        TextView hdHelp=new TextView(this);hdHelp.setText(t("Mod HD: copia al teléfono la carpeta hd que arma el launcher de PC desde tu KINGDOM HEARTS HD 1.5+2.5 (elige esa carpeta o la que la contiene). Por ahora se copia la música; los videos llegan en otra versión.","HD mod: copies to the phone the hd folder the PC launcher builds from your KINGDOM HEARTS HD 1.5+2.5 (choose that folder or the one holding it). For now the music is copied; the movies come in a later version."));hdHelp.setTextColor(Color.LTGRAY);hdHelp.setPadding(0,dp(16),0,0);layout.addView(hdHelp);
+        TextView hdHelp=new TextView(this);hdHelp.setText(t("Mod HD: copia al teléfono la carpeta hd que arma el launcher de PC desde tu KINGDOM HEARTS HD 1.5+2.5 (elige esa carpeta o la que la contiene): música, videos y subtítulos. Los videos de las escenas ocupan varios GB: copia solo los que quieras.","HD mod: copies to the phone the hd folder the PC launcher builds from your KINGDOM HEARTS HD 1.5+2.5 (choose that folder or the one holding it): music, movies and subtitles. The scene movies take several GB: copy only the ones you want."));hdHelp.setTextColor(Color.LTGRAY);hdHelp.setPadding(0,dp(16),0,0);layout.addView(hdHelp);
         Button hd=button(layout,t("Importar mod HD","Import HD mod"));hd.setOnClickListener(v->{if(busy||pickerPending)return;pickerPending=true;Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);startActivityForResult(i,40);});
         status=new TextView(this);status.setTextColor(Color.rgb(180,207,240));status.setPadding(0,dp(20),0,dp(20));layout.addView(status);
         TextView controls=new TextView(this);controls.setText(t("Controles: cruceta, A/B y L/R. Rodar y apilar tienen botones propios. El botón … o START + SELECT abre las opciones.\n\nVersión experimental: sin estados rápidos ni texto HD. Las partidas normales se guardan en el almacenamiento privado de la app.","Controls: d-pad, A/B and L/R. Dodge roll and stock have their own buttons. The … button or START + SELECT opens the options.\n\nExperimental version: no save states or HD text. Normal saves are kept in the app's private storage."));controls.setTextColor(Color.LTGRAY);layout.addView(controls);
@@ -139,33 +139,41 @@ public class LauncherActivity extends Activity {
             if(!temp.renameTo(target))throw new IOException("No se pudo guardar la partida");
         }finally{if(temp.exists())temp.delete();}
     }
-    /* HD mod (port/progress/HD_MOD.md): the PC launcher's hd folder → files/hd. Only the music (.ogg + .loop) for now:
-       Android does not play the HD movies yet, so their gigabytes stay on the PC. Each file lands whole (temp + rename). */
+    /* HD mod (port/progress/HD_MOD.md): the PC launcher's hd folder → files/hd: music (.ogg + .loop), movies (.mp4)
+       and their subtitles (.txt), whichever are there. Each file lands whole (temp + rename); one already there with
+       the same size is kept (a second import only adds what is new). */
+    private static final String[][] HD_PARTS={{"music","[A-Za-z0-9_]+[.](ogg|loop)"},{"movies","[A-Za-z0-9_]+[.]mp4"},{"subs","[A-Za-z0-9_]+[.][a-z]{2}[.]txt"}};
     private String importHd(Uri tree)throws Exception{
         android.content.ContentResolver resolver=getContentResolver();
         String root=android.provider.DocumentsContract.getTreeDocumentId(tree);
-        String music=child(resolver,tree,root,"music");
-        if(music==null){String hd=child(resolver,tree,root,"hd");if(hd!=null)music=child(resolver,tree,hd,"music");}
-        if(music==null)throw new IOException(t("no hay una carpeta hd con music dentro","there is no hd folder with music inside"));
-        File dir=new File(getFilesDir(),"hd/music");if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("hd/music");
-        java.util.List<String[]> files=new java.util.ArrayList<>();
-        try(android.database.Cursor c=resolver.query(android.provider.DocumentsContract.buildChildDocumentsUriUsingTree(tree,music),
-                new String[]{android.provider.DocumentsContract.Document.COLUMN_DOCUMENT_ID,android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME},null,null,null)){
-            while(c!=null&&c.moveToNext()){String name=c.getString(1);if(name!=null&&name.matches("[A-Za-z0-9_]+\\.(ogg|loop)"))files.add(new String[]{c.getString(0),name});}
+        if(child(resolver,tree,root,"music")==null&&child(resolver,tree,root,"movies")==null){String hd=child(resolver,tree,root,"hd");if(hd!=null)root=hd;}
+        java.util.List<String[]> files=new java.util.ArrayList<>(); // document id, folder, name, size
+        long total=0,copied=0;
+        for(String[] part:HD_PARTS){
+            String folder=child(resolver,tree,root,part[0]);if(folder==null)continue;
+            try(android.database.Cursor c=resolver.query(android.provider.DocumentsContract.buildChildDocumentsUriUsingTree(tree,folder),
+                    new String[]{android.provider.DocumentsContract.Document.COLUMN_DOCUMENT_ID,android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME,android.provider.DocumentsContract.Document.COLUMN_SIZE},null,null,null)){
+                while(c!=null&&c.moveToNext()){String name=c.getString(1);if(name!=null&&name.matches(part[1])){files.add(new String[]{c.getString(0),part[0],name,Long.toString(c.getLong(2))});total+=c.getLong(2);}}
+            }
         }
-        if(files.isEmpty())throw new IOException(t("la carpeta music está vacía","the music folder is empty"));
-        int done=0;
+        if(files.isEmpty())throw new IOException(t("no hay una carpeta hd con music, movies o subs dentro","there is no hd folder with music, movies or subs inside"));
+        int tracks=0,movies=0;
         for(String[] f:files){
-            message=t("Copiando música HD ","Copying HD music ")+(++done)+"/"+files.size();
+            File dir=new File(getFilesDir(),"hd/"+f[1]);if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("hd/"+f[1]);
+            File target=new File(dir,f[2]);long size=Long.parseLong(f[3]);
+            if(f[2].endsWith(".ogg"))tracks++;else if(f[2].endsWith(".mp4"))movies++;
+            message=t("Copiando mod HD: ","Copying HD mod: ")+(copied>>20)+" / "+(total>>20)+" MB";
+            copied+=size;
+            if(target.isFile()&&target.length()==size&&size>0)continue;
             File temp=File.createTempFile("hd-",".tmp",dir);
             try{
                 try(InputStream in=resolver.openInputStream(android.provider.DocumentsContract.buildDocumentUriUsingTree(tree,f[0]));FileOutputStream out=new FileOutputStream(temp)){
-                    if(in==null)throw new IOException(f[1]);copy(in,out,64L*1024*1024);out.getFD().sync();}
-                File target=new File(dir,f[1]);if(target.exists()&&!target.delete())throw new IOException(f[1]);
-                if(!temp.renameTo(target))throw new IOException(f[1]);
+                    if(in==null)throw new IOException(f[2]);copy(in,out,4L*1024*1024*1024);out.getFD().sync();}
+                if(target.exists()&&!target.delete())throw new IOException(f[2]);
+                if(!temp.renameTo(target))throw new IOException(f[2]);
             }finally{if(temp.exists())temp.delete();}
         }
-        return t("Mod HD importado: ","HD mod imported: ")+files.size()/2+t(" pistas. Actívalo en las opciones del juego."," tracks. Turn it on in the game's options.");
+        return t("Mod HD importado: ","HD mod imported: ")+tracks+t(" pistas, "," tracks, ")+movies+t(" videos. Se activa en las opciones del juego."," movies. It is turned on in the game's options.");
     }
     private static String child(android.content.ContentResolver resolver,Uri tree,String parent,String wanted){
         try(android.database.Cursor c=resolver.query(android.provider.DocumentsContract.buildChildDocumentsUriUsingTree(tree,parent),

@@ -291,6 +291,11 @@ static void GamePush(const int16_t *frames, uint32_t count) { plat_audio_push(fr
 #define HD_MUSIC_LOG Log
 #include "hd_music_host.h"
 static void H_audio_push(const int16_t *frames, uint32_t count) { HdMusicPush(frames, count, sGameRate, GamePush); }
+/* HD movies: only the Android host plays them (bridge entry hd_movie); the game plays its own movie */
+static int H_hd_movie(const char* movie, const char* subs1, const char* subs2, const char* font) {
+    (void)movie, (void)subs1, (void)subs2, (void)font;
+    return 0;
+}
 static uint32_t H_audio_queued(void) { return (uint32_t)plat_audio_queued_frames(); }
 static void H_audio_clear(void) { plat_audio_clear(); }
 static void H_audio_ratio(double ratio) { plat_audio_set_ratio(ratio); }
@@ -1031,6 +1036,7 @@ int main(void)
         [HF_powf] = (uintptr_t)(float (*)(float, float))powf, [HF_set_title] = (uintptr_t)H_set_title, [HF_notify] = (uintptr_t)H_notify,
         [HF_touch_poll] = (uintptr_t)H_touch_poll, [HF_app_state] = (uintptr_t)H_app_state,
         [HF_hd_music] = (uintptr_t)H_hd_music,
+        [HF_hd_movie] = (uintptr_t)H_hd_movie,
     };
     for (int i = 0; i < HF_COUNT; ++i)
         if (!t[i])

@@ -9,12 +9,69 @@
  * Subtitles (hd_subtitles): hd/subs/<name>.<lang>.txt, Re:CoM's own (the launcher takes them from Recom.pkg, every
  * language it has: port/tools/khhd_subs.py), in the game's language, drawn under the picture as Re:CoM does.
  *
- * Windows: Media Foundation (part of Windows: H.264 and AAC need nothing else). Other systems: not yet (returns 0).
+ * Windows: Media Foundation (part of Windows: H.264 and AAC need nothing else). Android, 32 and 64 bits: the NDK's
+ * MediaCodec (port/portable/hdmovie_android.c; the 64-bit image asks its host through the hd_movie bridge entry).
+ * Other systems: not yet (returns 0).
  * The video comes out as the decoder's own NV12 and the GPU turns it into colour (an NV12 texture): asking Media
  * Foundation for RGB put a software colour conversion of every 1080p frame on the CPU and the movies stuttered.
  * Frames already late when decoded are not uploaded.
  */
 #include "port/port.h"
+
+#if defined(_WIN32) || defined(__ANDROID__) || defined(PORT_ANDROID64)
+static int PlayFile(const char* name);
+
+/* include/evt/mode_movie.h: MOVIE_OPENING 1, MOVIE_6F_GOAL, MOVIE_12F_E2, MOVIE_ENDING, MOVIE_RIKU_ENDING */
+static const char* MovieFile(int movieId) {
+    switch (movieId) {
+        case 1: return "ROP";  /* the opening */
+        case 4: return "RSE";  /* Sora's ending */
+        case 5: return "RRE";  /* Riku's ending (Reverse/Rebirth) */
+        default: return NULL;  /* the 6th and 12th floor movies: the full mod's scenes (hd_scenes), later */
+    }
+}
+
+#ifdef VERSION_EU
+extern uint32_t gLanguage;
+#endif
+
+/* the subtitle languages to try, from the game's: EU English (uk), French, German, Italian, Spanish; US English;
+   Japanese (us if none) */
+static void SubsOrder(const char* order[2]) {
+#ifdef VERSION_EU
+    static const char* const langs[] = { "uk", "fr", "de", "it", "es" };
+    order[0] = gLanguage < 5 ? langs[gLanguage] : "uk";
+    order[1] = "us";
+#elif defined(VERSION_JP)
+    order[0] = "ja";
+    order[1] = "us";
+#else
+    order[0] = "us";
+    order[1] = "uk";
+#endif
+}
+
+/* The cartridge movie movieId, if its HD movie is imported and hd_movies is on. */
+int PortHdMoviePlay(int movieId) {
+    const char* name = MovieFile(movieId);
+    return gPortConfig.hdMovies && name != NULL && PlayFile(name);
+}
+
+#include "port_hdscenes.inc"
+
+/* The full mod: the story event's Re:CoM scene, if imported and hd_scenes is on (event_message.c then ends the event
+   through the game's own scene skip, so the event's results stay the game's). */
+int PortHdScenePlay(int eventId) {
+    size_t i;
+    if (!gPortConfig.hdScenes)
+        return 0;
+    for (i = 0; i < sizeof(kHdScenes) / sizeof(kHdScenes[0]); i++)
+        if (kHdScenes[i].eventId == eventId)
+            return PlayFile(kHdScenes[i].movie);
+    return 0;
+}
+
+#endif
 
 #ifdef _WIN32
 #define COBJMACROS
@@ -27,16 +84,6 @@
 #include <mferror.h>
 
 SDL_Renderer* PortRenderer(void);
-
-/* include/evt/mode_movie.h: MOVIE_OPENING 1, MOVIE_6F_GOAL, MOVIE_12F_E2, MOVIE_ENDING, MOVIE_RIKU_ENDING */
-static const char* MovieFile(int movieId) {
-    switch (movieId) {
-        case 1: return "ROP";  /* the opening */
-        case 4: return "RSE";  /* Sora's ending */
-        case 5: return "RRE";  /* Riku's ending (Reverse/Rebirth) */
-        default: return NULL;  /* the 6th and 12th floor movies: the full mod's scenes (hd_scenes), later */
-    }
-}
 
 static int SkipPressed(int* quit) {
     SDL_Event e;
@@ -80,20 +127,8 @@ typedef struct {
     int w, h, height; /* texture size; the output height it was made for */
 } Subs;
 
-#ifdef VERSION_EU
-extern uint32_t gLanguage;
-#endif
-
-/* the game's language: EU English (uk), French, German, Italian, Spanish; US English; Japanese (us if none) */
 static int LoadSubs(Subs* s, const char* name) {
-#ifdef VERSION_EU
-    static const char* const langs[] = { "uk", "fr", "de", "it", "es" };
-    const char* order[2] = { gLanguage < 5 ? langs[gLanguage] : "uk", "us" };
-#elif defined(VERSION_JP)
-    const char* order[2] = { "ja", "us" };
-#else
-    const char* order[2] = { "us", "uk" };
-#endif
+    const char* order[2];
     char path[1024], line[1024];
     FILE* f = NULL;
     int i;
@@ -102,6 +137,7 @@ static int LoadSubs(Subs* s, const char* name) {
     s->shown = -1;
     if (!gPortConfig.hdSubtitles)
         return 0;
+    SubsOrder(order);
     for (i = 0; i < 2 && !f; i++) {
         SDL_snprintf(path, sizeof(path), "%s%s.%s.txt", PortConfigPath("hd/subs/"), name, order[i]);
         f = fopen(path, "rb");
@@ -252,26 +288,6 @@ static void DrawSubs(Subs* s, SDL_Renderer* renderer, LONGLONG clock, const SDL_
     dst.x = SDL_roundf(picture->x + (picture->w - dst.w) / 2);
     dst.y = SDL_roundf(SDL_min(picture->y + picture->h, (float)outH) - dst.h - outH / 18.0f);
     SDL_RenderTexture(renderer, s->texture, NULL, &dst);
-}
-
-/* The cartridge movie movieId, if its HD movie is imported and hd_movies is on. */
-int PortHdMoviePlay(int movieId) {
-    const char* name = MovieFile(movieId);
-    return gPortConfig.hdMovies && name != NULL && PlayFile(name);
-}
-
-#include "port_hdscenes.inc"
-
-/* The full mod: the story event's Re:CoM scene, if imported and hd_scenes is on (event_message.c then ends the event
-   through the game's own scene skip, so the event's results stay the game's). */
-int PortHdScenePlay(int eventId) {
-    size_t i;
-    if (!gPortConfig.hdScenes)
-        return 0;
-    for (i = 0; i < sizeof(kHdScenes) / sizeof(kHdScenes[0]); i++)
-        if (kHdScenes[i].eventId == eventId)
-            return PlayFile(kHdScenes[i].movie);
-    return 0;
 }
 
 /* Plays hd/movies/<name>.mp4 to the end (or until skipped). 0: nothing imported or it could not be opened. */
@@ -584,6 +600,52 @@ done:
         SDL_PushEvent(&q); /* the main loop closes the game as usual */
     }
     return played;
+}
+#elif defined(__ANDROID__) || defined(PORT_ANDROID64)
+#include <SDL3/SDL.h>
+#ifdef PORT_ANDROID64
+int h_hd_movie(const char* movie, const char* subs1, const char* subs2, const char* font);
+#else
+#include <stdarg.h>
+SDL_Renderer* PortRenderer(void);
+int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* subs1, const char* subs2, const char* font);
+void HdMovieLog(const char* fmt, ...) {
+    char text[1024];
+    va_list ap;
+    va_start(ap, fmt);
+    SDL_vsnprintf(text, sizeof(text), fmt, ap);
+    va_end(ap);
+    PortLog("%s", text);
+}
+#endif
+
+/* Plays hd/movies/<name>.mp4 to the end (or until skipped). 0: nothing imported or it could not be opened. */
+static int PlayFile(const char* name) {
+    char path[512], subs[2][512], font[512];
+    const char* order[2];
+    int i, played;
+    SDL_snprintf(path, sizeof(path), "%s%s.mp4", PortConfigPath("hd/movies/"), name);
+    SubsOrder(order);
+    for (i = 0; i < 2; i++)
+        SDL_snprintf(subs[i], sizeof(subs[i]), "%s%s.%s.txt", PortConfigPath("hd/subs/"), name, order[i]);
+    SDL_strlcpy(font, PortConfigPath("assets/fonts/KHMenu.otf"), sizeof(font));
+#ifdef PORT_ANDROID64
+    played = h_hd_movie(path, gPortConfig.hdSubtitles ? subs[0] : NULL, gPortConfig.hdSubtitles ? subs[1] : NULL, font);
+#else
+    played = HdMovieAndroidPlay(PortRenderer(), path, gPortConfig.hdSubtitles ? subs[0] : NULL,
+                                gPortConfig.hdSubtitles ? subs[1] : NULL, font);
+#endif
+    if (played == 2) { /* the app was closed during the movie: the main loop closes the game as usual */
+#ifdef PORT_ANDROID64
+        /* the host's quit_requested says so */
+#else
+        SDL_Event q;
+        SDL_zero(q);
+        q.type = SDL_EVENT_QUIT;
+        SDL_PushEvent(&q);
+#endif
+    }
+    return played != 0;
 }
 #else
 int PortHdMoviePlay(int movieId) {

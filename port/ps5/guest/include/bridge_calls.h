@@ -54,4 +54,5 @@ void h_notify(const char*);
 int h_touch_poll(HostTouch* fingers, int max);
 int h_app_state(void);
 int h_hd_music(int op, const char* path, int gain);
+int h_hd_movie(const char* movie, const char* subs1, const char* subs2, const char* font);
 #endif

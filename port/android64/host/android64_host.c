@@ -341,6 +341,23 @@ static void GamePush(const int16_t* frames, uint32_t count) {
 #define HD_MUSIC_LOG Log
 #include "hd_music_host.h"
 static void H_audio_push(const int16_t* frames, uint32_t count) { HdMusicPush(frames, count, sGameRate, GamePush); }
+
+/* HD movies: played here to the end with the NDK's decoders (port/portable/hdmovie_android.c, as on 32-bit Android) */
+int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* subs1, const char* subs2, const char* font);
+void HdMovieLog(const char* fmt, ...) {
+    char text[1024];
+    va_list ap;
+    va_start(ap, fmt);
+    SDL_vsnprintf(text, sizeof(text), fmt, ap);
+    va_end(ap);
+    Log("%s", text);
+}
+static int H_hd_movie(const char* movie, const char* subs1, const char* subs2, const char* font) {
+    int played = HdMovieAndroidPlay(sRenderer, movie, subs1, subs2, font);
+    if (played == 2)
+        sQuit = 1;
+    return played != 0;
+}
 static uint32_t H_audio_queued(void) { return sAudio ? (uint32_t)SDL_GetAudioStreamQueued(sAudio) / 4 : 0; }
 static void H_audio_clear(void) {
     if (sAudio)
@@ -568,7 +585,7 @@ int main(int argc, char** argv) {
         HM(atan2, (double (*)(double, double))atan2), HM(pow, (double (*)(double, double))pow), HM(exp, (double (*)(double))exp),
         HM(log_e, (double (*)(double))log), HM(fmod, (double (*)(double, double))fmod), HM(sinf, (float (*)(float))sinf),
         HM(cosf, (float (*)(float))cosf), HM(powf, (float (*)(float, float))powf), HF(set_title), HF(notify),
-        HF(touch_poll), HF(app_state), HF(hd_music),
+        HF(touch_poll), HF(app_state), HF(hd_music), HF(hd_movie),
     };
     for (int i = 0; i < HF_COUNT; ++i)
         if (!t[i]) {

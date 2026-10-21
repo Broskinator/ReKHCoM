@@ -644,6 +644,11 @@ static void GamePush(const int16_t* frames, uint32_t count) {
 #define HD_MUSIC_LOG Log
 #include "hd_music_host.h"
 static void H_audio_push(const int16_t* frames, uint32_t count) { HdMusicPush(frames, count, sGameRate, GamePush); }
+/* HD movies: only the Android host plays them (bridge entry hd_movie); the game plays its own movie */
+static int H_hd_movie(const char* movie, const char* subs1, const char* subs2, const char* font) {
+    (void)movie, (void)subs1, (void)subs2, (void)font;
+    return 0;
+}
 static uint32_t H_audio_queued(void) {
 #ifdef REKHCOM_PS4
     return Queued();
@@ -1222,7 +1227,7 @@ int main(int argc, char** argv) {
         HM(sin, (double (*)(double))sin), HM(cos, (double (*)(double))cos), HM(tan, (double (*)(double))tan),
         HM(atan2, (double (*)(double, double))atan2), HM(pow, (double (*)(double, double))pow), HM(exp, (double (*)(double))exp),
         HM(log_e, (double (*)(double))log), HM(fmod, (double (*)(double, double))fmod), HM(sinf, (float (*)(float))sinf),
-        HM(cosf, (float (*)(float))cosf), HM(powf, (float (*)(float, float))powf), HF(set_title), HF(notify), HF(touch_poll), HF(app_state), HF(hd_music),
+        HM(cosf, (float (*)(float))cosf), HM(powf, (float (*)(float, float))powf), HF(set_title), HF(notify), HF(touch_poll), HF(app_state), HF(hd_music), HF(hd_movie),
     };
     for (int i = 0; i < HF_COUNT; ++i)
         if (!t[i]) {
