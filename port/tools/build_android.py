@@ -63,7 +63,7 @@ def main():
     subprocess.run([sys.executable,str(ROOT/'port/tools/check_sources.py')],check=True)
     release=re.search(r'#define REKHCOM_VERSION\s+"([^"]+)"',
                       (ROOT/'port/decompui/decompui.cpp').read_text(encoding='utf-8'))[1]
-    version_name=release.removeprefix('v')+'-android-alpha'
+    version_name=release.removeprefix('v')+'-android-beta'
     parts=re.match(r'v(\d+)\.(\d+)\.(\d+)',release)
     major,minor,patch=map(int,parts.groups())
     nightly=re.search(r'nightly\.(\d{8})\.(\d+)$',release)

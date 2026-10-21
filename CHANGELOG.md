@@ -1,6 +1,24 @@
 # Changelog
 
-## v1.9.13 — 2026-10-21
+## v1.9.14 — 2026-10-21
+
+v1.9.13 came out only as a test prerelease; this stable release carries all of it. Windows, Linux and
+Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, Anbernic and the web player are betas
+(their files say "beta": we are still debugging them, reports welcome).
+
+- Android: phones where the game's usual memory range is taken (Poco F8 Ultra, Huawei Mate XT) load
+  the 64-bit game elsewhere instead of stopping with "The game image could not be loaded" (#22, #34).
+  The error box itself has a "Share log" button, so a log can be sent without reaching Settings.
+- Android: remapping a key without a keyboard can be cancelled with a gamepad button, a touch or
+  Back (#37); "Hide touch controls" with a gamepad connected hides every touch button, menus
+  included (#38).
+- Android: no more crash in the debug event select and at two spots of the 100 Acre Wood that the
+  PC recovered silently.
+- Windows: the area beyond the GBA picture in widescreen is drawn on several CPU cores (field at
+  1080p: 37 ms to 17 ms per frame on the test PC).
+- HD mod (beta): marked as beta in the launcher.
+
+### From v1.9.13 (test prerelease)
 
 - Nintendo Switch (alpha, never run on a console yet): a homebrew `ReKHCoM.nro` for custom
   firmware (Atmosphère, Homebrew Menu in title takeover). Copy it and your cartridge dump (EU, US
