@@ -41,7 +41,7 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
    saltar; si no, el video original. La música: tabla canción de GBA → pista de Re:CoM, decodificada
    con stb_vorbis, opción aparte.
 3. **Mod completo:** al empezar un evento con escena del 1.5 (mapa de #25), reproducir esa escena en
-   lugar del evento, con subtítulos en el idioma del juego tomados de los textos del propio evento
+   lugar del evento, con los subtítulos de Re:CoM en el idioma del juego
    (el audio es inglés). Opción aparte, apagada por defecto.
 4. **Opciones (juego + launcher + ini):** `hd_movies`, `hd_music`, `hd_scenes`, independientes.
 
@@ -56,7 +56,16 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
 - [x] Música HD (`port_hdmusic.c`): 43 canciones de GBA → pistas de Re:CoM, sigue pausa/parada/fundidos.
 - [x] Mod completo (`hd_scenes`): 72 eventos → escenas (filas confiables de #25,
   `port/src/port_hdscenes.inc`); al terminar, el evento se cierra con el salto de escena del juego.
-  Audio en inglés: el PC no trae otras pistas ni subtítulos de estas escenas.
+  Audio en inglés (el PC no trae otras pistas).
+- [x] Subtítulos (`hd_subtitles`, encendido): sí vienen, en `Recom.pkg` como `FORM/5xxx/FO5xxx.BIN`
+  (tabla MVS en inglés US + remasterizadas UK/FR/GR/IT/SP). `khhd_subs.py` y el launcher escriben
+  `hd/subs/<video>.<idioma>.txt` (581 archivos, idénticos byte a byte); el juego los dibuja bajo la
+  imagen en su idioma (KHMenu, contorno oscuro). Algunas tablas descomprimen más de lo que dice su
+  cabecera: se conserva todo (21/10).
+- [x] Reproducción fluida: el video sale en NV12 del decodificador y la GPU lo convierte (textura NV12
+  BT.709). Pedir RGB a Media Foundation hacía la conversión por CPU y los videos iban lentísimo. El
+  plano de color se ubica por las filas reales del buffer (1088 en H.264 1080p); con 1080 el color
+  quedaba corrido hacia abajo (reporte del usuario, 21/10).
 - [x] Opciones en el juego (filas visibles solo si se importó) y en el launcher.
 - [ ] Linux: reproducción de MP4 (la música HD ya funciona en Linux y Android).
 - [ ] Android: importar la carpeta `hd` desde el launcher de Android; videos con MediaCodec.
