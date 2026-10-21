@@ -181,7 +181,8 @@ def package(regions):
     shutil.copy2(ROOT / 'port/assets/achievements/badges.png', assets / 'achievements/badges.png')
     livearea(pkg / 'sce_sys')
     (share / 'src').mkdir()
-    for src in (SWITCH / 'host/switch_host.c', PS5 / 'shared/bridge.h', PS5 / 'shared/bridge_list.h'):
+    for src in (SWITCH / 'host/switch_host.c', PS5 / 'shared/bridge.h', PS5 / 'shared/bridge_list.h', PS5 / 'shared/hd_music_host.h',
+                ROOT / 'port/third_party/stb/stb_vorbis.c'):
         shutil.copy2(src, share / 'src' / src.name)
     (share / 'guest.ld').write_text(GUEST_LD)
     script = VM_SCRIPT.replace('REGIONS', ' '.join(regions)).replace('TITLEID', TITLE_ID)
@@ -226,7 +227,8 @@ def test(region, env, shots):
     shutil.copy2(BUILD / f'guest-{region}.a', share)
     shutil.copy2(ROOT / 'roms' / ({'eu': 'B8CP', 'us': 'B8CE', 'jp': 'B8CJ'}[region] + '.gba'), share / 'data')
     shutil.copytree(PS5 / 'assets/fonts', share / 'assets/fonts')
-    for src in (SWITCH / 'host/switch_host.c', PS5 / 'shared/bridge.h', PS5 / 'shared/bridge_list.h'):
+    for src in (SWITCH / 'host/switch_host.c', PS5 / 'shared/bridge.h', PS5 / 'shared/bridge_list.h', PS5 / 'shared/hd_music_host.h',
+                ROOT / 'port/third_party/stb/stb_vorbis.c'):
         shutil.copy2(src, share / 'src' / src.name)
     (share / 'guest.ld').write_text(GUEST_LD)
     script = (TEST_SCRIPT.replace('@REGION@', region).replace('@ENV@', ' '.join(f"{k}='{v}'" for k, v in env.items()))

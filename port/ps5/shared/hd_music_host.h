@@ -20,7 +20,11 @@
 #define STB_VORBIS_NO_PUSHDATA_API
 #define STB_VORBIS_NO_INTEGER_CONVERSION
 #define STB_VORBIS_NO_STDIO
+#if __has_include("stb_vorbis.c") /* the Switch/Vita VM builds copy it next to the host source */
+#include "stb_vorbis.c"
+#else
 #include "../../third_party/stb/stb_vorbis.c"
+#endif
 
 enum { HD_MUSIC_OPEN, HD_MUSIC_PLAY, HD_MUSIC_PAUSE, HD_MUSIC_CLOSE };
 
