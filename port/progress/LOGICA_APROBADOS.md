@@ -80,3 +80,11 @@ Workflow completo (tiles, píxeles, pixel art, pruebas en x3 entero): WORKFLOW_A
   honores" el 20/10. El patio del combate cubre también el evento: la extensión se elige
   por los cuatro mapas del fondo, sin exigir el modo combate (`port_ppu.c`, `guardPatio`).
   Lección: buscar todas las apariciones de un fondo (WORKFLOW_ARTE_AMPLIO.md, paso 1).
+
+- Agrabah, calle de Aladdin, escenas 107/108: aprobada **«con honores»** el
+  21/10. Continuar por separado la diagonal de calle y la de las fachadas de
+  las azoteas; entre ambas, techo liso del propio mapa. Conservar todas las
+  filas del bordillo, incluidos los medios tiles de cada paridad. No repetir
+  ventanas, jarrones, puestos ni esquinas. Identificar los mapas por sus datos
+  descomprimidos (EU) o directos (US/JP), con paleta activa. Receta en
+  `AGRABAH_107_REVISION.md`. Codex commitea; Claude integra.

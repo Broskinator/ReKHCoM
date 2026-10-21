@@ -23,6 +23,7 @@
 #include "port/port_scene057_tiles.h"
 #include "port/port_scene061_tiles.h"
 #include "port/port_scene074_tiles.h"
+#include "port/port_agrabah_tiles.h"
 
 extern const void* gMsgwinMapBlocks[4];
 
@@ -72,6 +73,7 @@ static int sBgIso[4];
 static int sBgIsoLatched[4];
 static int sEventBackdropProfile = -1; /* derived at frame start, not saved */
 static int sUseSceneProfiles;
+static int sAgrabahLayer[4]; /* rebuilt from actual map data each frame */
 
 /* Scenes reviewed with the continued floor. Many maps end in an authored
    dark void past their walls, which must stay; only listed scenes extend.
@@ -934,6 +936,10 @@ static int WorldEntry(const BgLatch* l, int wx, int wy) {
  * so apply profiles before testing declared map bounds. */
 static int ExtendedWorldEntry(const BgLatch* l, int wx, int wy) {
     int bg = (int)(l - sBgLatch), tx = wx >> 3, ty = wy >> 3, supported = 0, ok = 0;
+    if (sAgrabahLayer[bg]) {
+        ok = PortAgrabahTileSource(sAgrabahLayer[bg], &tx, &ty);
+        return ok ? MapTile(l, tx, ty) : -1;
+    }
     if (!sBattleView && l->map && sUseSceneProfiles) {
         if (sEventBackdropProfile == 57 && (bg == 2 || bg == 3)) {
             supported = 1;
@@ -2748,6 +2754,27 @@ void PortPpuBeginFrame(void) {
         sBgLatch[b].valid = ValidateBgLatch(b, dispcnt);
         sBgWorldLatched[b].valid = !sBgLatch[b].valid && ValidateBgWorld(b, dispcnt);
         any |= sBgLatch[b].valid | sBgWorldLatched[b].valid;
+    }
+    /* EU decompresses these maps into RAM; US/JP use cartridge maps directly.
+     * Identify their tile data, never an event/mode or a cached RAM address.
+     * Recompute to handle exits, reused allocations and state loads alike.
+     * Preview is opt-in until visually approved. */
+    memset(sAgrabahLayer, 0, sizeof(sAgrabahLayer));
+    if (getenv("KHCOM_AGRABAH_WIDE")) {
+        for (b = 2; b <= 3; b++) {
+            const BgLatch* l = &sBgLatch[b];
+            if (l->valid && l->width == 2 && l->height == 2) {
+                uint32_t hash = 2166136261u;
+                int xx, yy, e;
+                for (yy = 0; yy < 64; yy++)
+                    for (xx = 0; xx < 64; xx++) {
+                        e = MapTile(l, xx, yy);
+                        hash = (hash ^ (uint32_t)e) * 16777619u;
+                    }
+                if (hash == 0x76732a49u) sAgrabahLayer[b] = 3;
+                if (hash == 0x30fe052eu) sAgrabahLayer[b] = 2;
+            }
+        }
     }
     /* Large affine stages (battle arenas) are fully in VRAM and extend as is. */
     for (b = 2; b < 4; b++) {
