@@ -9,10 +9,12 @@ and a contact sheet of the last screenshot of every event.
     python port/tools/test_events.py [--version eu|us|jp] [--wide] [--frames 4000] [--jobs 8] [--only 0:8,1:3]
 """
 import argparse
+import os
+import json
 import re
 import shutil
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import case_bin
@@ -31,8 +33,15 @@ def event_lists():
     return out
 
 
-def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False):
+def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False, resume=False):
     d = work / f"{list_id}_{index:03d}"
+    # each finished case leaves result.json: --resume keeps it and goes on from the first case without one
+    if resume and (d / "result.json").exists():
+        try:
+            code, crash, bios = json.loads((d / "result.json").read_text())
+            return code, crash, bios
+        except (ValueError, OSError):
+            pass
     if d.exists():
         shutil.rmtree(d)
     d.mkdir(parents=True)
@@ -43,7 +52,6 @@ def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False):
     env = {"SDL_VIDEO_DRIVER": "dummy", "SDL_AUDIO_DRIVER": "dummy", "KHCOM_FAST": "1",
            "KHCOM_EVENT": f"{list_id}:{index}", "KHCOM_KEYS": keys, "KHCOM_SHOTS": shots,
            "KHCOM_QUIT": str(frames + 5)}
-    import os
     full_env = dict(os.environ, **env)
     try:
         rom = ROOT / "roms" / {"eu": "B8CP", "us": "B8CE", "jp": "B8CJ"}[version]
@@ -56,6 +64,8 @@ def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False):
     log = (d / "kh_com.log").read_text(errors="replace") if (d / "kh_com.log").exists() else ""
     crash = "CRASH" in log
     bios = sorted(set(re.findall(r"bios: \w+ \w+ at eip (\w+)", log)))
+    (d / "result.tmp").write_text(json.dumps([code, crash, bios]))
+    os.replace(d / "result.tmp", d / "result.json")
     return code, crash, bios
 
 
@@ -68,6 +78,7 @@ def main():
     ap.add_argument("--only", help="comma list of list:index")
     ap.add_argument("--build", help="folder with khcom.exe (default build/pc or build/pc-<version>)")
     ap.add_argument("--wide", action="store_true", help="16:9 auto view instead of the GBA picture")
+    ap.add_argument("--resume", action="store_true", help="keep the cases that already finished (their result.json)")
     args = ap.parse_args()
 
     exe_dir = ROOT / (args.build or ("build/pc" if args.version == "eu" else f"build/pc-{args.version}"))
@@ -80,9 +91,13 @@ def main():
 
     results = {}
     with ThreadPoolExecutor(args.jobs) as pool:
-        futures = {pool.submit(run, exe_dir, work, args.version, l, i, args.frames, args.timeout, args.wide): (l, i, n) for l, i, n in events}
-        for fut, (l, i, n) in futures.items():
+        futures = {pool.submit(run, exe_dir, work, args.version, l, i, args.frames, args.timeout, args.wide,
+                               args.resume): (l, i, n) for l, i, n in events}
+        for k, fut in enumerate(as_completed(futures), 1):
+            l, i, n = futures[fut]
             results[(l, i)] = (n,) + fut.result()
+            print(f"[{k}/{len(futures)}] {l}:{i} {n} {'ok' if results[(l, i)][1] == 0 and not results[(l, i)][2] else 'BAD'}",
+                  flush=True)
 
     lines = []
     bad = 0

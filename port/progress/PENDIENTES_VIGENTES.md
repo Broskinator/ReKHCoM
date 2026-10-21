@@ -33,7 +33,7 @@ porque adb no arrancó (0xC0000142, no es fallo del juego); se retoma desde el c
 
 Las baterías se cortaron dos veces al cerrarse la sesión de Claude (Windows mata el árbol de procesos; no son
 fallos del juego). Desde 2f37b099f corren con `python port/tools/run_batteries.py --detach`, fuera de la sesión
-y reanudables (`--resume`); progreso en `build/batteries.log`. Orden (pedido del usuario: eventos y mundos antes de
+y reanudables caso por caso, en pasos chicos (batería × versión); `--status` muestra el avance. Ver `BATERIAS.md`. Orden (pedido del usuario: eventos y mundos antes de
 pedir nada a los testers y de dar una beta): kit de escritorio events/wide/rooms EU/US/JP, luego Android 64 (EU jefes
 desde el 30, Riku, US/JP menús y jefes).
 

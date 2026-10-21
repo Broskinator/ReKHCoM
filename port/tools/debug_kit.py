@@ -315,8 +315,10 @@ def main():
                     done.write_text('', encoding='utf-8')
                     continue
                 cmd = suite_commands(suite, v, jobs, args.quick)
+                if args.resume and suite in ('events', 'wide', 'rooms'):
+                    cmd.append('--resume')  # those keep each finished case: a cut run goes on from there
                 print(f'== {suite} {v} (jobs {jobs})', flush=True)
-                with open(OUT / f'{suite}-{v}.txt', 'w', encoding='utf-8') as log:
+                with open(OUT / f'{suite}-{v}.txt', 'a' if args.resume else 'w', encoding='utf-8') as log:
                     code = subprocess.run(cmd, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env).returncode
                 # killed from outside (0x40010004 on Windows, or a signal): not finished, --resume runs it again
                 if code not in (0x40010004, 0xC000013A) and code >= 0:
