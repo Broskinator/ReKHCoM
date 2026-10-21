@@ -29,6 +29,16 @@ Otro Claude nuevo retoma (el anterior sin actividad desde las 12:53). La baterí
 porque adb no arrancó (0xC0000142, no es fallo del juego); se retoma desde el combate 30 de EU. Codex integrado hasta
 457d10854 (Atlántica 102).
 
+## Traspaso 21/10 ~15:10 (al Claude o Codex que siga; tokens del usuario casi agotados)
+
+- Rama `claude/perf-android-reloc` (sin verificar, NO está en main): PPU en varios núcleos (I) y arreglo de Android 64
+  (J). Antes de llevarla a main: (1) `KHCOM_PPU_VERIFY=1` en la batería de eventos/salas/combates con 0 `MISMATCH`;
+  (2) emulador Android con y sin `KHCOM_IMAGE_MOVE=1` (menús y jefes); (3) build pc-eu y prueba de combate.
+- RAM: con las baterías y los programas del usuario quedan ~0,7 GB; el emulador necesita ~3 GB: pausar las baterías
+  (se retoman solas con `run_batteries.py --detach`) y pedir al usuario que libere RAM.
+- #36 (Switch): comentario listo en `build/issue36-comment.md`, se publica junto con la próxima prueba.
+- Vita a la GPU: hace falta permiso del usuario para `vdpm sdl2` en la VM (`RENDIMIENTO.md`).
+
 ## Baterías 21/10 13:13
 
 Las baterías se cortaron dos veces al cerrarse la sesión de Claude (Windows mata el árbol de procesos; no son
@@ -48,6 +58,8 @@ desde el 30, Riku, US/JP menús y jefes).
 | **Claude** | **E. Issues de la pre2** (#22, #33, #34, #35; #36 nuevo 21/10: Switch V1 se cierra al cargar el título, sin versión ni log: comentario con preguntas listo en `build/issue36-comment.md`, no se publica todavía: el usuario quiere terminar antes la batería de eventos y mundos y dar una beta): leer las respuestas de los testers, arreglar lo que reporten y cerrar con su confirmación; #35 Switch: si sigue lento con la GPU actual, evaluar deko3d. #25 (escenas HD): agradecer a DL-6-case y cerrar cuando salga el mod HD en una estable |
 | **Claude** | **F. Discord Rich Presence**: hecho, con el Application ID del usuario (718b5d212, 20/10); falta probar Linux |
 | **Claude** | **G. Integración de Codex**: traer sus commits de `khcom-codex` (rama codex/preliminar-v1) y `khcom` a main con build y prueba antes de cada push (al día hasta 457d10854, 21/10) |
+| **Claude** | **I. Rendimiento** (pedido del usuario 21/10, `RENDIMIENTO.md`): PPU en varios núcleos (x1 en Windows a 60 fps con margen; toma la parte de rendimiento de la PPU, zona de Codex), Vita y PS4 a la GPU |
+| **Claude** | **J. Android 64 en teléfonos reales** (rama `claude/perf-android-reloc`, compila; falta emulador: `KHCOM_IMAGE_MOVE=1` fuerza la reubicación; luego APK de prueba y pedir a #22/#34 que prueben; el error ahora tiene botón "Share log" con modelo, Android, páginas y mapa de memoria) (#22 Poco F8 Ultra, #34 Mate XT: "The game image could not be loaded"): la imagen se reubica donde haya hueco si 0x01000000 está ocupada (`ANDROID_64.md`); probar en el emulador y dar otra prueba a los testers |
 | **Claude** | **H. Próxima estable**: con el OK del usuario; `release_check.py` antes/después, todas las plataformas (Switch y Vita incluidas), web, CHANGELOG ya al día con v1.9.13 |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
 | **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después, con el método de abajo ("Para Codex: cómo hacer el arte") |
