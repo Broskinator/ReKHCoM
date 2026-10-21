@@ -34,6 +34,38 @@ public class GameActivity extends SDLActivity {
             }
         } catch (Exception e) { android.util.Log.w("ReKHCoM","smoke env: "+e); }
     }
+    /** Called by the 64-bit host's error box (android64_host.c, ShareLog): the logs and the device as plain text in
+     *  Android's share sheet, so a tester can send them without looking for files (issues #22, #34). */
+    public void shareLog() {
+        StringBuilder text=new StringBuilder();
+        text.append("ReKHCoM log
+Device: ").append(android.os.Build.MANUFACTURER).append(' ').append(android.os.Build.MODEL)
+            .append("
+Android ").append(android.os.Build.VERSION.RELEASE).append(" (API ").append(android.os.Build.VERSION.SDK_INT)
+            .append(")
+ABIs: ").append(android.text.TextUtils.join(",",android.os.Build.SUPPORTED_ABIS)).append('
+');
+        for (String name: new String[]{"kh_com_host.log","kh_com.log"}) {
+            java.io.File file=new java.io.File(getFilesDir(),name);
+            if (!file.exists()) continue;
+            text.append("
+--- ").append(name).append(" ---
+");
+            try (java.io.FileInputStream in=new java.io.FileInputStream(file)) {
+                byte[] data=new byte[(int)Math.min(file.length(),60000)];
+                int n=in.read(data);
+                if (n>0) text.append(new String(data,0,n,"UTF-8"));
+            } catch (Exception e) { text.append(e).append('
+'); }
+        }
+        android.content.Intent send=new android.content.Intent(android.content.Intent.ACTION_SEND);
+        send.setType("text/plain");
+        send.putExtra(android.content.Intent.EXTRA_SUBJECT,"ReKHCoM log");
+        send.putExtra(android.content.Intent.EXTRA_TEXT,text.toString());
+        android.content.Intent chooser=android.content.Intent.createChooser(send,"ReKHCoM log");
+        chooser.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(chooser);
+    }
     @Override protected String[] getArguments() {
         smokeEnvironment();
         /* No --language: the European cartridge asks for it itself. */

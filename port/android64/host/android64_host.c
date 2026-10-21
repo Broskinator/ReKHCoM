@@ -26,6 +26,8 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
+#include <sys/system_properties.h>
+#include <jni.h>
 #include <unistd.h>
 
 #include "bridge.h"
@@ -65,10 +67,47 @@ static void Log(const char* fmt, ...) {
     }
 }
 
+/* GameActivity.shareLog: the logs and the device in Android's share sheet */
+static void ShareLog(void) {
+    JNIEnv* env = (JNIEnv*)SDL_GetAndroidJNIEnv();
+    jobject activity = (jobject)SDL_GetAndroidActivity();
+    if (env && activity) {
+        jclass cls = (*env)->GetObjectClass(env, activity);
+        jmethodID share = (*env)->GetMethodID(env, cls, "shareLog", "()V");
+        if (share)
+            (*env)->CallVoidMethod(env, activity, share);
+        if ((*env)->ExceptionCheck(env))
+            (*env)->ExceptionClear(env);
+        (*env)->DeleteLocalRef(env, cls);
+        (*env)->DeleteLocalRef(env, activity);
+        SDL_Delay(1500); /* the share sheet is up before this process ends */
+    }
+}
+
 static void Fatal(const char* text) {
+    static const SDL_MessageBoxButtonData buttons[] = {
+        { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "OK" },
+        { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Share log" },
+    };
+    SDL_MessageBoxData box = { SDL_MESSAGEBOX_ERROR, NULL, "Kingdom Hearts: Chain of Memories", text, 2, buttons, NULL };
+    int pressed = 0;
     Log("%s", text);
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Kingdom Hearts: Chain of Memories", text, NULL);
+    if (sLog)
+        fflush(sLog);
+    if (SDL_ShowMessageBox(&box, &pressed) && pressed == 1)
+        ShareLog();
     exit(1);
+}
+
+/* The device, at the top of the log: what a report needs to tell phones apart */
+static void LogDevice(void) {
+    char model[PROP_VALUE_MAX] = "", maker[PROP_VALUE_MAX] = "", release[PROP_VALUE_MAX] = "", sdk[PROP_VALUE_MAX] = "";
+    __system_property_get("ro.product.manufacturer", maker);
+    __system_property_get("ro.product.model", model);
+    __system_property_get("ro.build.version.release", release);
+    __system_property_get("ro.build.version.sdk", sdk);
+    Log("device: %s %s, Android %s (API %s), page %ld bytes, linked range %s", maker, model, release, sdk,
+        sysconf(_SC_PAGESIZE), sReserved ? "reserved at load" : "TAKEN at load");
 }
 
 /* ---- bridge: process, files ----------------------------------------------------------------------------------- */
@@ -510,6 +549,7 @@ static uint32_t ClaimImageSpace(uint32_t linked, uint32_t size) {
         munmap((void*)(uintptr_t)IMAGE_BASE, IMAGE_LIMIT - IMAGE_BASE);
     sReserved = 0;
     n = BusyRanges(busy, 1024);
+    Log("%d mappings below 4 GiB", n);
     for (i = 0; i < n; i++)
         if (busy[i][1] > linked && busy[i][0] < (uint64_t)linked + size)
             Log("0x%08x is taken: %08llx-%08llx", linked, (unsigned long long)busy[i][0], (unsigned long long)busy[i][1]);
@@ -666,6 +706,10 @@ static int LoadImage(const char* region, Ps5GuestHeader* header) {
     }
     base = ClaimImageSpace(low, high - low);
     if (!base) {
+        static uint64_t busy[1024][2];
+        int n = BusyRanges(busy, 1024);
+        for (int i = 0; i < n; i++)
+            Log("  %08llx-%08llx", (unsigned long long)busy[i][0], (unsigned long long)busy[i][1]);
         SDL_free(file);
         return ImageFail("no free %u MB below 4 GB for the game image", (unsigned)((high - low) >> 20));
     }
@@ -746,6 +790,7 @@ int main(int argc, char** argv) {
     SDL_snprintf(logPath, sizeof(logPath), "%s/kh_com_host.log", sData);
     sLog = fopen(logPath, "w");
     Log("ReKHCoM (Android 64-bit) starting");
+    LogDevice();
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD))
         Fatal(SDL_GetError());
     SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
@@ -766,7 +811,7 @@ int main(int argc, char** argv) {
     if (!LoadImage(region, &header)) {
         char text[400];
         SDL_snprintf(text, sizeof(text), "The game image could not be loaded (%s). Please send kh_com_host.log "
-                     "(Settings > share log) or a picture of this message.", sImageError);
+                     "(Share log) or a picture of this message.", sImageError);
         Fatal(text);
     }
 
