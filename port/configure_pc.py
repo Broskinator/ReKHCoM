@@ -89,7 +89,7 @@ def main():
                    f"-DVERSION_{VERSION.upper()} -DPLATFORM_PC {quoted} -Iport/include -I{rel(sdl_arch / 'include')}"
                    + (" -DPORT_HD2D" if args.hd2d else "") + (" -DPORT_GBA_RELOC" if args.reloc else ""))
     port_cflags += " -DPORT_RETROACHIEVEMENTS -DRC_CLIENT_SUPPORTS_HASH -Iport/third_party/rcheevos/include"
-    ldflags = (f"-L{rel(sdl_arch / 'lib')} -lSDL3 -lgdi32 -lwinhttp -lcrypt32 -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic -Wl,--disable-dynamicbase -Wl,--large-address-aware "
+    ldflags = (f"-L{rel(sdl_arch / 'lib')} -lSDL3 -lgdi32 -lwinhttp -lcrypt32 -lmfplat -lmfreadwrite -lmfuuid -lole32 -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic -Wl,--disable-dynamicbase -Wl,--large-address-aware "
                + ("" if args.debug else "-Wl,--subsystem,windows"))
     if args.reloc:
         # above the bus range, which the check build reserves without access (port_memory.c)

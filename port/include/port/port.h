@@ -224,6 +224,7 @@ int PortDiscordAvailable(void);  /* 0 where there is no Discord (Android, web, c
 void PortHdMusicFrame(void);     /* port_hdmusic.c: the imported Re:CoM soundtrack in place of the BGM */
 void PortHdMusicShutdown(void);
 const char* PortHdMusicTrack(int song); /* the Re:CoM track of a cartridge song, NULL if none */
+int PortHdMoviePlay(int movieId);  /* port_hdmovie.c: 1 if the imported HD movie played in place of the cartridge's */
 /* badgeIndex: position in the official set (its badges.png atlas); -1 = none */
 void PortAchievementToast(const char* title, const char* detail, const char* label, int badgeIndex);
 void PortAchievementToastDraw(void* renderer, int width, int height);

@@ -1816,6 +1816,11 @@ static uint16_t HarnessKeys(uint32_t frame) {
 
 static void Present(void);
 
+/* the window's renderer, for what draws outside the game's frame (port_hdmovie.c) */
+SDL_Renderer* PortRenderer(void) {
+    return sRenderer;
+}
+
 static void HarnessFrame(void) {
     const char* shots = SDL_getenv("KHCOM_SHOTS");
     const char* quit = SDL_getenv("KHCOM_QUIT");
