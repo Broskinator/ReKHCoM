@@ -11,9 +11,17 @@
   the level, the boss you are fighting and the session time, in the game's language, with the
   world's or boss's achievement badge. On by default; Options and the launcher can turn it off.
 - Options: "Return to title screen" in the Re:CoM section (confirm twice), the game's own reset.
-- Android: no more crash right before the Trickmaster battle in Wonderland (#33). The game claims
-  its memory as soon as it loads, and if a phone still keeps it busy (#22, #34) the message says
-  what is in the way; a 64-bit version that avoids this is in progress.
+- Android: no more crash right before the Trickmaster battle in Wonderland (#33). The APK now
+  carries a 64-bit version that phones use automatically: it does not need the GBA address range
+  that some phones keep busy ("Cannot reserve the GBA address space", #22, #34). Older 32-bit
+  phones keep the previous version, in the same APK; saves are kept when updating.
+- HD mod (optional): with KINGDOM HEARTS HD 1.5+2.5 ReMIX installed (Steam or Epic), the launcher
+  imports Re:Chain of Memories' music, movies and subtitles from your own copy (nothing is shipped
+  with ReKHCoM). The music replaces the cartridge's on every platform; the movies and the full
+  scenes mod play on Windows. Android's launcher imports the `hd` folder made on the PC.
+- Switch: the picture is drawn by the GPU instead of the CPU (the console was held to 20-25 fps,
+  #35), and the touch screen works in the Options.
+- HD text: the "a" no longer looks like an "o" and the "r" is easier to read.
 - Windows: the game opens straight in fullscreen, without a window flashing first, and Windows
   SmartScreen no longer stops the game after the launcher was allowed.
 - Agrabah: the widescreen margins of the street and the Genie's market are completed.
