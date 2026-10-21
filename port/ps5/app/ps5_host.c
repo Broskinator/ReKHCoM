@@ -320,6 +320,9 @@ static int H_pad_poll(HostPad *out, int count)
 }
 static int H_quit_requested(void) { return sQuit; }
 static void H_set_title(const char *s) { (void)s; }
+/* no touch screen and no background state here (bridge entries of the Android 64-bit host) */
+static int H_touch_poll(HostTouch* fingers, int max) { (void)fingers; (void)max; return 0; }
+static int H_app_state(void) { return 0; }
 
 /* ---- guest memory ------------------------------------------------------------- */
 
@@ -1020,6 +1023,7 @@ int main(void)
         [HF_log_e] = (uintptr_t)(double (*)(double))log, [HF_fmod] = (uintptr_t)(double (*)(double, double))fmod,
         [HF_sinf] = (uintptr_t)(float (*)(float))sinf, [HF_cosf] = (uintptr_t)(float (*)(float))cosf,
         [HF_powf] = (uintptr_t)(float (*)(float, float))powf, [HF_set_title] = (uintptr_t)H_set_title, [HF_notify] = (uintptr_t)H_notify,
+        [HF_touch_poll] = (uintptr_t)H_touch_poll, [HF_app_state] = (uintptr_t)H_app_state,
     };
     for (int i = 0; i < HF_COUNT; ++i)
         if (!t[i])

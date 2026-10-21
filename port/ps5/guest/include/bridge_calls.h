@@ -51,4 +51,6 @@ float h_cosf(float);
 float h_powf(float, float);
 void h_set_title(const char*);
 void h_notify(const char*);
+int h_touch_poll(HostTouch* fingers, int max);
+int h_app_state(void);
 #endif

@@ -781,6 +781,9 @@ static int H_pad_poll(HostPad* out, int count) {
 }
 static int H_quit_requested(void) { return sQuit; }
 static void H_set_title(const char* s) { (void)s; }
+/* no touch screen and no background state here (bridge entries of the Android 64-bit host) */
+static int H_touch_poll(HostTouch* fingers, int max) { (void)fingers; (void)max; return 0; }
+static int H_app_state(void) { return 0; }
 
 #ifndef REKHCOM_LINKED_GUEST
 /* ---- the game image: a Mach-O executable of 32-bit load commands ---------------------------------------------- */
@@ -1050,7 +1053,7 @@ int main(int argc, char** argv) {
         HM(sin, (double (*)(double))sin), HM(cos, (double (*)(double))cos), HM(tan, (double (*)(double))tan),
         HM(atan2, (double (*)(double, double))atan2), HM(pow, (double (*)(double, double))pow), HM(exp, (double (*)(double))exp),
         HM(log_e, (double (*)(double))log), HM(fmod, (double (*)(double, double))fmod), HM(sinf, (float (*)(float))sinf),
-        HM(cosf, (float (*)(float))cosf), HM(powf, (float (*)(float, float))powf), HF(set_title), HF(notify),
+        HM(cosf, (float (*)(float))cosf), HM(powf, (float (*)(float, float))powf), HF(set_title), HF(notify), HF(touch_poll), HF(app_state),
     };
     for (int i = 0; i < HF_COUNT; ++i)
         if (!t[i]) {

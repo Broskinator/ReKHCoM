@@ -117,10 +117,7 @@ def build_guest(region, jobs):
         if src.stem in build_ps5.PORT_EXCLUDED:
             continue
         if src.name in build_ps5.PORT_PATCHES:
-            patched = PS5 / 'build' / f'guest-{region}' / 'patched' / src.name
-            if not patched.exists():
-                sys.exit(f'{patched} missing: run port/ps5/build_ps5.py guest --region {region} once (it writes the patched copies)')
-            src = patched
+            src = build_ps5.patched_source(src, out / 'patched')
         units.append((src, out / 'port' / (src.stem + '.o'), port_flags))
     units.append((pc / 'rom_relocs.c', out / 'port/rom_relocs.o', port_flags))
     for src in sorted((PS5 / 'guest/src').glob('*.c')):
@@ -132,8 +129,10 @@ def build_guest(region, jobs):
         units.append((src, out / 'asm' / (src.stem + '.o'), [TARGET, CPU, '-c']))
     compile_all(jobs, units)
     image = BUILD / f'guest-{region}.macho'
+    objects = out / 'objects.rsp'  # the object list as a response file: too long for a Windows command line
+    objects.write_text('\n'.join('"' + u[1].as_posix() + '"' for u in units) + '\n')
     run([LLD, '-flavor', 'darwin', '-arch', 'arm64_32', '-platform_version', 'watchos', '9.0', '9.0', '-e', '_switch_boot',
-         '-pagezero_size', hex(BASE), '-map', out / 'guest.map', '-o', image, *[u[1] for u in units]])
+         '-pagezero_size', hex(BASE), '-map', out / 'guest.map', '-o', image, f'@{objects}'])
     print(f'guest {region}: {image} ({image.stat().st_size} bytes)')
     return image
 

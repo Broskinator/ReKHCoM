@@ -736,6 +736,58 @@ static void Refresh(void) {
     }
 }
 
+/* Touch screen and background state (the Android 64-bit host; other hosts report none): the fingers now against the
+   last ones become FINGER_DOWN / MOTION / UP, a change of state WILL_ENTER_BACKGROUND / DID_ENTER_FOREGROUND. */
+static void RefreshTouch(void) {
+    static HostTouch last[HOSTTOUCH_MAX];
+    static int lastCount, background;
+    HostTouch now[HOSTTOUCH_MAX];
+    int count = h_touch_poll(now, HOSTTOUCH_MAX), i, j, state = h_app_state();
+    SDL_Event e;
+
+    if (state != background) {
+        memset(&e, 0, sizeof(e));
+        e.type = state ? SDL_EVENT_WILL_ENTER_BACKGROUND : SDL_EVENT_DID_ENTER_FOREGROUND;
+        Push(&e);
+        background = state;
+    }
+    if (count < 0)
+        count = 0;
+    for (i = 0; i < count; i++) {
+        const HostTouch* before = NULL;
+        for (j = 0; j < lastCount; j++)
+            if (last[j].id == now[i].id)
+                before = &last[j];
+        if (before && before->x == now[i].x && before->y == now[i].y)
+            continue;
+        memset(&e, 0, sizeof(e));
+        e.type = before ? SDL_EVENT_FINGER_MOTION : SDL_EVENT_FINGER_DOWN;
+        e.tfinger.touchID = 1;
+        e.tfinger.fingerID = now[i].id;
+        e.tfinger.x = now[i].x;
+        e.tfinger.y = now[i].y;
+        e.tfinger.dx = before ? now[i].x - before->x : 0;
+        e.tfinger.dy = before ? now[i].y - before->y : 0;
+        e.tfinger.pressure = 1.0f;
+        Push(&e);
+    }
+    for (j = 0; j < lastCount; j++) {
+        for (i = 0; i < count && now[i].id != last[j].id; i++) {
+        }
+        if (i < count)
+            continue;
+        memset(&e, 0, sizeof(e));
+        e.type = SDL_EVENT_FINGER_UP;
+        e.tfinger.touchID = 1;
+        e.tfinger.fingerID = last[j].id;
+        e.tfinger.x = last[j].x;
+        e.tfinger.y = last[j].y;
+        Push(&e);
+    }
+    memcpy(last, now, sizeof(HostTouch) * (size_t)count);
+    lastCount = count;
+}
+
 bool SDL_PollEvent(SDL_Event* e) {
     static bool fresh = true; /* the pads are read once per drain of the queue */
     if (sQHead == sQTail && fresh) {
@@ -747,6 +799,7 @@ bool SDL_PollEvent(SDL_Event* e) {
             Push(&q);
         }
         Refresh();
+        RefreshTouch();
     }
     if (sQHead == sQTail) {
         fresh = true;

@@ -13,7 +13,7 @@
 #include "port/port_aspect.h"
 #include "port/port_ui.h"
 #include "port/port_achievement_list.h"
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64)
 #include "port/port_android.h"
 #endif
 #include "port/pad_layout.h"
@@ -157,12 +157,12 @@ static int PageEnd(void) {
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
     switch (item) {
-#if !defined(__ANDROID__) && !defined(__EMSCRIPTEN__)
+#if !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(PORT_ANDROID64)
         case ITEM_HIDE_TOUCH: return 0;
 #else
         case ITEM_REMATCH_MENU: return 0; /* rematches need states, not on these yet */
 #endif
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) /* the console images hide them through build_ps5.PORT_PATCHES */
         case ITEM_FULLSCREEN:
         case ITEM_FS_RES: return 0;
 #endif
@@ -1106,7 +1106,7 @@ static void Change(int item, int dir) {
             break;
         case ITEM_HIDE_TOUCH:
             gPortConfig.hideTouchControls = !gPortConfig.hideTouchControls;
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64)
             PortAndroidTouchSettingsChanged();
 #endif
             break;

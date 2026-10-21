@@ -95,10 +95,7 @@ def build_guest(region, jobs):
         if src.stem in build_ps5.PORT_EXCLUDED:
             continue
         if src.name in build_ps5.PORT_PATCHES:
-            patched = PS5 / 'build' / f'guest-{region}' / 'patched' / src.name
-            if not patched.exists():
-                sys.exit(f'{patched} missing: run port/ps5/build_ps5.py guest --region {region} once (it writes the patched copies)')
-            src = patched
+            src = build_ps5.patched_source(src, out / 'patched')
         units.append((src, out / 'port' / (src.stem + '.o'), port_flags))
     units.append((pc / 'rom_relocs.c', out / 'port/rom_relocs.o', port_flags))
     for src in sorted((PS5 / 'guest/src').glob('*.c')):

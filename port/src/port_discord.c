@@ -9,10 +9,6 @@
  *
  * Desktop builds only (Windows, Linux): Android, the web and the console images get the empty functions below.
  */
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
-
 #include "port/port.h"
 
 /* The Discord application (discord.com/developers): its name is the game shown in the profile. KHCOM_DISCORD_APP_ID
@@ -29,6 +25,9 @@
 
 #ifdef DISCORD_IPC
 #include <SDL3/SDL.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
 
 #include "game_state.h"
 #include "menu/world_types.h"

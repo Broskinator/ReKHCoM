@@ -20,10 +20,10 @@
 #include "port/port_hd2d.h"
 #include "port/port_ui.h"
 #include "port/port_state.h"
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64)
 #include "port/port_android.h"
 #endif
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(PORT_ANDROID64)
 static int sAndroidBackground;
 #endif
 #ifdef __EMSCRIPTEN__
@@ -190,7 +190,7 @@ static void ApplyWindowMode(void) {
     SDL_SetRenderVSync(sRenderer, 0);
     return;
 #endif
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(PORT_ANDROID64)
     /* Android has no desktop window mode; keep system bars out of the game. */
     SDL_SetWindowFullscreen(sWindow, true);
     SDL_SetRenderVSync(sRenderer, gPortConfig.vsync ? 1 : 0);
@@ -1663,7 +1663,7 @@ static void Present(void) {
             }
         }
     }
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64)
     PortAndroidTouchDraw(sRenderer);
 #endif
 #ifdef PORT_LINUX
@@ -1949,7 +1949,7 @@ static void PumpEvents(void) {
             extern void PortWebHdClear(void);PortWebHdClear();
         }
 #endif
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(PORT_ANDROID64)
         if (ev.type == SDL_EVENT_WILL_ENTER_BACKGROUND || ev.type == SDL_EVENT_DID_ENTER_BACKGROUND) {
             sAndroidBackground = 1;
             PortAndroidTouchClear();
@@ -2129,7 +2129,7 @@ static void VBlankCycle(void) {
     PumpEvents();
 
     /* Options overlay: the game is paused until it closes. */
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(PORT_ANDROID64)
     while (sAndroidBackground) { SDL_Delay(50); PumpEvents(); }
 #endif
     if (PortUiActive()) {
@@ -2155,7 +2155,7 @@ static void VBlankCycle(void) {
             PortPpuRenderFrame();
         Present();
         PumpEvents();
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(PORT_ANDROID64)
         while (sAndroidBackground) { SDL_Delay(50); PumpEvents(); }
 #endif
         Pace();
