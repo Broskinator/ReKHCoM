@@ -18,6 +18,8 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import case_bin
+
 ROOT = Path(__file__).resolve().parents[2]
 
 def battle_entries():
@@ -39,8 +41,7 @@ def run(exe_dir, work, version, index, stage, frames, timeout, riku=False):
     if d.exists():
         shutil.rmtree(d)
     d.mkdir(parents=True)
-    for f in ("khcom.exe", "SDL3.dll"):
-        shutil.copy(exe_dir / f, d / f)
+    case_bin.place(exe_dir, work, d)
     (d / "kh_com.ini").write_text("config_version=2\n")
     keys = ["60-63:A"]
     dirs = ("RIGHT", "LEFT", "UP", "DOWN")

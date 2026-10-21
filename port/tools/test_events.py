@@ -15,6 +15,8 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import case_bin
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -34,8 +36,7 @@ def run(exe_dir, work, version, list_id, index, frames, timeout, wide=False):
     if d.exists():
         shutil.rmtree(d)
     d.mkdir(parents=True)
-    for f in ("khcom.exe", "SDL3.dll"):
-        shutil.copy(exe_dir / f, d / f)
+    case_bin.place(exe_dir, work, d)
     (d / "kh_com.ini").write_text(f"config_version=2\nview_mode={4 if wide else 0}\n")
     keys = ",".join(f"{f}-{f + 3}:A" for f in range(30, frames, 40))
     shots = ",".join(str(f) for f in (frames // 4, frames // 2, frames * 3 // 4, frames))

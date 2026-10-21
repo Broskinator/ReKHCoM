@@ -118,7 +118,8 @@ def main():
         if not args.disk.exists():
             subprocess.check_call([str(QEMU / 'qemu-img.exe'), 'create', '-f', 'qcow2', '-F', 'qcow2',
                                    '-b', str(IMAGES[args.machine]), str(args.disk), args.disk_size])
-        system = f'file={args.disk},if=virtio'
+        # discard: what the guest frees (fstrim below) leaves the overlay instead of staying allocated
+        system = f'file={args.disk},if=virtio,discard=unmap,detect-zeroes=unmap'
     nic = ['-nic', 'user,model=virtio-net-pci'] if args.net else ['-nic', 'none']
     # Outbox for --fetch: a raw disk (/dev/vdc) the guest writes a tar archive to.
     outbox = image.with_name(image.stem + '-outbox.img')
@@ -177,6 +178,8 @@ def main():
             names = ' '.join(f.lstrip('/') for f in args.fetch)
             out, code = con.run(f'tar -cf /dev/vdc -C / {names}; sync', 600)
             print(f'# outbox tar [exit {code}] {out.strip()[-300:]}', flush=True)
+        if args.disk:
+            con.run('rm -rf /root/share; apt-get clean; fstrim -v /', 600)  # keep the persistent disk small
         con.send('poweroff\n')
         proc.wait(120)
         if args.fetch:

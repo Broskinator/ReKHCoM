@@ -45,6 +45,8 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+import case_bin
+
 ROOT = Path(__file__).resolve().parents[2]
 TOOLS = ROOT / 'port/tools'
 OUT = ROOT / 'build/debugkit'
@@ -111,8 +113,7 @@ def run_scenes(version, jobs):
         d = work / name
         shutil.rmtree(d, ignore_errors=True)
         d.mkdir(parents=True)
-        for f in ('khcom.exe', 'SDL3.dll'):
-            shutil.copy2(build_dir(version) / f, d / f)
+        case_bin.place(build_dir(version), work, d)
         env = {k: v for k, v in os.environ.items() if not k.startswith(('KHCOM_', 'SDL_'))}
         env.update(SDL_VIDEO_DRIVER='dummy', SDL_AUDIO_DRIVER='dummy', KHCOM_FAST='1', KHCOM_QUIT=str(frames))
         for line in text.splitlines():
