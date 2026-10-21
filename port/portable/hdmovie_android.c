@@ -394,6 +394,31 @@ static void Feed(Track* t) {
     }
 }
 
+/* KHCOM_HDMOVIE_RGB=1: the frame is converted to RGB here (BT.709, studio range) and uploaded as a plain texture,
+   for GPUs/emulators whose YUV textures do not work (the Android 14 emulator hangs creating SDL's YUV shader) */
+static void YuvToRgb(SDL_Texture* texture, int w, int h, const uint8_t* y, int sy, const uint8_t* u, const uint8_t* v,
+                     int su, int sv, int pu) {
+    uint8_t* out;
+    int pitch;
+    if (!SDL_LockTexture(texture, NULL, (void**)&out, &pitch))
+        return;
+    for (int j = 0; j < h; j++) {
+        const uint8_t* ly = y + (size_t)j * sy;
+        const uint8_t* lu = u + (size_t)(j / 2) * su;
+        const uint8_t* lv = v + (size_t)(j / 2) * sv;
+        uint8_t* d = out + (size_t)j * pitch;
+        for (int i = 0; i < w; i++) {
+            int c = (ly[i] - 16) * 298, cb = lu[(i / 2) * pu] - 128, cr = lv[(i / 2) * pu] - 128;
+            int r = (c + 459 * cr + 128) >> 8, g = (c - 55 * cb - 136 * cr + 128) >> 8, b = (c + 541 * cb + 128) >> 8;
+            d[i * 4 + 0] = (uint8_t)(r < 0 ? 0 : r > 255 ? 255 : r);
+            d[i * 4 + 1] = (uint8_t)(g < 0 ? 0 : g > 255 ? 255 : g);
+            d[i * 4 + 2] = (uint8_t)(b < 0 ? 0 : b > 255 ? 255 : b);
+            d[i * 4 + 3] = 255;
+        }
+    }
+    SDL_UnlockTexture(texture);
+}
+
 /* Plays the movie at path to the end (or until skipped). subs, subs2: the subtitle file to show and the one to try
    if it is missing (NULL: none); font: the KHMenu face to try before the APK's. 0: it could not be opened, 1 played,
    2 played and the app was closed. */
@@ -409,7 +434,7 @@ int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* sub
     int64_t audioPushed = 0, pendingPts = 0, start = 0; /* microseconds */
     Uint64 lastShown = 0; /* when a frame last went to the screen */
     ssize_t pending = -1;
-    int fd, quit = 0, played = 0, shown = 0, dropped = 0, audioOn;
+    int fd, quit = 0, played = 0, shown = 0, dropped = 0, audioOn, rgb = SDL_getenv("KHCOM_HDMOVIE_RGB") != NULL;
     struct stat st;
     Subs subs;
 
@@ -564,19 +589,21 @@ int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* sub
                 /* interleaved chroma with U first is NV12; one byte per sample is planar YUV; anything else (NV21)
                    goes through NV21 */
                 int w = crop.right - crop.left, h = crop.bottom - crop.top;
-                int nv = pu == 2 ? (v == u + 1 ? 1 : u == v + 1 ? 2 : 0) : 0;
+                int nv = rgb ? 3 : pu == 2 ? (v == u + 1 ? 1 : u == v + 1 ? 2 : 0) : 0;
                 if (w > 0 && h > 0 && (pu == 1 || nv)) {
                     if (!texture || texW != w || texH != h || texNv12 != nv) {
                         SDL_PropertiesID props = SDL_CreateProperties();
                         if (texture)
                             SDL_DestroyTexture(texture);
                         SDL_SetNumberProperty(props, SDL_PROP_TEXTURE_CREATE_FORMAT_NUMBER,
-                                              nv == 1 ? SDL_PIXELFORMAT_NV12 : nv == 2 ? SDL_PIXELFORMAT_NV21 : SDL_PIXELFORMAT_IYUV);
+                                              nv == 3 ? SDL_PIXELFORMAT_ABGR8888 : nv == 1 ? SDL_PIXELFORMAT_NV12 : nv == 2 ? SDL_PIXELFORMAT_NV21 :
+                                              SDL_PIXELFORMAT_IYUV);
                         SDL_SetNumberProperty(props, SDL_PROP_TEXTURE_CREATE_ACCESS_NUMBER, SDL_TEXTUREACCESS_STREAMING);
                         SDL_SetNumberProperty(props, SDL_PROP_TEXTURE_CREATE_WIDTH_NUMBER, w);
                         SDL_SetNumberProperty(props, SDL_PROP_TEXTURE_CREATE_HEIGHT_NUMBER, h);
                         /* HD video: BT.709, studio range */
-                        SDL_SetNumberProperty(props, SDL_PROP_TEXTURE_CREATE_COLORSPACE_NUMBER, SDL_COLORSPACE_BT709_LIMITED);
+                        if (nv != 3)
+                            SDL_SetNumberProperty(props, SDL_PROP_TEXTURE_CREATE_COLORSPACE_NUMBER, SDL_COLORSPACE_BT709_LIMITED);
                         texture = SDL_CreateTextureWithProperties(renderer, props);
                         SDL_DestroyProperties(props);
                         if (texture)
@@ -590,7 +617,9 @@ int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* sub
                     if (texture) {
                         const uint8_t* yy = y + crop.top * sy + crop.left;
                         size_t c = (size_t)(crop.top / 2) * su + (size_t)(crop.left / 2) * pu;
-                        if (nv == 1)
+                        if (nv == 3)
+                            YuvToRgb(texture, w, h, yy, sy, u + c, v + (size_t)(crop.top / 2) * sv + (size_t)(crop.left / 2) * pu, su, sv, pu);
+                        else if (nv == 1)
                             SDL_UpdateNVTexture(texture, NULL, yy, sy, u + c, su);
                         else if (nv == 2)
                             SDL_UpdateNVTexture(texture, NULL, yy, sy, v + c, sv);
