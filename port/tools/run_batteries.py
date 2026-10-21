@@ -27,7 +27,9 @@ SCN = 'port/tools/test_android_scenarios.py'
 # Desktop first (what the user asked for, 21/10), then the Android emulator: both together do not fit in the RAM.
 KIT = [PY, 'port/tools/debug_kit.py', 'run', '--resume', '--jobs', '2']
 STEPS = [('desktop build', [PY, 'port/tools/debug_kit.py', 'run', '--build', '--versions', 'eu,us,jp', '--suites', ''])]
-for _suite in ('events', 'wide', 'rooms'):
+# scenes = the Android runner's menus and fixtures on the desktop build: every stray access the desktop recovers
+# there ("bios:") closes the 64-bit Android app, so it runs before the emulator (21/10: the debug event select)
+for _suite in ('scenes', 'events', 'wide', 'rooms'):
     for _v in ('eu', 'us', 'jp'):
         STEPS.append((f'desktop {_suite} {_v}', KIT + ['--versions', _v, '--suites', _suite]))
 STEPS += [
