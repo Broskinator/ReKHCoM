@@ -1,12 +1,12 @@
 {
-  "version": "v1.9.12-web-alpha",
-  "source_commit": "788ce879e4f4ae08e886389966dd53e1a4419786",
+  "version": "v1.9.14-web-alpha",
+  "source_commit": "c802a73a2d09094dc00f846420ffe86dea6c00b1",
   "source_dirty": false,
-  "built_utc": "2026-10-20T19:00:18.650503+00:00",
+  "built_utc": "2026-10-21T22:25:31.219778+00:00",
   "files": {
     "index.html": {
-      "bytes": 16986,
-      "sha256": "853a6f2cad0d8f016aaf14c59a92d593be9f6908eba402bafb99cfd6b2893e57"
+      "bytes": 16987,
+      "sha256": "51cfb14cc4eaf3ec315f67a833293e67cd595827213478cdc882f5a0b86893d0"
     },
     "web.css": {
       "bytes": 14462,
@@ -41,8 +41,8 @@
       "sha256": "f1685a4c1e4f598d26b866e7565479b93268efb0061444fbe6c88985146f1c3b"
     },
     "achievements.js": {
-      "bytes": 3029,
-      "sha256": "6bc7e9d0cb701652d276d8a1e23429f35a733716f751f21ae15d86f3e3340185"
+      "bytes": 2994,
+      "sha256": "3be6ee238bf38122b87cebfcf3a19d5359188974c37aca3cde30a5f5ec4a978a"
     },
     "cards.js": {
       "bytes": 32098,
@@ -77,16 +77,16 @@
       "sha256": "1c040b8271b37e5076359f8fd54240e371114112924d2df81ef87c7d6a1dfdfd"
     },
     "fonts/KHMenu.otf": {
-      "bytes": 28100,
-      "sha256": "a604f7d4696853f5f55b2d229694bd960cc2d913699e7f537703e111f2b8c194"
+      "bytes": 28612,
+      "sha256": "0c36302cd9d608eefdd983650e10dd0df0531780bb473b3d9b945075f02a27f2"
     },
     "fonts/ComicHearts.otf": {
       "bytes": 39900,
       "sha256": "e45739fd882607784e7ad8fc3a4c7c22f81853929bc41e099656641dcdeeae40"
     },
     "fonts/NOTICE.md": {
-      "bytes": 447,
-      "sha256": "df509db185328eed411672f801e8cb46279f0cea2bfcc93e1279b8011e0fa0b6"
+      "bytes": 644,
+      "sha256": "cb8dcce80a566b77cf3ffa9704d0322c8defbf3741932493f4ab21a0dbdcb9f0"
     },
     "logo.png": {
       "bytes": 179882,
@@ -97,28 +97,28 @@
       "sha256": "eaa349ba375164b474b490c1d1e53c909508790aa5e39f9ba54336172f6503a4"
     },
     "rekhcom-eu.js": {
-      "bytes": 205663,
-      "sha256": "b721764312b0b029f0179131340ac21502d93eef01da993c835bf7b61be0b2ba"
+      "bytes": 205662,
+      "sha256": "3151f650015721fac5067cc6b332baf575018e096d6d83581c991a8ea24a7fa2"
     },
     "rekhcom-eu.wasm": {
-      "bytes": 5483763,
-      "sha256": "b2d0d3a53afc5c0ff568201c36dd6400da04cbc537e9128aadaf1e89d0de6b2a"
+      "bytes": 5502481,
+      "sha256": "2a395e3e975f7d414573258f4e160dc3bec6ac390ff8088fa6d436b45b26757a"
     },
     "rekhcom-us.js": {
       "bytes": 205541,
-      "sha256": "f99cd026d1365356f76d4780430d17e3a1c531e7f4e2f6e7945ce0887533ec5d"
+      "sha256": "15a85404b4320c10d81ecfe217ba5aeb3b749d194c87b10b82260a6b83b20836"
     },
     "rekhcom-us.wasm": {
-      "bytes": 5586969,
-      "sha256": "8561204748e3817b9490f17d9a0dd5aeefc8695b47875cf486a304b2ed5277b3"
+      "bytes": 5605487,
+      "sha256": "de94ee94b8beffef7b81e554743b3968f1163036a5f7c20a9715da9290902199"
     },
     "rekhcom-jp.js": {
       "bytes": 205541,
-      "sha256": "b9777cb85003e553b1c45a3d24ff46273ce9b86aa2174ac791b00c79ab02fc21"
+      "sha256": "ca3b5b237a91d8822d1db6cd77e1933a3d649469f51e6eaa976d2cc6c2777804"
     },
     "rekhcom-jp.wasm": {
-      "bytes": 5464121,
-      "sha256": "4e180d92a2523d6c66fad38c8dbb487fbcb326d5cdbbcc8c8e043a92164d2766"
+      "bytes": 5482708,
+      "sha256": "12a3e784437bcb9bf6f694a766e35854894f4ec949fea260095b6b0416016617"
     }
   }
 }
