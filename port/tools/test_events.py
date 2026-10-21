@@ -79,10 +79,11 @@ def main():
     ap.add_argument("--build", help="folder with khcom.exe (default build/pc or build/pc-<version>)")
     ap.add_argument("--wide", action="store_true", help="16:9 auto view instead of the GBA picture")
     ap.add_argument("--resume", action="store_true", help="keep the cases that already finished (their result.json)")
+    ap.add_argument("--work", help="folder for the cases (default build/eventtest/<version>): keeps a side run apart")
     args = ap.parse_args()
 
     exe_dir = ROOT / (args.build or ("build/pc" if args.version == "eu" else f"build/pc-{args.version}"))
-    work = ROOT / "build" / "eventtest" / (args.version + ("_wide" if args.wide else ""))
+    work = Path(args.work) if args.work else ROOT / "build" / "eventtest" / (args.version + ("_wide" if args.wide else ""))
     work.mkdir(parents=True, exist_ok=True)
     events = event_lists()
     if args.only:

@@ -166,11 +166,13 @@ def main():
     p.add_argument('--resume', action='store_true', help="skip what the report file already has as ok")
     p.add_argument('--slow', type=float, default=1.0,
                    help='timeout multiplier: an x86_64 emulator runs the arm64 build translated, several times slower')
+    p.add_argument('--env', nargs='*', default=[],
+                   help='extra KEY=VALUE for every scenario (KHCOM_IMAGE_MOVE=1: the image loaded away from its linked address)')
     args = p.parse_args()
     SERIAL = args.serial
     OUT.mkdir(parents=True, exist_ok=True)
     report = []
-    tag = '-'.join(args.regions) + ('-riku' if args.riku else '')
+    tag = '-'.join(args.regions) + ('-riku' if args.riku else '') + ''.join('-' + e.split('=')[0].lower() for e in args.env)
     done = set()
     if args.resume and (OUT / f'report-{tag}.json').exists():
         report = [r for r in json.loads((OUT / f'report-{tag}.json').read_text()) if r['status'] == 'ok']
@@ -183,7 +185,7 @@ def main():
         for name, frames, timeout, env in scenarios(args.groups, [o for o in args.only.split(',') if o], args.riku, args.from_battle):
             if (region, name) in done:
                 continue
-            status, detail, tail = run(region, name, frames, int(timeout * args.slow), env)
+            status, detail, tail = run(region, name, frames, int(timeout * args.slow), '\n'.join([env, *args.env]))
             print(f'{region} {name}: {status}', flush=True)
             if status != 'ok':
                 print(detail or tail, flush=True)

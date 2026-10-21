@@ -29,6 +29,18 @@ Otro Claude nuevo retoma (el anterior sin actividad desde las 12:53). La baterí
 porque adb no arrancó (0xC0000142, no es fallo del juego); se retoma desde el combate 30 de EU. Codex integrado hasta
 457d10854 (Atlántica 102).
 
+## Traspaso 21/10 ~15:15 (Claude nuevo retoma I y J en `claude/perf-android-reloc`)
+
+- J: el `shareLog` de `GameActivity.java` no compilaba (saltos de línea reales dentro de las comillas); arreglado. APK
+  de prueba EU con la imagen movida (`KHCOM_IMAGE_MOVE=1`): carga en 0xe2600000 y el menú de estado sale bien; la
+  batería menús/fixtures/jefes con la imagen movida corre en `build/android-scenarios/report-eu-khcom_image_move.json`
+  (`test_android_scenarios.py --env`).
+- #37 (no se podía salir de "Press..." sin teclado): en la captura de teclado, un botón del mando, un toque o Atrás la
+  cancelan. #38: con "ocultar controles táctiles" y un mando conectado no se dibuja nada, ni en menús (sin mando queda
+  el botón de opciones, la única entrada al menú). Solo Android; Switch y web igual que antes.
+- I: verificación de la PPU en varios núcleos con `KHCOM_PPU_VERIFY=1` sobre los eventos US en
+  `build/ppuverify/us` (`test_events.py --work`, aparte de la batería de escritorio, que usa `build/pc-eu`).
+
 ## Traspaso 21/10 ~15:10 (al Claude o Codex que siga; tokens del usuario casi agotados)
 
 - Rama `claude/perf-android-reloc` (sin verificar, NO está en main): PPU en varios núcleos (I) y arreglo de Android 64

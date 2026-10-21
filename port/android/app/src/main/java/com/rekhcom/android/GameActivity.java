@@ -38,25 +38,18 @@ public class GameActivity extends SDLActivity {
      *  Android's share sheet, so a tester can send them without looking for files (issues #22, #34). */
     public void shareLog() {
         StringBuilder text=new StringBuilder();
-        text.append("ReKHCoM log
-Device: ").append(android.os.Build.MANUFACTURER).append(' ').append(android.os.Build.MODEL)
-            .append("
-Android ").append(android.os.Build.VERSION.RELEASE).append(" (API ").append(android.os.Build.VERSION.SDK_INT)
-            .append(")
-ABIs: ").append(android.text.TextUtils.join(",",android.os.Build.SUPPORTED_ABIS)).append('
-');
+        text.append("ReKHCoM log\nDevice: ").append(android.os.Build.MANUFACTURER).append(' ').append(android.os.Build.MODEL)
+            .append("\nAndroid ").append(android.os.Build.VERSION.RELEASE).append(" (API ").append(android.os.Build.VERSION.SDK_INT)
+            .append(")\nABIs: ").append(android.text.TextUtils.join(",",android.os.Build.SUPPORTED_ABIS)).append('\n');
         for (String name: new String[]{"kh_com_host.log","kh_com.log"}) {
             java.io.File file=new java.io.File(getFilesDir(),name);
             if (!file.exists()) continue;
-            text.append("
---- ").append(name).append(" ---
-");
+            text.append("\n--- ").append(name).append(" ---\n");
             try (java.io.FileInputStream in=new java.io.FileInputStream(file)) {
                 byte[] data=new byte[(int)Math.min(file.length(),60000)];
                 int n=in.read(data);
                 if (n>0) text.append(new String(data,0,n,"UTF-8"));
-            } catch (Exception e) { text.append(e).append('
-'); }
+            } catch (Exception e) { text.append(e).append('\n'); }
         }
         android.content.Intent send=new android.content.Intent(android.content.Intent.ACTION_SEND);
         send.setType("text/plain");

@@ -1585,13 +1585,16 @@ int PortUiHandleEvent(const void* p) {
     if (sPage == PAGE_CONTROLS && sControlCapture && sCursor >= ITEM_CONTROL_A && sCursor <= ITEM_CONTROL_UNSTOCK) {
         int action = sCursor - ITEM_CONTROL_A;
         if (ev->type == SDL_EVENT_KEY_DOWN && !ev->key.repeat) {
-            if (ev->key.key == SDLK_ESCAPE) sControlCapture = 0;
+            if (ev->key.key == SDLK_ESCAPE || ev->key.key == SDLK_AC_BACK) sControlCapture = 0;
             else if (!sControlPad) { gPortConfig.keys[action][0] = ev->key.key == SDLK_DELETE ? 0 : (int)ev->key.key; sControlCapture = 0; PortConfigSave(); }
             else if (ev->key.key == SDLK_DELETE) { gPortConfig.pad[action] = -1; sControlCapture = 0; PortConfigSave(); }
             return 1;
         }
         if (sControlPad && ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) { gPortConfig.pad[action] = ev->gbutton.button; sControlCapture = 0; PortConfigSave(); return 1; }
         if (sControlPad && ev->type == SDL_EVENT_GAMEPAD_AXIS_MOTION && SDL_abs(ev->gaxis.value) > 16000) { gPortConfig.pad[action] = PORT_PAD_AXIS_BASE + ev->gaxis.axis * 2 + (ev->gaxis.value < 0); sControlCapture = 0; PortConfigSave(); return 1; }
+        /* waiting for a key with no keyboard (issue #37): a gamepad button, a tap or a click cancels it */
+        if (!sControlPad && (ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || ev->type == SDL_EVENT_MOUSE_BUTTON_DOWN || ev->type == SDL_EVENT_FINGER_DOWN))
+            sControlCapture = 0;
         return 1;
     }
     if (ev->type == SDL_EVENT_KEY_DOWN) {
