@@ -1,6 +1,6 @@
-# Cola vigente (20/10/2026, 19:00)
+# Cola vigente (21/10/2026, reparto con Codex)
 
-Publicado: v1.9.12 estable (Latest) con Windows, Linux, Steam Deck, Anbernic, Android, PS5 y PS4; web en Pages. Issues #23, #24, #30 y #31 cerrados; #25 abierto. PR #32 integrado.
+Publicado: v1.9.12 estable (Latest) con Windows, Linux, Steam Deck, Anbernic, Android, PS5, PS4 y ahora las alphas de Switch y Vita; web en Pages. Issues #23, #24, #30 y #31 cerrados; #25 abierto. PR #32 integrado.
 
 Única cola de trabajo; los demás .md son evidencia. Lo terminado sale de aquí
 (queda en el historial de git y en CHANGELOG.md). Numeración histórica conservada.
@@ -17,12 +17,15 @@ Reglas del usuario:
 
 | Quién | Pendiente |
 |---|---|
-| **Claude** | Discord Rich Presence (pedido del usuario, 20/10). Switch y Vita publicadas como alphas en v1.9.12; reportes de hardware llegan solos |
-| **Usuario** | Aprobar el launcher nuevo (`Probar launcher nuevo.bat`, commit 07a6fa9ab) |
-| **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, ver KIT_DEPURACION.md). Hecho: 65 jefes en Android x86 con UBSan, 209/209 combates y 52/52 salas US en escritorio sin fallos; arreglados Cloud/Axel/Parasite Cage y el editor de baraja (DIV0). En curso (20/10): Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
-| **Usuario** | Revisar 61–62 (escenas de Ciudad de Paso con márgenes incompletos) cuando Claude las muestre |
+| **Claude** | Discord Rich Presence (c7326c6a4, 584f8315a): hecho y probado con un Discord falso (`fake_discord_ipc.py`); falta el Application ID de Discord que crea el usuario (`Probar Discord.bat`) y fijarlo en `REKHCOM_DISCORD_APP_ID`; luego probar Linux |
+| **Claude** | Aviso de SmartScreen al abrir `khcom_eu.exe` (pedido del usuario 21/10): opciones explicadas, espera decisión (firma de código o que el launcher desbloquee sus propios .exe) |
+| **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, KIT_DEPURACION.md): sigue con Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
+| **Claude** | Reportes de hardware de Switch/Vita cuando lleguen; meterlas en la próxima release (stage_release ya las incluye) |
+| **ChatGPT/Codex** | NUEVO (pedido del usuario 21/10): opción "Volver a la pantalla de título" en cualquier momento, en la sección Re:CoM de Opciones (in-game `port_ui.c`, launcher `decompui.cpp`, `kh_com.ini`), justo encima de "Devolver cartas acumuladas" (`ITEM_UNSTOCK`). Por la lógica del juego (reinicio suave), no objetos del port. Copia jugable + .bat para aprobar |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
 | **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después |
+| **Usuario** | Crear la aplicación de Discord y pasar su Application ID; probar `Probar Discord.bat` y `Probar ReKHCoM v1.9.13 pre1.bat` (arranque en pantalla completa sin parpadeo, df56a0a2d) |
+| **Usuario** | Aprobar el launcher nuevo (`Probar launcher nuevo.bat`, commit 07a6fa9ab); revisar 61–62 cuando Claude las muestre |
 
 ## Vita y Switch (20/10, 17:00)
 
