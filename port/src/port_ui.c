@@ -65,6 +65,9 @@ enum {
     ITEM_CARDS,
     ITEM_FPS,
     ITEM_DISCORD,
+    ITEM_HD_MOVIES,    /* the HD mod (HD_MOD.md): shown only once imported */
+    ITEM_HD_MUSIC,
+    ITEM_HD_SCENES,
     ITEM_DODGE,
     ITEM_STOCK,
     ITEM_SAVEBANK,
@@ -154,6 +157,23 @@ static int PageFirst(void) {
 static int PageEnd(void) {
     return sPage == PAGE_REMATCH ? ITEM_REMATCH_BACK + 1 : sPage == PAGE_CHEATS ? ITEM_CHEATS_BACK + 1 : sPage == PAGE_CONTROLS ? ITEM_CONTROLS_BACK + 1 : sPage == PAGE_PS2 ? ITEM_PS2_BACK + 1 : sPage == PAGE_NEWGAME ? ITEM_NG_START + 1 : ITEM_CLOSE + 1;
 }
+/* the HD mod's rows appear once the launcher imported its files (checked once a second at most) */
+static int HdImported(const char* file) {
+    static char last[64];
+    static int result;
+    static Uint64 when;
+    Uint64 now = SDL_GetTicks();
+    if (strcmp(last, file) != 0 || now - when > 1000) {
+        SDL_IOStream* f = SDL_IOFromFile(PortConfigPath(file), "rb");
+        result = f != NULL;
+        if (f)
+            SDL_CloseIO(f);
+        SDL_strlcpy(last, file, sizeof(last));
+        when = now;
+    }
+    return result;
+}
+
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
     switch (item) {
@@ -169,6 +189,9 @@ static int ItemVisible(int item) {
         case ITEM_INTZOOM:
         case ITEM_SCALE: return 0;
         case ITEM_DISCORD: return PortDiscordAvailable();
+        case ITEM_HD_MOVIES: return HdImported("hd/movies/ROP.mp4");
+        case ITEM_HD_MUSIC: return HdImported("hd/music/Title.ogg");
+        case ITEM_HD_SCENES: return HdImported("hd/movies/zz_event_011.mp4");
         /* the version and its difficulty are chosen at New Game and stay
            with the save, as in the original: no switch for them here */
         case ITEM_PS2_MODE:
@@ -218,6 +241,9 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Subir cartas en combate", "カードを上げる" },
     { "Show FPS", "Afficher FPS", "FPS anzeigen", "Mostra FPS", "Mostrar FPS", "FPS表示" },
     { "Discord status", "Statut Discord", "Discord-Status", "Stato Discord", "Estado en Discord", "Discordステータス" },
+    { "HD movies", "Vidéos HD", "HD-Videos", "Video HD", "Videos HD", "HDムービー" },
+    { "HD music", "Musique HD", "HD-Musik", "Musica HD", "Música HD", "HDミュージック" },
+    { "HD scenes", "Scènes HD", "HD-Szenen", "Scene HD", "Escenas HD", "HDシーン" },
     { "One-button dodge roll", "Roulade en un bouton", "Ausweichrolle mit einer Taste", "Capriola con un tasto",
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
@@ -859,6 +885,15 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_DISCORD:
             SDL_strlcpy(out, sOnOff[gPortConfig.discordPresence != 0][l], size);
             break;
+        case ITEM_HD_MOVIES:
+            SDL_strlcpy(out, sOnOff[gPortConfig.hdMovies != 0][l], size);
+            break;
+        case ITEM_HD_MUSIC:
+            SDL_strlcpy(out, sOnOff[gPortConfig.hdMusic != 0][l], size);
+            break;
+        case ITEM_HD_SCENES:
+            SDL_strlcpy(out, sOnOff[gPortConfig.hdScenes != 0][l], size);
+            break;
         case ITEM_DODGE:
             SDL_strlcpy(out, sOnOff[gPortConfig.dodgeButton != 0][l], size);
             break;
@@ -1066,6 +1101,15 @@ static void Change(int item, int dir) {
             break;
         case ITEM_DISCORD:
             gPortConfig.discordPresence = !gPortConfig.discordPresence;
+            break;
+        case ITEM_HD_MOVIES:
+            gPortConfig.hdMovies = !gPortConfig.hdMovies;
+            break;
+        case ITEM_HD_MUSIC:
+            gPortConfig.hdMusic = !gPortConfig.hdMusic;
+            break;
+        case ITEM_HD_SCENES:
+            gPortConfig.hdScenes = !gPortConfig.hdScenes;
             break;
         case ITEM_DODGE:
             gPortConfig.dodgeButton = !gPortConfig.dodgeButton;
