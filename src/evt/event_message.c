@@ -3366,9 +3366,10 @@ u8 event_chara_1(EventCharaWork* work, void* task) {
 
     if (work->arg.chara == EVENT_CHARA_SORA) {
         if (gBtlWork != NULL) {
-            gBtlWork->actor->x = work->obj.x - 0x7800;
-            gBtlWork->actor->y = work->obj.y - 0x5000;
-            gBtlWork->actor->z = 0;
+            /* @bug: before a battle starts its actor is NULL; the cartridge writes to the BIOS (ignored) */
+            BIOS_PTR(gBtlWork->actor)->x = work->obj.x - 0x7800;
+            BIOS_PTR(gBtlWork->actor)->y = work->obj.y - 0x5000;
+            BIOS_PTR(gBtlWork->actor)->z = 0;
         }
     }
 
