@@ -18,7 +18,7 @@ Reglas del usuario:
 | Quién | Pendiente |
 |---|---|
 | **Claude** | Discord Rich Presence (c7326c6a4, 584f8315a): hecho y probado con un Discord falso (`fake_discord_ipc.py`); falta el Application ID de Discord que crea el usuario (`Probar Discord.bat`) y fijarlo en `REKHCOM_DISCORD_APP_ID`; luego probar Linux |
-| **Claude** | Aviso de SmartScreen al abrir `khcom_eu.exe` (pedido del usuario 21/10): opciones explicadas, espera decisión (firma de código o que el launcher desbloquee sus propios .exe) |
+| **Claude** | SmartScreen: hecho (el launcher quita la marca de descarga de sus .exe, commit siguiente); entra en la próxima release |
 | **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, KIT_DEPURACION.md): sigue con Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
 | **Claude** | Reportes de hardware de Switch/Vita cuando lleguen; meterlas en la próxima release (stage_release ya las incluye) |
 | **ChatGPT/Codex** | NUEVO (pedido del usuario 21/10): opción "Volver a la pantalla de título" en cualquier momento, en la sección Re:CoM de Opciones (in-game `port_ui.c`, launcher `decompui.cpp`, `kh_com.ini`), justo encima de "Devolver cartas acumuladas" (`ITEM_UNSTOCK`). Por la lógica del juego (reinicio suave), no objetos del port. Copia jugable + .bat para aprobar |
