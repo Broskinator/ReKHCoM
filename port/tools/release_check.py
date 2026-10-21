@@ -113,6 +113,9 @@ if not args.post:
     badges = subprocess.run([sys.executable, str(ROOT / 'port/tools/gen_badges_inc.py'), '--check'],
                             capture_output=True).returncode == 0
     check(badges, 'built-in badge atlas matches port/assets/achievements/badges.png (gen_badges_inc.py)')
+    sources = subprocess.run([sys.executable, str(ROOT / 'port/tools/check_sources.py')], capture_output=True, text=True)
+    check(sources.returncode == 0, 'console SDL shim and Java literals (check_sources.py)' +
+          (': ' + sources.stdout.strip().splitlines()[0] if sources.returncode else ''))
     head = int(subprocess.check_output(['git', 'log', '-1', '--format=%ct'], cwd=ROOT, text=True))
     dirty = subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=ROOT, text=True)
     check(not dirty.strip(), 'working tree committed (packages come from HEAD)')

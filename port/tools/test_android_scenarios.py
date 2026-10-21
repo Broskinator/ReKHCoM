@@ -109,7 +109,7 @@ def scenarios(groups, only, riku, from_battle=0):
 
 def run(region, name, frames, timeout, env):
     private('rm', '-f', 'files/kh_com.log', 'files/kh_com_host.log', 'files/smoke_env.txt')
-    text = f'KHCOM_FAST=1\nKHCOM_QUIT={frames}\n{env}\n'
+    text = f'KHCOM_FAST=1\nKHCOM_TRACE_MODES=1\nKHCOM_QUIT={frames}\n{env}\n'
     tmp = OUT / 'env.txt'
     tmp.write_text(text)
     adb('push', tmp, '/data/local/tmp/smoke_env.txt')
@@ -122,16 +122,24 @@ def run(region, name, frames, timeout, env):
     start = time.monotonic()
     time.sleep(6)
     status = 'timeout'
+    seen = False  # a process that has not started yet is not one that finished (the first start after an install is slow)
     while time.monotonic() - start < timeout:
         crashes = adb('logcat', '-d', '-b', 'crash').stdout.decode(errors='replace')
         if PKG in crashes and ('Fatal signal' in crashes or 'FATAL EXCEPTION' in crashes):
             status = 'CRASH'
             break
-        if adb('shell', 'pidof', PKG + ':game', check=False).returncode:
+        host = private('cat', 'files/kh_com_host.log').stdout.decode(errors='replace')
+        if 'crash: signal' in host:  # the 64-bit host's own crash report (android64_host.c, CrashSignal)
+            status = 'CRASH'
+            break
+        alive = not adb('shell', 'pidof', PKG + ':game', check=False).returncode
+        if alive:
+            seen = True
+        elif seen:
             status = 'ok'
             break
         # the 64-bit host returns from the game and Android may keep the process: its log says so
-        if 'the game ended' in private('cat', 'files/kh_com_host.log').stdout.decode(errors='replace'):
+        if 'the game ended' in host:
             status = 'ok'
             break
         time.sleep(3)
@@ -144,6 +152,11 @@ def run(region, name, frames, timeout, env):
     if status == 'CRASH':
         crashes = adb('logcat', '-d', '-b', 'crash').stdout.decode(errors='replace')
         detail = '\n'.join(l.split(': ', 1)[-1] for l in crashes.splitlines() if re.search(r'Fatal signal|#0[0-6] pc', l))
+        host = private('cat', 'files/kh_com_host.log').stdout.decode(errors='replace')
+        detail += ''.join('\n' + l for l in host.splitlines() if l.startswith(('crash:', '  #')))
+    if 'KHCOM_BATTLE' not in env and 'mode mode_chkbtl' in log:
+        # the APK's own debug battle ran: built without --smoke-env KHCOM_FAST=1, every case would test the wrong thing
+        status, detail = 'BAD-APK', 'rebuild with: build_android.py --smoke --smoke-env KHCOM_FAST=1'
     elif status == 'ok' and re.search(r'CRASH|FATAL', log):
         status = 'LOGGED-CRASH'
     elif status == 'ok' and 'harness: no mode' in private('cat', 'files/kh_com.log').stdout.decode(errors='replace'):

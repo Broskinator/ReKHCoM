@@ -23,7 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <signal.h>
 #include <sys/mman.h>
+#include <sys/ucontext.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/system_properties.h>
@@ -499,6 +501,38 @@ typedef struct {
 } MachDyldInfo;
 
 static char sImageError[160]; /* why the image did not load: shown in the error box too (issues #22, #34) */
+static uint32_t sImageLow, sImageHigh, sImageSlide;
+
+/* A crash in the game: the log gets the fault and the game's call chain as linked addresses (pc minus the slide, to
+   look up with llvm-symbolizer on guest-<region>.macho), so a tester's "Share log" says where. Then the default
+   action runs: Android's own crash report. */
+static void CrashSignal(int sig, siginfo_t* info, void* context) {
+    const ucontext_t* uc = (const ucontext_t*)context;
+    uint64_t pc = uc->uc_mcontext.pc, lr = uc->uc_mcontext.regs[30], fp = uc->uc_mcontext.regs[29];
+#define LINKED(a) ((a) >= sImageLow && (a) < sImageHigh ? (unsigned long long)((a) - sImageSlide) : 0ull)
+    Log("crash: signal %d, fault address %p, pc 0x%llx (game 0x%llx), lr 0x%llx (game 0x%llx)", sig, info->si_addr,
+        (unsigned long long)pc, LINKED(pc), (unsigned long long)lr, LINKED(lr));
+    /* the game is built with frame pointers: [fp] = caller's fp, [fp + 8] = return address */
+    for (int i = 0; i < 24 && fp >= sImageLow && fp + 16 <= 0x100000000ull && !(fp & 7); i++) {
+        uint64_t ret = ((const uint64_t*)(uintptr_t)fp)[1], next = ((const uint64_t*)(uintptr_t)fp)[0];
+        Log("  #%02d game 0x%llx", i, LINKED(ret));
+        if (next <= fp)
+            break;
+        fp = next;
+    }
+#undef LINKED
+    signal(sig, SIG_DFL);
+}
+
+static void CatchCrashes(void) {
+    static const int sigs[] = { SIGSEGV, SIGBUS, SIGILL, SIGFPE, SIGABRT };
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_sigaction = CrashSignal;
+    sa.sa_flags = SA_SIGINFO | SA_RESETHAND;
+    for (size_t i = 0; i < sizeof(sigs) / sizeof(sigs[0]); i++)
+        sigaction(sigs[i], &sa, NULL);
+}
 
 static int ImageFail(const char* fmt, ...) {
     va_list ap;
@@ -758,6 +792,9 @@ static int LoadImage(const char* region, Ps5GuestHeader* header) {
     header->imageEnd = header->regionEnd = high + slide;
     Log("game image: %s at 0x%08x (%s), ends at 0x%08x", name, base, slide ? "moved: the linked address was taken" : "its linked address",
         high + slide);
+    sImageLow = base;
+    sImageHigh = high + slide;
+    sImageSlide = slide;
     if (header->magic != PS5G_MAGIC)
         return ImageFail("the game image %s has another bridge version", name);
     return 1;
@@ -837,6 +874,7 @@ int main(int argc, char** argv) {
         }
     memcpy(table, t, sizeof(t));
     Log("starting the game (%d bridge entries)", HF_COUNT);
+    CatchCrashes();
     int (*boot)(uint32_t) = (int (*)(uint32_t))(uintptr_t)header.boot;
     if (setjmp(sExit) == 0)
         sExitCode = boot(header.stackTop);
