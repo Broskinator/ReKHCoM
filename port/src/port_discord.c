@@ -1,0 +1,313 @@
+/*
+ * Discord Rich Presence: the player's Discord profile shows the game, the world and floor, the character and the
+ * level ("Playing Kingdom Hearts: Chain of Memories" comes from the Discord application's name).
+ *
+ * It speaks Discord's local IPC directly (no SDK): a named pipe on Windows (\\.\pipe\discord-ipc-N), a Unix socket
+ * on Linux ($XDG_RUNTIME_DIR/discord-ipc-N and the Flatpak and Snap folders). Each message is an opcode, a length and
+ * JSON: a handshake with the application id, then SET_ACTIVITY. Nothing happens when Discord is not running; the
+ * game retries every few seconds. Off with discord_presence=0 (Options, launcher).
+ *
+ * Desktop builds only (Windows, Linux): Android, the web and the console images get the empty functions below.
+ */
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+
+#include "port/port.h"
+
+/* The Discord application (discord.com/developers): its name is the game shown in the profile. KHCOM_DISCORD_APP_ID
+   replaces it for tests. */
+#ifndef REKHCOM_DISCORD_APP_ID
+#define REKHCOM_DISCORD_APP_ID ""
+#endif
+/* Pictures by URL (Discord fetches them): the repository's port/assets/discord. */
+#define DISCORD_ART "https://raw.githubusercontent.com/MatyMeatBoy/ReKHCom/main/port/assets/discord/"
+
+#if (defined(_WIN32) || (defined(__linux__) && !defined(__ANDROID__))) && __STDC_HOSTED__
+#define DISCORD_IPC 1
+#endif
+
+#ifdef DISCORD_IPC
+#include <SDL3/SDL.h>
+
+#include "game_state.h"
+#include "menu/world_types.h"
+#include "mode.h"
+#include "registration_data.h"
+#include "btl/mode_battle_data.h"
+#include "evt/mode_event.h"
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+static HANDLE sPipe = INVALID_HANDLE_VALUE;
+#else
+#include <errno.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+static int sSock = -1;
+#endif
+
+extern Mode* gCurrentMode;
+
+static int sConnected;
+static uint64_t sNextTry, sNextSend;
+static int64_t sStart;
+static char sSent[512], sWanted[512];
+static unsigned sNonce;
+
+static int Write(const void* data, uint32_t size) {
+#ifdef _WIN32
+    DWORD done;
+    return WriteFile(sPipe, data, size, &done, NULL) && done == size;
+#else
+    return send(sSock, data, size, MSG_NOSIGNAL) == (ssize_t)size;
+#endif
+}
+
+static void Close(void) {
+#ifdef _WIN32
+    if (sPipe != INVALID_HANDLE_VALUE)
+        CloseHandle(sPipe);
+    sPipe = INVALID_HANDLE_VALUE;
+#else
+    if (sSock >= 0)
+        close(sSock);
+    sSock = -1;
+#endif
+    sConnected = 0;
+    sSent[0] = 0;
+}
+
+/* Discord's answers are not needed: read them away so the pipe never fills. A closed pipe ends the connection. */
+static void Drain(void) {
+    char buf[1024];
+#ifdef _WIN32
+    DWORD avail = 0, got;
+    if (!PeekNamedPipe(sPipe, NULL, 0, NULL, &avail, NULL)) {
+        Close();
+        return;
+    }
+    while (avail > 0 && ReadFile(sPipe, buf, avail < sizeof(buf) ? avail : sizeof(buf), &got, NULL) && got > 0)
+        avail -= got < avail ? got : avail;
+#else
+    for (;;) {
+        ssize_t n = recv(sSock, buf, sizeof(buf), 0);
+        if (n > 0)
+            continue;
+        if (n == 0 || (errno != EAGAIN && errno != EWOULDBLOCK))
+            Close();
+        break;
+    }
+#endif
+}
+
+static int Frame(uint32_t op, const char* json) {
+    uint32_t len = (uint32_t)strlen(json), head[2] = { op, len };
+    if (!Write(head, sizeof(head)) || !Write(json, len)) {
+        Close();
+        return 0;
+    }
+    return 1;
+}
+
+static int Open(void) {
+    const char* test = SDL_getenv("KHCOM_DISCORD_IPC"); /* tests: this pipe or socket instead of Discord's */
+    int i;
+#ifdef _WIN32
+    if (test != NULL) {
+        sPipe = CreateFileA(test, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+        return sPipe != INVALID_HANDLE_VALUE;
+    }
+    for (i = 0; i < 10; i++) {
+        char name[64];
+        SDL_snprintf(name, sizeof(name), "\\\\.\\pipe\\discord-ipc-%d", i);
+        sPipe = CreateFileA(name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+        if (sPipe != INVALID_HANDLE_VALUE)
+            return 1;
+    }
+#else
+    static const char* const vars[] = { "XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP" };
+    static const char* const subdirs[] = { "", "/app/com.discordapp.Discord", "/snap.discord" };
+    size_t v, s;
+    if (test != NULL) {
+        struct sockaddr_un addr;
+        memset(&addr, 0, sizeof(addr));
+        addr.sun_family = AF_UNIX;
+        SDL_strlcpy(addr.sun_path, test, sizeof(addr.sun_path));
+        sSock = socket(AF_UNIX, SOCK_STREAM, 0);
+        if (sSock >= 0 && connect(sSock, (struct sockaddr*)&addr, sizeof(addr)) == 0) {
+            fcntl(sSock, F_SETFL, fcntl(sSock, F_GETFL) | O_NONBLOCK);
+            return 1;
+        }
+        if (sSock >= 0)
+            close(sSock);
+        sSock = -1;
+        return 0;
+    }
+    for (v = 0; v <= sizeof(vars) / sizeof(vars[0]); v++) {
+        const char* dir = v < sizeof(vars) / sizeof(vars[0]) ? getenv(vars[v]) : "/tmp";
+        if (dir == NULL || !*dir)
+            continue;
+        for (s = 0; s < sizeof(subdirs) / sizeof(subdirs[0]); s++)
+            for (i = 0; i < 10; i++) {
+                struct sockaddr_un addr;
+                memset(&addr, 0, sizeof(addr));
+                addr.sun_family = AF_UNIX;
+                SDL_snprintf(addr.sun_path, sizeof(addr.sun_path), "%s%s/discord-ipc-%d", dir, subdirs[s], i);
+                sSock = socket(AF_UNIX, SOCK_STREAM, 0);
+                if (sSock < 0)
+                    return 0;
+                if (connect(sSock, (struct sockaddr*)&addr, sizeof(addr)) == 0) {
+                    fcntl(sSock, F_SETFL, fcntl(sSock, F_GETFL) | O_NONBLOCK);
+                    return 1;
+                }
+                close(sSock);
+                sSock = -1;
+            }
+    }
+#endif
+    return 0;
+}
+
+static const char* AppId(void) {
+    const char* id = SDL_getenv("KHCOM_DISCORD_APP_ID");
+    return id != NULL && *id ? id : REKHCOM_DISCORD_APP_ID;
+}
+
+static const char* WorldName(int world) {
+    static const char* const names[] = {
+        NULL, "Agrabah", "Atlantica", "Olympus Coliseum", "Wonderland", "Monstro", "Halloween Town", "Never Land",
+        "Hollow Bastion", "Destiny Islands", "Traverse Town", "Twilight Town", "Castle Oblivion", "100 Acre Wood",
+    };
+    return world > 0 && world < (int)(sizeof(names) / sizeof(names[0])) ? names[world] : NULL;
+}
+
+/* The screens before a game is loaded (logos, language, title, file menus): no level yet, or one of those modes. */
+static int OnTitle(void) {
+    Mode* m = gCurrentMode;
+    return m == NULL || gGameState.progression.level == 0 || m == &gModeTitle || m == &gModeWLogo ||
+           m == &gModeMenuNew || m == &gModeMenuLoad || m == &gModeMenuMsg;
+}
+
+/* gGameState.world is the game's own (UpdateGameWorld): 0 in the castle's halls, the floor's world elsewhere. A new
+   game's opening scenes come before the field sets it, so until the field has run it is the castle. */
+static int sFieldSeen;
+
+/* The activity's JSON for what is on screen now. */
+static void Describe(char* out, size_t size) {
+    char details[128], state[128], large[64], largeText[32], small[192] = "";
+    int riku = (gGameState.flags & GAME_FLAG_RIKU) != 0, floor = gGameState.floor + 1;
+    const char* world;
+    Mode* m = gCurrentMode;
+    int known = (sFieldSeen || m == &gModeBattle) && gGameState.world != 0; /* a battle always has its world */
+
+    world = known ? WorldName(gGameState.world) : "Castle Oblivion";
+    if (OnTitle()) {
+        SDL_strlcpy(details, "Title screen", sizeof(details));
+        state[0] = 0;
+        SDL_strlcpy(large, "logo", sizeof(large));
+        SDL_strlcpy(largeText, "ReKHCoM", sizeof(largeText));
+    } else {
+        char where[48];
+        if (riku)
+            SDL_snprintf(where, sizeof(where), "Floor B%d", floor);
+        else
+            SDL_snprintf(where, sizeof(where), "Floor %d", floor);
+        if (m == &gModeWorldselect || m == &gModeWORLDSELECT || world == NULL)
+            SDL_snprintf(details, sizeof(details), "%s - choosing a world", where);
+        else
+            SDL_snprintf(details, sizeof(details), "%s - %s", world, where);
+        SDL_snprintf(state, sizeof(state), "%s - Lv %d%s", riku ? "Riku" : "Sora", gGameState.progression.level,
+                     m == &gModeBattle ? " - In battle" : m == &gModeEvent ? " - In a scene" : "");
+        SDL_strlcpy(large, riku ? "riku" : "sora", sizeof(large));
+        SDL_strlcpy(largeText, riku ? "Riku" : "Sora", sizeof(largeText));
+        /* the small picture: the world's achievement badge (port/assets/discord/world<id>.png), the logo in the
+           castle and while choosing a world */
+        if (known && m != &gModeWorldselect && m != &gModeWORLDSELECT && gGameState.world >= 1 &&
+            gGameState.world <= WORLD_100_ACRE_WOOD && gGameState.world != WORLD_CASTLE_OBLIVION)
+            SDL_snprintf(small, sizeof(small), ",\"small_image\":\"" DISCORD_ART "world%d.png\",\"small_text\":\"%s\"",
+                         gGameState.world, world);
+        else
+            SDL_strlcpy(small, ",\"small_image\":\"" DISCORD_ART "logo.png\",\"small_text\":\"ReKHCoM\"", sizeof(small));
+    }
+    SDL_snprintf(out, size,
+                 "\"details\":\"%s\",%s%s%s\"timestamps\":{\"start\":%lld},"
+                 "\"assets\":{\"large_image\":\"" DISCORD_ART "%s.png\",\"large_text\":\"%s\"%s}",
+                 details, state[0] ? "\"state\":\"" : "", state, state[0] ? "\"," : "", (long long)sStart, large,
+                 largeText, small);
+}
+
+static long Pid(void) {
+#ifdef _WIN32
+    return (long)GetCurrentProcessId();
+#else
+    return (long)getpid();
+#endif
+}
+
+void PortDiscordFrame(void) {
+    uint64_t now = SDL_GetTicks();
+    char json[1024];
+
+    if (OnTitle())
+        sFieldSeen = 0;
+    else if (gCurrentMode == &gModeMapFld)
+        sFieldSeen = 1;
+    if (!gPortConfig.discordPresence || !*AppId()) {
+        if (sConnected)
+            Close();
+        return;
+    }
+    if (sStart == 0)
+        sStart = (int64_t)time(NULL);
+    if (!sConnected) {
+        if (now < sNextTry)
+            return;
+        sNextTry = now + 10000;
+        if (!Open())
+            return;
+        SDL_snprintf(json, sizeof(json), "{\"v\":1,\"client_id\":\"%s\"}", AppId());
+        if (!Frame(0, json))
+            return;
+        sConnected = 1;
+        sNextSend = now + 1000; /* after Discord's READY */
+        PortLog("discord: connected");
+        return;
+    }
+    Drain();
+    if (!sConnected || now < sNextSend)
+        return;
+    Describe(sWanted, sizeof(sWanted));
+    if (strcmp(sWanted, sSent) == 0) {
+        sNextSend = now + 1000;
+        return;
+    }
+    SDL_snprintf(json, sizeof(json), "{\"cmd\":\"SET_ACTIVITY\",\"args\":{\"pid\":%ld,\"activity\":{%s}},\"nonce\":\"%u\"}",
+                 Pid(), sWanted, ++sNonce);
+    if (Frame(1, json)) {
+        SDL_strlcpy(sSent, sWanted, sizeof(sSent));
+        sNextSend = now + 5000; /* Discord takes five updates every 20 seconds */
+    }
+}
+
+void PortDiscordShutdown(void) {
+    if (sConnected)
+        Close();
+}
+
+int PortDiscordAvailable(void) {
+    return *AppId() != 0;
+}
+#else
+void PortDiscordFrame(void) {
+}
+void PortDiscordShutdown(void) {
+}
+int PortDiscordAvailable(void) {
+    return 0;
+}
+#endif

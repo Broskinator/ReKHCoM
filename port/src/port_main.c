@@ -1932,6 +1932,7 @@ static void Quit(void) {
     PortSramSyncIfDirty();
     PortConfigSave();
     PortAchievementsShutdown();
+    PortDiscordShutdown();
     PortAudioShutdown();
     PortHdHudShutdown();
     SDL_Quit();
@@ -2233,6 +2234,7 @@ void PortFrame(void) {
 #endif
     PortStateService();
     PortAchievementsFrame();
+    PortDiscordFrame();
     {
         extern void PortRematchFrame(void);
         PortRematchFrame();

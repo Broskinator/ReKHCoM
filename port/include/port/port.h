@@ -148,6 +148,7 @@ typedef struct PortConfig {
     int invertCardScroll;      /* off by default: reverse L/R and right-stick card scrolling in battle */
     int battleZoom;            /* experimental: 0 follows main zoom, otherwise a battle-only pixel scale */
     int padLayout;             /* face buttons: 0 detect (Nintendo pads swap A/B, X/Y), 1 Xbox positions, 2 Nintendo */
+    int discordPresence;       /* on by default: Discord shows the world, floor, character and level (port_discord.c) */
 } PortConfig;
 
 extern PortConfig gPortConfig;
@@ -214,6 +215,9 @@ void PortAchievementsRomLoaded(const uint8_t* rom, size_t size);
 void PortAchievementsFrame(void);
 void PortAchievementsInvalidate(const char* reason);
 void PortAchievementsShutdown(void);
+void PortDiscordFrame(void);     /* port_discord.c: Discord Rich Presence, desktop builds */
+void PortDiscordShutdown(void);
+int PortDiscordAvailable(void);  /* 0 where there is no Discord (Android, web, consoles) */
 /* badgeIndex: position in the official set (its badges.png atlas); -1 = none */
 void PortAchievementToast(const char* title, const char* detail, const char* label, int badgeIndex);
 void PortAchievementToastDraw(void* renderer, int width, int height);

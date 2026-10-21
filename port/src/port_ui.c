@@ -64,6 +64,7 @@ enum {
     ITEM_LCD,
     ITEM_CARDS,
     ITEM_FPS,
+    ITEM_DISCORD,
     ITEM_DODGE,
     ITEM_STOCK,
     ITEM_SAVEBANK,
@@ -165,6 +166,7 @@ static int ItemVisible(int item) {
 #endif
         case ITEM_INTZOOM:
         case ITEM_SCALE: return 0;
+        case ITEM_DISCORD: return PortDiscordAvailable();
         /* the version and its difficulty are chosen at New Game and stay
            with the save, as in the original: no switch for them here */
         case ITEM_PS2_MODE:
@@ -213,6 +215,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Battle cards raised", "Cartes de combat relevées", "Kampfkarten angehoben", "Carte di battaglia rialzate",
       "Subir cartas en combate", "カードを上げる" },
     { "Show FPS", "Afficher FPS", "FPS anzeigen", "Mostra FPS", "Mostrar FPS", "FPS表示" },
+    { "Discord status", "Statut Discord", "Discord-Status", "Stato Discord", "Estado en Discord", "Discordステータス" },
     { "One-button dodge roll", "Roulade en un bouton", "Ausweichrolle mit einer Taste", "Capriola con un tasto",
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
@@ -849,6 +852,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_FPS:
             SDL_strlcpy(out, sOnOff[gPortConfig.showFps != 0][l], size);
             break;
+        case ITEM_DISCORD:
+            SDL_strlcpy(out, sOnOff[gPortConfig.discordPresence != 0][l], size);
+            break;
         case ITEM_DODGE:
             SDL_strlcpy(out, sOnOff[gPortConfig.dodgeButton != 0][l], size);
             break;
@@ -1047,6 +1053,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_FPS:
             gPortConfig.showFps = !gPortConfig.showFps;
+            break;
+        case ITEM_DISCORD:
+            gPortConfig.discordPresence = !gPortConfig.discordPresence;
             break;
         case ITEM_DODGE:
             gPortConfig.dodgeButton = !gPortConfig.dodgeButton;

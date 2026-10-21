@@ -118,6 +118,7 @@ static const Key sKeys[] = {
     { "dodge_button", &gPortConfig.dodgeButton, 0, 1 },
     { "stock_button", &gPortConfig.stockButton, 0, 1 },
     { "pad_layout", &gPortConfig.padLayout, 0, 2 },
+    { "discord_presence", &gPortConfig.discordPresence, 0, 1 },
     { "invert_card_scroll", &gPortConfig.invertCardScroll, 0, 1 },
     { "game_language", &gPortConfig.gameLanguage, 0, 5 },
     { "experimental_moogle_notice", &gPortConfig.moogleNotice, 0, 1 },
@@ -293,6 +294,8 @@ void PortConfigAutoView(int outW, int outH, int battle, int* w, int* h, int* sca
 void PortConfigLoad(void) {
     FILE* f = fopen(PortConfigPath("kh_com.ini"), "r");
     char line[256];
+
+    gPortConfig.discordPresence = 1; /* on unless the file says otherwise */
 
     /* a package preset (the Steam Deck's fullscreen) ships as
        kh_com.default.ini, so an update extracted over an install never
