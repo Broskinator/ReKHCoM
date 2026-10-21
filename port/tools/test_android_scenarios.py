@@ -113,8 +113,7 @@ def scenarios(groups, only, riku, from_battle=0):
     if 'issues' in groups:
         keys = ','.join(f'{f}-{f + 3}:A' for f in range(30, 2400, 40))
         for name, env in ISSUES.items():
-            out.append((name, 2400, 200, f'{env}
-KHCOM_KEYS={keys}'))
+            out.append((name, 2400, 200, f'{env}\nKHCOM_KEYS={keys}'))
     if 'bot' in groups:
         out.append(('bot-playthrough', 60000, 1500, 'KHCOM_BOT=1\nKHCOM_SHOTS=5000,15000,30000,45000,60000'))
     if only:
