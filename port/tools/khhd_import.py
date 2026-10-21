@@ -4,6 +4,7 @@
 Writes, under <data folder>/hd:
 - movies/ROP.mp4, RSE.mp4, RRE.mp4 (and with --scenes every zz_event_###.mp4): the Re:CoM movies with their first
   0x100 bytes un-XORed (fixed 16-byte key), i.e. plain MP4 files;
+- subs/<movie>.<lang>.txt: the movies' subtitles in every language the game has (khhd_subs.py);
 - music/<track>.ogg + .loop: the Re:CoM soundtrack (Recom.pkg STREAM/0001/*.win32.scd → Ogg Vorbis, khhd_scd.py).
 
     python port/tools/khhd_import.py "<install folder>" <data folder> [--scenes] [--no-movies] [--no-music]
@@ -16,6 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import khhd_pkg  # noqa: E402
 import khhd_scd  # noqa: E402
+import khhd_subs  # noqa: E402
 
 MOVIE_KEY = bytes.fromhex('3f1ec193264258b8aa9d5375bf629a97')
 BASE_MOVIES = ('ROP', 'RSE', 'RRE')
@@ -59,6 +61,7 @@ def main():
         for name in names:
             copy_movie(movies / f'{name}.mp4', hd / 'movies' / f'{name}.mp4')
             print('movie', name)
+        print(khhd_subs.extract(root, args.data), 'subtitle files')
     if not args.no_music:
         hed = root / 'Image/dt/Recom.hed'
         (hd / 'music').mkdir(parents=True, exist_ok=True)

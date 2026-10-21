@@ -122,6 +122,7 @@ static const Key sKeys[] = {
     { "hd_movies", &gPortConfig.hdMovies, 0, 1 },
     { "hd_music", &gPortConfig.hdMusic, 0, 1 },
     { "hd_scenes", &gPortConfig.hdScenes, 0, 1 },
+    { "hd_subtitles", &gPortConfig.hdSubtitles, 0, 1 },
     { "invert_card_scroll", &gPortConfig.invertCardScroll, 0, 1 },
     { "game_language", &gPortConfig.gameLanguage, 0, 5 },
     { "experimental_moogle_notice", &gPortConfig.moogleNotice, 0, 1 },
@@ -299,6 +300,10 @@ void PortConfigLoad(void) {
     char line[256];
 
     gPortConfig.discordPresence = 1; /* on unless the file says otherwise */
+#ifdef PORT_SWITCH
+    gPortConfig.hideTouchControls = 1; /* the console has buttons: only the touch options button shows (issue #35) */
+#endif
+    gPortConfig.hdSubtitles = 1;
     gPortConfig.hdMovies = 1;        /* the HD mod is used once imported (HD_MOD.md); the full scenes mod is opt-in */
     gPortConfig.hdMusic = 1;
 

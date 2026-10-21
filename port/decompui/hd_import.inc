@@ -1,6 +1,7 @@
 /* HD mod importer (port/progress/HD_MOD.md): takes the Re:Chain of Memories movies and soundtrack from the player's
  * own KINGDOM HEARTS -HD 1.5+2.5 ReMIX- (Steam or Epic, found by itself or chosen), or from a folder with those files
- * loose, and writes plain files the game plays: hd/movies/<name>.mp4 and hd/music/<track>.ogg + .loop.
+ * loose, and writes plain files the game plays: hd/movies/<name>.mp4, hd/subs/<movie>.<lang>.txt and
+ * hd/music/<track>.ogg + .loop.
  *
  * Formats (port/tools/khhd_pkg.py, khhd_scd.py and khhd_import.py are the Python reference):
  * - movies: MP4 whose first 0x100 bytes are XORed with a fixed 16-byte key;
@@ -176,6 +177,194 @@ static bool ScdToOgg(const std::vector<unsigned char>& scd, std::vector<unsigned
     return true;
 }
 
+/* ---- movie subtitles (port/tools/khhd_subs.py) ---------------------------------------------------------------- */
+
+/* FORM/5xxx/FO5xxx.BIN: the US table at 0x40, a remastered <XX>_MVS*.binl per language. Each language's table
+   becomes hd/subs/<movie>.<lang>.txt ("<first frame> <last frame> <text>", 30 frames a second, \n for breaks). */
+static bool ReadAssetLanguages(std::ifstream& pkg, long long offset, std::map<std::string, std::vector<unsigned char>>& out) {
+    unsigned char seed[16];
+    pkg.clear(); /* a padded read at the package's end leaves eof set: it must not fail the assets after it */
+    pkg.seekg(offset);
+    if (!pkg.read((char*)seed, 16))
+        return false;
+    int32_t dlen, rcount, clen;
+    memcpy(&dlen, seed, 4);
+    memcpy(&rcount, seed + 4, 4);
+    memcpy(&clen, seed + 8, 4);
+    if (rcount < 0 || rcount > 64)
+        return false;
+    std::vector<std::pair<std::string, std::pair<int32_t, int32_t>>> extra;
+    for (int i = 0; i < rcount; i++) {
+        unsigned char e[0x30];
+        if (!pkg.read((char*)e, 0x30))
+            return false;
+        int32_t rdlen, rclen;
+        memcpy(&rdlen, e + 0x28, 4);
+        memcpy(&rclen, e + 0x2C, 4);
+        extra.push_back({ std::string((const char*)e, strnlen((const char*)e, 32)), { rdlen, rclen } });
+    }
+    unsigned char key[0xB0];
+    MakeKey(seed, key);
+    auto unpack = [&](size_t stored, int32_t real, int32_t packed, std::vector<unsigned char>& data) {
+        std::vector<unsigned char> raw(stored);
+        pkg.read((char*)raw.data(), (std::streamsize)raw.size());
+        size_t got = (size_t)pkg.gcount();
+        pkg.clear();
+        if (got < (size_t)(packed >= 0 ? packed : real)) /* only the 16-byte padding may be missing */
+            return false;
+        if (packed > -2)
+            DecryptHead(key, raw);
+        if (packed <= -1) {
+            raw.resize((size_t)real);
+            data.swap(raw);
+            return true;
+        }
+        /* some language tables inflate past the size their header gives: keep all of it, as zlib does in Python */
+        int inflatedLen = 0;
+        char* inflated = stbi_zlib_decode_noheader_malloc((const char*)raw.data() + 2, (int)packed - 2, &inflatedLen);
+        if (!inflated)
+            return false;
+        data.assign((unsigned char*)inflated, (unsigned char*)inflated + inflatedLen);
+        free(inflated);
+        return inflatedLen >= real;
+    };
+    std::vector<unsigned char> base;
+    if (!unpack((size_t)(clen >= 0 ? clen : dlen), dlen, clen, base) || base.size() < 0x40)
+        return false;
+    out[""] = std::vector<unsigned char>(base.begin() + 0x40, base.end());
+    for (auto& [name, len] : extra) {
+        long long pos = (long long)pkg.tellg();
+        pkg.seekg((pos + 15) & ~15LL);
+        size_t n = (size_t)(len.second >= 0 ? len.second : len.first);
+        std::vector<unsigned char> data;
+        if (!unpack(n + (-n & 15), len.first, len.second, data))
+            return false;
+        if (name.size() > 6 && name.compare(2, 4, "_MVS") == 0)
+            out[name.substr(0, 2)] = data;
+    }
+    return true;
+}
+
+/* the game's own letters: 0x99 then a code (capitals from 0x80, small letters from 0x9A), or Shift-JIS */
+static std::string MvsText(const unsigned char* s, size_t n) {
+    static const char* const kCaps[] = { "À", "Á", "Â", "Ä", "Ã", "Ç", "È", "É", "Ê", "Ë", "Ì", "Í", "Î", "Ï", "Ñ", "Ò",
+                                         "Ó", "Ô", "Õ", "Ö", "Œ", "Ù", "Ú", "Û", "Ü", "ß" };
+    static const char* const kSmall[] = { "à", "á", "â", "ä", "ã", "ç", "è", "é", "ê", "ë", "ì", "í", "î", "ï", "ñ", "ò",
+                                          "ó", "ô", "õ", "ö", "ù", "ú", "û", "ü", "œ", "¿", "¡", "«", "„", "»", "º", "ª" };
+    std::string out;
+    for (size_t i = 0; i < n;) {
+        unsigned char b = s[i];
+        if (b < 0x80) {
+            out += b == '\n' ? std::string("\\n") : std::string(1, (char)b);
+            i++;
+            continue;
+        }
+        unsigned c = i + 1 < n ? s[i + 1] : 0, code = (unsigned)b << 8 | c;
+        i += 2;
+        if (b == 0x99 && c >= 0x80 && c < 0x9A)
+            out += kCaps[c - 0x80];
+        else if (b == 0x99 && c >= 0x9A && c < 0xBA)
+            out += kSmall[c - 0x9A];
+        else if (b == 0x99 && c == 0xCF)
+            out += "°";
+        else if (code == 0x815C)
+            out += "—";
+        else if (code == 0x81F4)
+            ;
+        else if (code == 0x8167)
+            out += "“";
+        else if (code == 0x8168)
+            out += "”";
+        else if (code == 0x83C3)
+            out += "é";
+        else if (code == 0x8140)
+            out += " ";
+        else {
+            char sj[2] = { (char)b, (char)c };
+            WCHAR w[2];
+            char u[8];
+            int k = MultiByteToWideChar(932, 0, sj, 2, w, 2);
+            int m = k > 0 ? WideCharToMultiByte(CP_UTF8, 0, w, k, u, sizeof(u), NULL, NULL) : 0;
+            out.append(m > 0 ? std::string(u, (size_t)m) : std::string("?"));
+        }
+    }
+    return out;
+}
+
+static int WriteSubtitles(const fs::path& install, const fs::path& data) {
+    static const std::map<std::string, const char*> kLangs = { { "", "us" }, { "UK", "uk" }, { "FR", "fr" },
+                                                               { "GR", "de" }, { "IT", "it" }, { "SP", "es" } };
+    fs::path hed = install / "Image" / "dt" / "Recom.hed", out = data / "hd" / "subs";
+    std::error_code ec;
+    if (!fs::exists(hed, ec))
+        return 0;
+    fs::create_directories(out, ec);
+    std::map<std::string, int> want;
+    for (int sid = 5000; sid < 5700; sid++) {
+        std::string id = std::to_string(sid);
+        want[Md5Hex("FORM/" + id + "/FO" + id + ".BIN")] = sid;
+    }
+    std::ifstream h(hed, std::ios::binary), pkg(fs::path(hed).replace_extension(".pkg"), std::ios::binary);
+    unsigned char e[0x20];
+    int written = 0;
+    while (h.read((char*)e, 0x20)) {
+        static const char* hex = "0123456789abcdef";
+        std::string md5;
+        for (int i = 0; i < 16; i++) {
+            md5 += hex[e[i] >> 4];
+            md5 += hex[e[i] & 15];
+        }
+        auto it = want.find(md5);
+        if (it == want.end())
+            continue;
+        long long offset;
+        memcpy(&offset, e + 16, 8);
+        std::map<std::string, std::vector<unsigned char>> tables;
+        if (!ReadAssetLanguages(pkg, offset, tables))
+            continue;
+        int sid = it->second;
+        char movie[32];
+        if (sid == 5000)
+            snprintf(movie, sizeof(movie), "ROP");
+        else if (sid == 5200)
+            snprintf(movie, sizeof(movie), "RSE");
+        else if (sid == 5699)
+            snprintf(movie, sizeof(movie), "RRE");
+        else
+            snprintf(movie, sizeof(movie), "zz_event_%03d", sid - 5000);
+        for (auto& [prefix, t] : tables) {
+            auto lang = kLangs.find(prefix);
+            if (lang == kLangs.end() || t.size() < 0x10 || memcmp(t.data(), "MVS", 4) != 0)
+                continue;
+            uint16_t count;
+            memcpy(&count, t.data() + 6, 2);
+            std::string text;
+            bool japanese = false;
+            for (unsigned i = 0; i < count && 0x10 + i * 8 + 8 <= t.size(); i++) {
+                uint16_t first, last;
+                uint32_t at;
+                memcpy(&first, t.data() + 0x10 + i * 8, 2);
+                memcpy(&last, t.data() + 0x12 + i * 8, 2);
+                memcpy(&at, t.data() + 0x14 + i * 8, 4);
+                if (at >= t.size())
+                    break;
+                size_t end = at;
+                while (end < t.size() && t[end])
+                    end++;
+                std::string line = MvsText(t.data() + at, end - at);
+                for (unsigned char ch : line)
+                    japanese |= ch == 0xE3 || (ch >= 0xE4 && ch <= 0xE9); /* U+3000 and up */
+                text += std::to_string(first) + " " + std::to_string(last) + " " + line + "\n";
+            }
+            if (text.empty())
+                continue;
+            std::ofstream(out / (std::string(movie) + "." + (japanese ? "ja" : lang->second) + ".txt"), std::ios::binary) << text;
+            written++;
+        }
+    }
+    return written;
+}
+
 /* ---- finding the game ----------------------------------------------------------------------------------------- */
 
 static fs::path MovieFolder(const fs::path& install) {
@@ -312,6 +501,8 @@ static void Run(fs::path source, fs::path data, bool movies, bool scenes, bool m
                 imported++;
             sJob.done++;
         }
+        sJob.Say(T("Subtítulos", "Subtitles"));
+        imported += WriteSubtitles(source, data);
     }
     if (music) {
         fs::create_directories(outMusic, ec);
@@ -483,6 +674,12 @@ static bool HdModCard() {
                            "Re:Chain of Memories' story scenes in place of the GBA ones where they match, with subtitles "
                            "in the game's language. Off by default."),
                          Ini("hd_scenes"));
+    ImGui::EndDisabled();
+    ImGui::BeginDisabled(haveMovies <= 0);
+    changed |= ToggleRow(T("Subtítulos HD", "HD subtitles"),
+                         T("Los subtítulos de Re:Chain of Memories en los videos y escenas HD, en el idioma del juego.",
+                           "Re:Chain of Memories' subtitles over the HD movies and scenes, in the game's language."),
+                         Ini("hd_subtitles"));
     ImGui::EndDisabled();
     return changed;
 }

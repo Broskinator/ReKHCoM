@@ -14,7 +14,7 @@
 #include "port/port_aspect.h"
 #include "port/port_ui.h"
 #include "port/port_achievement_list.h"
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64)
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64) || defined(PORT_TOUCH)
 #include "port/port_android.h"
 #endif
 #include "port/pad_layout.h"
@@ -69,6 +69,7 @@ enum {
     ITEM_HD_MOVIES,    /* the HD mod (HD_MOD.md): shown only once imported */
     ITEM_HD_MUSIC,
     ITEM_HD_SCENES,
+    ITEM_HD_SUBTITLES,
     ITEM_DODGE,
     ITEM_STOCK,
     ITEM_SAVEBANK,
@@ -178,9 +179,10 @@ static int HdImported(const char* file) {
 /* rows shown only where they apply */
 static int ItemVisible(int item) {
     switch (item) {
-#if !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(PORT_ANDROID64)
+#if !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(PORT_ANDROID64) && !defined(PORT_TOUCH)
         case ITEM_HIDE_TOUCH: return 0;
-#else
+#endif
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64)
         case ITEM_REMATCH_MENU: return 0; /* rematches need states, not on these yet */
 #endif
 #if defined(__ANDROID__) || defined(__EMSCRIPTEN__) /* the console images hide them through build_ps5.PORT_PATCHES */
@@ -193,6 +195,7 @@ static int ItemVisible(int item) {
         case ITEM_HD_MOVIES: return HdImported("hd/movies/ROP.mp4");
         case ITEM_HD_MUSIC: return HdImported("hd/music/Title.ogg");
         case ITEM_HD_SCENES: return HdImported("hd/movies/zz_event_011.mp4");
+        case ITEM_HD_SUBTITLES: return HdImported("hd/subs/ROP.us.txt");
         /* the version and its difficulty are chosen at New Game and stay
            with the save, as in the original: no switch for them here */
         case ITEM_PS2_MODE:
@@ -245,6 +248,7 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "HD movies", "Vidéos HD", "HD-Videos", "Video HD", "Videos HD", "HDムービー" },
     { "HD music", "Musique HD", "HD-Musik", "Musica HD", "Música HD", "HDミュージック" },
     { "HD scenes", "Scènes HD", "HD-Szenen", "Scene HD", "Escenas HD", "HDシーン" },
+    { "HD subtitles", "Sous-titres HD", "HD-Untertitel", "Sottotitoli HD", "Subtítulos HD", "HD字幕" },
     { "One-button dodge roll", "Roulade en un bouton", "Ausweichrolle mit einer Taste", "Capriola con un tasto",
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
@@ -895,6 +899,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_HD_SCENES:
             SDL_strlcpy(out, sOnOff[gPortConfig.hdScenes != 0][l], size);
             break;
+        case ITEM_HD_SUBTITLES:
+            SDL_strlcpy(out, sOnOff[gPortConfig.hdSubtitles != 0][l], size);
+            break;
         case ITEM_DODGE:
             SDL_strlcpy(out, sOnOff[gPortConfig.dodgeButton != 0][l], size);
             break;
@@ -1112,6 +1119,9 @@ static void Change(int item, int dir) {
         case ITEM_HD_SCENES:
             gPortConfig.hdScenes = !gPortConfig.hdScenes;
             break;
+        case ITEM_HD_SUBTITLES:
+            gPortConfig.hdSubtitles = !gPortConfig.hdSubtitles;
+            break;
         case ITEM_DODGE:
             gPortConfig.dodgeButton = !gPortConfig.dodgeButton;
             break;
@@ -1151,7 +1161,7 @@ static void Change(int item, int dir) {
             break;
         case ITEM_HIDE_TOUCH:
             gPortConfig.hideTouchControls = !gPortConfig.hideTouchControls;
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64)
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64) || defined(PORT_TOUCH)
             PortAndroidTouchSettingsChanged();
 #endif
             break;

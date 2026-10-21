@@ -152,6 +152,7 @@ typedef struct PortConfig {
     int hdMovies;              /* HD mod (HD_MOD.md): imported Re:CoM movies replace the cartridge's (on when imported) */
     int hdMusic;               /* HD mod: the imported Re:CoM soundtrack replaces the background music (port_hdmusic.c) */
     int hdScenes;              /* HD mod, full: the imported Re:CoM cutscenes replace the story scenes they match (off) */
+    int hdSubtitles;           /* HD mod: the HD movies and scenes show Re:CoM's subtitles in the game's language (on) */
 } PortConfig;
 
 extern PortConfig gPortConfig;

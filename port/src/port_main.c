@@ -20,7 +20,7 @@
 #include "port/port_hd2d.h"
 #include "port/port_ui.h"
 #include "port/port_state.h"
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64)
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64) || defined(PORT_TOUCH)
 #include "port/port_android.h"
 #endif
 #if defined(__ANDROID__) || defined(PORT_ANDROID64)
@@ -1663,7 +1663,7 @@ static void Present(void) {
             }
         }
     }
-#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64)
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64) || defined(PORT_TOUCH)
     PortAndroidTouchDraw(sRenderer);
 #endif
 #ifdef PORT_LINUX

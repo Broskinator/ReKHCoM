@@ -38,20 +38,9 @@ def configure():
 
 
 def build_guest(region, jobs):
-    """The Switch guest build plus the touch controls (port/android/native/touch_android.c)."""
+    """The Switch guest build (it carries the touch controls, port/android/native/touch_android.c)."""
     configure()
-    units_before = build_switch.compile_all
-
-    def compile_all(j, units):
-        port_flags = next(u[2] for u in units if '/port/' in u[1].as_posix())
-        units.append((ROOT / 'port/android/native/touch_android.c',
-                      build_switch.BUILD / f'guest-{region}' / 'port/touch_android.o', port_flags))
-        return units_before(j, units)
-    build_switch.compile_all = compile_all
-    try:
-        return build_switch.build_guest(region, jobs)
-    finally:
-        build_switch.compile_all = units_before
+    return build_switch.build_guest(region, jobs)
 
 
 def main():

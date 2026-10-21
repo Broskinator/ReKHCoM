@@ -109,7 +109,8 @@ def build_guest(region, jobs):
     game_flags = [*common_flags(), '-w', '-std=gnu89', '-include', ROOT / 'port/include/port/game_prefix.h', '-DPLATFORM_PC',
                   f'-DVERSION_{upper}', *includes]
     port_flags = [*common_flags(), '-w', '-std=gnu11', '-DSTBI_NO_THREAD_LOCALS', f'-I{PS5 / "third_party/stb"}',
-                  f'-I{ROOT / "port/src"}', '-DPLATFORM_PC', f'-DVERSION_{upper}', *includes]
+                  f'-I{ROOT / "port/src"}', f'-I{ROOT / "port/android/native"}', '-DPLATFORM_PC', f'-DVERSION_{upper}',
+                  '-DPORT_TOUCH', *includes]
     units = []
     for src in sorted((ROOT / 'src').rglob('*.c')):
         units.append((src, out / 'game' / src.relative_to(ROOT / 'src').with_suffix('.o'), game_flags))
@@ -124,6 +125,8 @@ def build_guest(region, jobs):
         if src.stem not in GUEST_SKIP:
             units.append((src, out / 'ps5' / (src.stem + '.o'), port_flags))
     units.append((HERE / 'guest/stubs_a64.c', out / 'switch/stubs_a64.o', port_flags))
+    # the touch controls (the options button on the handheld screen, issue #35; the Android 64-bit build's controls)
+    units.append((ROOT / 'port/android/native/touch_android.c', out / 'port/touch_android.o', port_flags))
     macho_symbols(pc / 'rom_symbols_reloc.s', out / 'rom_symbols.s')
     for src in (out / 'rom_symbols.s', HERE / 'guest/crt0_a64.S'):
         units.append((src, out / 'asm' / (src.stem + '.o'), [TARGET, CPU, '-c']))

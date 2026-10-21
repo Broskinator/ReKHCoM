@@ -394,7 +394,31 @@ bool SDL_RenderPresent(SDL_Renderer* r) {
     return true;
 }
 SDL_Surface* SDL_RenderReadPixels(SDL_Renderer* r, const SDL_Rect* rect) { (void)r; (void)rect; SetError("not supported"); return NULL; }
-bool SDL_RenderDebugText(SDL_Renderer* r, float x, float y, const char* s) { (void)r; (void)x; (void)y; (void)s; return true; }
+/* SDL's debug text, for the touch controls' labels (port/android/native/touch_android.c): 8-pixel cells, a 5x7
+   glyph for the letters they use (each row 5 bits, high bit left); any other character leaves its cell empty. */
+bool SDL_RenderDebugText(SDL_Renderer* r, float x, float y, const char* s) {
+    static const struct { char c; unsigned char rows[7]; } glyphs[] = {
+        { 'A', { 0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11 } }, { 'B', { 0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E } },
+        { 'C', { 0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E } }, { 'E', { 0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x1F } },
+        { 'L', { 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x1F } }, { 'R', { 0x1E, 0x11, 0x11, 0x1E, 0x14, 0x12, 0x11 } },
+        { 'S', { 0x0F, 0x10, 0x10, 0x0E, 0x01, 0x01, 0x1E } }, { 'T', { 0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04 } },
+        { '.', { 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x0C } },
+    };
+    for (; *s; s++, x += 8) {
+        size_t g;
+        for (g = 0; g < sizeof(glyphs) / sizeof(glyphs[0]) && glyphs[g].c != *s; g++) {
+        }
+        if (g == sizeof(glyphs) / sizeof(glyphs[0]))
+            continue;
+        for (int row = 0; row < 7; row++)
+            for (int col = 0; col < 5; col++)
+                if (glyphs[g].rows[row] & (0x10 >> col)) {
+                    SDL_FRect px = { x + 1 + col, y + row, 1, 1 };
+                    SDL_RenderFillRect(r, &px);
+                }
+    }
+    return true;
+}
 
 /* ---- textures ---- */
 
