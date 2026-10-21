@@ -2233,6 +2233,18 @@ void PortFrame(void) {
     PortWebWaitVisible();
 #endif
     PortStateService();
+    {
+        /* Options > Return to title screen: the game's own soft reset, as its Continue screen does */
+        extern int PortUiTakeTitleRequest(void);
+        extern void SoftReset(int32_t flags);
+        if (PortUiTakeTitleRequest()) {
+#ifdef VERSION_EU
+            DoSoftReset();
+#else
+            SoftReset(0xFF); /* RESET_ALL */
+#endif
+        }
+    }
     PortAchievementsFrame();
     PortDiscordFrame();
     {

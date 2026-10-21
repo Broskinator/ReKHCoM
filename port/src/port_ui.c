@@ -83,6 +83,7 @@ enum {
     ITEM_INVERT_CARD_SCROLL,
     ITEM_HIDE_TOUCH,
     ITEM_RECOM_EXTRAS, /* section heading, not selectable */
+    ITEM_TITLE,        /* back to the title screen, as the game's own Continue screen does */
     ITEM_UNSTOCK,
     ITEM_PS2_MODE,
     ITEM_PS2_MENU,     /* opens the Re:CoM page */
@@ -137,6 +138,7 @@ enum {
 /* Two pages, each a run of items: the options and the Re:CoM settings. */
 enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS, PAGE_CONTROLS, PAGE_REMATCH, PAGE_ACHIEVEMENTS };
 static int sPage;
+static int sTitleArmed, sTitleRequest; /* ITEM_TITLE: confirmed once / due once the menu has closed */
 static void AchievementMenuOpen(void);
 static int AchievementMenuInput(const SDL_Event* ev);
 static int sControlPad, sControlCapture;
@@ -243,6 +245,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Hide touch controls", "Masquer les commandes tactiles", "Touch-Steuerung ausblenden",
       "Nascondi controlli touch", "Ocultar controles táctiles", "タッチ操作を非表示" },
     { "Re:CoM improvements", "Améliorations Re:CoM", "Re:CoM-Verbesserungen", "Miglioramenti Re:CoM", "Mejoras de Re:CoM", "Re:CoMの改善" },
+    { "Return to title screen", "Retour à l'écran titre", "Zurück zum Titelbildschirm",
+      "Torna alla schermata del titolo", "Volver a la pantalla de título", "タイトル画面に戻る" },
     { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
       "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
     { "Re:CoM mode", "Mode Re:CoM", "Re:CoM-Modus", "Modalità Re:CoM", "Modo Re:CoM", "Re:CoMモード" },
@@ -925,6 +929,12 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_PS2_MENU:
             SDL_strlcpy(out, "\xE2\x86\x92", size);
             break;
+        case ITEM_TITLE: {
+            static const char* const again[LANG_COUNT] = { "Confirm again", "Confirmer encore", "Nochmal bestätigen",
+                                                           "Conferma di nuovo", "Confirma otra vez", "もう一度決定" };
+            SDL_strlcpy(out, sTitleArmed ? again[l] : "\xE2\x86\x92", size);
+            break;
+        }
         case ITEM_PS2_DIFFICULTY:
         case ITEM_NG_DIFFICULTY:
             SDL_strlcpy(out, sDifficulty[SDL_clamp(gPortConfig.ps2Difficulty, 0, 2)][l], size);
@@ -1106,6 +1116,15 @@ static void Change(int item, int dir) {
         case ITEM_CHEATS_MENU:
             if (dir > 0) { sPage = PAGE_CHEATS; sCursor = sScroll = ITEM_CHEAT_DEBUG; }
             break;
+        case ITEM_TITLE: /* a second confirm returns to the title; unsaved progress is lost, as with A+B+Start+Select */
+            if (dir > 0 && sTitleArmed) {
+                sTitleArmed = 0;
+                sTitleRequest = 1;
+                Close();
+            } else if (dir > 0) {
+                sTitleArmed = 1;
+            }
+            return;
         case ITEM_ACHIEVEMENTS_MENU:
             if (dir > 0) AchievementMenuOpen();
             return;
@@ -1243,6 +1262,14 @@ static int sClosing; /* frames left of the menu fading to black */
 static int sReturn;  /* frames left of the black fading back to the game */
 static int sHarnessTick;
 
+/* Options > Return to title screen, once the menu has closed (PortFrame resets the game). */
+int PortUiTakeTitleRequest(void) {
+    if (!sTitleRequest || sOpen)
+        return 0;
+    sTitleRequest = 0;
+    return 1;
+}
+
 int PortUiMenuCanvas(void) {
     return sOpen && sFade >= MENU_FADE;
 }
@@ -1264,6 +1291,7 @@ void PortUiOpenOptions(void) {
     if (sOpen)
         return;
     sOpen = 1;
+    sTitleArmed = 0;
     sOpenSound = !SDL_getenv("KHCOM_OPTIONS_SHOT");
     sCloseSound = 0;
     sFade = SDL_getenv("KHCOM_OPTIONS_SHOT") ? MENU_FADE * 2 : 0; /* test shots: no fade */
