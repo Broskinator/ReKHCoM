@@ -62,9 +62,8 @@ Sin verificar (no hay consola ni emulador aquí): mapeo de memoria de código en
 audio y mandos del host de Vita, rendimiento. Llega como reporte de quien lo pruebe.
 
 Siguiente:
-1. Switch: prerelease v1.9.13-pre1 armada (commit 2b256f8e3; Windows + `ReKHCoM-v1.9.13-pre1-switch-alpha.nro`,
-   en `build/publish/v1.9.13-pre1` con notes.md y SHA256SUMS). El permiso automático bloqueó `gh release
-   create`: falta que el usuario la publique o autorice publicarla. Copia de prueba: `Probar ReKHCoM v1.9.13 pre1.bat`.
+1. Switch: PUBLICADA como alpha dentro de la release v1.9.12 (`ReKHCoM-v1.9.12-switch-alpha.nro`,
+   pedido del usuario 20/10; archivos viejos intactos). La próxima release la lleva desde stage_release.
    Vita: espera OK del usuario (o prueba en Vita3K si lo autoriza).
 2. Sumarlos a stage_release/release_check y build_all cuando se publiquen.
 
