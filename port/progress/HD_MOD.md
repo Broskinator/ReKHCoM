@@ -79,9 +79,12 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
   Compilado: PC, APK (arm64 + armv7), host PS4. Probado en el emulador Android 14 con el host de 64
   bits (`test_android_scenarios.py --groups battles --only battle-000- --slow 6`, con
   `files/hd/music/01F_Town_B.ogg/.loop`: el combate de Ciudad de Paso pide esa pista): abre a 48 kHz,
-  "song 12 -> 01F_Town_B", termina sin fallos (21/10). Switch/Vita/PS5 en la VM: compilando.
-- [ ] Android: botón "Importar mod HD" en el launcher de Android (selector de carpeta SAF que copia la
-  carpeta `hd` hecha por el launcher de PC a `files/hd`); sirve para 32 y 64 bits.
+  "song 12 -> 01F_Town_B", termina sin fallos (21/10). Switch (.nro) y Vita (.vpk) compilan en la VM (21/10).
+- [x] Android: botón "Importar mod HD" en el launcher (selector de carpeta SAF; se elige la carpeta `hd`
+  del launcher de PC o la que la contiene) que copia `hd/music` (.ogg/.loop) a `files/hd/music`, cada
+  archivo entero (temporal + renombrar). Los videos todavía no: Android no los reproduce y pesan GB.
+  Probado en el emulador Android 14: Descargas/hd → 2 pistas, idénticas por md5 (21/10). Android no deja
+  elegir la raíz de Descargas: hay que elegir `hd` (el texto del botón lo dice).
 - [ ] Videos en Android (32 y 64 bits): NDK `AMediaExtractor`/`AMediaCodec` (API 21+) a textura SDL NV12,
   con los mismos subtítulos; en 64 bits como entrada del puente `hd_movie` en el host.
 - [ ] Videos en consolas: decodificador de cada una (Vita/PS4 sceAvPlayer, Switch nvdec); sin hardware
