@@ -12,9 +12,12 @@ de proponer algo nuevo; ante un caso nuevo, derivar la solución de ellas.
 2. **Un borde natural cierra el mundo.** Donde la sala termina en corte recto
    se continúa con el *propio borde* de la sala (su festón inferior) volteado,
    vacío fuera y muro dentro. Nunca un corte recto ni un zigzag inventado.
-3. **Nunca repetir adornos.** Marcos de ventana, relieves y figuras no se
+3. **Nunca repetir adornos únicos.** Marcos de ventana, relieves y figuras no se
    copian ni se cortan por la mitad: el espacio nuevo se rellena con la pared
-   lisa de esa columna.
+   lisa de esa columna. Mejora aprobada con honores en 109 (21/10): sí se pueden
+   intercalar piezas ambientales completas del propio escenario (puestos y
+   grupos de jarrones), con separaciones variadas y anclaje correcto al suelo.
+   Primero reparar el borde; después decorar. Sin nuevos objetos de juego.
 4. **Pared lisa = capa base.** En estas salas BG3 lleva la pared de rayas y
    BG2 solo los adornos; fuera de la sala: BG2 vacío (0) y BG3 = el tile de
    BG3 más repetido de esa columna (`MapPlainBaseTile`). Elegir por frecuencia
@@ -88,3 +91,6 @@ Workflow completo (tiles, píxeles, pixel art, pruebas en x3 entero): WORKFLOW_A
   ventanas, jarrones, puestos ni esquinas. Identificar los mapas por sus datos
   descomprimidos (EU) o directos (US/JP), con paleta activa. Receta en
   `AGRABAH_107_REVISION.md`. Codex commitea; Claude integra.
+
+- Agrabah 109: aprobada **con honores** el 21/10. Borde diagonal completado con una tira donante intacta; puestos y grupos de jarrones completos intercalados con separaciones variadas, como arte de fondo y con paletas BG/OBJ activas. GBA y OAM intactos. Receta en AGRABAH_109_REVISION.md; mejoras incorporadas a WORKFLOW_ARTE_AMPLIO.md para la tanda Preliminar V1.
+
