@@ -6594,6 +6594,15 @@ u8 MsgwinCloseUpdate(MsgWinWork* work, void* task) {
     return 1;
 }
 
+#ifdef PLATFORM_PC
+/* @bug: an entry with no text (EVENT_196 in EU and others) reads the BIOS for its language's string, then that value
+   as the text; the port lays out an empty one instead */
+static const u8 sMsgwinNoText[] = { MSG_CODE_END };
+#define MSGWIN_TEXT(entry) ((entry)->text != NULL ? LANGSTR((entry)->text) : (void*)sMsgwinNoText)
+#else
+#define MSGWIN_TEXT(entry) LANGSTR((entry)->text)
+#endif
+
 void MsgwinLoadEntry(MsgWinWork* work) {
     const MessageScriptEntry* entry = &work->script[work->scriptIndex];
     s32 position;
@@ -6615,9 +6624,9 @@ void MsgwinLoadEntry(MsgWinWork* work) {
 
 #ifdef VERSION_JP
     if (entry->portraitId == PORTRAIT_NONE) {
-        work->charCount = LayoutMsgGlyphsSjis(0x2E00, gMsgwinTextY[work->position], (u8*)entry->text);
+        work->charCount = LayoutMsgGlyphsSjis(0x2E00, gMsgwinTextY[work->position], (u8*)MSGWIN_TEXT(entry));
     } else {
-        work->charCount = LayoutMsgGlyphsSjis(gMsgwinTextX[work->position], gMsgwinTextY[work->position], (u8*)entry->text);
+        work->charCount = LayoutMsgGlyphsSjis(gMsgwinTextX[work->position], gMsgwinTextY[work->position], (u8*)MSGWIN_TEXT(entry));
     }
 #else
     // @bug In EU, EVENT_196_DAMI_JUUJIRO has no text (NULL read).
@@ -6625,13 +6634,13 @@ void MsgwinLoadEntry(MsgWinWork* work) {
         if (work->nextText != NULL) {
             work->charCount = LayoutMsgGlyphsPage(0x2E00, gMsgwinTextY[work->position] - 0x200, work->nextText, &work->nextText);
         } else {
-            work->charCount = LayoutMsgGlyphsPage(0x2E00, gMsgwinTextY[work->position] - 0x200, LANGSTR(entry->text), &work->nextText);
+            work->charCount = LayoutMsgGlyphsPage(0x2E00, gMsgwinTextY[work->position] - 0x200, MSGWIN_TEXT(entry), &work->nextText);
         }
     } else {
         if (work->nextText != NULL) {
             work->charCount = LayoutMsgGlyphsPage(gMsgwinTextX[work->position], gMsgwinTextY[work->position] - 0x200, work->nextText, &work->nextText);
         } else {
-            work->charCount = LayoutMsgGlyphsPage(gMsgwinTextX[work->position], gMsgwinTextY[work->position] - 0x200, LANGSTR(entry->text), &work->nextText);
+            work->charCount = LayoutMsgGlyphsPage(gMsgwinTextX[work->position], gMsgwinTextY[work->position] - 0x200, MSGWIN_TEXT(entry), &work->nextText);
         }
     }
 #endif

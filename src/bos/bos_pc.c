@@ -5515,7 +5515,13 @@ void task_bos_pc_0(PcWork* work, TaskPool* pool) {
     }
 
     // @bug flt[0] is NULL when no floats were created (NULL read).
-    BosPcFltGetPosition(BIOS_PTR(work->flt[0]), &x, &y, &z);
+#ifdef PLATFORM_PC
+    /* the cartridge reads the BIOS for the task, then its value as the work pointer (SRAM mirror): no position */
+    if (work->flt[0] == NULL)
+        x = y = z = 0;
+    else
+#endif
+    BosPcFltGetPosition(work->flt[0], &x, &y, &z);
     SetBattleActorPosition(x, y, z - 0x400);
     CreateBosPcAcdTask(work, pool);
     btl = gBtlWork;
