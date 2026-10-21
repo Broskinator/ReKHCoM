@@ -67,20 +67,25 @@ static BgWorld sBgWorldLatched[4];
 static int sBgIso[4];
 static int sBgIsoLatched[4];
 
-/* Scenes reviewed with the continued floor. Many maps end in an authored
-   dark void past their walls, which must stay; only listed scenes extend.
-   KHCOM_ISOALL=1 (harness) tries it on every scene for review. */
-static const int kIsoScenes[] = {
-    4, /* 1F Traverse Town: Sora meets Leon */
+/* Scenes reviewed with the continued floor, and through which edges of their
+   map: only where the scenery is cut by the map's size (Leon's alley). A
+   frame the map draws itself (a room floating in the dark) stays as it is,
+   so each scene lists its edges by hand. KHCOM_ISOALL=1 (harness) opens every
+   edge of every scene for review. */
+static const struct { int eventId, edges; } kIsoScenes[] = {
+    { 4, PORT_ISO_LEFT }, /* 1F Traverse Town: Sora meets Leon */
+    { 57, PORT_ISO_LEFT | PORT_ISO_RIGHT | PORT_ISO_TOP | PORT_ISO_BOTTOM },  /* review: 12F Destiny Islands beach */
+    { 61, PORT_ISO_LEFT | PORT_ISO_RIGHT | PORT_ISO_TOP | PORT_ISO_BOTTOM | PORT_ISO_UPPER },  /* review: 13F entrance (crystal) */
+    { 192, PORT_ISO_LEFT | PORT_ISO_RIGHT }, /* review: Riku B1F, same map as 61 */
 };
 
 int PortIsoScene(int eventId) {
     size_t i;
     if (getenv("KHCOM_ISOALL"))
-        return 1;
+        return PORT_ISO_LEFT | PORT_ISO_RIGHT | PORT_ISO_TOP | PORT_ISO_BOTTOM | PORT_ISO_UPPER;
     for (i = 0; i < sizeof(kIsoScenes) / sizeof(kIsoScenes[0]); i++)
-        if (kIsoScenes[i] == eventId)
-            return 1;
+        if (kIsoScenes[i].eventId == eventId)
+            return kIsoScenes[i].edges;
     return 0;
 }
 
@@ -91,7 +96,7 @@ void PortSetBgIsoExtend(int bg, int enabled) {
     if (disabled)
         enabled = 0;
     if (bg >= 0 && bg < 4)
-        sBgIso[bg] = enabled != 0;
+        sBgIso[bg] = enabled; /* PORT_ISO_* edges */
 }
 
 void PortSetBgWorld(int bg, PortWorldTileFunc fn, int originX, int originY) {
@@ -801,12 +806,14 @@ void PortSetBattleView(int on) {
  * only repeating scenery is continued. Original tiles only, no new pixels.
  */
 #define ISO_COMMON 6
-static struct {
+#define ISO_FILL 32 /* a tile this frequent is the scene's plain fill */
+typedef struct IsoCache {
     void* const* map;
     int width, height;
-    int leftDy, rightDy, topDx, bottomDx;
+    int step[4][2]; /* left, right, top, bottom: inward isometric step (dx, dy) in tiles */
     uint16_t freq[65536];
-} sIso;
+} IsoCache;
+static IsoCache sIsoBg[4]; /* one per background layer */
 
 static int MapTile(const BgLatch* l, int tx, int ty) {
     const uint16_t* block = (const uint16_t*)l->map[(ty >> 5) * l->width + (tx >> 5)];
@@ -815,69 +822,156 @@ static int MapTile(const BgLatch* l, int tx, int ty) {
     return block[(ty & 31) * 32 + (tx & 31)];
 }
 
-/* Matches between each tile near an edge and its diagonal neighbour inward. */
-static int IsoScore(const BgLatch* l, int x0, int x1, int y0, int y1, int dx, int dy) {
-    int W = l->width * 32, H = l->height * 32, x, y, score = 0;
+/* The edges a layer continues through: its own, or for the layers drawn over
+   an extended floor (walls, ledges), the floor's when they share its map size. */
+static int IsoEdges(const BgLatch* l) {
+    int b = (int)(l - sBgLatch), o;
+    if (sBgIsoLatched[b])
+        return sBgIsoLatched[b];
+    for (o = 0; o < 4; o++)
+        if ((sBgIsoLatched[o] & PORT_ISO_UPPER) && sBgLatch[o].map && l->map &&
+            sBgLatch[o].width == l->width && sBgLatch[o].height == l->height)
+            return sBgIsoLatched[o];
+    return 0;
+}
+
+/* The isometric step (2k x k tiles, either diagonal) with which the map repeats
+   itself best in a band along one edge: Leon's planks repeat every 2x1 tiles,
+   the beach's every 8x4, the crystal hall's every 4x2. Copying with the map's
+   own period keeps every plank and pane on the game's isometric grid. Matches
+   count by how rare the tile is, so the lines of the scene (wall bases, ledges)
+   choose the diagonal, not the plain floor that repeats both ways. */
+static double IsoStepScore(const BgLatch* l, int x0, int x1, int y0, int y1, int dx, int dy) {
+    IsoCache* c = &sIsoBg[l - sBgLatch];
+    int W = l->width * 32, H = l->height * 32, x, y, tot = 0;
+    double hit = 0.0, all = 0.0;
     for (y = y0; y < y1; y++)
         for (x = x0; x < x1; x++) {
-            int nx = x + dx, ny = y + dy;
-            if (nx >= 0 && ny >= 0 && nx < W && ny < H && MapTile(l, x, y) == MapTile(l, nx, ny))
-                score++;
+            int nx = x + dx, ny = y + dy, e;
+            double w;
+            if (nx < 0 || ny < 0 || nx >= W || ny >= H)
+                continue;
+            e = MapTile(l, x, y);
+            w = 1.0 / (c->freq[e] ? c->freq[e] : 1);
+            tot++;
+            all += w;
+            if (e == MapTile(l, nx, ny))
+                hit += w;
         }
-    return score;
+    return tot >= 32 && all > 0.0 ? hit / all : -1.0;
+}
+
+static void IsoBestStep(const BgLatch* l, int x0, int x1, int y0, int y1, int inX, int inY, int* out) {
+    /* candidates: the isometric diagonals 2k x k, and across the top or bottom
+       also straight up/down (walls are vertical on screen); the shortest step
+       that scores within 3% of the best wins, so tiles land on their exact
+       phase (a longer step that is not a true period shifts the pattern) */
+    int cand[48][2], n = 0, k, s, i, bestK = 99;
+    double score[48], best = -1.0;
+    for (k = 1; k <= 8; k++)
+        for (s = -1; s <= 1; s += 2) {
+            cand[n][0] = inX ? inX * 2 * k : s * 2 * k;
+            cand[n][1] = inX ? s * k : inY * k;
+            n++;
+        }
+    if (!inX)
+        for (k = 1; k <= 8; k++) {
+            cand[n][0] = 0;
+            cand[n][1] = inY * k;
+            n++;
+        }
+    for (i = 0; i < n; i++) {
+        score[i] = IsoStepScore(l, x0, x1, y0, y1, cand[i][0], cand[i][1]);
+        if (score[i] > best)
+            best = score[i];
+    }
+    out[0] = inX ? inX * 2 : 2;
+    out[1] = inY ? inY : -1;
+    for (i = 0; i < n; i++) {
+        int kk = cand[i][1] < 0 ? -cand[i][1] : cand[i][1];
+        if (best >= 0.0 && score[i] >= best - 0.03 && kk < bestK) {
+            bestK = kk;
+            out[0] = cand[i][0];
+            out[1] = cand[i][1];
+        }
+    }
 }
 
 static int IsoPrepare(const BgLatch* l) {
+    IsoCache* c = &sIsoBg[l - sBgLatch];
     int W = l->width * 32, H = l->height * 32, x, y;
-    if (sIso.map == l->map && sIso.width == l->width && sIso.height == l->height)
+    if (c->map == l->map && c->width == l->width && c->height == l->height)
         return 1;
     if (W < 8 || H < 8)
         return 0;
-    memset(sIso.freq, 0, sizeof(sIso.freq));
+    memset(c->freq, 0, sizeof(c->freq));
     for (y = 0; y < H; y++)
         for (x = 0; x < W; x++) {
             int e = MapTile(l, x, y);
             if (e < 0)
                 return 0;
-            if (sIso.freq[e] < 0xFFFF)
-                sIso.freq[e]++;
+            if (c->freq[e] < 0xFFFF)
+                c->freq[e]++;
         }
-    sIso.leftDy = IsoScore(l, 0, 8, 0, H, 2, -1) >= IsoScore(l, 0, 8, 0, H, 2, 1) ? -1 : 1;
-    sIso.rightDy = IsoScore(l, W - 8, W, 0, H, -2, -1) >= IsoScore(l, W - 8, W, 0, H, -2, 1) ? -1 : 1;
-    sIso.topDx = IsoScore(l, 0, W, 0, 4, 2, 1) >= IsoScore(l, 0, W, 0, 4, -2, 1) ? 2 : -2;
-    sIso.bottomDx = IsoScore(l, 0, W, H - 4, H, 2, -1) >= IsoScore(l, 0, W, H - 4, H, -2, -1) ? 2 : -2;
-    sIso.map = l->map;
-    sIso.width = l->width;
-    sIso.height = l->height;
+    IsoBestStep(l, 0, 12, 0, H, 1, 0, c->step[0]);
+    IsoBestStep(l, W - 12, W, 0, H, -1, 0, c->step[1]);
+    IsoBestStep(l, 0, W, 0, 6, 0, 1, c->step[2]);
+    IsoBestStep(l, 0, W, H - 6, H, 0, -1, c->step[3]);
+    if (getenv("KHCOM_ISOLOG"))
+        PortLog("iso: bg%d map %dx%d steps L(%d,%d) R(%d,%d) T(%d,%d) B(%d,%d)", (int)(l - sBgLatch), W, H,
+                c->step[0][0], c->step[0][1], c->step[1][0], c->step[1][1], c->step[2][0], c->step[2][1],
+                c->step[3][0], c->step[3][1]);
+    c->map = l->map;
+    c->width = l->width;
+    c->height = l->height;
     return 1;
 }
 
 static int IsoEntry(const BgLatch* l, int tx, int ty) {
+    IsoCache* c = &sIsoBg[l - sBgLatch];
     int W = l->width * 32, H = l->height * 32, dx = 0, dy = 0, i, e;
+    int edges = IsoEdges(l);
+    if ((tx < 0 && !(edges & PORT_ISO_LEFT)) || (tx >= W && !(edges & PORT_ISO_RIGHT)) ||
+        (ty < 0 && !(edges & PORT_ISO_TOP)) || (ty >= H && !(edges & PORT_ISO_BOTTOM)))
+        return -1;
     if (!IsoPrepare(l))
         return -1;
-    /* Walk inward: across a side edge along that edge's diagonal, across the
-       top or bottom along theirs (both inward at a corner). */
-    for (i = 0; i < 4096; i++) {
-        int outX = tx < 0 || tx >= W, outY = ty < 0 || ty >= H;
-        if (!outX && !outY)
-            break;
-        if (outX) {
-            dx = tx < 0 ? 2 : -2;
-            dy = outY ? (ty < 0 ? 1 : -1) : (tx < 0 ? sIso.leftDy : sIso.rightDy);
-        } else {
-            dy = ty < 0 ? 1 : -1;
-            dx = ty < 0 ? sIso.topDx : sIso.bottomDx;
-        }
+    /* Walk inward with each edge's own step: across a side edge first, then
+       across the top or bottom (a corner needs both edges open). A walk that
+       leaves through an edge not listed for this scene stays dark. */
+    for (i = 0; i < 64 && (tx < 0 || tx >= W); i++) {
+        const int* st = c->step[tx < 0 ? 0 : 1];
+        dx = st[0];
+        dy = st[1];
+        tx += dx;
+        ty += dy;
+    }
+    if ((ty < 0 && !(edges & PORT_ISO_TOP)) || (ty >= H && !(edges & PORT_ISO_BOTTOM)))
+        return -1;
+    for (; i < 128 && (ty < 0 || ty >= H); i++) {
+        const int* st = c->step[ty < 0 ? 2 : 3];
+        dx = st[0];
+        dy = st[1];
+        /* at a corner, the edge's own diagonal can lead back out of the side
+           just crossed: take the mirrored diagonal of the same period */
+        if (tx + dx < 0 || tx + dx >= W)
+            dx = -dx;
         tx += dx;
         ty += dy;
     }
     if (tx < 0 || ty < 0 || tx >= W || ty >= H)
         return -1;
     e = MapTile(l, tx, ty);
-    while (e >= 0 && sIso.freq[e] < ISO_COMMON && i++ < 4096) {
-        int nx = tx + dx, ny = ty + dy;
-        if (nx < 0 || ny < 0 || nx >= W || ny >= H)
+    /* only repeating scenery is continued: a tile that does not repeat along
+       the step (a grass patch, a plant, a stain, a crate) is passed over,
+       further along the same diagonal, so decorations are never cut in half */
+    for (; e >= 0 && i < 4096; i++) {
+        int nx = tx + dx, ny = ty + dy, px = tx - dx, py = ty - dy;
+        int fwd = nx >= 0 && ny >= 0 && nx < W && ny < H, back = px >= 0 && py >= 0 && px < W && py < H;
+        int periodic = (fwd && MapTile(l, nx, ny) == e) || (back && MapTile(l, px, py) == e);
+        /* plain fill (cobbles, sand) can repeat irregularly: only rare tiles
+           count as decorations, so the walk never runs into a wall instead */
+        if (!fwd || (c->freq[e] >= ISO_COMMON && (periodic || c->freq[e] >= ISO_FILL)))
             break;
         tx = nx;
         ty = ny;
@@ -895,7 +989,7 @@ static int WorldEntry(const BgLatch* l, int wx, int wy) {
     if (sBattleView && l->width > 0 && (wx < 0 || wx >= l->width * 256))
         wx = ((wx % (l->width * 256)) + l->width * 256) % (l->width * 256);
 
-    if (l->map != NULL && sBgIsoLatched[l - sBgLatch] && !sBattleView && l->width > 0 && l->height > 0 &&
+    if (l->map != NULL && IsoEdges(l) && !sBattleView && l->width > 0 && l->height > 0 &&
         (wx < 0 || wy < 0 || wx >= l->width * 256 || wy >= l->height * 256))
         return IsoEntry(l, wx >> 3, wy >> 3);
     if (l->map == NULL || wx < 0 || wy < 0 || wx >= l->width * 256 || wy >= l->height * 256)
@@ -909,13 +1003,26 @@ static int WorldEntry(const BgLatch* l, int wx, int wy) {
 
 /* Only a completely uniform, opaque corner tile is safe exterior padding.
  * Carry its palette colour beyond the map without stretching scenery or UI. */
+/* Past an edge where the floor continues (PortSetBgIsoExtend), the layers
+   above it end at the map instead of padding over the continued floor. */
+static int IsoOpenPast(int bg, int wx, int wy) {
+    int b, edges;
+    const BgLatch* l;
+    for (b = 0; b < 4; b++)
+        if (sBgIsoLatched[b] && b != bg)
+            break;
+    if (b == 4)
+        return 0;
+    l = &sBgLatch[b];
+    edges = sBgIsoLatched[b];
+    return (wx < 0 && (edges & PORT_ISO_LEFT)) || (wx >= l->width * 256 && (edges & PORT_ISO_RIGHT)) ||
+           (wy < 0 && (edges & PORT_ISO_TOP)) || (wy >= l->height * 256 && (edges & PORT_ISO_BOTTOM));
+}
+
 static uint16_t WorldPadding(int bg, const BgLatch* l) {
     int corner, bpp8 = (IO16(8 + bg * 2) & 0x80) != 0;
     unsigned base = ((IO16(8 + bg * 2) >> 2) & 3) * 0x4000;
     if (!l->valid || sBgDockedLatched[bg] || sScreenBg[bg]) return TRANSPARENT;
-    /* With the floor continued past the map, the layers above it end there. */
-    if (!sBgIsoLatched[bg] && (sBgIsoLatched[0] | sBgIsoLatched[1] | sBgIsoLatched[2] | sBgIsoLatched[3]))
-        return TRANSPARENT;
     for (corner = 0; corner < 4; corner++) {
         int entry = WorldEntry(l, (corner & 1) ? l->width * 256 - 1 : 0,
                                   (corner & 2) ? l->height * 256 - 1 : 0);
@@ -1154,7 +1261,8 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
             if (!outside && gx < 0 && run > -gx) run = -gx;
             we = l->valid ? WorldEntry(l, wx, wy) : wd->fn(bg, wx >> 3, wy >> 3);
             if (we < 0) {
-                for (j = 0; j < run; j++) out[x + j] = sWorldPadding[bg];
+                uint16_t pad = l->valid && IsoOpenPast(bg, wx, wy) ? TRANSPARENT : sWorldPadding[bg];
+                for (j = 0; j < run; j++) out[x + j] = pad;
                 x += run - 1;
                 continue;
             }
@@ -1237,10 +1345,10 @@ scalar_world:
                     cachedValid = 1;
                 }
                 we = cachedEntry;
-            }
-            if (we < 0) {
-                out[x] = sWorldPadding[bg];
-                continue;
+                if (we < 0) {
+                    out[x] = IsoOpenPast(bg, wx, wy) ? TRANSPARENT : sWorldPadding[bg];
+                    continue;
+                }
             }
             sInWorld[x] = 1;
             entry = we;
