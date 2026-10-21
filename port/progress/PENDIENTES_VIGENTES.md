@@ -21,7 +21,7 @@ Reglas del usuario:
 | **Claude** | SmartScreen: hecho (el launcher quita la marca de descarga de sus .exe, commit siguiente); entra en la próxima release |
 | **Claude** | Auditoría de fallos (#30) con el kit de depuración (`debug_kit.py`, KIT_DEPURACION.md): sigue con Riku, eventos, eventos 16:9 y juego aleatorio US, luego EU y JP |
 | **Claude** | Reportes de hardware de Switch/Vita cuando lleguen; meterlas en la próxima release (stage_release ya las incluye) |
-| **ChatGPT/Codex** | NUEVO (pedido del usuario 21/10): opción "Volver a la pantalla de título" en cualquier momento, en la sección Re:CoM de Opciones (in-game `port_ui.c`, launcher `decompui.cpp`, `kh_com.ini`), justo encima de "Devolver cartas acumuladas" (`ITEM_UNSTOCK`). Por la lógica del juego (reinicio suave), no objetos del port. Copia jugable + .bat para aprobar |
+| **Claude** | Volver a la pantalla de título: HECHO por Claude (el usuario lo pidió integrado ya, 21/10) |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
 | **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después, con el método de abajo ("Para Codex: cómo hacer el arte") |
 | **Usuario** | Crear la aplicación de Discord y pasar su Application ID; probar `Probar Discord.bat` y `Probar ReKHCoM v1.9.13 pre1.bat` (arranque en pantalla completa sin parpadeo, df56a0a2d) |
