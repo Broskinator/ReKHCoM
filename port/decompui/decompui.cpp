@@ -248,7 +248,7 @@ static const Setting kSettings[] = {
     { "experimental_hide_touch_controls", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
-    { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 }, { "discord_presence", 1 }, { "hd_movies", 1 }, { "hd_music", 1 }, { "hd_scenes", 0 }, { "hd_subtitles", 1 },
+    { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 }, { "experimental_frame_skip", 0 }, { "discord_presence", 1 }, { "hd_movies", 1 }, { "hd_music", 1 }, { "hd_scenes", 0 }, { "hd_subtitles", 1 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "pad_layout", 0 }, { "experimental_moogle_notice", 0 }, { "hd_text", 0 },
@@ -1383,6 +1383,11 @@ static void PageExtras() {
                          T("Invierte L/R y el movimiento horizontal del stick derecho al seleccionar cartas en combate. Los menús y L+R no cambian. Desactivado por defecto.",
                            "Reverses L/R and right-stick horizontal card scrolling in battle. Menus and L+R combinations stay unchanged. Off by default."),
                          Ini("invert_card_scroll"));
+    ImGui::Separator();
+    changed |= ToggleRow(T("Saltar cuadros si va lento", "Skip frames when slow"),
+                         T("Si el equipo no llega a tiempo, ese cuadro no se dibuja: la lógica y el sonido siguen a la velocidad original. En PC no suele hacer falta. Desactivado por defecto.",
+                           "When the device falls behind, that frame is not drawn: the logic and the sound keep the original speed. Rarely needed on PC. Off by default."),
+                         Ini("experimental_frame_skip"));
     ImGui::Separator();
     ImGui::PushStyleColor(ImGuiCol_Text, kMuted);
     ImGui::TextWrapped("%s", T("En pruebas: pueden tener fallos visuales.", "Being tested: expect visual glitches."));

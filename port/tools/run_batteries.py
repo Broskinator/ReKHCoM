@@ -30,7 +30,7 @@ KIT = [PY, 'port/tools/debug_kit.py', 'run', '--resume', '--jobs', '2']
 STEPS = [('desktop build', [PY, 'port/tools/debug_kit.py', 'run', '--build', '--versions', 'eu,us,jp', '--suites', ''])]
 # scenes = the Android runner's menus and fixtures on the desktop build: every stray access the desktop recovers
 # there ("bios:") closes the 64-bit Android app, so it runs before the emulator (21/10: the debug event select)
-for _suite in ('scenes', 'events', 'wide', 'rooms'):
+for _suite in ('scenes', 'events', 'wide', 'rooms', 'battles', 'riku', 'monkey', 'skip'):
     for _v in ('eu', 'us', 'jp'):
         STEPS.append((f'desktop {_suite} {_v}', KIT + ['--versions', _v, '--suites', _suite]))
 STEPS += [
@@ -56,8 +56,12 @@ def progress(name):
             return 'done'
         if suite in ('events', 'wide'):
             cases = ROOT / 'build/eventtest' / (v + ('_wide' if suite == 'wide' else ''))
-        else:
+        elif suite == 'skip':
+            cases = ROOT / 'build/frameskip' / v / 'skip'
+        elif suite == 'rooms':
             cases = ROOT / f'build/roomcases_{v}'
+        else:
+            return 'running or not started'
         return f'{len(list(cases.glob("*/result.json")))} cases finished' if cases.is_dir() else 'not started'
     if parts[0] == 'android' and len(parts) > 1:
         tag = ('-'.join(p for p in parts[1:] if p in ('eu', 'us', 'jp')) + ('-riku' if 'riku' in parts else '')

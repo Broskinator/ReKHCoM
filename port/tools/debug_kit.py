@@ -154,6 +154,8 @@ def suite_commands(suite, version, jobs, quick):
         return py + [str(TOOLS / 'test_events.py'), *b, '--wide'] + (['--frames', '2000'] if quick else [])
     if suite == 'rooms':
         return py + [str(TOOLS / 'test_rooms.py'), *b] + (['--frames', '1500'] if quick else [])
+    if suite == 'skip':
+        return py + [str(TOOLS / 'test_frameskip.py'), *b]
     if suite == 'monkey':
         return py + [str(TOOLS / 'test_monkey.py'), *b, '--minutes', '2' if quick else '10']
     raise SystemExit(f'unknown suite {suite}')

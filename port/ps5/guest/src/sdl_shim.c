@@ -626,7 +626,13 @@ bool SDL_PutAudioStreamData(SDL_AudioStream* s, const void* buf, int len) {
     return true;
 }
 
-int SDL_GetAudioStreamQueued(SDL_AudioStream* s) { (void)s; return (int)(h_audio_queued() * 8u); }
+/* SDL counts what is queued in the input's format: the host reports frames at the device rate (outRate) */
+int SDL_GetAudioStreamQueued(SDL_AudioStream* s) {
+    uint64_t frames = h_audio_queued();
+    if (s->outRate > 0 && s->inRate > 0)
+        frames = frames * (uint64_t)s->inRate / (uint64_t)s->outRate;
+    return (int)(frames * 8u);
+}
 
 /* ---- events, gamepads ---- */
 

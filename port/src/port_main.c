@@ -2074,6 +2074,30 @@ int PortPacedByVsync(void) {
 
 static uint64_t sPpuTicks;
 
+/* experimental_frame_skip: a frame that starts half a frame late is not drawn nor presented (at most three in a
+   row); the game, its line events and the sound run as always, so it keeps the original speed on devices that
+   cannot draw every frame (Switch, Vita: #35, #36). A new canvas size is always drawn. */
+static int FrameSkipDue(int sizeChanged) {
+    static int skipped;
+    uint64_t now;
+
+    /* KHCOM_SKIPTEST=1 (harness): two frames of three are skipped whatever the clock; shots taken on multiples of 3
+       must match a run without it pixel for pixel (the game's logic does not depend on drawing) */
+    if (SDL_getenv("KHCOM_SKIPTEST") && !sizeChanged && !PortUiActive())
+        return sFrameCount % 3 != 0;
+    if (!gPortConfig.frameSkip || sizeChanged || !sNextFrame || SDL_getenv("KHCOM_FAST") || PortUiActive()) {
+        skipped = 0;
+        return 0;
+    }
+    now = SDL_GetPerformanceCounter();
+    if (now > sNextFrame + (uint64_t)(sPerfFreq / GBA_FPS / 2) && skipped < 3) {
+        skipped++;
+        return 1;
+    }
+    skipped = 0;
+    return 0;
+}
+
 /* One display frame: draw, vertical blank, present, input, pacing. */
 static void VBlankCycle(void) {
     const char* frameLogPath = SDL_getenv("KHCOM_FRAMELOG");
@@ -2091,10 +2115,17 @@ static void VBlankCycle(void) {
         gPortScreenLayer = (mark || sPrevMark) && gPortConfig.viewMode == PORT_VIEW_AUTO;
         sPrevMark = mark;
     }
-    UpdateResolution();
+    int skip;
+    {
+        int w = gPortScreen.width, h = gPortScreen.height;
+        UpdateResolution();
+        skip = FrameSkipDue(w != gPortScreen.width || h != gPortScreen.height);
+    }
 
     /* Visible lines (HBlank / VCount events in between). */
-    {
+    if (skip) {
+        PortPpuRunFrameEvents();
+    } else {
         uint64_t t0 = SDL_GetPerformanceCounter();
         PortPpuRenderFrame();
         sPpuTicks = SDL_GetPerformanceCounter() - t0;
@@ -2115,7 +2146,8 @@ static void VBlankCycle(void) {
         static uint64_t ppuSum, presSum;
         static int n;
         uint64_t p0 = SDL_GetPerformanceCounter();
-        Present();
+        if (!skip)
+            Present();
         {
             extern void PortMenuLatch(void);
             PortMenuLatch(); /* this frame's menu sprites show from the next one */

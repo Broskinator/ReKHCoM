@@ -3395,6 +3395,17 @@ void PortPpuRenderFrame(void) {
     RenderOuterRows(gPortScreen.originY + GBA_SCREEN_H, gPortScreen.height, 1);
 }
 
+/* A skipped frame (frame_skip, the device is late): the visible lines' events reach the game as in a drawn frame
+   (V-counter and HBlank interrupts, HBlank DMA), nothing is drawn and the canvas keeps the last picture. */
+void PortPpuRunFrameEvents(void) {
+    int gy;
+
+    for (gy = 0; gy < GBA_SCREEN_H; gy++) {
+        LineStart(gy);
+        HBlank(gy);
+    }
+}
+
 /* Remaining lines of the frame (VBlank period) after the VBlank interrupt. */
 void PortPpuVBlankLines(void) {
     int line;

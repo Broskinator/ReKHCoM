@@ -42,7 +42,10 @@ static uint16_t uiHeld;
 /* Android: with the touch controls hidden and a gamepad connected, nothing is drawn, not even the options button or
    the pad in the menus (issue #38); with no gamepad the options button stays, the only way into the menu. */
 static int AllHidden(void) {
-#if defined(__EMSCRIPTEN__) || defined(PORT_SWITCH)
+#if defined(PORT_SWITCH)
+    /* Switch: the Joy-Cons are always there and Minus + Plus held opens the options (issue #36) */
+    return gPortConfig.hideTouchControls;
+#elif defined(__EMSCRIPTEN__)
     return 0;
 #else
     int count=0;

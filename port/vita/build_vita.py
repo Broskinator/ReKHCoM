@@ -125,8 +125,13 @@ GUEST_LD = '''SECTIONS {
 VM_SCRIPT = r'''set -e
 export VITASDK=/root/consoles/vitasdk PATH=/root/consoles/vitasdk/bin:$PATH
 cd /root/share
-FLAGS="-mcpu=cortex-a9 -mfpu=neon -mthumb -O2"
-LIBS="-lSceDisplay_stub -lSceCtrl_stub -lSceAudio_stub -lScePower_stub -lSceAppMgr_stub -lSceSysmem_stub -lm"
+FLAGS="-mcpu=cortex-a9 -mfpu=neon -mthumb -O2 -DREKHCOM_VITA_GPU"
+# the picture on the GPU: SDL2's GXM renderer (VitaSDK's own package, installed once into the VM's SDK)
+[ -f $VITASDK/arm-vita-eabi/lib/libSDL2.a ] || vdpm sdl2
+LIBS="-lSDL2 -lSceGxm_stub -lSceDisplay_stub -lSceCtrl_stub -lSceAudio_stub -lSceAudioIn_stub -lScePower_stub
+ -lSceAppMgr_stub -lSceAppUtil_stub -lSceSysmem_stub -lSceSysmodule_stub -lSceIme_stub -lSceHid_stub -lSceTouch_stub
+ -lSceMotion_stub -lSceCommonDialog_stub -lSceKernelDmacMgr_stub -lm"
+LIBS=$(echo $LIBS)
 for r in REGIONS; do
   arm-vita-eabi-ld -r -T guest.ld --whole-archive guest-$r.a -o guest-$r-r.o
   arm-vita-eabi-objcopy -G guest_main -G gHostTable guest-$r-r.o guest-$r.o
@@ -189,7 +194,7 @@ def package(regions):
     (share / 'build.sh').write_bytes(script.encode())
     out = BUILD / 'vm-out'
     command = [sys.executable, ROOT / 'port/tools/linux_vm_test.py', '--share', share, '--disk', build_switch.VM_DISK, '--fresh-share',
-               '--mem', '4096', '--cpus', '4', '--run', 'bash /root/share/build.sh', '--run-timeout', '1500',
+               '--net', '--mem', '4096', '--cpus', '4', '--run', 'bash /root/share/build.sh', '--run-timeout', '1500',
                '--fetch', '/root/share/ReKHCoM.vpk', '--out', out]
     build_switch.run(command, cwd=ROOT, env=dict(os.environ, MSYS_NO_PATHCONV='1', PYTHONUTF8='1'))
     vpk = out / 'ReKHCoM.vpk'

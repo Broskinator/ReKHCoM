@@ -44,6 +44,9 @@
 #include <psp2/kernel/threadmgr.h>
 #include <psp2/power.h>
 #define DATA_ROOT "ux0:data/ReKHCoM"
+#ifdef REKHCOM_VITA_GPU
+#include <SDL2/SDL.h>
+#endif
 int _newlib_heap_size_user = 64 * 1024 * 1024; /* textures of the rasterizer, the notices */
 unsigned int sceUserMainThreadStackSize = 4 * 1024 * 1024; /* the game runs on the main thread */
 #define REKHCOM_LINKED_GUEST
@@ -54,6 +57,12 @@ unsigned int sceUserMainThreadStackSize = 4 * 1024 * 1024; /* the game runs on t
 #endif
 
 #include "bridge.h"
+
+/* the picture on the GPU through SDL2: Switch, and the Vita built with REKHCOM_VITA_GPU (GXM); else the software
+   rasterizer below */
+#if defined(__SWITCH__) || (defined(__vita__) && defined(REKHCOM_VITA_GPU))
+#define HOST_GPU 1
+#endif
 
 #ifdef REKHCOM_LINKED_GUEST
 /* the game image is part of this executable (the Vita's, port/vita/build_vita.py) */
@@ -187,7 +196,11 @@ static void H_dir_close(int d) {
 
 /* ---- video: software rasterizer (as port/ps4/ps4_host.c) ----------------- */
 
-#ifdef __vita__
+#if defined(__vita__) && defined(HOST_GPU)
+#define FB_W 960
+#define FB_H 544
+#define PIX(c) (c)
+#elif defined(__vita__)
 #define FB_W 960
 #define FB_H 544
 /* the display reads A8B8G8R8: on the Vita the rasterizer keeps red and blue swapped from textures to screen */
@@ -198,12 +211,12 @@ static void H_dir_close(int d) {
 #define PIX(c) (c)
 #endif
 static int sW = FB_W, sH = FB_H;
-#ifndef __SWITCH__
+#ifndef HOST_GPU
 static uint32_t* sFb; /* XRGB */
 static int sPitch = FB_W;
 #endif
 static int sFrame; /* frames shown (the test host's --shot and KHCOM_PADS count them) */
-#ifdef __SWITCH__
+#ifdef HOST_GPU
 static SDL_Window* sWindow;
 static SDL_Renderer* sRenderer;
 static SDL_Texture* sGpuTex[4096];
@@ -217,7 +230,7 @@ static const char* sShotFile[16];
 #endif
 
 static int sBlend = 1;
-#ifndef __SWITCH__
+#ifndef HOST_GPU
 typedef struct Tex {
     int w, h, smooth;
     uint32_t* argb;
@@ -233,8 +246,12 @@ static void H_gfx_size(int* w, int* h) {
 }
 
 static void VideoInit(void) {
-#ifdef __SWITCH__
+#ifdef HOST_GPU
+#ifdef __vita__
+    SDL_Init(SDL_INIT_VIDEO); /* the sound stays on sceAudioOut */
+#else
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+#endif
     sWindow = SDL_CreateWindow("ReKHCoM", 0, 0, FB_W, FB_H, SDL_WINDOW_FULLSCREEN);
     sRenderer = sWindow ? SDL_CreateRenderer(sWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC) : NULL;
     if (!sRenderer) {
@@ -250,7 +267,7 @@ static void VideoInit(void) {
 #else
     sFb = calloc((size_t)FB_W * FB_H, 4);
 #endif
-#if defined(__vita__)
+#if defined(__vita__) && !defined(HOST_GPU)
     for (int i = 0; i < 2; i++) {
         SceUID block = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, 2 * 1024 * 1024, NULL);
         if (block < 0 || sceKernelGetMemBlockBase(block, &sVram[i]) < 0) {
@@ -265,7 +282,7 @@ static void VideoInit(void) {
 }
 
 static void Present(void) {
-#ifdef __SWITCH__
+#ifdef HOST_GPU
     if (sRenderer)
         SDL_RenderPresent(sRenderer);
 #elif defined(__vita__)
@@ -295,7 +312,7 @@ static void Present(void) {
     sFrame++;
 }
 
-#ifdef __SWITCH__
+#ifdef HOST_GPU
 /* ---- video: the GPU (as port/android64/host/android64_host.c, SDL2 here) ---------------------------------------- */
 
 static void H_gfx_begin(uint32_t clear) {
@@ -810,8 +827,12 @@ static int H_pad_poll(HostPad* out, int count) {
     for (size_t i = 0; i < sizeof(map) / sizeof(map[0]); i++)
         if (b & map[i].key)
             out[0].buttons |= 1u << map[i].bit;
-    if ((b & HidNpadButton_Minus) && (b & (HidNpadButton_StickL | HidNpadButton_StickR)))
+    /* Minus + Plus held three seconds opens the options, the PS consoles' touchpad hold (issue #36) */
+    if ((b & HidNpadButton_Minus) && (b & (HidNpadButton_StickL | HidNpadButton_StickR | HidNpadButton_Plus)))
         out[0].buttons |= 1u << 16;
+    /* the game does not see that Select + Start (A + B + Select + Start, the soft reset, still reaches it) */
+    if ((b & HidNpadButton_Minus) && (b & HidNpadButton_Plus) && !(b & (HidNpadButton_A | HidNpadButton_B)))
+        out[0].buttons &= ~((1u << 2) | (1u << 3));
     out[0].lx = (int16_t)SDL_clamp(l.x, -32767, 32767);
     out[0].ly = (int16_t)SDL_clamp(-l.y, -32767, 32767);
     out[0].rx = (int16_t)SDL_clamp(r.x, -32767, 32767);
