@@ -1,6 +1,8 @@
 # Changelog
 
-## v1.9.15 — in progress
+## v1.9.15 — 2026-10-22
+
+Windows, Linux and Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, Anbernic and the web player are betas.
 
 - Switch: with "Hide touch controls" on, no touch button shows anywhere, pause and Options included; hold Minus +
   Plus for three seconds to open the Options (#36).
@@ -8,6 +10,7 @@
   the game and the sound keep their original speed (#35, #36). Options > Experimental, on by default everywhere.
 - PS Vita: the picture is drawn by the GPU.
 - Consoles and Android 64-bit: the sound's buffer level is measured in the right units.
+- Android: the HD mod's movies play (opening and endings, with subtitles), imported from the PC's `hd` folder.
 
 ## v1.9.14 — 2026-10-21
 
