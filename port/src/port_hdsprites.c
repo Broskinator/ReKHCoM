@@ -88,6 +88,10 @@ int PortHdSpriteFind(const void* tiles, const void* frame) {
     return 0;
 }
 
+int PortHdSpriteGroup(int id) {
+    return id >= 1 && id <= HD_SPRITE_COUNT ? kHdSprites[id - 1].group : 0;
+}
+
 void PortHdSpriteBox(int id, int* x0, int* y0, int* w, int* h) {
     const HdSpriteDef* d = &kHdSprites[id - 1];
     *x0 = d->x0; *y0 = d->y0; *w = d->w; *h = d->h;

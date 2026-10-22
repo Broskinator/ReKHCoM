@@ -5,6 +5,8 @@
 
 /* 1-based id of the HD picture for these ROM tiles and frame, 0: none (option off or file missing). */
 int PortHdSpriteFind(const void* tiles, const void* frame);
+/* Its group (1 cards, 2 title, 3 battle HUD). */
+int PortHdSpriteGroup(int id);
 /* The sprite's box in its frame's coordinates (GBA pixels). */
 void PortHdSpriteBox(int id, int* x0, int* y0, int* w, int* h);
 /* A new picture of a layer (0 the game's picture, 1 the HUD canvas, 2 the screen layer): forget the parts queued

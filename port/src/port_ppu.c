@@ -4072,6 +4072,10 @@ static void QueueMainHdParts(void) {
         int affine = (a0 >> 8) & 1, dbl = (a0 >> 9) & 1, mode = (a0 >> 10) & 3;
         int shape = (a0 >> 14) & 3, size = (a1 >> 14) & 3, ow, oh, bw, bh, ox, oy, alpha = 255;
         int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
+        /* the cards only on the HUD layer, where what is drawn in front of them stays in front (the deck menu
+           and the Original view keep the cartridge's: a dialogue over a card would show its HD value) */
+        if (sOamHd[i].id && PortHdSpriteGroup(sOamHd[i].id) == 1)
+            continue;
         if (!sOamHd[i].id || (!affine && dbl) || shape == 3 || mode >= 2 || (sHudLayer && sOamTag[i].hud) ||
             (sOverlay && sOamTag[i].screen) || (((a0 >> 12) & 1) && (IO16(0x4C) & 0xFF00)))
             continue; /* a sprite under a real mosaic (size > 1) keeps the cartridge's pixels */
