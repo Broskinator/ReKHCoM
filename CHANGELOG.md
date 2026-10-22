@@ -13,7 +13,9 @@ Windows, Linux and Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, An
 - Android: the HD mod's movies play (opening and endings, with subtitles), imported from the PC's `hd` folder.
 - HD mod: the sound effects play again with the HD music on (button clicks, menus, attacks, level-up, pause:
   most of them were taken for music and muted with it), and the HD music now plays at the cartridge's loudness.
-- HD mod: no more hitch at doors and battle starts when the HD track changes (it loads in the background).
+- HD mod: no more hitch at doors and battle starts when the HD track changes (it loads in the background, in
+  silence instead of a moment of the cartridge's song), and no jump or overlap around menus: the HD track keeps
+  playing under the Options as the cartridge's song does, and waits in place when the game holds its sound.
 - HD movies and scenes: our scene pause works on them (Start/Escape: back to the game or skip, after asking);
   they no longer end by themselves when the dialogue's button was still pressed.
 - HD scenes: 80 story events now play their Re:CoM scene (8 more, and one corrected), matched by their dialogue.

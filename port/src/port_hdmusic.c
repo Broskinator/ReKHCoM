@@ -181,9 +181,26 @@ static int Open(int song) {
     return sStream != NULL;
 }
 
+/* the device waits with what is queued, so the track resumes exactly where it stopped (clearing the stream dropped
+   a fifth of a second and the track jumped on: the stutter after menus) */
+static int sPaused;
+static void Pause(void) {
+    if (sStream && !sPaused) {
+        SDL_PauseAudioStreamDevice(sStream);
+        sPaused = 1;
+    }
+}
+static void Resume(void) {
+    if (sStream && sPaused) {
+        SDL_ResumeAudioStreamDevice(sStream);
+        sPaused = 0;
+    }
+}
+
 /* Decodes until about a fifth of a second is queued, looping at the track's loop points. */
 static void Feed(float gain) {
     float pcm[2048 * 2];
+    Resume();
     while (SDL_GetAudioStreamQueued(sStream) < (int)(sRate / 5 * 2 * sizeof(float))) {
         int want = 2048, got, i;
         if (sPosition + (unsigned)want > sLoopEnd)
@@ -206,9 +223,11 @@ static void Feed(float gain) {
     }
 }
 
-static void Pause(void) {
-    if (sStream)
-        SDL_ClearAudioStream(sStream); /* the track resumes from where it was */
+static int QueuedMs(void) {
+    return sStream && sRate ? (int)((long long)SDL_GetAudioStreamQueued(sStream) / 8 * 1000 / sRate) : -1;
+}
+static long Position(void) {
+    return sVorbis ? (long)sPosition : -1;
 }
 
 static void Shutdown(void) {
@@ -260,7 +279,35 @@ static void Pause(void) {
 static void Shutdown(void) {
     Close();
 }
+static int QueuedMs(void) {
+    return -1;
+}
+static long Position(void) {
+    return -1;
+}
 #endif
+
+/* KHCOM_HDAUDIOLOG=file (test_hd_audio_flow.py): one line per audio frame - the game's song, the HD track's song,
+   state (0 none, 1 plays, 2 paused, 3 loading), queued ms, position in samples, the cartridge music gain left */
+static void HdLog(int song, int state) {
+#if __STDC_HOSTED__
+    static FILE* f;
+    static int tried;
+    static unsigned frame;
+    const char* path;
+    if (!tried) {
+        tried = 1;
+        path = SDL_getenv("KHCOM_HDAUDIOLOG");
+        if (path)
+            f = fopen(path, "w");
+    }
+    if (f)
+        fprintf(f, "%u %d %d %d %d %ld %.3f\n", frame++, song, sSong, state, QueuedMs(), Position(),
+                (double)gPortMix.musicGain);
+#else
+    (void)song, (void)state; /* the bridge images have no files of their own */
+#endif
+}
 
 /* Once per frame, after the mixer gains are set (port_audio.c). */
 void PortHdMusicFrame(void) {
@@ -275,22 +322,31 @@ void PortHdMusicFrame(void) {
     }
     song = CurrentSong();
     playing = song > 0 && (bgm->status & MUSICPLAYER_STATUS_TRACK) && !(bgm->status & MUSICPLAYER_STATUS_PAUSE);
-    if (!playing || PortUiActive()) {
+    /* our Options overlay does not stop the song (the cartridge's keeps playing under it, so does the HD track) */
+    if (!playing) {
         Pause(); /* stopped or paused: the track resumes from where it was */
         if (song != sSong && sSong >= 0 && !(song > 0 && (bgm->status & MUSICPLAYER_STATUS_PAUSE)))
             Close();
+        HdLog(song, sSong >= 0 ? 2 : 0);
         return;
     }
     if (song != sSong) {
         int opened;
-        if (song == sMissing)
+        if (song == sMissing) {
+            HdLog(song, 0);
             return; /* not imported: the cartridge's song plays */
+        }
         opened = Open(song);
-        if (opened < 0)
-            return; /* loading: the cartridge's song plays meanwhile */
+        if (opened < 0) {
+            /* loading (a few frames): silence, not a moment of the cartridge's song before the HD track */
+            gPortMix.musicGain = 0.0f;
+            HdLog(song, 3);
+            return;
+        }
         if (!opened) {
             PortLog("hd music: no track for song %d (%s)", song, kTracks[song]);
             sMissing = song;
+            HdLog(song, 0);
             return;
         }
         sMissing = -1;
@@ -302,12 +358,21 @@ void PortHdMusicFrame(void) {
         gain *= (float)(bgm->fadeOV >> FADE_VOL_SHIFT) / FADE_VOL_MAX;
     gPortMix.musicGain = 0.0f; /* the cartridge's song keeps playing, silent */
     Feed(gain);
+    HdLog(song, 1);
 }
 
 void PortHdMusicShutdown(void) {
     Shutdown();
 }
+
+/* The game makes no sound this frame (a menu holds it): the track waits instead of running dry. */
+void PortHdMusicHold(void) {
+    if (sSong >= 0)
+        Pause();
+}
 #else
+void PortHdMusicHold(void) {
+}
 void PortHdMusicFrame(void) {
 }
 void PortHdMusicShutdown(void) {

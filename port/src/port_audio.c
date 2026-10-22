@@ -542,10 +542,13 @@ static void SmoothFilter(int n, int rate) {
 /* While the options menu pauses the game: send the m4a mix only (its click);
    a movie or stream must not advance behind the menu. */
 void PortAudioMenuFrame(void) {
-    if (gPortMix.ready && InM4aBuffer(IO32(0xBC)))
+    extern void PortHdMusicHold(void);
+    if (gPortMix.ready && InM4aBuffer(IO32(0xBC))) {
         PortAudioFrame();
-    else
+    } else {
         gPortMix.ready = 0;
+        PortHdMusicHold(); /* the cartridge is silent: the HD track waits with it */
+    }
 }
 
 void PortAudioFrame(void) {

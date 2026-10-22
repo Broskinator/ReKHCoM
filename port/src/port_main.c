@@ -1931,6 +1931,12 @@ static void HarnessFrame(void) {
     }
 
     {
+        /* KHCOM_OPTIONS_AT=frame (harness): the Options overlay opens there; KHCOM_OPTIONS_HOLD closes it */
+        const char* optionsAt = SDL_getenv("KHCOM_OPTIONS_AT");
+        if (optionsAt && sFrameCount == (uint32_t)SDL_atoi(optionsAt))
+            PortUiOpenOptions();
+    }
+    {
         /* KHCOM_WIZARD_OPEN=frame (harness): the new game page opens there, for KHCOM_WIZARD_KEYS */
         const char* wizard = SDL_getenv("KHCOM_WIZARD_OPEN");
         if (wizard && sFrameCount == (uint32_t)SDL_atoi(wizard)) {
