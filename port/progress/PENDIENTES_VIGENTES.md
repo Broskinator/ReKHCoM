@@ -55,6 +55,14 @@ Reglas del usuario:
   pausa/Opciones, Minus + Plus 3 s abre Opciones), salto de cuadros (`experimental_frame_skip`, encendido en todo tras
   `test_frameskip.py` 24/24 idénticos y 1/3600 saltados en PC con VSync; RENDIMIENTO.md), Vita en GPU (SDL2 GXM de
   vdpm), cola de audio del puente en unidades de entrada.
+- **#36 cerrado** (DrunkECheese probó la pre1: sin quejas).
+- **No se pueden cerrar desde acá (21/10 noche):**
+  - D. Videos HD en Linux: el paquete es i386 con sus propias librerías Debian; haría falta empaquetar ffmpeg i386
+    (libavcodec/libavformat + dependencias, decenas de MB) o portar openh264 + minimp4 + un decodificador AAC.
+    Decisión de tamaño/diseño para el usuario. Consolas (sceAvPlayer, nvdec): sin hardware para verificar.
+  - I'. PS4 a la GPU (Piglet): sin PS4 ni emulador para verificar; el rasterizador por software sigue, y el salto de
+    cuadros ya mantiene la velocidad si no llega.
+  - Borrar releases v1.9.12/v1.9.13-pre2 y quitar los worktrees viejos: el clasificador lo bloquea (lo hace el usuario).
 - **C. Videos HD en Android: hecho** (RGB por defecto, verificado en el emulador; HD_MOD.md). Rama en main.
 - **F. Discord en Linux: hecho.** VM Debian con un socket falso: handshake y SET_ACTIVITY (mundo, piso, nivel, combate).
 - #34 cerrado (confirmado). #39 (recortar relleno) respondido: idea, no bug.
