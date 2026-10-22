@@ -49,6 +49,19 @@ Reglas del usuario:
   shim. El arnés Android ya no da "ok" a un caso que todavía no arrancó, cuenta como caída el `crash:` del host y marca
   `BAD-APK` si el APK de prueba se armó sin `--smoke-env KHCOM_FAST=1` (corría la batalla de prueba en cada caso).
 
+## 21/10 noche (usuario ausente, /goal: bugs y pendientes sin imágenes)
+
+- **v1.9.15-pre1 publicada (prueba: Windows, Switch, Vita)**, comentada en #35 y #36. Incluye: #36 (táctil oculto en
+  pausa/Opciones, Minus + Plus 3 s abre Opciones), salto de cuadros (`experimental_frame_skip`, encendido en todo tras
+  `test_frameskip.py` 24/24 idénticos y 1/3600 saltados en PC con VSync; RENDIMIENTO.md), Vita en GPU (SDL2 GXM de
+  vdpm), cola de audio del puente en unidades de entrada.
+- **F. Discord en Linux: hecho.** VM Debian con un socket falso: handshake y SET_ACTIVITY (mundo, piso, nivel, combate).
+- #34 cerrado (confirmado). #39 (recortar relleno) respondido: idea, no bug.
+- Builds de consolas: `build_ps5.py` enlaza con archivo de respuesta (límite de 32 K) y lee bien los `.d` con rutas de
+  Windows; Switch/Vita/PS5 ya no reusan un paquete viejo si la VM falla; Vita rellena 8 KiB si `vita-elf-create` no
+  tiene lugar.
+- Baterías: `run_batteries.py` suma battles, riku, monkey y skip (EU/US/JP); el AVD se encuentra con ANDROID_AVD_HOME.
+
 ## Carpetas de KHCoMPC (21/10, pedido del usuario)
 
 La raíz quedó en: `jugar/` (copias ReKHCoM-vX con partidas del usuario + su .bat), `pruebas/` (copias que esperan
@@ -66,7 +79,6 @@ Cada una tiene `LEEME.md`. **Codex:** `package_preliminar_v1.py` ahora escribe e
 | **Claude** | **C. Videos HD en Android**: rama `claude/android-hd-movies`; el emulador se cuelga en la primera textura YUV. Probar `KHCOM_HDMOVIE_RGB=1` (b4cb4730d) en el emulador; a main solo verificado (`HD_MOD.md`). Luego **D**: consolas y MP4 en Linux |
 | **Claude** | **E'. Reportes nuevos (21/10 ~16:15, prioridad del usuario)**: #22 xsm2 Poco F8 Ultra y #34 Mate XT con la pre2: "The game image could not be loaded" = bug J (imagen de 64 bits sin hueco en 0x01000000), arreglado en `claude/perf-android-reloc`; xsm2 no llega a Settings para el log (la rama pone "Share log" en la caja de error). Odin 2 Portal anda bien con la pre2. Casos en la batería: grupo `issues` de `test_android_scenarios.py` (#33 evento 099, Bosque 100 Acres) y paso `android eu move` con `KHCOM_IMAGE_MOVE=1`. `mode_vsbattle` sale de la batería: arnés sin compañero de link (HARNESS_ONLY) |
 | **Claude** | **E. Issues**: #33 (Trickmaster, arreglado en pre2) y #35 (Switch lento: si sigue con la GPU, deko3d) esperan a los testers; #36 (Switch se cierra en el título): comentario listo en `build/issue36-comment.md`, sale con la próxima prueba; #25 se cierra cuando el mod HD salga en una estable |
-| **Claude** | **F. Discord**: probar en Linux |
 | **Claude** | **G. Integración de Codex**: traer sus commits (`khcom-codex` codex/preliminar-v1 y `khcom`) a main con build y prueba (al día hasta 457d10854) |
 | **Claude** | **I'. Rendimiento en consolas**: Vita a la GPU (necesita OK del usuario para `vdpm sdl2` en la VM), PS4 a la GPU (Piglet) (`RENDIMIENTO.md`) |
 | **Claude** | **H. Próxima estable**: solo con el OK del usuario; `release_check.py` antes/después, todas las plataformas, web |
