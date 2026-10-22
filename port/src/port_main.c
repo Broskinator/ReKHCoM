@@ -2211,8 +2211,14 @@ static void VBlankCycle(void) {
             ppuSum += sPpuTicks;
             if (++n == 240) {
                 double f = 1000.0 / SDL_GetPerformanceFrequency() / n;
-                PortLog("profile: canvas %dx%d ppu %.2f ms present %.2f ms", gPortScreen.width, gPortScreen.height,
-                        ppuSum * f, presSum * f);
+                extern void PortPpuTakeStats(int out[5]);
+                int st[5] = { 0 };
+#ifdef PORT_PPU_THREADS
+                PortPpuTakeStats(st);
+#endif
+                PortLog("profile: canvas %dx%d ppu %.2f ms present %.2f ms | outer rows multi-core %d (iso floor %d), one core: "
+                        "mosaic %d header %d small %d", gPortScreen.width, gPortScreen.height, ppuSum * f, presSum * f,
+                        st[0], st[1], st[2], st[3], st[4]);
                 ppuSum = presSum = 0;
                 n = 0;
             }

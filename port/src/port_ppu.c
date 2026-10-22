@@ -881,12 +881,22 @@ void PortSetBattleView(int on) {
  * only repeating scenery is continued. Original tiles only, no new pixels.
  */
 #define ISO_COMMON 6
-static struct {
+/* one table per background: two iso layers with different maps used to share one, and every lookup of one threw
+   the other's away (a 4096-tile recount per pixel: event 004 ran under 5 fps at x1). Filled by IsoPrime before the
+   outer rows are split between cores, read-only while they draw. */
+#define ISO_MEMO_MARGIN 256 /* tiles around the map whose walk is remembered (2048 px: any canvas) */
+typedef struct {
     void* const* map;
-    int width, height;
+    int width, height, ok;
     int leftDy, rightDy, topDx, bottomDx;
     uint16_t freq[65536];
-} sIso;
+    /* per tile around the map: the map tile its walk ends on, as y << 16 | x, plus 1; 0 not walked yet, -1 none.
+       The coordinate, not the entry: the map is read live, so animated tiles keep moving. Cores may store the same
+       value at once (aligned 32-bit stores). */
+    int32_t* memo;
+    int memoW, memoH;
+} IsoTable;
+static IsoTable sIsoTables[4];
 
 static int MapTile(const BgLatch* l, int tx, int ty) {
     const uint16_t* block = (const uint16_t*)l->map[(ty >> 5) * l->width + (tx >> 5)];
@@ -907,35 +917,62 @@ static int IsoScore(const BgLatch* l, int x0, int x1, int y0, int y1, int dx, in
     return score;
 }
 
-static int IsoPrepare(const BgLatch* l) {
+static IsoTable* IsoPrepare(const BgLatch* l) {
+    IsoTable* t = &sIsoTables[(l - sBgLatch) & 3];
     int W = l->width * 32, H = l->height * 32, x, y;
-    if (sIso.map == l->map && sIso.width == l->width && sIso.height == l->height)
-        return 1;
+    if (t->map == l->map && t->width == l->width && t->height == l->height)
+        return t->ok ? t : NULL;
+    t->map = l->map;
+    t->width = l->width;
+    t->height = l->height;
+    t->ok = 0;
     if (W < 8 || H < 8)
-        return 0;
-    memset(sIso.freq, 0, sizeof(sIso.freq));
+        return NULL;
+    t->memoW = W + 2 * ISO_MEMO_MARGIN;
+    t->memoH = H + 2 * ISO_MEMO_MARGIN;
+    free(t->memo);
+    t->memo = (int32_t*)calloc((size_t)t->memoW * t->memoH, sizeof(int32_t));
+    memset(t->freq, 0, sizeof(t->freq));
     for (y = 0; y < H; y++)
         for (x = 0; x < W; x++) {
             int e = MapTile(l, x, y);
             if (e < 0)
-                return 0;
-            if (sIso.freq[e] < 0xFFFF)
-                sIso.freq[e]++;
+                return NULL;
+            if (t->freq[e] < 0xFFFF)
+                t->freq[e]++;
         }
-    sIso.leftDy = IsoScore(l, 0, 8, 0, H, 2, -1) >= IsoScore(l, 0, 8, 0, H, 2, 1) ? -1 : 1;
-    sIso.rightDy = IsoScore(l, W - 8, W, 0, H, -2, -1) >= IsoScore(l, W - 8, W, 0, H, -2, 1) ? -1 : 1;
-    sIso.topDx = IsoScore(l, 0, W, 0, 4, 2, 1) >= IsoScore(l, 0, W, 0, 4, -2, 1) ? 2 : -2;
-    sIso.bottomDx = IsoScore(l, 0, W, H - 4, H, 2, -1) >= IsoScore(l, 0, W, H - 4, H, -2, -1) ? 2 : -2;
-    sIso.map = l->map;
-    sIso.width = l->width;
-    sIso.height = l->height;
-    return 1;
+    t->leftDy = IsoScore(l, 0, 8, 0, H, 2, -1) >= IsoScore(l, 0, 8, 0, H, 2, 1) ? -1 : 1;
+    t->rightDy = IsoScore(l, W - 8, W, 0, H, -2, -1) >= IsoScore(l, W - 8, W, 0, H, -2, 1) ? -1 : 1;
+    t->topDx = IsoScore(l, 0, W, 0, 4, 2, 1) >= IsoScore(l, 0, W, 0, 4, -2, 1) ? 2 : -2;
+    t->bottomDx = IsoScore(l, 0, W, H - 4, H, 2, -1) >= IsoScore(l, 0, W, H - 4, H, -2, -1) ? 2 : -2;
+    t->ok = 1;
+    return t;
+}
+
+/* every iso layer's table, before the cores read them */
+static void IsoPrime(void) {
+    int b;
+    for (b = 0; b < 4; b++)
+        if (sBgIsoLatched[b] && sBgLatch[b].map != NULL && sBgLatch[b].width > 0 && sBgLatch[b].height > 0)
+            (void)IsoPrepare(&sBgLatch[b]);
 }
 
 static int IsoEntry(const BgLatch* l, int tx, int ty) {
     int W = l->width * 32, H = l->height * 32, dx = 0, dy = 0, i, e;
-    if (!IsoPrepare(l))
+    const IsoTable* t = IsoPrepare(l);
+    int32_t* memo = NULL;
+    if (!t)
         return -1;
+    if (t->memo && tx >= -ISO_MEMO_MARGIN && ty >= -ISO_MEMO_MARGIN && tx < W + ISO_MEMO_MARGIN &&
+        ty < H + ISO_MEMO_MARGIN) {
+        int32_t m;
+        memo = &t->memo[(ty + ISO_MEMO_MARGIN) * t->memoW + tx + ISO_MEMO_MARGIN];
+        m = *memo;
+        if (m < 0)
+            return -1;
+        if (m > 0)
+            return MapTile(l, (m - 1) & 0xFFFF, (m - 1) >> 16);
+    }
     /* Walk inward: across a side edge along that edge's diagonal, across the
        top or bottom along theirs (both inward at a corner). */
     for (i = 0; i < 4096; i++) {
@@ -944,18 +981,21 @@ static int IsoEntry(const BgLatch* l, int tx, int ty) {
             break;
         if (outX) {
             dx = tx < 0 ? 2 : -2;
-            dy = outY ? (ty < 0 ? 1 : -1) : (tx < 0 ? sIso.leftDy : sIso.rightDy);
+            dy = outY ? (ty < 0 ? 1 : -1) : (tx < 0 ? t->leftDy : t->rightDy);
         } else {
             dy = ty < 0 ? 1 : -1;
-            dx = ty < 0 ? sIso.topDx : sIso.bottomDx;
+            dx = ty < 0 ? t->topDx : t->bottomDx;
         }
         tx += dx;
         ty += dy;
     }
-    if (tx < 0 || ty < 0 || tx >= W || ty >= H)
+    if (tx < 0 || ty < 0 || tx >= W || ty >= H) {
+        if (memo)
+            *memo = -1;
         return -1;
+    }
     e = MapTile(l, tx, ty);
-    while (e >= 0 && sIso.freq[e] < ISO_COMMON && i++ < 4096) {
+    while (e >= 0 && t->freq[e] < ISO_COMMON && i++ < 4096) {
         int nx = tx + dx, ny = ty + dy;
         if (nx < 0 || ny < 0 || nx >= W || ny >= H)
             break;
@@ -963,6 +1003,8 @@ static int IsoEntry(const BgLatch* l, int tx, int ty) {
         ty = ny;
         e = MapTile(l, tx, ty);
     }
+    if (memo && e >= 0)
+        *memo = (ty << 16 | tx) + 1;
     return e;
 }
 
@@ -3258,15 +3300,28 @@ static int PpuGlyphOrder(const void* a, const void* b) {
 }
 
 /* state that a row hands on to the next one: those frames stay on one core */
+/* KHCOM_PROFILE: outer-row batches drawn on several cores, and why the others stayed on one */
+static int sPpuStats[5]; /* multi-core, of them with the iso floor, one core: vertical mosaic, menu header, too small */
+
+void PortPpuTakeStats(int out[5]) {
+    memcpy(out, sPpuStats, sizeof(sPpuStats));
+    memset(sPpuStats, 0, sizeof(sPpuStats));
+}
+
 static int PpuRowsIndependent(void) {
     int i;
     if (sBgIsoLatched[0] | sBgIsoLatched[1] | sBgIsoLatched[2] | sBgIsoLatched[3])
-        return 0; /* IsoPrepare's shared table */
-    if ((IO16(0x4C) >> 4) & 15)
+        sPpuStats[1]++; /* drawn on several cores: IsoPrime fills the tables first */
+    if ((IO16(0x4C) >> 4) & 15) {
+        sPpuStats[2]++;
         return 0; /* vertical mosaic: affine BGs reuse the reference of a block's first row */
+    }
     for (i = 0; i < 128; i++)
-        if (sOamTag[i].header)
+        if (sOamTag[i].header) {
+            sPpuStats[3]++;
             return 0; /* HeaderPick's once-a-frame choice */
+        }
+    sPpuStats[0]++;
     return 1;
 }
 
@@ -3336,11 +3391,14 @@ static void RenderOuterRows(int y0, int y1, int below) {
 #ifdef PORT_PPU_THREADS
     if (sPpuWorkers < 0)
         PpuStart();
+    if (sPpuWorkers > 0 && (size_t)(y1 - y0) * gPortScreen.width < 64 * 1024)
+        sPpuStats[4]++;
     if (sPpuWorkers > 0 && (size_t)(y1 - y0) * gPortScreen.width >= 64 * 1024 && PpuRowsIndependent()) {
         static const PendingGlyph* order[PPU_MAX_THREADS * 1024];
         int i, slot, n = 0, glyphStart = sBgTextCount;
         if (sBgWorldLatched[1].fn || sBgWorldLatched[2].fn || sBgWorldLatched[3].fn)
             MapWorldTilePrime(); /* its per-room tables, filled before the cores read them */
+        IsoPrime();
         sPpuJob = &r;
         SDL_SetAtomicInt(&sPpuNext, y0);
         for (i = 0; i < sPpuWorkers; i++)

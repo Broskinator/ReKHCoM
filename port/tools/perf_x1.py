@@ -19,6 +19,7 @@ WALK = ','.join(f'{f}-{f + 40}:{k}' for f, k in zip(range(200, 1500, 50), ['RIGH
 SCENARIOS = {
     'field': {'KHCOM_MODE': '60:room:10901', 'KHCOM_KEYS': WALK},
     'event': {'KHCOM_EVENT': '0:16', 'KHCOM_KEYS': ','.join(f'{f}-{f + 3}:A' for f in range(30, 1500, 40))},
+    'iso': {'KHCOM_EVENT': '0:4', 'KHCOM_KEYS': ','.join(f'{f}-{f + 3}:A' for f in range(30, 1500, 40))},  # 004: iso floor
     'battle': {'KHCOM_BATTLE': '0:1:0', 'KHCOM_KEYS': '150-153:A,' + ','.join(f'{f}-{f + 3}:A' for f in range(200, 1500, 15))},
 }
 
@@ -51,7 +52,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--build', default='build/pc-eu')
     ap.add_argument('--zoom', default='2', help='kh_com.ini zoom id: 2 = x1, 6 = x3, 8 = x4')
-    ap.add_argument('--only', default='field,event,battle')
+    ap.add_argument('--only', default='field,event,iso,battle')
     ap.add_argument('--threads', type=int, help='KHCOM_PPU_THREADS (default: the game picks)')
     args = ap.parse_args()
     for name in args.only.split(','):

@@ -39,6 +39,24 @@ A x1 en campo y escenas la PPU es el cuello de botella; la GPU tarda ~4 ms.
 - **Regla para quien toque la PPU:** todo búfer que una función de línea escriba debe ser `PPU_TLS` o indexado por
   fila; las cachés que dependen de cuadros anteriores van en `PpuRowsIndependent`.
 
+### 22/10: suelo isométrico (escenas aprobadas 004, 057, 061, 074...)
+
+`perf_x1.py` (1920x1080, D3D11 oculta, tiempo real, baterías corriendo a la vez): el evento 004 a x1 no llegaba a
+5 fps (más de 200 ms por cuadro: 1500 cuadros no terminaban en 5 minutos). Dos causas en `port_ppu.c`:
+- Una sola tabla `sIso` para todas las capas: con dos capas isométricas de mapas distintos, cada consulta de una
+  borraba la de la otra y se recontaban 4096 tiles **por píxel**. Ahora una tabla por fondo (`sIsoTables[4]`),
+  llenada por `IsoPrime` antes de repartir las filas: el suelo isométrico ya se dibuja en varios núcleos.
+- `IsoEntry` caminaba la diagonal hasta el mapa en cada píxel: ahora recuerda por tile la coordenada de destino
+  (no el valor: el mapa se lee en vivo y los tiles animados siguen moviéndose).
+Resultado: evento 004 a x1 de >200 ms a 31 ms por cuadro (PPU 121 → 28 ms). Píxel a píxel idéntico al build
+anterior en 004/016/057/061/074 (4 capturas cada uno) y 0 `MISMATCH` con `KHCOM_PPU_VERIFY` (`compare_ppu_builds.py`).
+El perfil (`KHCOM_PROFILE`) ahora dice cuántas tandas de filas van en varios núcleos y por qué otras no.
+
+Medido después (x1): campo 18,8 ms (PPU 14,7), evento 016 45 ms (PPU 37), evento 004 31 ms, combate ~25 ms.
+Lo que queda: las 160 filas de la imagen GBA se dibujan en un núcleo a todo el ancho (1920 px) porque entre ellas
+corren los eventos de línea del juego (HBlank, DMA). Repartirlas pide guardar por línea el estado que usa la PPU
+(registros, paleta) y dibujar después: es el siguiente paso para 60 fps a x1, no entra en la v2.0.
+
 Falta: verificar con `KHCOM_PPU_VERIFY` en toda la batería de eventos/salas/combates (0 diferencias), bajar la parte
 secuencial (las 160 filas de la imagen GBA y la presentación) para llegar a 60 fps con margen a x1, y Linux.
 
