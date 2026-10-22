@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "port/port_hdlayout.h"
 #include "port/port_hdsprites.h"
 #include "../decompui/third_party/stb_image.h"
 
@@ -69,7 +70,9 @@ static int GroupOn(int group) {
 }
 
 /* hd/sprites/<name>.png in the data folder (KHCOM_HD_SPRITES=<folder>: the test batteries' shared copy) */
-static const char* SpritePath(char* file, size_t size, const char* name) {
+const char* PortHdSpritePath(char* file, size_t size, const char* name);
+static const char* SpritePath(char* file, size_t size, const char* name) { return PortHdSpritePath(file, size, name); }
+const char* PortHdSpritePath(char* file, size_t size, const char* name) {
     const char* dir = SDL_getenv("KHCOM_HD_SPRITES");
     if (dir) {
         SDL_snprintf(file, size, "%s/%s.png", dir, name);
@@ -485,6 +488,8 @@ void PortHdSpritesDraw(SDL_Renderer* renderer, int layer, float ox, float oy, fl
     sRenderer = renderer;
     if ((unsigned)layer >= HD_LAYERS)
         return;
+    if (layer == 1) /* Re:CoM's HP gauge on the HUD canvas, under the cards */
+        PortHdGaugeDraw(renderer, ox, oy, scale, 1.0f - (darken > 0 ? darken / 16.0f : 0.0f));
     for (i = 0; i < sDrawCount[layer]; i++) {
         const HdSpriteDraw* q = &sDraws[layer][i];
         HdSpriteState* st = &sState[q->id];

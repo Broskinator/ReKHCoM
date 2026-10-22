@@ -20,6 +20,7 @@
 #include "port/port.h"
 #ifdef PLATFORM_PC
 #include "port/port_hdsprites.h"
+#include "port/port_hdlayout.h"
 #endif
 #endif
 #include <stddef.h>
@@ -352,6 +353,10 @@ void task_btl_hpply_2(BtlHpplyWork* work) {
     {
         BtlObj* actor = gBtlWork->actor;
         int ratio = actor != NULL && actor->maxHp > 0 ? work->displayHp * 256 / actor->maxHp : 0;
+        /* Re:CoM 1.5's own gauge (port_hdlayout.c, its logic read from Re:CoM's executable): face, ring and bar
+           from gauge.lad, so nothing of the cartridge's gauge is drawn */
+        if (actor != NULL && PortHdGauge(actor->hp, actor->maxHp, (gGameState.flags & GAME_FLAG_RIKU) != 0))
+            return;
         if (PortHdHpRing(((ObjTiles*)work->tiles)->src, work->gfx, ratio)) {
             DrawSprite(14, 15, work->gfx, work->tiles, work->palette, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 1);
             return;

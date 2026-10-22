@@ -18,6 +18,7 @@
 #include "mode.h"
 #include "port/port_aspect.h"
 #include "port/port_hd2d.h"
+#include "port/port_hdlayout.h"
 #include "port/port_hdsprites.h"
 #include "../decompui/third_party/stb_image.h"
 #include "port/port_ui.h"
@@ -2208,6 +2209,7 @@ static void Quit(void) {
     PortAudioShutdown();
     PortHdHudShutdown();
     PortHdSpritesShutdown();
+    PortHdLayoutShutdown();
     SDL_Quit();
     exit(0);
 }
