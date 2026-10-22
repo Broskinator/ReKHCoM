@@ -60,6 +60,10 @@ Reglas del usuario:
   `build/batteries-hd.log`, informe `build/debugkit-hd/report.md`); la de HD apagado terminó limpia (294 casos, 0
   caídas; resultados en `build/batt-hdoff-20261022`). Ganchos nuevos: `KHCOM_CONFIG="k=v;k=v"`, `KHCOM_HD_SPRITES`,
   `KHCOM_MODE=worlds:MASK`. Luego: Android 64 con HD e imagen movida; consolas contra el shim.
+- Comprobado 22/10 ~15:00: cartas de mapa, mundos, combate y borde 1 con HD en EU/US/JP (vista Original y Auto) y en
+  el build reubicable (`configure_pc.py --reloc`, como Switch/Vita): 0 fallos; `check_sources.py` ok (shim).
+- **Propuesta al usuario:** `pruebas/HD tentativos (medidores contador recarga).png` (medidor de vida en anillo de
+  Re:CoM, medidor del enemigo, contador CARD/S, números de recarga): no son 1:1, espera su decisión.
 - **Espera al usuario:** Darkside (arenas), OK para builds v2.0.
 
 ## v2.0 — próxima estable (pedido del usuario 22/10: "stable nueva con 2.0 y anunciar la inclusión del HD")
