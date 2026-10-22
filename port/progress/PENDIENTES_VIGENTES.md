@@ -49,6 +49,19 @@ Reglas del usuario:
   shim. El arnés Android ya no da "ok" a un caso que todavía no arrancó, cuenta como caída el `crash:` del host y marca
   `BAD-APK` si el APK de prueba se armó sin `--smoke-env KHCOM_FAST=1` (corría la batalla de prueba en cada caso).
 
+## Estado 22/10 ~15:00 (Claude, sesión principal; usuario: "sigue con lo que queda y haz un debuggeo grande")
+- **Hecho y en main hoy:** oclusión de piezas HD en la imagen y en la capa de pantalla (`MainHdOver`, `HdOverLayer`);
+  cartas HD en el menú de barajas y la vista Original; **22 cartas de mapa HD** (también en la síntesis de estancias);
+  **13 mundos HD** (`cl_###` recortados con la silueta GBA, grupo 4); borde 1 del GBA clásico (elegido por el usuario)
+  con 6 cartas de mapa reales leídas de la ROM; dígitos de cartas = los de Re:CoM (la fuente de diálogos en cartas fue
+  rechazada: solo HUD y diálogos). 190 piezas HD; el importador del launcher = Python (dif. máx. 1).
+- **Arte HD 1:1 con GBA: ~95 %.** Falta: proponer al usuario los tentativos (medidores, contador, recarga) con capturas.
+- **Depuración grande en curso:** batería de escritorio con HD encendido (`run_batteries.py --hd --detach`,
+  `build/batteries-hd.log`, informe `build/debugkit-hd/report.md`); la de HD apagado terminó limpia (294 casos, 0
+  caídas; resultados en `build/batt-hdoff-20261022`). Ganchos nuevos: `KHCOM_CONFIG="k=v;k=v"`, `KHCOM_HD_SPRITES`,
+  `KHCOM_MODE=worlds:MASK`. Luego: Android 64 con HD e imagen movida; consolas contra el shim.
+- **Espera al usuario:** Darkside (arenas), OK para builds v2.0.
+
 ## v2.0 — próxima estable (pedido del usuario 22/10: "stable nueva con 2.0 y anunciar la inclusión del HD")
 
 Es un lanzamiento grande: no publicar hasta pasar TODA la lista de verificación de abajo. PC (Windows, Linux, Steam Deck)

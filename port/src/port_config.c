@@ -301,7 +301,38 @@ void PortConfigAutoView(int outW, int outH, int battle, int* w, int* h, int* sca
     gPortAutoScaleF = f;
 }
 
+/* Test harness: KHCOM_CONFIG="key=value;key=value" sets settings over kh_com.ini (the batteries run with the HD
+   options on without writing each case's file). */
+static void ApplyEnvConfig(void) {
+    const char* env = SDL_getenv("KHCOM_CONFIG");
+    char buf[512], *item, *next;
+    size_t i;
+    if (!env)
+        return;
+    SDL_strlcpy(buf, env, sizeof(buf));
+    for (item = buf; item; item = next) {
+        char* eq;
+        next = SDL_strchr(item, ';');
+        if (next)
+            *next++ = ' ';
+        eq = SDL_strchr(item, '=');
+        if (!eq)
+            continue;
+        *eq = ' ';
+        for (i = 0; i < sizeof(sKeys) / sizeof(sKeys[0]); i++)
+            if (SDL_strcmp(Trim(item), sKeys[i].name) == 0)
+                *sKeys[i].value = SDL_clamp(SDL_atoi(eq + 1), sKeys[i].min, sKeys[i].max);
+    }
+}
+
+static void PortConfigLoadFile(void);
+
 void PortConfigLoad(void) {
+    PortConfigLoadFile();
+    ApplyEnvConfig();
+}
+
+static void PortConfigLoadFile(void) {
     FILE* f = fopen(PortConfigPath("kh_com.ini"), "r");
     char line[256];
 

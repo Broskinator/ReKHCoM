@@ -47,12 +47,19 @@ STEPS += [
 ]
 
 
+# --hd: the same desktop batteries with the HD mod on (debug_kit.py --hd), their own log and marks
+HD = '--hd' in sys.argv
+if HD:
+    LOG = ROOT / 'build/batteries-hd.log'
+    STEPS = [(n, c + ['--hd']) for n, c in STEPS if n.startswith('desktop')]
+
+
 def progress(name):
     """'done/total' for a step, read from the cases it left on disk."""
     parts = name.split()
     if parts[0] == 'desktop' and len(parts) == 3:
         suite, v = parts[1], parts[2]
-        if (ROOT / f'build/debugkit/{suite}-{v}.done').exists():
+        if (ROOT / f'build/debugkit{"-hd" if HD else ""}/{suite}-{v}.done').exists():
             return 'done'
         if suite in ('events', 'wide'):
             cases = ROOT / 'build/eventtest' / (v + ('_wide' if suite == 'wide' else ''))
@@ -107,6 +114,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--detach', action='store_true')
     ap.add_argument('--status', action='store_true', help='how far each step got, and the last lines of the log')
+    ap.add_argument('--hd', action='store_true', help='the desktop batteries with the HD mod on (build/batteries-hd.log)')
     args = ap.parse_args()
     if args.status:
         for name, _ in STEPS:
@@ -115,7 +123,7 @@ def main():
             print(''.join(LOG.read_text(encoding='utf-8').splitlines(True)[-5:]), end='')
         return
     if args.detach:
-        cmd = f'"{PY}" "{Path(__file__).resolve()}"'
+        cmd = f'"{PY}" "{Path(__file__).resolve()}"' + (' --hd' if HD else '')
         ps = (f"$s=New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{{ShowWindow=[uint16]0}};"
               f"$r=Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments "
               f"@{{CommandLine='{cmd}';CurrentDirectory='{ROOT}';ProcessStartupInformation=$s}};"

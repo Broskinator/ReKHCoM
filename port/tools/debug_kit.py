@@ -69,6 +69,7 @@ HARNESS_ONLY = {
     ('FillCardSlotsFromIds', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
     ('task_btl_hpply_1', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
     ('task_btl_hpoth_1', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
+    ('?', 'menu-mode_vsbattle'): 'link battle opened with no link partner (a division the game never reaches)',
     ('Event_0', 'events/'): 'debug-menu events carry 0x8000; the game passes plain ids',
 }
 
@@ -294,7 +295,15 @@ def main():
     ap.add_argument('--build', action='store_true', help='ninja the desktop test builds first')
     ap.add_argument('--resume', action='store_true',
                     help='skip the suites that already finished (a run killed from outside leaves no .done mark)')
+    ap.add_argument('--hd', action='store_true',
+                    help='the HD mod on (cards, title, text; KHCOM_CONFIG, KHCOM_HD_SPRITES from $KHCOM_HD_SOURCE or '
+                         'D:/01Claude/ReKHCoM-build/hd-completo/sprites); results in build/debugkit-hd')
     args = ap.parse_args()
+    global OUT
+    if args.hd:
+        OUT = ROOT / 'build/debugkit-hd'
+        os.environ['KHCOM_CONFIG'] = 'hd_cards=1;hd_title=1;hd_text=1'
+        os.environ['KHCOM_HD_SPRITES'] = os.environ.get('KHCOM_HD_SOURCE', 'D:/01Claude/ReKHCoM-build/hd-completo/sprites')
     if args.command == 'run':
         versions = [v for v in args.versions.split(',') if v]
         env = dict(os.environ, PATH=str(ROOT.parent / 'toolchain/bin') + os.pathsep + os.environ.get('PATH', ''))

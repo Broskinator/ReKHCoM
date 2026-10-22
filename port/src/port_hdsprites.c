@@ -68,6 +68,17 @@ static int GroupOn(int group) {
     }
 }
 
+/* hd/sprites/<name>.png in the data folder (KHCOM_HD_SPRITES=<folder>: the test batteries' shared copy) */
+static const char* SpritePath(char* file, size_t size, const char* name) {
+    const char* dir = SDL_getenv("KHCOM_HD_SPRITES");
+    if (dir) {
+        SDL_snprintf(file, size, "%s/%s.png", dir, name);
+        return file;
+    }
+    SDL_snprintf(file, size, "hd/sprites/%s.png", name);
+    return PortConfigPath(file);
+}
+
 int PortHdSpriteFind(const void* tiles, const void* frame) {
     int i;
     if (!tiles || (!gPortConfig.hdCards && !gPortConfig.hdTitle))
@@ -79,8 +90,7 @@ int PortHdSpriteFind(const void* tiles, const void* frame) {
         if (!sState[i].present) {
             char file[160];
             FILE* f;
-            SDL_snprintf(file, sizeof(file), "hd/sprites/%s.png", d->name);
-            f = fopen(PortConfigPath(file), "rb");
+            f = fopen(SpritePath(file, sizeof(file), d->name), "rb");
             sState[i].present = f ? 2 : 1;
             if (f) fclose(f);
         }
@@ -159,8 +169,7 @@ static int Load(int i) {
     unsigned char* px;
     SDL_Surface* s;
     size_t need;
-    SDL_snprintf(file, sizeof(file), "hd/sprites/%s.png", kHdSprites[i].name);
-    px = stbi_load(PortConfigPath(file), &w, &h, &n, 4);
+    px = stbi_load(SpritePath(file, sizeof(file), kHdSprites[i].name), &w, &h, &n, 4);
     if (!px || w < 1 || h < 1 || w > 4096 || h > 4096) {
         if (px) stbi_image_free(px);
         sState[i].present = 1;
