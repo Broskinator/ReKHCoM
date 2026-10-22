@@ -61,6 +61,9 @@ int PortSpriteShiftY(int entry, int y);
    entry an OAM slot was built from. */
 void PortSpriteTag(int entry);
 void PortOamSetSource(int oamIndex, int entry);
+/* HD sprites: the ROM tiles and frame an OAM slot shows, and the part's box in
+   the frame's own coordinates (before the entry's flips and affine). */
+void PortOamSetHdPart(int oamIndex, const void* tiles, const void* frame, int x, int y, int w, int h, int flags);
 /* Start of a new OAM list: forget which entry each slot came from. */
 void PortOamTagsReset(void);
 /* HD text: the pixel-font character of the sprites being drawn (0: none). */

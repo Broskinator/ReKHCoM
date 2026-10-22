@@ -17,6 +17,7 @@
 
 #include "port/port.h"
 #include "port/port_hd2d.h"
+#include "port/port_hdsprites.h"
 #include "engine.h"
 #include "sprite.h"
 #include "port/port_state.h"
@@ -639,8 +640,28 @@ void PortSpriteTag(int entry) {
     }
 }
 
+/* HD sprites: which HD picture an OAM slot shows and the part's box in its frame (PortOamSetHdPart). */
+typedef struct OamHdPart {
+    uint16_t id;
+    int16_t x, y, w, h;
+    uint8_t flags;
+} OamHdPart;
+static OamHdPart sOamHd[128];
+
 void PortOamTagsReset(void) {
     memset(sOamTag, 0, sizeof(sOamTag));
+    memset(sOamHd, 0, sizeof(sOamHd));
+}
+
+void PortOamSetHdPart(int oamIndex, const void* tiles, const void* frame, int x, int y, int w, int h, int flags) {
+    if (oamIndex < 0 || oamIndex >= 128)
+        return;
+    sOamHd[oamIndex].id = (uint16_t)PortHdSpriteFind(tiles, frame);
+    sOamHd[oamIndex].x = (int16_t)x;
+    sOamHd[oamIndex].y = (int16_t)y;
+    sOamHd[oamIndex].w = (int16_t)w;
+    sOamHd[oamIndex].h = (int16_t)h;
+    sOamHd[oamIndex].flags = (uint8_t)flags;
 }
 
 /* Characters the outline font draws: printable Windows-1252 codes. The codes
@@ -3836,6 +3857,46 @@ uint32_t PortPpuBackdrop(void) {
     return sColorLut[PLTT16[0] & 0x7FFF];
 }
 
+/* HD sprites on the HUD: where an HD part was queued (its cartridge pixels), and what the sprites in front of one
+   draw there, which goes on a layer over the HD parts. */
+static uint8_t* sHdCover;
+static size_t sHdCoverSize;
+static uint32_t* sHudOver;
+static size_t sHudOverSize;
+static int sHudOverUsed;
+
+const uint32_t* PortPpuHudOver(void) {
+    return sHudOverUsed ? sHudOver : NULL;
+}
+
+/* Queue OAM slot i (shown at hx, hy on the HUD canvas, bounding box bw x bh) as an HD part. */
+static int QueueHdPart(int i, int hx, int hy, int ow, int oh, int bw, int bh, int affine,
+                       int16_t pa, int16_t pb, int16_t pc, int16_t pd, int alpha) {
+    const OamHdPart* part = &sOamHd[i];
+    float x[4], y[4];
+    if (part->w != ow || part->h != oh)
+        return 0;
+    if (affine) {
+        /* the hardware maps a screen offset s from the box's centre to texture t = M s + (ow, oh) / 2 */
+        float det = (float)pa * pd - (float)pb * pc, cx = hx + bw * 0.5f, cy = hy + bh * 0.5f;
+        static const int kCorner[4][2] = { { 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 } };
+        int k;
+        if (det == 0)
+            return 0;
+        for (k = 0; k < 4; k++) {
+            float tx = (kCorner[k][0] - 0.5f) * ow, ty = (kCorner[k][1] - 0.5f) * oh;
+            x[k] = cx + 256.0f * (pd * tx - pb * ty) / det;
+            y[k] = cy + 256.0f * (-pc * tx + pa * ty) / det;
+        }
+    } else {
+        float l = (float)hx, r = (float)(hx + ow), t = (float)hy, b = (float)(hy + oh);
+        if (part->flags & 1) { float v = l; l = r; r = v; }
+        if (part->flags & 2) { float v = t; t = b; b = v; }
+        x[0] = l; y[0] = t; x[1] = r; y[1] = t; x[2] = r; y[2] = b; x[3] = l; y[3] = b;
+    }
+    return PortHdSpriteQueue(part->id, x, y, part->x, part->y, part->w, part->h, alpha);
+}
+
 void PortPpuRenderHud(uint32_t* buf) {
     uint16_t dispcnt = IO16(0x00);
     uint16_t bldcnt = IO16(0x50);
@@ -3846,6 +3907,16 @@ void PortPpuRenderHud(uint32_t* buf) {
 
     sEnemyHudRect[0] = w; sEnemyHudRect[1] = h;
     PortHdHudSpriteBegin();
+    PortHdSpritesBegin();
+    sHudOverUsed = 0;
+    if (gPortConfig.hdCards && (size_t)w * h > sHdCoverSize) {
+        uint8_t* cover = realloc(sHdCover, (size_t)w * h);
+        uint32_t* over = realloc(sHudOver, (size_t)w * h * 4);
+        if (cover) { sHdCover = cover; sHdCoverSize = (size_t)w * h; }
+        if (over) { sHudOver = over; sHudOverSize = (size_t)w * h; }
+    }
+    if (sHdCover && (size_t)w * h <= sHdCoverSize)
+        memset(sHdCover, 0, (size_t)w * h);
     sEnemyHudRect[2] = sEnemyHudRect[3] = -1;
     sEnemyLabelRect[0] = w; sEnemyLabelRect[1] = h;
     sEnemyLabelRect[2] = sEnemyLabelRect[3] = -1;
@@ -3893,7 +3964,7 @@ void PortPpuRenderHud(uint32_t* buf) {
         const SpriteTag* tag = &sOamTag[i];
         PortHudDigit* digit = NULL;
         uint32_t* rawHud = NULL;
-        int hdSprite = 0;
+        int hdSprite = 0, hdPart = 0;
 
         if (!tag->hud || (!affine && dbl) || shape == 3 || mode >= 2 ||
             (HdTextGlyph(i) && tag->style != 2))
@@ -3954,6 +4025,9 @@ void PortPpuRenderHud(uint32_t* buf) {
             pc = (int16_t)p[11];
             pd = (int16_t)p[15];
         }
+        if (sOamHd[i].id && !hdSprite && sHdCover && (size_t)w * h <= sHdCoverSize &&
+            sHudOver && (size_t)w * h <= sHudOverSize && mode != 2)
+            hdPart = QueueHdPart(i, hx, hy, ow, oh, bw, bh, affine, pa, pb, pc, pd, mode == 1 ? 0xA0 : 255);
         for (sy = 0; sy < bh; sy++) {
             int py = hy + sy;
             if (py < 0 || py >= h)
@@ -4010,6 +4084,10 @@ void PortPpuRenderHud(uint32_t* buf) {
                 if (gPortConfig.hdHud && sHudDigitOwners && (size_t)w * h <= sHudDigitOwnerSize)
                     sHudDigitOwners[py * w + px] = i + 1;
                 if (hdSprite) continue;
+                if (hdPart) {
+                    sHdCover[py * w + px] = 1;
+                    continue;
+                }
                 if (tag->hdHudPart == 5 && px >= 31 && PortHdHudPlayerFrameReady()) {
                     int r = col & 31, g = (col >> 5) & 31, b = (col >> 10) & 31;
                     int high = r > g ? r : g, low = r < g ? r : g;
@@ -4088,6 +4166,15 @@ void PortPpuRenderHud(uint32_t* buf) {
                 }
                 if (mode == 1)
                     argb = (argb & 0x00FFFFFFu) | 0xA0000000u;
+                if (sHdCover && (size_t)w * h <= sHdCoverSize && sHdCover[py * w + px]) {
+                    /* in front of an HD part: drawn over it */
+                    if (!sHudOverUsed) {
+                        memset(sHudOver, 0, (size_t)w * h * 4);
+                        sHudOverUsed = 1;
+                    }
+                    sHudOver[py * w + px] = argb;
+                    continue;
+                }
                 buf[py * w + px] = argb;
             }
         }

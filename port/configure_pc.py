@@ -188,6 +188,9 @@ def decompui(n, toolchain, sdl_arch, debug, ra_objs):
     n.build("$builddir/decompui/offline_achievements.o", "cc_port", "port/achievements/offline_achievements.c",
             implicit=["port/achievements/official_set_eu.inc"])
     objs += ra_objs + ["$builddir/decompui/offline_achievements.o"]
+    # miniz: the HD importer writes PNG (hd_import.inc)
+    n.build("$builddir/decompui/miniz_unit.o", "cc_port", "port/decompui/miniz_unit.c")
+    objs.append("$builddir/decompui/miniz_unit.o")
     n.build("$builddir/ReKHCoM.exe", "link_ui", objs)
     art = ui / "assets" / "boxart.jpg"
     n.rule("copy_asset", 'cmd /c (if not exist "$dir_win" mkdir "$dir_win") & copy /y "$in_win" "$out_win" >nul',

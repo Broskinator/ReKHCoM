@@ -18,6 +18,7 @@
 #include "mode.h"
 #include "port/port_aspect.h"
 #include "port/port_hd2d.h"
+#include "port/port_hdsprites.h"
 #include "port/port_ui.h"
 #include "port/port_state.h"
 #if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64) || defined(PORT_TOUCH)
@@ -288,6 +289,8 @@ void PortFitScreen(void) {
 }
 static SDL_Texture* sHudTexture;
 static int sHudTexW, sHudTexH;
+static SDL_Texture* sHudOverTexture; /* HUD sprites in front of HD sprites */
+static int sHudOverW, sHudOverH;
 static uint32_t* sHudBuf;
 
 int gPortIntroRequested;
@@ -1571,6 +1574,30 @@ static void Present(void) {
         hd.y = (float)((outH - (int)hd.h) / 2);
         PortHdHudDraw(sRenderer, outW, outH);
         SDL_RenderTexture(sRenderer, sHudTexture, NULL, &hd);
+        {
+            /* HD sprites (cards), then what the cartridge draws in front of them */
+            uint16_t bld = *(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x50);
+            int effect = (bld >> 6) & 3, amount = SDL_min(*(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x54) & 31, 16);
+            const uint32_t* over = PortPpuHudOver();
+            PortHdSpritesDraw(sRenderer, hd.x, hd.y, (float)gPortHudScale,
+                              (bld & 0x10) && effect == 3 ? amount : 0, (bld & 0x10) && effect == 2 ? amount : 0);
+            if (over) {
+                if (sHudOverTexture == NULL || sHudOverW != sHudTexW || sHudOverH != sHudTexH) {
+                    if (sHudOverTexture != NULL)
+                        SDL_DestroyTexture(sHudOverTexture);
+                    sHudOverW = sHudTexW;
+                    sHudOverH = sHudTexH;
+                    sHudOverTexture = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_ARGB8888,
+                                                        SDL_TEXTUREACCESS_STREAMING, sHudOverW, sHudOverH);
+                    SDL_SetTextureBlendMode(sHudOverTexture, SDL_BLENDMODE_BLEND);
+                    SDL_SetTextureScaleMode(sHudOverTexture, SDL_SCALEMODE_NEAREST);
+                }
+                if (sHudOverTexture != NULL) {
+                    SDL_UpdateTexture(sHudOverTexture, NULL, over, sHudOverW * 4);
+                    SDL_RenderTexture(sRenderer, sHudOverTexture, NULL, &hd);
+                }
+            }
+        }
         PortHdHudDrawSprites(sRenderer, outW, outH);
         PortHdHudDrawBar(sRenderer, outW, outH);
         PortHdHudDrawLabel(sRenderer, outW, outH);
@@ -1988,6 +2015,7 @@ static void Quit(void) {
     PortHdMusicShutdown();
     PortAudioShutdown();
     PortHdHudShutdown();
+    PortHdSpritesShutdown();
     SDL_Quit();
     exit(0);
 }

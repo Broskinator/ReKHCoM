@@ -124,6 +124,7 @@ static const Key sKeys[] = {
     { "hd_music", &gPortConfig.hdMusic, 0, 1 },
     { "hd_scenes", &gPortConfig.hdScenes, 0, 1 },
     { "hd_subtitles", &gPortConfig.hdSubtitles, 0, 1 },
+    { "hd_cards", &gPortConfig.hdCards, 0, 1 },
     { "invert_card_scroll", &gPortConfig.invertCardScroll, 0, 1 },
     { "game_language", &gPortConfig.gameLanguage, 0, 5 },
     { "experimental_moogle_notice", &gPortConfig.moogleNotice, 0, 1 },

@@ -77,9 +77,20 @@ Pasos siguientes, en orden:
    cartas superpuestas, carta activa girando, menú de barajas; sin cartas faltantes ni orden roto.
 7. Proponer al usuario los tentativos (medidores, contador, recarga, fuentes HD de Re:CoM) con capturas.
 
-## Estado
+## Estado (22/10 ~06:30)
 - [x] Ubicación y formato de las texturas HD; familias identificadas; qué es 1:1.
-- [ ] Mapeo de las cartas de GBA a los archivos de Re:CoM (hoja de verificación).
-- [ ] Extracción en `khhd_*.py` y en el importador del launcher (DDS → PNG sin pérdida).
-- [ ] Etiquetado de sprites de carta, capas y quads HD; opción en juego/launcher/ini.
-- [ ] Pruebas: capturas con la opción apagada idénticas; encendida, sin cartas faltantes ni orden roto.
+- [x] Mapeo de las 97 ilustraciones de carta de GBA (96 de `gCardDefs` + `gGimmickCard`) a Re:CoM, a ojo (el
+  emparejamiento automático por parecido falló: los dibujos de GBA no son reducciones de los de Re:CoM). Marcos
+  rojo/verde/azul/negro (`com_card01`) sobre la caja de tinta del borde de GBA; dígitos blancos de `card_no` (los
+  modificados teñidos del azul de GBA). Receta: `port/data/hd_sprites.tsv`; herramientas `hdcards_gba.py` (dibuja
+  los sprites de GBA desde la ROM) y `hdcards_parts.py` (marcos y dígitos).
+- [x] Extracción en Python: `khhd_sprites.py` (receta → `hd/sprites/<nombre>.png`, 121 piezas, 8 MB). Formatos:
+  `khhd_scan.py` (todas las texturas HD del .pkg), `khhd_imgz.py` (IMGZ/IMGD de 32 bits).
+- [ ] Mismo paso en el importador del launcher (`hd_import.inc`).
+- [x] Juego: `hd_cards` (ini); `engine.c` da a cada parte de OAM sus tiles/marco/caja (`PortOamSetHdPart`),
+  `port_hdsprites.c` las reconoce por los tiles de la ROM y las dibuja como quads con la transformación del juego;
+  lo que el cartucho dibuja delante va a una capa encima (`PortPpuHudOver`). EU/US/JP, mano, cartas enemigas
+  girando, jefe: sin caídas (el renderer por software de SDL se colgaba con quads espejados: ver DEBUG_WORKFLOW).
+- [ ] Opción en Opciones/launcher (Mejoras de Re:CoM, beta), modos GBA/HD.
+- [ ] Menú de barajas (cartas chicas, capa de pantalla) y vista GBA (sin capa HUD).
+- [ ] Pruebas: capturas con la opción apagada idénticas (`compare_present_builds.py`).

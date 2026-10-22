@@ -114,6 +114,14 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
   la vista amplia el fondo de esa pantalla cambia a vista amplia para que se note el cambio.
   Decisiones por defecto mientras el usuario no diga otra cosa: Modo HD sin importación = ofrece importar primero;
   borde estilo Super Game Boy = 3 propuestas para elegir; scratchpads de otras sesiones en %TEMP% = no tocar.
+- **Usuario 22/10 ~05:40:** en el launcher (Settings) el modo gráfico viene por defecto en **"Escoger"**: así el
+  juego muestra la elección de modo la primera vez que el jugador empieza. En nuestras Opciones, junto a "volver todo
+  a default", una opción para **volver a los valores por defecto de un modo** (HD, GBA mejorado, GBA clásico), por
+  si alguien cambia de opinión.
+- **Usuario 22/10:** rescatar **todos** los assets HD de Re:CoM que se puedan (rastrear todo el .pkg, reconocer lo
+  que es 1:1 como las cartas) y lograr lo máximo posible: **pantalla de título HD** con esos assets y nuestras
+  opciones, HUD, menús. Inventario en HUD_HD_RECOM.md.
+- Darkside: sesión [darkside-arte] (worktree D:/01Claude/arenas-wt) lo termina y lo entrega para aprobar.
 - Después (pedido del usuario): datos duros de Re:CoM (dificultades, valores de cartas/enemigos, cambios respecto
   a GBA) para el modo Re:CoM, en lógica y jugabilidad, con pruebas para no meter bugs.
 

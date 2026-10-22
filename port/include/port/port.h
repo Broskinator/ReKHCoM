@@ -153,6 +153,7 @@ typedef struct PortConfig {
     int hdMusic;               /* HD mod: the imported Re:CoM soundtrack replaces the background music (port_hdmusic.c) */
     int hdScenes;              /* HD mod, full: the imported Re:CoM cutscenes replace the story scenes they match (off) */
     int hdSubtitles;           /* HD mod: the HD movies and scenes show Re:CoM's subtitles in the game's language (on) */
+    int hdCards;               /* HD mod, beta: battle cards drawn with Re:CoM's HD art (port_hdsprites.c, off) */
 } PortConfig;
 
 extern PortConfig gPortConfig;
@@ -310,6 +311,8 @@ extern int gPortHudW;
 extern int gPortHudH;
 int PortPpuHudActive(void);
 void PortPpuRenderHud(uint32_t* buf);
+/* The HUD sprites in front of HD sprites, after PortPpuRenderHud (NULL: none this frame). */
+const uint32_t* PortPpuHudOver(void);
 /* HD text: a dialogue glyph the PPU left out of the picture, at its place on
    the world canvas (hud 0) or the HUD canvas (hud 1), with its colours. */
 typedef struct PortTextGlyph {

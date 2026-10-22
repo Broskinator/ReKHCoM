@@ -6,6 +6,7 @@
   defined there, with SDL's own value (21/10: SDLK_AC_BACK and SDL_EVENT_MOUSE_BUTTON_DOWN broke the Android 64 build).
 - Java string and char literals must close on their line (21/10: a script wrote real newlines into GameActivity's
   share-log strings and the APK did not build).
+- The generated HD sprite tables (gen_hd_sprites_inc.py) match port/data/hd_sprites.tsv.
 
 Exit code 1 and one line per problem. release_check.py and build_android.py run it first.
 """
@@ -42,6 +43,13 @@ def shim_problems():
     return out
 
 
+def generated_problems():
+    import subprocess
+    r = subprocess.run([sys.executable, str(ROOT / 'port/tools/gen_hd_sprites_inc.py'), '--check'],
+                       capture_output=True, text=True)
+    return [l for l in r.stdout.splitlines() if l.strip()] if r.returncode else []
+
+
 def java_problems():
     out = []
     for f in sorted((ROOT / 'port/android/app/src').rglob('*.java')):
@@ -73,7 +81,7 @@ def java_problems():
 
 
 def main():
-    problems = shim_problems() + java_problems()
+    problems = shim_problems() + java_problems() + generated_problems()
     for p in problems:
         print(p)
     if problems:

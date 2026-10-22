@@ -1,7 +1,7 @@
 /* HD mod importer (port/progress/HD_MOD.md): takes the Re:Chain of Memories movies and soundtrack from the player's
  * own KINGDOM HEARTS -HD 1.5+2.5 ReMIX- (Steam or Epic, found by itself or chosen), or from a folder with those files
- * loose, and writes plain files the game plays: hd/movies/<name>.mp4, hd/subs/<movie>.<lang>.txt and
- * hd/music/<track>.ogg + .loop.
+ * loose, and writes plain files the game plays: hd/movies/<name>.mp4, hd/subs/<movie>.<lang>.txt,
+ * hd/music/<track>.ogg + .loop and hd/sprites/<sprite>.png (HD cards, port_hdsprites.c).
  *
  * Formats (port/tools/khhd_pkg.py, khhd_scd.py and khhd_import.py are the Python reference):
  * - movies: MP4 whose first 0x100 bytes are XORed with a fixed 16-byte key;
@@ -179,9 +179,9 @@ static bool ScdToOgg(const std::vector<unsigned char>& scd, std::vector<unsigned
 
 /* ---- movie subtitles (port/tools/khhd_subs.py) ---------------------------------------------------------------- */
 
-/* FORM/5xxx/FO5xxx.BIN: the US table at 0x40, a remastered <XX>_MVS*.binl per language. Each language's table
-   becomes hd/subs/<movie>.<lang>.txt ("<first frame> <last frame> <text>", 30 frames a second, \n for breaks). */
-static bool ReadAssetLanguages(std::ifstream& pkg, long long offset, std::map<std::string, std::vector<unsigned char>>& out) {
+/* One asset of a .pkg and its remastered entries (the 1.5+2.5's additions: HD textures, language tables), by name. */
+static bool ReadAssetExtras(std::ifstream& pkg, long long offset, std::vector<unsigned char>& base,
+                            std::map<std::string, std::vector<unsigned char>>& extras) {
     unsigned char seed[16];
     pkg.clear(); /* a padded read at the package's end leaves eof set: it must not fail the assets after it */
     pkg.seekg(offset);
@@ -228,10 +228,8 @@ static bool ReadAssetLanguages(std::ifstream& pkg, long long offset, std::map<st
         free(inflated);
         return inflatedLen >= real;
     };
-    std::vector<unsigned char> base;
-    if (!unpack((size_t)(clen >= 0 ? clen : dlen), dlen, clen, base) || base.size() < 0x40)
+    if (!unpack((size_t)(clen >= 0 ? clen : dlen), dlen, clen, base))
         return false;
-    out[""] = std::vector<unsigned char>(base.begin() + 0x40, base.end());
     for (auto& [name, len] : extra) {
         long long pos = (long long)pkg.tellg();
         pkg.seekg((pos + 15) & ~15LL);
@@ -239,9 +237,22 @@ static bool ReadAssetLanguages(std::ifstream& pkg, long long offset, std::map<st
         std::vector<unsigned char> data;
         if (!unpack(n + (-n & 15), len.first, len.second, data))
             return false;
-        if (name.size() > 6 && name.compare(2, 4, "_MVS") == 0)
-            out[name.substr(0, 2)] = data;
+        extras[name].swap(data);
     }
+    return true;
+}
+
+/* FORM/5xxx/FO5xxx.BIN: the US table at 0x40, a remastered <XX>_MVS*.binl per language. Each language's table
+   becomes hd/subs/<movie>.<lang>.txt ("<first frame> <last frame> <text>", 30 frames a second, \n for breaks). */
+static bool ReadAssetLanguages(std::ifstream& pkg, long long offset, std::map<std::string, std::vector<unsigned char>>& out) {
+    std::vector<unsigned char> base;
+    std::map<std::string, std::vector<unsigned char>> extras;
+    if (!ReadAssetExtras(pkg, offset, base, extras) || base.size() < 0x40)
+        return false;
+    out[""] = std::vector<unsigned char>(base.begin() + 0x40, base.end());
+    for (auto& [name, data] : extras)
+        if (name.size() > 6 && name.compare(2, 4, "_MVS") == 0)
+            out[name.substr(0, 2)].swap(data);
     return true;
 }
 
@@ -438,6 +449,251 @@ static fs::path FindInstall() {
 
 /* ---- the import job ------------------------------------------------------------------------------------------- */
 
+/* ---- HD sprites (port/tools/khhd_sprites.py is the reference; recipe: port/data/hd_sprites.tsv) ------------------ */
+
+#include "hd_sprites_recipe.inc"
+extern "C" void* tdefl_write_image_to_png_file_in_memory_ex(const void* image, int w, int h, int chans, size_t* len,
+                                                             unsigned level, int flip);
+extern "C" void mz_free(void* p);
+
+struct Rgba {
+    int w = 0, h = 0;
+    std::vector<unsigned char> px;
+    unsigned char* at(int x, int y) { return &px[((size_t)y * w + x) * 4]; }
+    void Resize(int nw, int nh) { w = nw; h = nh; px.assign((size_t)nw * nh * 4, 0); }
+};
+
+static uint16_t U16(const std::vector<unsigned char>& d, size_t at) {
+    return at + 2 <= d.size() ? (uint16_t)(d[at] | d[at + 1] << 8) : 0;
+}
+
+/* An uncompressed 32-bit DDS, a PNG, or the index-th IMGD of an IMGZ (32-bit in the remastered entries). */
+static bool DecodeTexture(const std::vector<unsigned char>& b, int index, Rgba& img) {
+    if (b.size() >= 128 && memcmp(b.data(), "DDS ", 4) == 0) {
+        uint32_t h = U32(b, 12), w = U32(b, 16), masks[4] = { U32(b, 92), U32(b, 96), U32(b, 100), U32(b, 104) };
+        if (U32(b, 84) != 0 || U32(b, 88) != 32 || w == 0 || h == 0 || w > 8192 || h > 8192 || b.size() < 128 + (size_t)w * h * 4)
+            return false;
+        img.Resize((int)w, (int)h);
+        for (size_t i = 0; i < (size_t)w * h; i++) {
+            uint32_t p = U32(b, 128 + i * 4);
+            for (int c = 0; c < 4; c++) {
+                uint32_t m = masks[c];
+                int shift = 0;
+                while (m && !((m >> shift) & 1))
+                    shift++;
+                img.px[i * 4 + c] = m ? (unsigned char)((p & m) >> shift) : 255;
+            }
+        }
+        return true;
+    }
+    if (b.size() >= 8 && memcmp(b.data(), "\x89PNG", 4) == 0) {
+        int w, h, n;
+        unsigned char* p = stbi_load_from_memory(b.data(), (int)b.size(), &w, &h, &n, 4);
+        if (!p)
+            return false;
+        img.Resize(w, h);
+        memcpy(img.px.data(), p, img.px.size());
+        stbi_image_free(p);
+        return true;
+    }
+    size_t at = 0, size = b.size();
+    if (b.size() >= 16 && memcmp(b.data(), "IMGZ", 4) == 0) {
+        if ((int)U32(b, 12) <= index)
+            return false;
+        at = U32(b, 16 + index * 8);
+        size = U32(b, 20 + index * 8);
+    } else if (index != 0) {
+        return false;
+    }
+    if (at + 0x20 > b.size() || memcmp(b.data() + at, "IMGD", 4) != 0)
+        return false;
+    uint32_t boff = U32(b, at + 8), blen = U32(b, at + 12);
+    int w = U16(b, at + 0x1C), h = U16(b, at + 0x1E);
+    if (w <= 0 || h <= 0 || blen != (uint32_t)w * h * 4 || at + boff + blen > b.size() || boff + blen > size)
+        return false;
+    img.Resize(w, h);
+    memcpy(img.px.data(), b.data() + at + boff, blen);
+    unsigned char top = 0;
+    for (size_t i = 3; i < img.px.size(); i += 4)
+        top = std::max(top, img.px[i]);
+    if (top <= 128) /* PS2 alpha runs 0..128 */
+        for (size_t i = 3; i < img.px.size(); i += 4)
+            img.px[i] = (unsigned char)std::min(255, img.px[i] * 2);
+    return true;
+}
+
+/* Separable resize, a triangle filter widened when shrinking, on premultiplied colour (khhd_sprites.resample). */
+static Rgba Resample(const Rgba& src, int w, int h) {
+    std::vector<double> f(src.px.size());
+    for (size_t i = 0; i < src.px.size(); i += 4) {
+        double a = src.px[i + 3];
+        for (int c = 0; c < 3; c++)
+            f[i + c] = src.px[i + c] * a / 255.0;
+        f[i + 3] = a;
+    }
+    auto axis = [](const std::vector<double>& in, int iw, int ih, int n, bool horizontal) {
+        int m = horizontal ? iw : ih, ow = horizontal ? n : iw, oh = horizontal ? ih : n;
+        std::vector<double> out((size_t)ow * oh * 4, 0.0);
+        double scale = (double)m / n, support = std::max(1.0, scale);
+        for (int i = 0; i < n; i++) {
+            double centre = (i + 0.5) * scale;
+            int lo = std::max((int)std::floor(centre - support), 0), hi = std::min((int)std::ceil(centre + support), m);
+            std::vector<std::pair<int, double>> taps;
+            double sum = 0;
+            for (int j = lo; j < hi; j++) {
+                double wt = std::max(0.0, 1.0 - std::fabs((j + 0.5 - centre) / support));
+                if (wt > 0) {
+                    taps.push_back({ j, wt });
+                    sum += wt;
+                }
+            }
+            if (sum == 0) {
+                taps = { { std::min(std::max((int)centre, 0), m - 1), 1.0 } };
+                sum = 1;
+            }
+            int other = horizontal ? ih : iw;
+            for (int k = 0; k < other; k++)
+                for (auto& [j, wt] : taps) {
+                    size_t s = horizontal ? ((size_t)k * iw + j) * 4 : ((size_t)j * iw + k) * 4;
+                    size_t d = horizontal ? ((size_t)k * ow + i) * 4 : ((size_t)i * ow + k) * 4;
+                    for (int c = 0; c < 4; c++)
+                        out[d + c] += in[s + c] * wt / sum;
+                }
+        }
+        return out;
+    };
+    std::vector<double> v = axis(axis(f, src.w, src.h, h, false), src.w, h, w, true);
+    Rgba out;
+    out.Resize(w, h);
+    for (size_t i = 0; i < out.px.size(); i += 4) {
+        double a = v[i + 3];
+        for (int c = 0; c < 3; c++) {
+            double x = a > 0 ? v[i + c] * 255.0 / std::max(a, 1e-9) : 0;
+            out.px[i + c] = (unsigned char)std::min(255.0, std::max(0.0, std::floor(x + 0.5)));
+        }
+        out.px[i + 3] = (unsigned char)std::min(255.0, std::max(0.0, std::floor(a + 0.5)));
+    }
+    return out;
+}
+
+/* Keep only the largest 8-connected region of alpha > 32 (a glyph without its italic neighbours' corners). */
+static void Solo(Rgba& img) {
+    int w = img.w, h = img.h, best = 0, bestSize = 0, n = 0;
+    std::vector<int> label((size_t)w * h, 0);
+    auto on = [&](int x, int y) { return img.px[((size_t)y * w + x) * 4 + 3] > 32; };
+    for (int y0 = 0; y0 < h; y0++)
+        for (int x0 = 0; x0 < w; x0++) {
+            if (!on(x0, y0) || label[(size_t)y0 * w + x0])
+                continue;
+            label[(size_t)y0 * w + x0] = ++n;
+            std::vector<std::pair<int, int>> stack = { { x0, y0 } };
+            int size = 0;
+            while (!stack.empty()) {
+                auto [x, y] = stack.back();
+                stack.pop_back();
+                size++;
+                for (int dy = -1; dy <= 1; dy++)
+                    for (int dx = -1; dx <= 1; dx++) {
+                        int xx = x + dx, yy = y + dy;
+                        if (xx >= 0 && yy >= 0 && xx < w && yy < h && on(xx, yy) && !label[(size_t)yy * w + xx]) {
+                            label[(size_t)yy * w + xx] = n;
+                            stack.push_back({ xx, yy });
+                        }
+                    }
+            }
+            if (size > bestSize) {
+                best = n;
+                bestSize = size;
+            }
+        }
+    Rgba out = img;
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            bool keep = label[(size_t)y * w + x] == best, adjacent = false;
+            if (!keep && !on(x, y) && x > 0 && y > 0 && x < w - 1 && y < h - 1)
+                for (int dy = -1; dy <= 1 && !adjacent; dy++)
+                    for (int dx = -1; dx <= 1 && !adjacent; dx++)
+                        adjacent = label[(size_t)(y + dy) * w + x + dx] == best;
+            if (!keep && !adjacent)
+                memset(out.at(x, y), 0, 4);
+        }
+    img = std::move(out);
+}
+
+/* The recipe's operations on the texture, in order (khhd_sprites.apply); false on a malformed recipe. */
+static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rgba& out) {
+    int place[4] = { 0, 0, boxW, boxH };
+    size_t start = 0;
+    while (start <= ops.size()) {
+        size_t end = ops.find(';', start);
+        std::string op = ops.substr(start, end == std::string::npos ? std::string::npos : end - start);
+        start = end == std::string::npos ? ops.size() + 1 : end + 1;
+        std::string key = op.substr(0, op.find('=')), val = op.find('=') == std::string::npos ? "" : op.substr(op.find('=') + 1);
+        std::vector<int> v;
+        if (key != "tint")
+            for (size_t p = 0; p < val.size();) {
+                size_t q = val.find(',', p);
+                v.push_back(atoi(val.substr(p, q == std::string::npos ? std::string::npos : q - p).c_str()));
+                p = q == std::string::npos ? val.size() : q + 1;
+            }
+        if (key == "crop" && v.size() == 4) {
+            if (v[0] < 0 || v[1] < 0 || v[2] > img.w || v[3] > img.h || v[2] <= v[0] || v[3] <= v[1])
+                return false;
+            Rgba c;
+            c.Resize(v[2] - v[0], v[3] - v[1]);
+            for (int y = 0; y < c.h; y++)
+                memcpy(c.at(0, y), img.at(v[0], v[1] + y), (size_t)c.w * 4);
+            img = std::move(c);
+        } else if (key == "rot" && v.size() == 1) {
+            for (int k = 0; k < (v[0] / 90) % 4; k++) { /* a quarter turn counter-clockwise (numpy.rot90) */
+                Rgba r;
+                r.Resize(img.h, img.w);
+                for (int y = 0; y < r.h; y++)
+                    for (int x = 0; x < r.w; x++)
+                        memcpy(r.at(x, y), img.at(img.w - 1 - y, x), 4);
+                img = std::move(r);
+            }
+        } else if (key == "erase" && v.size() == 4) {
+            for (int y = std::max(v[1], 0); y < std::min(v[3], img.h); y++)
+                for (int x = std::max(v[0], 0); x < std::min(v[2], img.w); x++)
+                    memset(img.at(x, y), 0, 4);
+        } else if (key == "shift" && v.size() == 5) {
+            Rgba copy = img;
+            for (int y = std::max(v[1], 0); y < std::min(v[3], img.h); y++)
+                for (int x = std::max(v[0], 0); x < std::min(v[2], img.w); x++)
+                    memset(img.at(x, y), 0, 4);
+            for (int y = std::max(v[1], 0); y < std::min(v[3], img.h); y++)
+                for (int x = std::max(v[0], 0); x < std::min(v[2], img.w); x++)
+                    if (x + v[4] >= 0 && x + v[4] < img.w)
+                        memcpy(img.at(x + v[4], y), copy.at(x, y), 4);
+        } else if (key == "solo") {
+            Solo(img);
+        } else if (key == "tint") {
+            unsigned c = (unsigned)strtoul(val.c_str(), nullptr, 16);
+            for (size_t i = 0; i < img.px.size(); i += 4)
+                for (int k = 0; k < 3; k++)
+                    img.px[i + k] = (unsigned char)(img.px[i + k] * ((c >> (16 - 8 * k)) & 255) / 255);
+        } else if (key == "place" && v.size() == 4) {
+            memcpy(place, v.data(), sizeof(place));
+        } else if (key == "scale" && v.size() == 1 && start > ops.size()) {
+            int k = v[0];
+            if (k < 1 || k > 32 || place[2] <= place[0] || place[3] <= place[1])
+                return false;
+            out.Resize(boxW * k, boxH * k);
+            Rgba r = Resample(img, (place[2] - place[0]) * k, (place[3] - place[1]) * k);
+            for (int y = 0; y < r.h; y++)
+                if (place[1] * k + y >= 0 && place[1] * k + y < out.h)
+                    for (int x = 0; x < r.w; x++)
+                        if (place[0] * k + x >= 0 && place[0] * k + x < out.w)
+                            memcpy(out.at(place[0] * k + x, place[1] * k + y), r.at(x, y), 4);
+            return true;
+        } else {
+            return false;
+        }
+    }
+    return false; /* no final scale */
+}
+
 struct Job {
     std::atomic<bool> running{ false };
     std::atomic<int> done{ 0 }, total{ 0 };
@@ -453,6 +709,71 @@ struct Job {
     }
 };
 static Job sJob;
+
+/* Every sprite of the recipe from the installation's Recom.hed/.pkg into data/hd/sprites/<name>.png. */
+static int WriteSprites(const fs::path& hed, const fs::path& data) {
+    std::error_code ec;
+    fs::path outDir = data / "hd" / "sprites";
+    fs::create_directories(outDir, ec);
+    std::map<std::string, long long> offsets;
+    {
+        std::ifstream h(hed, std::ios::binary);
+        unsigned char e[0x20];
+        static const char* hex = "0123456789abcdef";
+        while (h.read((char*)e, 0x20)) {
+            std::string md5;
+            for (int i = 0; i < 16; i++) {
+                md5 += hex[e[i] >> 4];
+                md5 += hex[e[i] & 15];
+            }
+            memcpy(&offsets[md5], e + 16, 8);
+        }
+    }
+    /* rows by asset: each asset is read once */
+    std::map<std::string, std::vector<std::vector<std::string>>> byAsset;
+    for (const char* line : kHdSpriteRecipe) {
+        std::vector<std::string> f;
+        std::string s = line;
+        for (size_t p = 0; p <= s.size();) {
+            size_t q = s.find('\t', p);
+            f.push_back(s.substr(p, q == std::string::npos ? std::string::npos : q - p));
+            p = q == std::string::npos ? s.size() + 1 : q + 1;
+        }
+        if (f.size() == 10)
+            byAsset[f[8].substr(0, f[8].find(':'))].push_back(f);
+    }
+    std::ifstream pkg(fs::path(hed).replace_extension(".pkg"), std::ios::binary);
+    int written = 0;
+    sJob.total += (int)(sizeof(kHdSpriteRecipe) / sizeof(kHdSpriteRecipe[0]));
+    for (auto& [asset, rows] : byAsset) {
+        sJob.Say(std::string(T("Gráficos HD: ", "HD graphics: ")) + asset);
+        auto it = offsets.find(Md5Hex(asset));
+        std::vector<unsigned char> base;
+        std::map<std::string, std::vector<unsigned char>> extras;
+        bool ok = it != offsets.end() && ReadAssetExtras(pkg, it->second, base, extras);
+        for (auto& f : rows) {
+            sJob.done++;
+            std::string tex = f[8].substr(f[8].find(':') + 1);
+            int index = 0;
+            if (size_t hash = tex.find('#'); hash != std::string::npos) {
+                index = atoi(tex.c_str() + hash + 1);
+                tex = tex.substr(0, hash);
+            }
+            Rgba img, out;
+            if (!ok || !extras.count(tex) || !DecodeTexture(extras[tex], index, img) ||
+                !ApplyRecipe(img, f[9], atoi(f[6].c_str()), atoi(f[7].c_str()), out))
+                continue;
+            size_t len = 0;
+            void* png = tdefl_write_image_to_png_file_in_memory_ex(out.px.data(), out.w, out.h, 4, &len, 10, 0);
+            if (png) {
+                std::ofstream(outDir / (f[0] + ".png"), std::ios::binary).write((const char*)png, (std::streamsize)len);
+                mz_free(png);
+                written++;
+            }
+        }
+    }
+    return written;
+}
 
 static bool CopyMovie(const fs::path& src, const fs::path& dst) {
     std::ifstream in(src, std::ios::binary);
@@ -477,7 +798,7 @@ static void WriteTrack(const fs::path& folder, const std::string& name, const st
 }
 
 /* source: an installation, or a folder with the movies and/or the soundtrack loose (.mp4, .scd or .ogg). */
-static void Run(fs::path source, fs::path data, bool movies, bool scenes, bool music) {
+static void Run(fs::path source, fs::path data, bool movies, bool scenes, bool music, bool sprites) {
     std::error_code ec;
     fs::path outMovies = data / "hd" / "movies", outMusic = data / "hd" / "music";
     int imported = 0;
@@ -555,19 +876,24 @@ static void Run(fs::path source, fs::path data, bool movies, bool scenes, bool m
             }
         }
     }
+    if (sprites) {
+        fs::path hed = source / "Image" / "dt" / "Recom.hed";
+        if (fs::exists(hed, ec))
+            imported += WriteSprites(hed, data);
+    }
     sJob.Say(imported ? std::string(T("Listo: ", "Done: ")) + std::to_string(imported) + T(" archivos importados.", " files imported.")
                       : std::string(T("No se encontró nada para importar en esa carpeta.", "Nothing to import was found in that folder.")));
     sJob.running = false;
 }
 
-static void Start(const fs::path& source, const fs::path& data, bool movies, bool scenes, bool music) {
+static void Start(const fs::path& source, const fs::path& data, bool movies, bool scenes, bool music, bool sprites) {
     if (sJob.running)
         return;
     sJob.running = true;
     sJob.done = 0;
     sJob.total = 0;
     sJob.Say(T("Importando…", "Importing…"));
-    std::thread(Run, source, data, movies, scenes, music).detach();
+    std::thread(Run, source, data, movies, scenes, music, sprites).detach();
 }
 
 static int Count(const fs::path& folder, const char* ext) {
@@ -615,6 +941,7 @@ static bool HdModCard() {
     }
     fs::path movies = sRoot / "hd" / "movies", music = sRoot / "hd" / "music";
     int haveMovies = hd::Count(movies, ".mp4"), haveTracks = hd::Count(music, ".ogg");
+    int haveSprites = hd::Count(sRoot / "hd" / "sprites", ".png");
     std::error_code ec;
     bool haveBase = fs::exists(movies / "ROP.mp4", ec);
     int haveScenes = haveMovies - (int)haveBase - (int)fs::exists(movies / "RSE.mp4", ec) - (int)fs::exists(movies / "RRE.mp4", ec);
@@ -629,8 +956,8 @@ static bool HdModCard() {
                        source.empty() ? T("no se encontró el juego; elige su carpeta o una con los videos/la música.",
                                           "the game was not found; choose its folder or one with the movies/music.")
                                       : source.u8string().c_str());
-    ImGui::TextWrapped("%s %d %s · %d %s", T("Importado:", "Imported:"), haveMovies, T("videos", "movies"), haveTracks,
-                       T("pistas", "tracks"));
+    ImGui::TextWrapped("%s %d %s · %d %s · %d %s", T("Importado:", "Imported:"), haveMovies, T("videos", "movies"), haveTracks,
+                       T("pistas", "tracks"), haveSprites, T("gráficos", "graphics"));
     ImGui::PopStyleColor();
     ImGui::BeginDisabled(hd::sJob.running);
     if (ImGui::Button(T("Buscar el juego", "Find the game")))
@@ -642,11 +969,11 @@ static bool HdModCard() {
             source = p;
     }
     ImGui::BeginDisabled(source.empty());
-    if (ImGui::Button(T("Importar mod base (videos + música)", "Import base mod (movies + music)")))
-        hd::Start(source, sRoot, true, false, true);
+    if (ImGui::Button(T("Importar mod base (videos, música y gráficos)", "Import base mod (movies, music and graphics)")))
+        hd::Start(source, sRoot, true, false, true, true);
     ImGui::SameLine();
     if (ImGui::Button(T("Importar escenas (completo, ~7 GB)", "Import scenes (full, ~7 GB)")))
-        hd::Start(source, sRoot, false, true, false);
+        hd::Start(source, sRoot, false, true, false, false);
     ImGui::EndDisabled();
     ImGui::EndDisabled();
     if (hd::sJob.running || !hd::sJob.Status().empty()) {
@@ -680,6 +1007,13 @@ static bool HdModCard() {
                          T("Los subtítulos de Re:Chain of Memories en los videos y escenas HD, en el idioma del juego.",
                            "Re:Chain of Memories' subtitles over the HD movies and scenes, in the game's language."),
                          Ini("hd_subtitles"));
+    ImGui::EndDisabled();
+    ImGui::BeginDisabled(haveSprites <= 0);
+    changed |= ToggleRow(T("Cartas HD (beta)", "HD cards (beta)"),
+                         T("Las cartas de combate con las ilustraciones, marcos y números de Re:Chain of Memories. "
+                           "Necesita la vista amplia.",
+                           "Battle cards with Re:Chain of Memories' illustrations, frames and numbers. Needs the wide view."),
+                         Ini("hd_cards"));
     ImGui::EndDisabled();
     return changed;
 }

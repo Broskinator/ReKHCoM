@@ -1996,20 +1996,22 @@ int main(int argc, char** argv) {
     sRoot = ExeDir();
     UnblockOwnFiles();
     ApplyUiLanguage();
-    /* ReKHCoM.exe --hd-import [<source folder>] [--scenes]: the HD mod import without the window (power users,
-       tests); without a folder the installed game is looked for */
+    /* ReKHCoM.exe --hd-import [<source folder>] [--scenes] [--sprites-only]: the HD mod import without the window
+       (power users, tests); without a folder the installed game is looked for */
     for (int i = 1; i < argc; i++)
         if (strcmp(argv[i], "--hd-import") == 0) {
             fs::path source = i + 1 < argc && argv[i + 1][0] != '-' ? fs::u8path(argv[i + 1]) : hd::FindInstall();
-            bool scenes = false;
-            for (int j = 1; j < argc; j++)
+            bool scenes = false, spritesOnly = false;
+            for (int j = 1; j < argc; j++) {
                 scenes |= strcmp(argv[j], "--scenes") == 0;
+                spritesOnly |= strcmp(argv[j], "--sprites-only") == 0;
+            }
             if (source.empty()) {
                 fprintf(stderr, "KINGDOM HEARTS -HD 1.5+2.5 ReMIX- not found\n");
                 return 1;
             }
             hd::sJob.running = true;
-            hd::Run(source, sRoot, true, scenes, true);
+            hd::Run(source, sRoot, !spritesOnly, scenes && !spritesOnly, !spritesOnly, true);
             fprintf(stderr, "%s\n", hd::sJob.Status().c_str());
             return 0;
         }
