@@ -52,6 +52,8 @@ def table():
 def recipe():
     out = [HEADER, 'static const char* const kHdSpriteRecipe[] = {\n']
     for l in lines():
+        if l.split('	')[8] == 'builtin':
+            continue  # built into the game, nothing to import
         out.append('    "' + l.replace('\\', '\\\\').replace('"', '\\"').replace('\t', '\\t') + '",\n')
     out.append('};\n')
     return ''.join(out)

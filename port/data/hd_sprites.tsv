@@ -1,6 +1,8 @@
 # HD sprites (port_hdsprites.c, khhd_sprites.py, the launcher's importer). Tab-separated:
 # name  group(1 cards, 2 title, 3 battle HUD)  frame(- any)  tiles  box x0 y0 w h (GBA pixels, frame coordinates)  Re:CoM asset:texture  recipe  [regions: eu,us,jp; default all]
-# Card illustrations: matched by eye (hdcards_gba.py sheets vs Re:CoM families); borders and digits: hdcards_parts.py.
+# Card illustrations: matched by eye (hdcards_gba.py sheets vs Re:CoM families); borders: hdcards_parts.py.
+# Source 'builtin': drawn by us and built into the game (the value digits: gen_card_digits_inc.py, the dialogue's
+# HD font); the importers skip those rows.
 gCardWep01Tiles	1	-	gCardWep01Tiles	-16	-12	32	32	CARD/0001/CA0001.RTM:cw_001_tm2.dds	crop=9,0,247,256;place=3,2,29,30;scale=8
 gCardWep04Tiles	1	-	gCardWep04Tiles	-16	-12	32	32	CARD/0002/CA0002.RTM:cw_002_tm2.dds	crop=9,0,247,256;place=3,2,29,30;scale=8
 gCardWep05Tiles	1	-	gCardWep05Tiles	-16	-12	32	32	CARD/0003/CA0003.RTM:cw_003_tm2.dds	crop=9,0,247,256;place=3,2,29,30;scale=8
@@ -102,26 +104,26 @@ gCardBorderRedTiles	1	-	gCardBorderRedTiles	-16	-20	32	39	CARD/1000/CA1000.RTM:c
 gCardBorderGreenTiles	1	-	gCardBorderGreenTiles	-16	-20	32	39	CARD/1000/CA1000.RTM:com_card01_tm2.dds	crop=2,278,187,545;rot=0;crop=0,0,185,267;place=2,0,30,39;scale=8
 gCardBorderBlueTiles	1	-	gCardBorderBlueTiles	-16	-20	32	39	CARD/1000/CA1000.RTM:com_card01_tm2.dds	crop=2,550,187,821;rot=0;crop=0,0,185,267;place=2,0,30,39;scale=8
 gCardBorderBlackTiles	1	-	gCardBorderBlackTiles	-16	-20	32	39	CARD/1000/CA1000.RTM:com_card01_tm2.dds	crop=750,187,1017,373;rot=270;crop=0,0,186,267;place=2,0,30,39;scale=8
-gCardValueDigitTiles_0	1	gCardValueDigitFrame0	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=0,0,64,64;solo;place=3,1,8,8;scale=8
-gCardModifiedValueDigitTiles_0	1	gCardValueDigitFrame0	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=0,0,64,64;solo;tint=297BFF;place=2,0,8,8;scale=8
-gCardValueDigitTiles_1	1	gCardValueDigitFrame1	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=78,0,119,64;solo;place=4,1,6,8;scale=8
-gCardModifiedValueDigitTiles_1	1	gCardValueDigitFrame1	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=78,0,119,64;solo;tint=297BFF;place=3,0,6,8;scale=8
-gCardValueDigitTiles_2	1	gCardValueDigitFrame2	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=126,0,190,64;solo;place=3,1,8,8;scale=8
-gCardModifiedValueDigitTiles_2	1	gCardValueDigitFrame2	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=126,0,190,64;solo;tint=297BFF;place=2,0,8,8;scale=8
-gCardValueDigitTiles_3	1	gCardValueDigitFrame3	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=191,0,253,64;solo;place=3,1,8,8;scale=8
-gCardModifiedValueDigitTiles_3	1	gCardValueDigitFrame3	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=191,0,253,64;solo;tint=297BFF;place=2,0,8,8;scale=8
-gCardValueDigitTiles_4	1	gCardValueDigitFrame4	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=260,0,318,64;solo;place=3,1,8,8;scale=8
-gCardModifiedValueDigitTiles_4	1	gCardValueDigitFrame4	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=260,0,318,64;solo;tint=297BFF;place=2,0,8,8;scale=8
-gCardValueDigitTiles_5	1	gCardValueDigitFrame5	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=319,0,381,64;solo;place=3,1,8,8;scale=8
-gCardModifiedValueDigitTiles_5	1	gCardValueDigitFrame5	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=319,0,381,64;solo;tint=297BFF;place=2,0,8,8;scale=8
-gCardValueDigitTiles_6	1	gCardValueDigitFrame6	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=382,0,447,64;solo;place=3,1,8,8;scale=8
-gCardModifiedValueDigitTiles_6	1	gCardValueDigitFrame6	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=382,0,447,64;solo;tint=297BFF;place=2,0,8,8;scale=8
-gCardValueDigitTiles_7	1	gCardValueDigitFrame7	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=450,0,506,64;solo;place=3,1,8,8;scale=8
-gCardModifiedValueDigitTiles_7	1	gCardValueDigitFrame7	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=450,0,506,64;solo;tint=297BFF;place=2,0,8,8;scale=8
-gCardValueDigitTiles_8	1	gCardValueDigitFrame8	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=510,0,573,64;solo;place=3,1,8,8;scale=8
-gCardModifiedValueDigitTiles_8	1	gCardValueDigitFrame8	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=510,0,573,64;solo;tint=297BFF;place=2,0,8,8;scale=8
-gCardValueDigitTiles_9	1	gCardValueDigitFrame9	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=574,0,637,64;solo;place=3,1,8,8;scale=8
-gCardModifiedValueDigitTiles_9	1	gCardValueDigitFrame9	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=574,0,637,64;solo;tint=297BFF;place=2,0,8,8;scale=8
+gCardValueDigitTiles_0	1	gCardValueDigitFrame0	gCardValueDigitTiles	3	8	8	8	builtin	place=3,1,8,8
+gCardModifiedValueDigitTiles_0	1	gCardValueDigitFrame0	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=2,0,8,8
+gCardValueDigitTiles_1	1	gCardValueDigitFrame1	gCardValueDigitTiles	3	8	8	8	builtin	place=4,1,6,8
+gCardModifiedValueDigitTiles_1	1	gCardValueDigitFrame1	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=3,0,6,8
+gCardValueDigitTiles_2	1	gCardValueDigitFrame2	gCardValueDigitTiles	3	8	8	8	builtin	place=3,1,8,8
+gCardModifiedValueDigitTiles_2	1	gCardValueDigitFrame2	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=2,0,8,8
+gCardValueDigitTiles_3	1	gCardValueDigitFrame3	gCardValueDigitTiles	3	8	8	8	builtin	place=3,1,8,8
+gCardModifiedValueDigitTiles_3	1	gCardValueDigitFrame3	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=2,0,8,8
+gCardValueDigitTiles_4	1	gCardValueDigitFrame4	gCardValueDigitTiles	3	8	8	8	builtin	place=3,1,8,8
+gCardModifiedValueDigitTiles_4	1	gCardValueDigitFrame4	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=2,0,8,8
+gCardValueDigitTiles_5	1	gCardValueDigitFrame5	gCardValueDigitTiles	3	8	8	8	builtin	place=3,1,8,8
+gCardModifiedValueDigitTiles_5	1	gCardValueDigitFrame5	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=2,0,8,8
+gCardValueDigitTiles_6	1	gCardValueDigitFrame6	gCardValueDigitTiles	3	8	8	8	builtin	place=3,1,8,8
+gCardModifiedValueDigitTiles_6	1	gCardValueDigitFrame6	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=2,0,8,8
+gCardValueDigitTiles_7	1	gCardValueDigitFrame7	gCardValueDigitTiles	3	8	8	8	builtin	place=3,1,8,8
+gCardModifiedValueDigitTiles_7	1	gCardValueDigitFrame7	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=2,0,8,8
+gCardValueDigitTiles_8	1	gCardValueDigitFrame8	gCardValueDigitTiles	3	8	8	8	builtin	place=3,1,8,8
+gCardModifiedValueDigitTiles_8	1	gCardValueDigitFrame8	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=2,0,8,8
+gCardValueDigitTiles_9	1	gCardValueDigitFrame9	gCardValueDigitTiles	3	8	8	8	builtin	place=3,1,8,8
+gCardModifiedValueDigitTiles_9	1	gCardValueDigitFrame9	gCardModifiedValueDigitTiles	3	8	8	8	builtin	place=2,0,8,8
 gTitleLogoHeartTiles	2	-	gTitleLogoHeartTiles	-80	-48	160	96	FORM/0505/FO0505.RTM:UK_title.imz#3	crop=4,9,597,361;place=2,0,153,96;scale=8
 gTitleLogoKingdomHeartsTiles	2	-	gTitleLogoKingdomHeartsTiles	-75	-32	152	40	FORM/0505/FO0505.RTM:UK_title.imz#3	canvas=608,160;blit=853,111,1019,270,0,2,167,162;blit=602,288,1019,447,167,3,579,160;scale=8
 gTitleLogoCrownTiles	2	-	gTitleLogoCrownTiles	-14	-46	24	16	FORM/0505/FO0505.RTM:UK_title.imz#3	crop=940,4,1017,64;place=3,1,21,15;scale=8

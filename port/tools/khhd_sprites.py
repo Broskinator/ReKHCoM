@@ -37,6 +37,8 @@ def recipe(path=RECIPE):
     for line in path.read_text(encoding='utf-8').splitlines():
         if line.strip() and not line.startswith('#'):
             f = line.split('\t')
+            if f[8] == 'builtin':
+                continue  # built into the game (gen_card_digits_inc.py)
             rows.append({'name': f[0], 'group': int(f[1]), 'frame': f[2], 'tiles': f[3],
                          'box': tuple(int(v) for v in f[4:8]), 'source': f[8], 'ops': f[9]})
     return rows
