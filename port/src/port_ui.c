@@ -2135,6 +2135,16 @@ static const char* const sModeDescClassic[LANG_COUNT] = {
     "Casi un emulador, pero nativo.",
     "本体と同じ：240x160の画面を整数倍で表示し、飾り枠付き。改善はすべてオフ。ほぼエミュレーター、でもネイティブ。",
 };
+static const char* const sWizWide[LANG_COUNT] = { "Wide view", "Vue large", "Breitbild", "Vista larga",
+                                                  "Vista amplia", "ワイド表示" };
+static const char* const sWizWideDesc[LANG_COUNT] = {
+    "More of the world at the sides, as ReKHCoM shows it. Off: the GBA's 240x160 picture.",
+    "Plus du monde sur les côtés, comme ReKHCoM le montre. Désactivé : l'image 240x160 du GBA.",
+    "Mehr von der Welt an den Seiten, wie ReKHCoM sie zeigt. Aus: das 240x160-Bild des GBA.",
+    "Più mondo ai lati, come lo mostra ReKHCoM. Disattivata: l'immagine 240x160 del GBA.",
+    "Más mundo a los lados, como lo muestra ReKHCoM. Apagada: la imagen de 240x160 del GBA.",
+    "ReKHCoMのように左右に世界を広く表示。オフ：GBAの240x160の画面。",
+};
 static const char* const sModeLater[LANG_COUNT] = {
     "You can change it later in Options or the launcher.", "Modifiable plus tard dans les Options ou le lanceur.",
     "Später in den Optionen oder im Launcher änderbar.", "Puoi cambiarlo poi nelle Opzioni o nel launcher.",
@@ -2163,9 +2173,12 @@ static const char* const sWizHelpFirst[LANG_COUNT] = {
 
 /* the options step: HD text, the one-button controls, then the HD mod's music, movies and (Re:CoM) scenes once
    imported, then Start */
-enum { WOPT_HDTEXT, WOPT_QOL, WOPT_HDMUSIC, WOPT_HDMOVIES, WOPT_HDSCENES, WOPT_START };
+enum { WOPT_WIDE, WOPT_HDTEXT, WOPT_QOL, WOPT_HDMUSIC, WOPT_HDMOVIES, WOPT_HDSCENES, WOPT_START };
 static int WizOptions(int* kinds) {
     int n = 0;
+    /* GBA classic starts with everything off: a new game still offers the wide view */
+    if (gPortConfig.graphicsMode == PORT_MODE_GBA_CLASSIC)
+        kinds[n++] = WOPT_WIDE;
     kinds[n++] = WOPT_HDTEXT;
     kinds[n++] = WOPT_QOL;
     if (ItemVisible(ITEM_HD_MUSIC))
@@ -2179,7 +2192,7 @@ static int WizOptions(int* kinds) {
 }
 
 static int WizRows(void) {
-    int kinds[6];
+    int kinds[8];
     return sWizStep == WIZ_VERSION || sWizStep >= WIZ_MODE ? 2 : sWizStep == WIZ_DIFFICULTY ? 3 : WizOptions(kinds);
 }
 
@@ -2250,9 +2263,15 @@ static void WizKey(int key) {
         sWizStep = WIZ_OPTIONS;
         sWizCursor = 0;
     } else if (sWizStep == WIZ_OPTIONS) {
-        int kinds[6], toggle = key == 2 || key == 3;
+        int kinds[8], toggle = key == 2 || key == 3;
         WizOptions(kinds);
         switch (kinds[sWizCursor]) {
+            case WOPT_WIDE:
+                if (toggle) {
+                    gPortConfig.viewMode = gPortConfig.viewMode == PORT_VIEW_ORIGINAL ? PORT_VIEW_AUTO : PORT_VIEW_ORIGINAL;
+                    PortVideoApplyConfig();
+                }
+                break;
             case WOPT_HDTEXT:
                 if (toggle) {
                     gPortConfig.hdText = !gPortConfig.hdText;
@@ -2319,7 +2338,7 @@ static void DrawWizard(int l, int width, int height) {
     const char* labels[6];
     const char* subs[6];
     const char* values[6] = { NULL, NULL, NULL, NULL, NULL, NULL };
-    int rows = WizRows(), i, panelW = SDL_min(width - 24, 250), x0, y0, h, y, textW, later;
+    int rows = WizRows(), i, panelW = SDL_min(width - 24, 250), x0, y0, h, y, textW, later, compact;
     static const int order[3] = { 1, 0, 2 };
 
     if (sWizStep == WIZ_MODE) {
@@ -2342,9 +2361,13 @@ static void DrawWizard(int l, int width, int height) {
             subs[i] = sNgDescDifficulty[order[i]][l];
         }
     } else {
-        int kinds[6], n = WizOptions(kinds);
+        int kinds[8], n = WizOptions(kinds);
         for (i = 0; i < n; i++) {
             switch (kinds[i]) {
+                case WOPT_WIDE:
+                    labels[i] = sWizWide[l]; subs[i] = sWizWideDesc[l];
+                    values[i] = sOnOff[gPortConfig.viewMode != PORT_VIEW_ORIGINAL][l];
+                    break;
                 case WOPT_HDTEXT:
                     labels[i] = sLabels[ITEM_NG_HDTEXT][l]; subs[i] = sNgDescHd[l];
                     values[i] = sOnOff[gPortConfig.hdText != 0][l];
@@ -2372,15 +2395,38 @@ static void DrawWizard(int l, int width, int height) {
         }
     }
     textW = panelW - 30;
-    /* measure, then a white window in the middle of a darkened screen */
-    h = 22;
-    for (i = 0; i < rows; i++)
-        h += 14 + DrawWrapped(subs[i], 0, 0, textW, 0, 0) * 11 + 4;
+    /* measure, then a white window in the middle of a darkened screen; on the GBA's 160 lines (Original view) a
+       window too tall shows only the chosen row's description */
     later = sWizStep >= WIZ_MODE ? DrawWrapped(sModeLater[l], 0, 0, panelW - 16, 0, 0) * 11 + 2 : 0;
-    h += 14 + later;
+    for (compact = 0; compact < 2; compact++) {
+        h = 22;
+        for (i = 0; i < rows; i++)
+            h += 14 + (compact && i != sWizCursor ? 0 : DrawWrapped(subs[i], 0, 0, textW, 0, 0) * 11 + 4);
+        h += 14 + later;
+        if (h <= height - 4)
+            break;
+    }
+    compact = compact > 0;
     x0 = (width - panelW) / 2;
     y0 = SDL_max(2, (height - h) / 2);
-    Fill(0, 0, width, height, 0xFF000000u);
+    {
+        /* on the wide view's row the picture shows behind the window, so the change is seen */
+        int kinds[8];
+        if (sWizStep == WIZ_OPTIONS && WizOptions(kinds) > sWizCursor && kinds[sWizCursor] == WOPT_WIDE) {
+            /* the wide view's row: a night sky fills the whole picture, so its width shows (the GBA's 240x160
+               inside the border, or the whole window) */
+            int yy;
+            for (yy = 0; yy < height; yy++) {
+                int t = yy * 255 / SDL_max(1, height - 1);
+                Fill(0, yy, width, 1, 0xFF000000u | (uint32_t)(16 + t * 32 / 255) << 16 | (uint32_t)(16 + t * 16 / 255) << 8 |
+                                          (uint32_t)(56 + t * 40 / 255));
+            }
+            for (yy = 0; yy < 60; yy++) /* stars at fixed places, spread over the whole width */
+                Fill((yy * 97 + 13) % width, (yy * 53 + 7) % height, 1, 1, 0xFFC0C8F0u);
+        } else {
+            Fill(0, 0, width, height, 0xFF000000u);
+        }
+    }
     Fill(x0 - 2, y0 - 2, panelW + 4, h + 4, MENU_GREY);
     Fill(x0, y0, panelW, h, 0xFFFFFFFFu);
     DrawText(sWizAsk[sWizStep][l], x0 + 8, y0 + 4, MENU_RED_DARK, 0xFFD8D8D8u);
@@ -2400,7 +2446,8 @@ static void DrawWizard(int l, int width, int height) {
             DrawText(values[i], vx, y, MENU_INK, 0xFFD8D8D8u);
         }
         y += 14;
-        y += DrawWrapped(subs[i], x0 + 24, y, textW, sel ? MENU_INK : MENU_DIM, 1) * 11 + 4;
+        if (!compact || sel)
+            y += DrawWrapped(subs[i], x0 + 24, y, textW, sel ? MENU_INK : MENU_DIM, 1) * 11 + 4;
     }
     if (sWizStep >= WIZ_MODE)
         DrawWrapped(sModeLater[l], x0 + 8, y0 + h - 14 - later, panelW - 16, MENU_DIM, 1);
