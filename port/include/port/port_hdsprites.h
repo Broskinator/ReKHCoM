@@ -1,11 +1,15 @@
 #ifndef PORT_HDSPRITES_H
 #define PORT_HDSPRITES_H
 
+#include <stdint.h>
+
 /* HD sprites (port_hdsprites.c): cartridge sprites drawn with imported Re:CoM art. */
 
 /* 1-based id of the HD picture for these ROM tiles and frame, 0: none (option off or file missing). */
 int PortHdSpriteFind(const void* tiles, const void* frame);
-/* Its group (1 cards, 2 title, 3 battle HUD). */
+/* 1 when some frame of these ROM tiles has its HD picture (the option on, the file there). */
+int PortHdSpriteAny(const void* tiles);
+/* Its group (1 cards, 2 title, 3 battle HUD, 4 worlds, 5 menu titles). */
 int PortHdSpriteGroup(int id);
 /* The sprite's box in its frame's coordinates (GBA pixels). */
 void PortHdSpriteBox(int id, int* x0, int* y0, int* w, int* h);

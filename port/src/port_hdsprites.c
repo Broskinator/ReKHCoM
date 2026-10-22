@@ -65,6 +65,7 @@ static int GroupOn(int group) {
     case 2: return gPortConfig.hdTitle;
     case 3: return gPortConfig.hdCards; /* the battle HUD's faces and words go with the cards */
     case 4: return gPortConfig.hdCards; /* the world select's worlds */
+    case 5: return gPortConfig.hdCards; /* the menus' title banners, in Re:CoM's lettering */
     default: return 0;
     }
 }
@@ -99,6 +100,14 @@ int PortHdSpriteFind(const void* tiles, const void* frame) {
         }
         return sState[i].present == 2 ? i + 1 : 0;
     }
+    return 0;
+}
+
+int PortHdSpriteAny(const void* tiles) {
+    int i;
+    for (i = 0; i < HD_SPRITE_COUNT; i++)
+        if (kHdSprites[i].tiles == tiles && PortHdSpriteFind(tiles, kHdSprites[i].frame))
+            return 1;
     return 0;
 }
 

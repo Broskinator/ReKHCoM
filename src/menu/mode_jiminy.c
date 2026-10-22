@@ -1185,6 +1185,9 @@ static const JiminyDetail sJiminyEntry20Details[33] = {
 #endif
 
 #include "jiminy_placeholders.inc"
+#ifdef PLATFORM_PC
+#include "port/port_hdsprites.h"
+#endif
 static JiminyWork* sJiminyWork;
 
 enum JiminyState {
@@ -1923,7 +1926,13 @@ void mode_jiminy_1() {
         }
     }
 
-    if (sJiminyWork->flags & JIMINY_FLAG_SHOW_TITLE) {
+    if ((sJiminyWork->flags & JIMINY_FLAG_SHOW_TITLE)
+#ifdef PLATFORM_PC
+        /* the title's HD banner: the sprite stays over the list's BG, which carries the title once it has slid in */
+        || (sJiminyWork->state == JIMINY_STATE_LIST && sJiminyWork->tiles != NULL &&
+            PortHdSpriteAny(((ObjTiles*)sJiminyWork->tiles)->src))
+#endif
+    ) {
 #ifdef VERSION_EU
         switch (gLanguage) {
         case LANGUAGE_ENGLISH:

@@ -620,6 +620,53 @@ static void Solo(Rgba& img) {
     img = std::move(out);
 }
 
+/* Keep the 8-connected regions of alpha > 32 whose box is centred in the middle three fifths of the picture, and the
+   faint pixels touching them (khhd_sprites.middle): one letter of an italic word, without its neighbours' corners. */
+static void Middle(Rgba& img) {
+    int w = img.w, h = img.h, n = 0;
+    std::vector<int> label((size_t)w * h, 0);
+    std::vector<char> keep((size_t)w * h, 0);
+    auto on = [&](int x, int y) { return img.px[((size_t)y * w + x) * 4 + 3] > 32; };
+    for (int y0 = 0; y0 < h; y0++)
+        for (int x0 = 0; x0 < w; x0++) {
+            if (!on(x0, y0) || label[(size_t)y0 * w + x0])
+                continue;
+            label[(size_t)y0 * w + x0] = ++n;
+            std::vector<std::pair<int, int>> stack = { { x0, y0 } }, cells;
+            int lo = x0, hi = x0;
+            while (!stack.empty()) {
+                auto [x, y] = stack.back();
+                stack.pop_back();
+                cells.push_back({ x, y });
+                lo = std::min(lo, x);
+                hi = std::max(hi, x);
+                for (int dy = -1; dy <= 1; dy++)
+                    for (int dx = -1; dx <= 1; dx++) {
+                        int xx = x + dx, yy = y + dy;
+                        if (xx >= 0 && yy >= 0 && xx < w && yy < h && on(xx, yy) && !label[(size_t)yy * w + xx]) {
+                            label[(size_t)yy * w + xx] = n;
+                            stack.push_back({ xx, yy });
+                        }
+                    }
+            }
+            if (2 * w <= (lo + hi + 1) * 5 && (lo + hi + 1) * 5 <= 8 * w)
+                for (auto& c : cells)
+                    keep[(size_t)c.second * w + c.first] = 1;
+        }
+    Rgba out = img;
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            bool kept = keep[(size_t)y * w + x], adjacent = false;
+            if (!kept && !on(x, y) && x > 0 && y > 0 && x < w - 1 && y < h - 1)
+                for (int dy = -1; dy <= 1 && !adjacent; dy++)
+                    for (int dx = -1; dx <= 1 && !adjacent; dx++)
+                        adjacent = keep[(size_t)(y + dy) * w + x + dx];
+            if (!kept && !adjacent)
+                memset(out.at(x, y), 0, 4);
+        }
+    img = std::move(out);
+}
+
 /* src pasted over dst at (x0, y0), alpha-blended (khhd_sprites.over). */
 static void BlitOver(Rgba& dst, const Rgba& src, int x0, int y0) {
     for (int y = std::max(y0, 0); y < std::min(y0 + src.h, dst.h); y++)
@@ -635,10 +682,60 @@ static void BlitOver(Rgba& dst, const Rgba& src, int x0, int y0) {
         }
 }
 
+/* The polygon pts (x, y pairs) filled with rgba over img: a pixel is in when its centre is, even-odd rule
+   (khhd_sprites.poly_fill). */
+static void PolyFill(Rgba& img, unsigned rgba, const std::vector<int>& pts) {
+    size_t n = pts.size() / 2;
+    int lo = 1 << 30, hi = -(1 << 30);
+    Rgba layer;
+    layer.Resize(img.w, img.h);
+    for (size_t i = 0; i < n; i++) {
+        lo = std::min(lo, pts[2 * i + 1]);
+        hi = std::max(hi, pts[2 * i + 1]);
+    }
+    for (int y = std::max(0, lo); y < std::min(img.h, hi + 1); y++) {
+        double cy = y + 0.5;
+        std::vector<double> cross;
+        for (size_t i = 0; i < n; i++) {
+            double x0 = pts[2 * i], y0 = pts[2 * i + 1], x1 = pts[2 * ((i + 1) % n)], y1 = pts[2 * ((i + 1) % n) + 1];
+            if ((y0 <= cy) != (y1 <= cy))
+                cross.push_back(x0 + (cy - y0) * (x1 - x0) / (y1 - y0));
+        }
+        std::sort(cross.begin(), cross.end());
+        for (size_t k = 0; k + 1 < cross.size(); k += 2) {
+            int a = std::max(0, (int)std::ceil(cross[k] - 0.5)), b = std::min(img.w - 1, (int)std::floor(cross[k + 1] - 0.5));
+            for (int x = a; x <= b; x++) {
+                unsigned char* d = layer.at(x, y);
+                d[0] = (unsigned char)(rgba >> 24);
+                d[1] = (unsigned char)(rgba >> 16);
+                d[2] = (unsigned char)(rgba >> 8);
+                d[3] = (unsigned char)rgba;
+            }
+        }
+    }
+    BlitOver(img, layer, 0, 0);
+}
+
+/* part with its colour replaced by ink (one colour, or a top-to-bottom gradient), alpha kept (khhd_sprites.inked). */
+static void Ink(Rgba& part, const std::vector<unsigned>& ink) {
+    if (ink.empty())
+        return;
+    for (int y = 0; y < part.h; y++) {
+        double t = part.h > 1 ? (double)y / (part.h - 1) : 0.0;
+        for (int k = 0; k < 3; k++) {
+            int top = (ink.front() >> (16 - 8 * k)) & 255, bottom = (ink.back() >> (16 - 8 * k)) & 255;
+            unsigned char c = (unsigned char)std::floor(top + (bottom - top) * t + 0.5);
+            for (int x = 0; x < part.w; x++)
+                part.at(x, y)[k] = c;
+        }
+    }
+}
+
 /* The recipe's operations on the texture, in order (khhd_sprites.apply); false on a malformed recipe. */
 static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rgba& out) {
     int place[4] = { 0, 0, boxW, boxH };
     const Rgba source = img;
+    std::vector<unsigned> ink;
     size_t start = 0;
     while (start <= ops.size()) {
         size_t end = ops.find(';', start);
@@ -646,7 +743,7 @@ static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rg
         start = end == std::string::npos ? ops.size() + 1 : end + 1;
         std::string key = op.substr(0, op.find('=')), val = op.find('=') == std::string::npos ? "" : op.substr(op.find('=') + 1);
         std::vector<int> v;
-        if (key != "tint")
+        if (key != "tint" && key != "ink" && key != "poly")
             for (size_t p = 0; p < val.size();) {
                 size_t q = val.find(',', p);
                 v.push_back(atoi(val.substr(p, q == std::string::npos ? std::string::npos : q - p).c_str()));
@@ -688,7 +785,7 @@ static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rg
             if (v[0] < 1 || v[1] < 1 || v[0] > 8192 || v[1] > 8192)
                 return false;
             img.Resize(v[0], v[1]);
-        } else if (key == "blit" && v.size() == 8) {
+        } else if ((key == "blit" || key == "sblit") && v.size() == 8) {
             if (v[0] < 0 || v[1] < 0 || v[2] > source.w || v[3] > source.h || v[2] <= v[0] || v[3] <= v[1] ||
                 v[6] <= v[4] || v[7] <= v[5])
                 return false;
@@ -696,7 +793,32 @@ static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rg
             part.Resize(v[2] - v[0], v[3] - v[1]);
             for (int y = 0; y < part.h; y++)
                 memcpy(part.at(0, y), &source.px[((size_t)(v[1] + y) * source.w + v[0]) * 4], (size_t)part.w * 4);
-            BlitOver(img, Resample(part, v[6] - v[4], v[7] - v[5]), v[4], v[5]);
+            if (key == "sblit")
+                Middle(part);
+            Rgba sized = Resample(part, v[6] - v[4], v[7] - v[5]);
+            Ink(sized, ink);
+            BlitOver(img, sized, v[4], v[5]);
+        } else if (key == "ink") {
+            ink.clear();
+            for (size_t p = 0; p < val.size();) {
+                size_t q = val.find(',', p);
+                ink.push_back((unsigned)strtoul(val.substr(p, q == std::string::npos ? std::string::npos : q - p).c_str(), nullptr, 16));
+                p = q == std::string::npos ? val.size() : q + 1;
+            }
+        } else if (key == "poly") {
+            std::vector<int> pts;
+            size_t p = val.find(',');
+            if (p == std::string::npos)
+                return false;
+            unsigned rgba = (unsigned)strtoul(val.substr(0, p).c_str(), nullptr, 16);
+            for (p++; p < val.size();) {
+                size_t q = val.find(',', p);
+                pts.push_back(atoi(val.substr(p, q == std::string::npos ? std::string::npos : q - p).c_str()));
+                p = q == std::string::npos ? val.size() : q + 1;
+            }
+            if (pts.size() < 6 || pts.size() % 2)
+                return false;
+            PolyFill(img, rgba, pts);
         } else if (key == "tint") {
             unsigned c = (unsigned)strtoul(val.c_str(), nullptr, 16);
             for (size_t i = 0; i < img.px.size(); i += 4)

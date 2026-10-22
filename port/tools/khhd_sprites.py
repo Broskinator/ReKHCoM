@@ -12,6 +12,11 @@ Recipe operations, applied in order to the texture (RGBA):
   tint=RRGGBB        multiply the colours
   canvas=w,h         start over from a transparent w x h picture (for blit)
   blit=sx0,sy0,sx1,sy1,dx0,dy0,dx1,dy1  paste that rectangle of the texture, resized, over the picture's rectangle
+  sblit=...         blit, keeping only the glyph parts centred in the rectangle (middle): one letter of an italic
+                     word, without its neighbours' slanted corners
+  ink=RRGGBB[,RRGGBB]  the next blits take this colour (a top-to-bottom gradient with two), keeping their alpha;
+                     ink= alone goes back to the texture's colours (Re:CoM's flat grey words, coloured as its layouts do)
+  poly=RRGGBBAA,x0,y0,x1,y1,...  fill this polygon over the picture (even-odd, pixel centres; a menu title's banner)
   place=x0,y0,x1,y1  the picture fills only this part of the sprite's box (GBA pixels); the rest is transparent
   scale=k            the output is the sprite's box at k times the GBA's pixels (last; required)
   raw                the whole recipe: copy the named file of a .SPR container as it is (<name><its extension>)
@@ -132,6 +137,42 @@ def solo(img):
     return out
 
 
+def middle(img):
+    """Keep the 8-connected regions of alpha > 32 whose box is centred in the middle three fifths of the picture
+    (a letter and its pieces, not the corners of its italic neighbours), and the faint pixels touching them, exactly
+    as the launcher's Middle."""
+    h, w = img.shape[:2]
+    on = img[:, :, 3] > 32
+    label = np.zeros((h, w), dtype=np.int32)
+    keep = np.zeros((h, w), dtype=bool)
+    n = 0
+    for y0 in range(h):
+        for x0 in range(w):
+            if not on[y0, x0] or label[y0, x0]:
+                continue
+            n += 1
+            label[y0, x0] = n
+            stack, cells = [(x0, y0)], []
+            while stack:
+                x, y = stack.pop()
+                cells.append((x, y))
+                for dy in (-1, 0, 1):
+                    for dx in (-1, 0, 1):
+                        xx, yy = x + dx, y + dy
+                        if 0 <= xx < w and 0 <= yy < h and on[yy, xx] and not label[yy, xx]:
+                            label[yy, xx] = n
+                            stack.append((xx, yy))
+            lo, hi = min(c[0] for c in cells), max(c[0] for c in cells)
+            if 2 * w <= (lo + hi + 1) * 5 <= 8 * w:  # its centre within [w/5, 4w/5]
+                for x, y in cells:
+                    keep[y, x] = True
+    out = img.copy()
+    near = np.zeros_like(keep)
+    near[1:-1, 1:-1] = keep[:-2, :-2] | keep[:-2, 1:-1] | keep[:-2, 2:] | keep[1:-1, :-2] | keep[1:-1, 1:-1] |         keep[1:-1, 2:] | keep[2:, :-2] | keep[2:, 1:-1] | keep[2:, 2:]
+    out[~(keep | (near & ~on))] = 0
+    return out
+
+
 def over(dst, src, x0, y0):
     """src pasted over dst at (x0, y0), alpha-blended (the launcher's BlitOver)."""
     h, w = src.shape[:2]
@@ -149,12 +190,54 @@ def over(dst, src, x0, y0):
     return np.clip(out + 0.5, 0, 255).astype(np.uint8)
 
 
+def poly_fill(img, color, pts):
+    """The polygon pts (x, y pairs) filled with color (RRGGBBAA) over img: a pixel is in when its centre is (even-odd
+    rule), exactly as the launcher's PolyFill."""
+    c = int(color, 16)
+    rgba = np.array([(c >> 24) & 255, (c >> 16) & 255, (c >> 8) & 255, c & 255], dtype=np.uint8)
+    xs, ys = pts[0::2], pts[1::2]
+    n = len(xs)
+    h, w = img.shape[:2]
+    mask = np.zeros((h, w), dtype=bool)
+    for y in range(max(0, int(min(ys))), min(h, int(max(ys)) + 1)):
+        cy = y + 0.5
+        cross = []
+        for i in range(n):
+            x0, y0, x1, y1 = xs[i], ys[i], xs[(i + 1) % n], ys[(i + 1) % n]
+            if (y0 <= cy) != (y1 <= cy):
+                cross.append(x0 + (cy - y0) * (x1 - x0) / (y1 - y0))
+        cross.sort()
+        for a, b in zip(cross[0::2], cross[1::2]):
+            lo, hi = max(0, int(np.ceil(a - 0.5))), min(w - 1, int(np.floor(b - 0.5)))
+            if hi >= lo:
+                mask[y, lo:hi + 1] = True
+    layer = np.zeros_like(img)
+    layer[mask] = rgba
+    return over(img, layer, 0, 0)
+
+
+def inked(part, ink):
+    """part with its colour replaced by ink (one colour, or a top-to-bottom gradient), alpha kept."""
+    if not ink:
+        return part
+    out = part.copy()
+    top = [(ink[0] >> s) & 255 for s in (16, 8, 0)]
+    bottom = [(ink[-1] >> s) & 255 for s in (16, 8, 0)]
+    h = part.shape[0]
+    for y in range(h):
+        t = y / (h - 1) if h > 1 else 0.0
+        for k in range(3):
+            out[y, :, k] = int(np.floor(top[k] + (bottom[k] - top[k]) * t + 0.5))
+    return out
+
+
 def apply(img, ops, box):
     place = None
     source = img
+    ink = []
     for op in ops.split(';'):
         key, _, val = op.partition('=')
-        v = [int(x) if key != 'tint' else x for x in val.split(',')] if val else []
+        v = [int(x) if key not in ('tint', 'ink', 'poly') else x for x in val.split(',')] if val else []
         if key == 'crop':
             img = img[v[1]:v[3], v[0]:v[2]]
         elif key == 'rot':
@@ -173,9 +256,14 @@ def apply(img, ops, box):
             img = solo(img)
         elif key == 'canvas':
             img = np.zeros((v[1], v[0], 4), dtype=np.uint8)
-        elif key == 'blit':
-            part = resample(source[v[1]:v[3], v[0]:v[2]], v[6] - v[4], v[7] - v[5])
+        elif key in ('blit', 'sblit'):
+            part = source[v[1]:v[3], v[0]:v[2]]
+            part = inked(resample(middle(part) if key == 'sblit' else part, v[6] - v[4], v[7] - v[5]), ink)
             img = over(img, part, v[4], v[5])
+        elif key == 'ink':
+            ink = [int(x, 16) for x in v]
+        elif key == 'poly':
+            img = poly_fill(img, v[0], [int(x) for x in v[1:]])
         elif key == 'tint':
             c = int(v[0], 16)
             img = img.copy()

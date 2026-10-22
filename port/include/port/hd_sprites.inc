@@ -324,6 +324,30 @@ extern const unsigned char gReloadCounterWhiteTiles[];
 extern const unsigned char gReloadCounterWhiteFrame17[];
 extern const unsigned char gReloadCounterWhiteTiles[];
 extern const unsigned char gReloadCounterWhiteFrame18[];
+#if defined(VERSION_EU)
+extern const unsigned char gMapMenuTitleSpanishTiles[];
+extern const unsigned char gMapMenuTitleSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gWorldInspectBarSpanishTiles[];
+extern const unsigned char gWorldInspectBarSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gMapInspectBarEsTiles[];
+extern const unsigned char gMapInspectBarEsFrame5[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gStatusBarSpanishTiles[];
+extern const unsigned char gStatusBarSpanishFrame2[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gMenuLoadTitleSpanishTiles[];
+extern const unsigned char gMenuLoadTitleSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gJiminyTitleLocalizedTiles[];
+extern const unsigned char gJiminyTitleLocalizedFrame4[];
+#endif
 static const HdSpriteDef kHdSprites[] = {
     { gCardWep01Tiles, NULL, "gCardWep01Tiles", -16, -12, 32, 32, 1 },
     { gCardWep04Tiles, NULL, "gCardWep04Tiles", -16, -12, 32, 32, 1 },
@@ -573,4 +597,22 @@ static const HdSpriteDef kHdSprites[] = {
     { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame16, "gReloadCounterWhiteTiles_16", -14, -5, 26, 16, 1 },
     { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame17, "gReloadCounterWhiteTiles_17", -14, -5, 25, 16, 1 },
     { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame18, "gReloadCounterWhiteTiles_18", -14, -5, 25, 16, 1 },
+#if defined(VERSION_EU)
+    { gMapMenuTitleSpanishTiles, gMapMenuTitleSpanishFrame0, "gMapMenuTitleSpanishBanner", 0, 0, 64, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gWorldInspectBarSpanishTiles, gWorldInspectBarSpanishFrame0, "gWorldInspectBarSpanishBanner", 0, 0, 104, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gMapInspectBarEsTiles, gMapInspectBarEsFrame5, "gMapInspectBarEsBanner", 0, 0, 96, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gStatusBarSpanishTiles, gStatusBarSpanishFrame2, "gStatusBarSpanishBanner", 0, 0, 64, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gMenuLoadTitleSpanishTiles, gMenuLoadTitleSpanishFrame0, "gMenuLoadTitleSpanishBanner", 0, 0, 64, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gJiminyTitleLocalizedTiles, gJiminyTitleLocalizedFrame4, "gJiminyTitleLocalizedBanner", 0, 0, 64, 16, 5 },
+#endif
 };
