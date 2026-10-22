@@ -11,6 +11,17 @@ prerelease; this release carries all of it.
 Windows, Linux and Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, Anbernic and the web player are betas.
 HD music plays on PC, Steam Deck, Android and the consoles; HD movies and scenes on Windows and Android.
 
+- **HD graphics (beta)**, imported the same way, where Re:CoM has the very same picture: the battle cards
+  (illustrations, frames and values), Sora's and Riku's faces on the HP gauge, the battle words (Card Break, Guard,
+  Recover, Level Up, in each European language) and the title screen's logo, from its intro to the credits, with
+  "Chain of Memories" under the Kingdom Hearts logo. Options > Re:CoM improvements: "HD cards and battle HUD",
+  "HD title logo".
+- **Graphics modes**, asked on the first start: **HD mode** (every HD asset and improvement) or **GBA mode**, then
+  **GBA enhanced** (the widescreen view and ReKHCoM's improvements, HD extras off) or **GBA classic** (everything off:
+  the GBA picture at a whole scale inside a decorative border in the manner of the Super Game Boy's, almost an
+  emulator but native). The launcher's Graphics has "Graphics mode" (choose on start by default), and Options
+  "Reset to a mode's defaults". A new game in GBA classic still offers the widescreen view.
+
 - HD scenes: smooth in and out of each scene (no flash of the event's picture when it ends), skipping a scene or
   movie fades the picture and its sound out instead of cutting them, the field's music fades out before a scene
   starts, and the scene pause sounds like the game's menus.
