@@ -75,7 +75,10 @@ uint32_t PortFrameCount(void) {
 }
 static float sFitScale; /* see PortFitScreen */
 static int sInIrq;
-static uint32_t* sComposite; /* Writable presentation copy, on the heap. */
+static uint32_t* sCompositeBuf; /* Writable presentation copy, on the heap. */
+/* The picture being presented: the copy above when our UI draws on it this frame, else the PPU's frame itself (no
+   8 MB copy per frame at x1 1080p). Read by the margin helpers; written only through the copy. */
+static uint32_t* sComposite;
 static size_t sCompositeCapacity, sHudCapacity;
 static void GrowPixelBuffer(uint32_t** buffer, size_t* capacity, size_t pixels) {
     uint32_t* grown;
@@ -1314,7 +1317,7 @@ static void Present(void) {
     void PortHdTextHudDigits(SDL_Renderer* renderer, float originX, float originY, float scale);
 
     EnsureTexture();
-    GrowPixelBuffer(&sComposite, &sCompositeCapacity, (size_t)gPortScreen.width * gPortScreen.height);
+    GrowPixelBuffer(&sCompositeBuf, &sCompositeCapacity, (size_t)gPortScreen.width * gPortScreen.height);
     PortHdHudPrepare(sRenderer);
     /* movies shown cropped: the skip prompt is drawn after the movie, on its
        own, so it neither grows with the video nor shifts the crop */
@@ -1322,8 +1325,16 @@ static void Present(void) {
                   && gPortConfig.narrowFit && (gPortScreen.width > GBA_SCREEN_W || gPortScreen.height > GBA_SCREEN_H);
     PortUiSkipOwnLayer(moviePrompt);
     /* Menus and paused frames require an independent presentation buffer. */
-    memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
-    JoinHeaderLine();
+    {
+        extern int PortUiDrawsOnFrame(void);
+        if (PortUiDrawsOnFrame() || !gPortScreen.wide) {
+            sComposite = sCompositeBuf;
+            memcpy(sComposite, gPortFrame, (size_t)gPortScreen.width * gPortScreen.height * 4);
+            JoinHeaderLine();
+        } else {
+            sComposite = gPortFrame; /* nothing is drawn over it: PortUiDraw only steps its fades */
+        }
+    }
     PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
     SDL_UpdateTexture(sTexture, NULL, sComposite, gPortScreen.width * 4);
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
@@ -2487,7 +2498,8 @@ int main(int argc, char** argv) {
     }
 #endif
     PortCanvasAlloc();
-    GrowPixelBuffer(&sComposite, &sCompositeCapacity, (size_t)gPortScreen.width * gPortScreen.height);
+    GrowPixelBuffer(&sCompositeBuf, &sCompositeCapacity, (size_t)gPortScreen.width * gPortScreen.height);
+    sComposite = sCompositeBuf;
     sRenderer = SDL_CreateRenderer(sWindow, NULL);
     if (sRenderer == NULL)
         PortFatal("Could not create the renderer: %s", SDL_GetError());

@@ -2766,6 +2766,12 @@ static void DrawScenePause(int l, int width, int height) {
     }
 }
 
+/* 1 if PortUiDraw writes on the frame this time (port_main.c presents the PPU's frame without a copy otherwise):
+   the options, the scene pause, the skip prompt or the title hint. Keep in step with PortUiDraw below. */
+int PortUiDrawsOnFrame(void) {
+    return sScenePause || sOpen || (sSkipPrompt && !sSkipOwnLayer) || sTitleHintFrames > 0;
+}
+
 void PortUiDraw(uint32_t* frame, int width, int height) {
     int l = Lang();
     int harnessShot = 0;
