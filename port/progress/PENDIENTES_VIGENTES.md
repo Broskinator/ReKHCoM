@@ -79,11 +79,13 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
   gigante entero (p. ej. toda la arena) cuando la resolución no lo pide (x4, x3, entero x2). Sin arte nuevo.
   Solo para lo aprobado o aprobado con honores (LOGICA_APROBADOS.md); nada de Preliminar V1 ni sin aprobar.
 
-1. **Escenas HD: disparo real.** `PortHdScenePlay` se llama desde `event_message.c` (2942) solo en eventos con texto;
-   comprobar con partidas reales (no el atajo `KHCOM_EVENT`, que no llegó a reproducirlas) que cada una de las 97 se
-   dispara, y las exclusivas de Re:CoM (`kHdSceneExtras`: 001 antes de 011, 614 tras 613, 631 tras 621) solo con
-   `PortRecomActive()`. Eventos sin texto (014, 020, 062, 071: escenas mudas) quizás no pasan por ese punto: verificar.
-2. **Transiciones profesionales** juego ↔ video HD: fundido a negro antes y al volver (hoy corte seco), audio sin pop.
+1. ~~Escenas HD: disparo real~~ **hecho 22/10**: `test_hd_scenes.py` (cada evento desde el menú de depuración,
+   video cortado a 1 s): EU 97/97 en modo original y 97/97 en Re:CoM; 001/614/631 solo en Re:CoM y en su orden. Todos
+   los eventos (también los mudos) pasan por `UpdateEventSeq`.
+2. ~~Transiciones~~ **hecho 22/10**: al terminar la escena HD el fundido del evento empieza ya en negro (antes volvía
+   la imagen del evento a brillo 234 y se fundía 64 cuadros); saltar el video funde imagen y sonido 0,3 s (PC y
+   Android); el sonido del juego y la música HD bajan en 150 ms antes del video (antes 200 ms de la música del campo
+   sonaban debajo y se cortaban). Medido con el driver "disk" (`build/hdtrans`).
 3. **Mirar el proyecto reciente de 358/2 Days** que implementó escenas HD, para aprender (transiciones, sincronía).
 4. **Consolas:** el HD (videos) no existe ahí; dejar documentado qué haría falta (decodificador por consola).
 5. Revisar issues abiertos al final, arreglar bugs, responder breve.

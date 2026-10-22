@@ -519,12 +519,20 @@ int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* sub
     SDL_FlushEvents(SDL_EVENT_GAMEPAD_BUTTON_DOWN, SDL_EVENT_GAMEPAD_BUTTON_UP);
     SDL_FlushEvents(SDL_EVENT_FINGER_DOWN, SDL_EVENT_FINGER_UP);
 
+    int64_t skipEnd = -1, lastClock = 0; /* skipped: the movie fades out until skipEnd, then ends (no cut, no pop) */
     while (!(video.outputDone && audioTrack.outputDone)) {
         Uint64 frameStart = SDL_GetTicksNS();
         int64_t clock;
         AImage* image = NULL;
-        if ((quit = SkipPressed(audio)) != 0)
-            break;
+        {
+            int pressed = SkipPressed(audio);
+            if (pressed == 2) {
+                quit = 2;
+                break;
+            }
+            if (pressed == 1 && skipEnd < 0)
+                skipEnd = lastClock + 300000;
+        }
         /* keep about half a second of audio queued: it is the clock */
         while (audio && !audioTrack.outputDone && SDL_GetAudioStreamQueued(audio) < rate * channels * 2 / 2) {
             AMediaCodecBufferInfo info;
@@ -568,6 +576,11 @@ int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* sub
             clock = audioPushed - (int64_t)SDL_GetAudioStreamQueued(audio) * 1000000 / (rate * channels * 2);
         else /* start: moved when the audio ended, so the clock goes on from where the audio left it */
             clock = (int64_t)(SDL_GetTicksNS() / 1000) - start;
+        lastClock = clock;
+        if (skipEnd >= 0 && clock >= skipEnd) {
+            quit = 1;
+            break;
+        }
         /* the latest video frame due by now goes to the image reader; late ones are dropped undrawn */
         while (!video.outputDone) {
             if (pending < 0) {
@@ -679,7 +692,11 @@ int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* sub
                     int64_t duration = 0, edge;
                     if (vFormat)
                         M.formatInt64(vFormat, "durationUs", &duration);
+                    if (skipEnd >= 0)
+                        duration = skipEnd;
                     edge = clock < fade ? clock : (duration > fade && clock > duration - fade ? duration - clock : fade);
+                    if (audio) /* the sound fades with the picture */
+                        SDL_SetAudioStreamGain(audio, edge <= 0 ? 0.0f : (float)edge / fade);
                     if (edge < fade) {
                         SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
                         SDL_SetRenderDrawColor(renderer, 0, 0, 0, (Uint8)(255 - (edge < 0 ? 0 : edge) * 255 / fade));

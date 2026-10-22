@@ -425,6 +425,7 @@ static int PlayFile(const char* name) {
     UINT32 bufferHeight = 0; /* NV12: the decoder's rows (1088 for a 1080p H.264), the colour plane after them */
     LONGLONG frameTime = 333333; /* 100 ns units per frame, from the frame rate */
     LONGLONG duration = 0;       /* 100 ns units, from the file (0: unknown) */
+    LONGLONG skipEnd = -1;       /* skipped: the movie fades out until this clock, then ends */
     int nv12 = 0, dropped = 0;
     LONGLONG audioPushed = 0; /* 100 ns units of audio handed to the stream */
     LONGLONG nextVideo = -1;
@@ -538,6 +539,7 @@ static int PlayFile(const char* name) {
     PortLog("hd movie: %s (%ux%u%s, %u Hz)", name, width, height, nv12 ? " NV12" : " RGB", rate);
     LoadSubs(&subs, name);
     played = 1;
+    PortAudioMovieHold(1);
     DropPendingInput();
 
     while (!quit && !(videoDone && audioDone)) {
@@ -586,6 +588,16 @@ static int PlayFile(const char* name) {
             clock = audioPushed - (LONGLONG)SDL_GetAudioStreamQueued(audio) * 10000000 / (rate * channels * 2);
         else
             clock = nextVideo >= 0 ? nextVideo : 0;
+        if (skipEnd >= 0 && clock >= skipEnd)
+            break;
+        {
+            /* test harness (test_hd_scenes.py): KHCOM_HDMOVIE_SECONDS=<n> skips every movie after n seconds */
+            const char* limit = SDL_getenv("KHCOM_HDMOVIE_SECONDS");
+            if (limit && skipEnd < 0 && clock >= (LONGLONG)SDL_atoi(limit) * 10000000) {
+                PortLog("hd movie: test stop at %d s", SDL_atoi(limit));
+                skipEnd = clock + 3000000;
+            }
+        }
         /* show the latest video frame due by now */
         while (!videoDone) {
             if (!pending) {
@@ -700,7 +712,11 @@ static int PlayFile(const char* name) {
                 /* the movie fades in from black and out to black (0.3 s each), as the game's own scenes do: no hard
                    cut from the field into the movie and back */
                 const LONGLONG fade = 3000000;
-                LONGLONG edge = clock < fade ? clock : (duration > fade && clock > duration - fade ? duration - clock : fade);
+                LONGLONG end = skipEnd >= 0 ? skipEnd : duration;
+                LONGLONG edge = clock < fade ? clock : (end > fade && clock > end - fade ? end - clock : fade);
+                /* the sound fades with the picture: a skip never cuts it with a pop */
+                if (audio)
+                    SDL_SetAudioStreamGain(audio, edge <= 0 ? 0.0f : (float)edge / fade);
                 if (edge < fade) {
                     Uint8 a = (Uint8)(255 - (edge < 0 ? 0 : edge) * 255 / fade);
                     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -726,8 +742,10 @@ static int PlayFile(const char* name) {
                 SDL_Surface* frozen = SDL_RenderReadPixels(renderer, NULL);
                 int skip = MoviePause(renderer, frozen, audio, &quit);
                 SDL_DestroySurface(frozen);
-                if (skip)
+                if (quit)
                     break;
+                if (skip && skipEnd < 0) /* out to black (and silence) in 0.3 s from here, as at the movie's end */
+                    skipEnd = clock + 3000000;
                 continue;
             }
             SDL_RenderPresent(renderer);
@@ -746,8 +764,10 @@ done:
     PortLog("hd movie: %d frames decoded, %d late ones not shown%s", shown, dropped, quit ? ", window closed" : "");
     if (pending)
         IMFSample_Release(pending);
-    if (played)
+    if (played) {
         FreeSubs(&subs);
+        PortAudioMovieHold(0);
+    }
     if (texture)
         SDL_DestroyTexture(texture);
     if (audio)
@@ -794,8 +814,12 @@ static int PlayFile(const char* name) {
 #ifdef PORT_ANDROID64
     played = h_hd_movie(path, gPortConfig.hdSubtitles ? subs[0] : NULL, gPortConfig.hdSubtitles ? subs[1] : NULL, font);
 #else
+    if (!SDL_GetPathInfo(path, NULL))
+        return 0;
+    PortAudioMovieHold(1);
     played = HdMovieAndroidPlay(PortRenderer(), path, gPortConfig.hdSubtitles ? subs[0] : NULL,
                                 gPortConfig.hdSubtitles ? subs[1] : NULL, font);
+    PortAudioMovieHold(0);
 #endif
     if (played == 2) { /* the app was closed during the movie: the main loop closes the game as usual */
 #ifdef PORT_ANDROID64

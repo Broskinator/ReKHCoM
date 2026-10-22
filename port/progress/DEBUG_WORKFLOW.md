@@ -20,6 +20,8 @@ prueba o un chequeo reutilizable. Lo terminado se anota en PENDIENTES_VIGENTES.m
 - `debug_kit.py run/report`, `run_batteries.py --detach --status` (escritorio + Android; nunca matar baterías desde la sesión).
 - `test_hd_audio.py` (efectos vs música), `uv run --with numpy --with soundfile python test_hd_audio_flow.py --hd <hd>` (cortes, solapamientos, saltos audibles; incluye Opciones abiertas `KHCOM_OPTIONS_AT`+`KHCOM_OPTIONS_HOLD`).
 - `test_frameskip.py` (lógica idéntica con salto de cuadros), `match_hd_scenes.py --check` (escenas HD por diálogo en 5 idiomas).
+- Escenas HD: `test_hd_scenes.py --hd <hd> [--recom] [--only EVENT_...]` (cada evento pide su escena y abre su video;
+  `KHCOM_HDMOVIE_SECONDS=<n>` salta cada video a los n s, con su fundido).
 - Videos HD: `KHCOM_MOVIE=1`, `KHCOM_HDMOVIE_PAUSETEST=<s>`, `KHCOM_HDMOVIE_SHOT=<s>`, `KHCOM_RECOM=1`, log "hd scene: event N".
 - Ganchos: `KHCOM_SKIPTEST`, `KHCOM_WIZARD_OPEN`+`KHCOM_WIZARD_KEYS`, `KHCOM_VPAD=1` (cuenta cuadros de menú), `KHCOM_FRAMELOG` (+columna fit), `KHCOM_HDAUDIOLOG`.
 - Android: `build/run_android_full.py` (emulador, apagarlo al terminar), `KHCOM_IMAGE_MOVE=1` predijo bien el Poco F8 Ultra (#22).

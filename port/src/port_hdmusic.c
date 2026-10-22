@@ -370,8 +370,17 @@ void PortHdMusicHold(void) {
     if (sSong >= 0)
         Pause();
 }
+
+/* The track's output level on top of its own (PortAudioMovieHold fades it out before an HD movie). */
+void PortHdMusicGain(float gain) {
+    if (sStream)
+        SDL_SetAudioStreamGain(sStream, gain);
+}
 #else
 void PortHdMusicHold(void) {
+}
+void PortHdMusicGain(float gain) {
+    (void)gain;
 }
 void PortHdMusicFrame(void) {
 }

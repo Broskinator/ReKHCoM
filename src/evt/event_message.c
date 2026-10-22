@@ -2914,7 +2914,7 @@ u8 UpdateEventSeq(EventSeqWork* work, void* task) {
     const EventSequenceDef* seqDef;
     u8 i;
 #ifdef PLATFORM_PC
-    u8 portSkip = FALSE;
+    u8 portSkip = FALSE, portHd = FALSE;
 #endif
 
     if (gEventState == NULL) {
@@ -2940,7 +2940,7 @@ u8 UpdateEventSeq(EventSeqWork* work, void* task) {
     if (sPortHdSceneWork != work && !work->ending) {
         sPortHdSceneWork = work;
         if (PortEventSkippable(work->eventId) && PortHdScenePlay(work->eventId))
-            portSkip = TRUE;
+            portSkip = portHd = TRUE;
     }
 #endif
 
@@ -2966,7 +2966,12 @@ u8 UpdateEventSeq(EventSeqWork* work, void* task) {
         gEventState->skipHoldTime = 64;
         work->ending = TRUE;
         gEventState->ending = TRUE;
+#ifdef PLATFORM_PC
+        /* after an HD scene (which ends on black) the event's own picture never shows: its fade-out is already black */
+        FadeStartOut(FADE_MODE_BLACK, portHd ? 1 : 64);
+#else
         FadeStartOut(FADE_MODE_BLACK, 64);
+#endif
         SetTaskUpdate(task, (TaskUpdateFunc)UpdateEventSeqSkip);
 
         for (i = 0; i < 32; i++) {

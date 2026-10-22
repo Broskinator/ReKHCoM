@@ -427,6 +427,29 @@ void PortAudioReset(void) {
     sQueuedAvg = -1.0f;
 }
 
+/* An HD movie takes the sound over (port_hdmovie.c): the game's output and the HD track fade out in 150 ms, so
+   nothing of the field's music plays under the movie and nothing stops with a pop; after it they are back at full
+   level and the game's output primes again as after a pause. */
+void PortAudioMovieHold(int hold) {
+    extern void PortHdMusicGain(float gain);
+    extern void PortHdMusicHold(void);
+    int i;
+    if (hold) {
+        for (i = 9; i >= 0; i--) {
+            if (sStream != NULL)
+                SDL_SetAudioStreamGain(sStream, i / 10.0f);
+            PortHdMusicGain(i / 10.0f);
+            SDL_Delay(15);
+        }
+        PortHdMusicHold();
+        PortAudioReset();
+    } else {
+        if (sStream != NULL)
+            SDL_SetAudioStreamGain(sStream, 1.0f);
+        PortHdMusicGain(1.0f);
+    }
+}
+
 int PortAudioInit(void) {
     SDL_AudioSpec out = { SDL_AUDIO_F32, 2, OUT_RATE };
 
