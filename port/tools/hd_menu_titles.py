@@ -30,6 +30,19 @@ ROOM = 'FORM/0102/FO0102.RTM:SP_room01.imz#0'
 WSEL = 'FORM/0006/FO0006.RTM:SP_wselect.imz#0'
 GETC = 'FORM/0005/FO0005.RTM:SP_get_card.imz#0'
 LVUP = 'FORM/0103/FO0103.RTM:SP_levelup.imz#0'
+UCAMP = 'FORM/0100/FO0100.RTM:UK_camp.imz#0'
+UWWARP = 'FORM/0108/FO0108.RTM:UK_wwarp.imz#0'  # WORLD WARP / WORLD CARDS
+USAVE = 'FORM/0106/FO0106.RTM:UK_save.imz#0'
+UJIMINY = 'FORM/0110/FO0110.RTM:UK_jiminy_top.imz#0'
+UROOM = 'FORM/0102/FO0102.RTM:UK_room01.imz#0'
+UWSEL = 'FORM/0006/FO0006.RTM:UK_wselect.imz#0'
+UGETC = 'FORM/0005/FO0005.RTM:UK_get_card.imz#0'  # CARD OBTAINED! / PREMIUM CARD! / CLEAR BONUS / KINGDOM HEARTS
+ULVUP = 'FORM/0103/FO0103.RTM:UK_levelup.imz#0'
+U1, U2, U3, U4 = (282, 300), (316, 334), (352, 370), (388, 406)
+UG = {'C': (62, 84, U1), 'A': (84, 105, U1), 'R': (105, 126, U1), 'D': (126, 147, U1), 'O': (157, 179, U1),
+      'B': (179, 200, U1), 'T': (202, 220, U1), 'I': (240, 253, U1), 'N': (252, 274, U1), 'E': (273, 295, U1),
+      '!': (316, 328, U1), 'P': (71, 92, U2), 'M': (134, 156, U2), 'U': (167, 190, U2), 'L': (104, 122, U3),
+      'S': (284, 305, U3), 'K': (12, 34, U4), 'G': (67, 89, U4), 'H': (163, 185, U4)}
 W2 = dict(N=(522, 555), A=(552, 585), I=(582, 602), P=(598, 632), E=(629, 663), S=(660, 694), M=(704, 737),
           U=(734, 769), D=(796, 830), O=(826, 860))
 GLYPHS = {
@@ -43,6 +56,8 @@ GLYPHS = {
     (GETC, 'G'): (67, 388, 89, 406, 388, 406), (GETC, 'D'): (88, 388, 110, 406, 388, 406),
     (GETC, 'O'): (110, 388, 131, 406, 388, 406), (GETC, 'M'): (131, 388, 152, 406, 388, 406),
     (GETC, 'R'): (228, 388, 249, 406, 388, 406), (GETC, 'S'): (269, 388, 290, 406, 388, 406),
+    **{(UGETC, k): (x0, y[0], x1, y[1], y[0], y[1]) for k, (x0, x1, y) in UG.items()},
+    (UWWARP, 'W'): (522, 16, 561, 42, 16, 42), (ULVUP, 'V'): (590, 154, 632, 180, 154, 180, 'blit', 36),
 }
 WORDS = {  # whole words: texture, rectangle, cap top, cap bottom
     'MENÚ': (CAMP, (14, 856, 157, 889), 863, 889), 'NAIPES MUNDO': (WWARP, (522, 60, 860, 86), 60, 86),
@@ -51,6 +66,12 @@ WORDS = {  # whole words: texture, rectangle, cap top, cap bottom
     'SÍNTESIS DE ESTANCIAS': (ROOM, (521, 7, 944, 42), 15, 42), 'ELIGE UN MUNDO': (WSEL, (24, 168, 502, 194), 168, 194),
     'NIVEL': (LVUP, (524, 154, 712, 180), 154, 180), '↑': (LVUP, (746, 148, 770, 180), 154, 180),
     'BONUS': (GETC, (12, 352, 110, 370), 352, 370), 'ÉLITE': (GETC, (198, 310, 290, 334), 316, 334),
+    'MENU': (UCAMP, (14, 858, 156, 889), 863, 889), 'WORLD CARDS': (UWWARP, (522, 60, 860, 86), 60, 86),
+    'WORLD WARP': (UWWARP, (522, 16, 861, 42), 16, 42), 'LOAD': (USAVE, (522, 18, 663, 44), 18, 44),
+    'SAVE': (USAVE, (522, 62, 665, 88), 62, 88), 'JOURNAL': (UJIMINY, (713, 11, 1006, 41), 11, 41),
+    'ROOM SYNTHESIS': (UROOM, (523, 15, 940, 41), 15, 41), 'SELECT WORLD': (UWSEL, (23, 168, 442, 194), 168, 194),
+    'LEVEL UP': (ULVUP, (524, 154, 772, 180), 154, 180), 'PREMIUM': (UGETC, (71, 316, 211, 334), 316, 334),
+    'CLEAR BONUS:BONUS': (UGETC, (199, 352, 305, 370), 352, 370),
 }
 
 # tiles, frame, palette, text as pieces: a whole word, (texture, letters), or ' ' for a word space; then the tiles
@@ -74,6 +95,24 @@ BANNERS = [
      'gMsTopBarSpanishTiles'),
     ('gRikuDeckTitleBannerSpanish', 0, 'gDeckTitleBannerPalette',
      [(WWARP, 'V'), (GETC, 'ER'), ' ', (GETC, 'BARAJA')]),
+    # English (the European version's and the American one)
+    ('gMapMenuTitle', 0, 'gMapMenuBarPalette', ['MENU'], None, None, 'eu,us'),
+    ('gWorldInspectBar', 0, 'gWorldInspectBarPalette', ['WORLD CARDS'], None, None, 'eu,us'),
+    ('gMapInspectBar', 5, 'gMapInspectBarPalette', [(UGETC, 'MAP'), ' ', (UGETC, 'CARDS')], None, None, 'eu,us'),
+    ('gStatusBar', 2, 'gStatusBarPalette', [(UGETC, 'STATUS')], None, None, 'eu,us'),
+    ('gMenuLoadTitle', 0, 'gLoadMenuTitlePalette', ['LOAD'], None, None, 'eu,us'),
+    ('gJiminyTitle', 0, 'gJiminyTitlePalette', ['JOURNAL'], None, None, 'eu,us'),
+    ('gMapSaveTitle', 0, 'gSaveMenuTitlePalette', ['SAVE'], None, None, 'eu,us'),
+    ('gMapSelectTitle', 0, 'gSmallHandCursorPalette', ['ROOM SYNTHESIS'], None, None, 'eu,us'),
+    ('gWorldWarpBar', 0, 'gWorldWarpBarPalette', ['WORLD WARP'], None, None, 'eu,us'),
+    ('gWorldselectTitle', 0, 'gWorldselectOverlayPalette', ['SELECT WORLD'], None, None, 'eu,us'),
+    ('gLevelUpHeader', 10, 'gLevelUpHeaderPalette', ['LEVEL UP', (UGETC, '!')], None, None, 'eu,us'),
+    ('gPremireChanceTitle', 0, 'gPremireChancePalette', ['PREMIUM', ' ', 'CLEAR BONUS:BONUS'], None, None, 'eu,us'),
+    ('gMsTopBar', 0, 'gMsTopBarPalette', [(UGETC, 'MOOGLE'), ' ', (UGETC, 'SHOP')], None, None, 'eu,us'),
+    ('gDeckTitleBanner', 0, 'gDeckTitleBannerPalette',
+     [(UGETC, 'RE'), (ULVUP, 'V'), (UGETC, 'IE'), (UWWARP, 'W'), ' ', (UGETC, 'DECKS')], None, None, 'eu,us'),
+    ('gRikuDeckTitleBanner', 0, 'gDeckTitleBannerPalette',
+     [(UGETC, 'RE'), (ULVUP, 'V'), (UGETC, 'IE'), (UWWARP, 'W'), ' ', (UGETC, 'DECK')], None, None, 'eu,us'),
 ]
 
 
@@ -134,9 +173,9 @@ def pieces(text):
 
 def row(spec, data, syms):
     name, fn, palette, text = spec[:4]
-    tiles, frame = (spec[4] if len(spec) > 4 else name + 'Tiles'), f'{name}Frame{fn}'
+    tiles, frame = (spec[4] if len(spec) > 4 and spec[4] else name + 'Tiles'), f'{name}Frame{fn}'
     px, (bx, by, bw, bh) = frame_pixels(data, syms, frame, tiles)
-    if len(spec) > 5:  # the picture the screen shows once still (its BG copy) is drawn from these tiles
+    if len(spec) > 5 and spec[5]:  # the picture the screen shows once still (its BG copy) is drawn from these tiles
         px = frame_pixels(data, syms, frame, spec[5])[0]
     top = min(y for _, y in px)
     top_index = px[(0, top)]
@@ -186,7 +225,7 @@ def row(spec, data, syms):
         ops.append(f'{op}=' + ','.join(map(str, (*r, X(tx + x0 * f), Y(y0), X(tx + (x0 + w) * f), Y(y1)))))
     ops.append(f'scale={K}')
     return '\t'.join([name + 'Banner', '5', frame, tiles, str(bx), str(by), str(bw), str(bh), own, ';'.join(ops),
-                      'eu'])
+                      spec[6] if len(spec) > 6 else 'eu'])
 
 
 def main():
