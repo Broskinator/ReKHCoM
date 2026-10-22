@@ -284,6 +284,46 @@ extern const unsigned char gWorldImageDestinyIslandsTiles[];
 extern const unsigned char gWorldImageDestinyIslandsFrame0[];
 extern const unsigned char gWorldImageCastleOblivionTiles[];
 extern const unsigned char gWorldImageCastleOblivionFrame0[];
+extern const unsigned char gReloadCardGreenTiles[];
+extern const unsigned char gCardOutlineBlackFrame0[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame0[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame1[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame2[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame3[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame4[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame5[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame6[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame7[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame8[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame9[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame10[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame11[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame12[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame13[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame14[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame15[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame16[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame17[];
+extern const unsigned char gReloadCounterWhiteTiles[];
+extern const unsigned char gReloadCounterWhiteFrame18[];
 static const HdSpriteDef kHdSprites[] = {
     { gCardWep01Tiles, NULL, "gCardWep01Tiles", -16, -12, 32, 32, 1 },
     { gCardWep04Tiles, NULL, "gCardWep04Tiles", -16, -12, 32, 32, 1 },
@@ -513,4 +553,24 @@ static const HdSpriteDef kHdSprites[] = {
     { gWorldImageTwilightTownTiles, gWorldImageTwilightTownFrame0, "gWorldImageTwilightTownTiles", -38, -25, 70, 70, 4 },
     { gWorldImageDestinyIslandsTiles, gWorldImageDestinyIslandsFrame0, "gWorldImageDestinyIslandsTiles", -42, -48, 86, 93, 4 },
     { gWorldImageCastleOblivionTiles, gWorldImageCastleOblivionFrame0, "gWorldImageCastleOblivionTiles", -44, -25, 78, 70, 4 },
+    { gReloadCardGreenTiles, gCardOutlineBlackFrame0, "gReloadCardGreenTiles", -16, -20, 32, 39, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame0, "gReloadCounterWhiteTiles_0", -8, -5, 16, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame1, "gReloadCounterWhiteTiles_1", -8, -5, 16, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame2, "gReloadCounterWhiteTiles_2", -8, -5, 16, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame3, "gReloadCounterWhiteTiles_3", -8, -5, 16, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame4, "gReloadCounterWhiteTiles_4", -8, -5, 16, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame5, "gReloadCounterWhiteTiles_5", -8, -5, 16, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame6, "gReloadCounterWhiteTiles_6", -8, -5, 16, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame7, "gReloadCounterWhiteTiles_7", -8, -5, 16, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame8, "gReloadCounterWhiteTiles_8", -8, -5, 16, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame9, "gReloadCounterWhiteTiles_9", -14, -5, 25, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame10, "gReloadCounterWhiteTiles_10", -14, -5, 27, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame11, "gReloadCounterWhiteTiles_11", -14, -5, 25, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame12, "gReloadCounterWhiteTiles_12", -14, -5, 25, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame13, "gReloadCounterWhiteTiles_13", -14, -5, 25, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame14, "gReloadCounterWhiteTiles_14", -14, -5, 26, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame15, "gReloadCounterWhiteTiles_15", -14, -5, 26, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame16, "gReloadCounterWhiteTiles_16", -14, -5, 26, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame17, "gReloadCounterWhiteTiles_17", -14, -5, 25, 16, 1 },
+    { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame18, "gReloadCounterWhiteTiles_18", -14, -5, 25, 16, 1 },
 };

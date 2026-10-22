@@ -195,3 +195,24 @@ gWorldImage100AcreWoodTiles	4	gWorldImage100AcreWoodFrame0	gWorldImage100AcreWoo
 gWorldImageTwilightTownTiles	4	gWorldImageTwilightTownFrame0	gWorldImageTwilightTownTiles	-38	-25	70	70	CARD/0311/CA0311.RTM:cl_011_tm2.dds	crop=16,14,256,252;place=0,1,69,70;scale=8
 gWorldImageDestinyIslandsTiles	4	gWorldImageDestinyIslandsFrame0	gWorldImageDestinyIslandsTiles	-42	-48	86	93	CARD/0312/CA0312.RTM:cl_012_tm2.dds	crop=10,2,247,245;place=0,5,80,89;scale=8
 gWorldImageCastleOblivionTiles	4	gWorldImageCastleOblivionFrame0	gWorldImageCastleOblivionTiles	-44	-25	78	70	CARD/0313/CA0313.RTM:cl_013_tm2.dds	crop=0,0,256,242;place=0,0,76,70;scale=8
+# Reload card (22/10): com_card02's black card is the GBA's; its counter (1..19) with card_no's white digits.
+gReloadCardGreenTiles	1	gCardOutlineBlackFrame0	gReloadCardGreenTiles	-16	-20	32	39	CARD/1001/CA1001.RTM:com_card02_tm2.dds	crop=61,106,250,374;place=2,0,30,39;scale=8
+gReloadCounterWhiteTiles_0	1	gReloadCounterWhiteFrame0	gReloadCounterWhiteTiles	-8	-5	16	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=128,128;blit=78,0,119,64,24,0,112,128;scale=8
+gReloadCounterWhiteTiles_1	1	gReloadCounterWhiteFrame1	gReloadCounterWhiteTiles	-8	-5	16	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=128,128;blit=126,0,190,64,0,0,128,128;scale=8
+gReloadCounterWhiteTiles_2	1	gReloadCounterWhiteFrame2	gReloadCounterWhiteTiles	-8	-5	16	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=128,128;blit=191,0,253,64,0,0,128,128;scale=8
+gReloadCounterWhiteTiles_3	1	gReloadCounterWhiteFrame3	gReloadCounterWhiteTiles	-8	-5	16	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=128,128;blit=260,0,318,64,8,0,128,128;scale=8
+gReloadCounterWhiteTiles_4	1	gReloadCounterWhiteFrame4	gReloadCounterWhiteTiles	-8	-5	16	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=128,128;blit=319,0,381,64,0,0,120,128;scale=8
+gReloadCounterWhiteTiles_5	1	gReloadCounterWhiteFrame5	gReloadCounterWhiteTiles	-8	-5	16	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=128,128;blit=382,0,447,64,0,0,120,128;scale=8
+gReloadCounterWhiteTiles_6	1	gReloadCounterWhiteFrame6	gReloadCounterWhiteTiles	-8	-5	16	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=128,128;blit=450,0,506,64,0,0,120,128;scale=8
+gReloadCounterWhiteTiles_7	1	gReloadCounterWhiteFrame7	gReloadCounterWhiteTiles	-8	-5	16	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=128,128;blit=510,0,573,64,0,0,128,128;scale=8
+gReloadCounterWhiteTiles_8	1	gReloadCounterWhiteFrame8	gReloadCounterWhiteTiles	-8	-5	16	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=128,128;blit=574,0,637,64,0,0,128,128;scale=8
+gReloadCounterWhiteTiles_9	1	gReloadCounterWhiteFrame9	gReloadCounterWhiteTiles	-14	-5	25	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=200,128;blit=0,0,64,64,72,0,200,128;blit=78,0,119,64,24,0,112,128;scale=8
+gReloadCounterWhiteTiles_10	1	gReloadCounterWhiteFrame10	gReloadCounterWhiteTiles	-14	-5	27	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=216,128;blit=78,0,119,64,24,0,112,128;blit=78,0,119,64,112,0,200,128;scale=8
+gReloadCounterWhiteTiles_11	1	gReloadCounterWhiteFrame11	gReloadCounterWhiteTiles	-14	-5	25	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=200,128;blit=126,0,190,64,72,0,200,128;blit=78,0,119,64,24,0,112,128;scale=8
+gReloadCounterWhiteTiles_12	1	gReloadCounterWhiteFrame12	gReloadCounterWhiteTiles	-14	-5	25	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=200,128;blit=191,0,253,64,72,0,200,128;blit=78,0,119,64,24,0,112,128;scale=8
+gReloadCounterWhiteTiles_13	1	gReloadCounterWhiteFrame13	gReloadCounterWhiteTiles	-14	-5	25	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=200,128;blit=260,0,318,64,80,0,200,128;blit=78,0,119,64,24,0,112,128;scale=8
+gReloadCounterWhiteTiles_14	1	gReloadCounterWhiteFrame14	gReloadCounterWhiteTiles	-14	-5	26	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=208,128;blit=319,0,381,64,80,0,200,128;blit=78,0,119,64,24,0,112,128;scale=8
+gReloadCounterWhiteTiles_15	1	gReloadCounterWhiteFrame15	gReloadCounterWhiteTiles	-14	-5	26	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=208,128;blit=382,0,447,64,80,0,200,128;blit=78,0,119,64,24,0,112,128;scale=8
+gReloadCounterWhiteTiles_16	1	gReloadCounterWhiteFrame16	gReloadCounterWhiteTiles	-14	-5	26	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=208,128;blit=450,0,506,64,80,0,200,128;blit=78,0,119,64,24,0,112,128;scale=8
+gReloadCounterWhiteTiles_17	1	gReloadCounterWhiteFrame17	gReloadCounterWhiteTiles	-14	-5	25	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=200,128;blit=510,0,573,64,72,0,200,128;blit=78,0,119,64,24,0,112,128;scale=8
+gReloadCounterWhiteTiles_18	1	gReloadCounterWhiteFrame18	gReloadCounterWhiteTiles	-14	-5	25	16	CARD/9002/CA9002.RTM:card_no_tm2.dds	canvas=200,128;blit=574,0,637,64,72,0,200,128;blit=78,0,119,64,24,0,112,128;scale=8
