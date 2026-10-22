@@ -81,6 +81,7 @@ def main():
     (SHARE / 'build-release.sh').write_bytes(script.encode())
     args.out.mkdir(parents=True, exist_ok=True)
     fetched = args.out / 'ps5-fetch'
+    shutil.rmtree(fetched, ignore_errors=True)  # a package left by a failed run must never pass for this one
     command = [sys.executable, str(ROOT / 'port/tools/linux_vm_test.py'), '--share', str(SHARE),
                '--disk', str(IMAGE), '--net', '--run-timeout', '10800', '--mem', args.mem, '--cpus', args.cpus,
                '--bg-run', 'bash /root/share/build-release.sh', '--poll', '30', '--stall', '900',
