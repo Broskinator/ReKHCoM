@@ -11,6 +11,17 @@ Windows, Linux and Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, An
 - PS Vita: the picture is drawn by the GPU.
 - Consoles and Android 64-bit: the sound's buffer level is measured in the right units.
 - Android: the HD mod's movies play (opening and endings, with subtitles), imported from the PC's `hd` folder.
+- HD mod: the sound effects play again with the HD music on (button clicks, menus, attacks, level-up, pause:
+  most of them were taken for music and muted with it), and the HD music now plays at the cartridge's loudness.
+- HD mod: no more hitch at doors and battle starts when the HD track changes (it loads in the background).
+- HD movies and scenes: our scene pause works on them (Start/Escape: back to the game or skip, after asking);
+  they no longer end by themselves when the dialogue's button was still pressed.
+- HD scenes: 80 story events now play their Re:CoM scene (8 more, and one corrected), matched by their dialogue.
+- Options: the HD mod's settings are under "Re:CoM improvements"; the New Game window offers HD music and movies,
+  and, for Re:CoM, the HD scenes.
+- Battle start: no more frame of the small heart over the battlefield right before the white flash (widescreen).
+- Title: the first illustration (the developer credit over Sora) now fades into white at its right edge too.
+- Windows: the HD movies also play with the software renderer (they closed the game there).
 
 ## v1.9.14 — 2026-10-21
 

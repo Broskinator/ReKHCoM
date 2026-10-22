@@ -85,33 +85,129 @@ int PortHdScenePlay(int eventId) {
 
 SDL_Renderer* PortRenderer(void);
 
-static int SkipPressed(int* quit) {
+/* START (the pad's or the keyboard's), Escape or a tap pause the movie under the game's scene pause (back, or skip
+   after asking); A and B do nothing, so a press meant for the dialogue before never ends a movie. 1: pause wanted. */
+static int PauseWanted(int* quit) {
     SDL_Event e;
-    int skip = 0;
+    int pause = 0;
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
             case SDL_EVENT_QUIT:
                 *quit = 1;
-                return 1;
+                return 0;
             case SDL_EVENT_KEY_DOWN:
-                if (!e.key.repeat && (e.key.key == SDLK_RETURN || e.key.key == SDLK_ESCAPE || e.key.key == SDLK_SPACE ||
-                                      e.key.key == SDLK_X || e.key.key == SDLK_Z))
-                    skip = 1;
+                if (!e.key.repeat) {
+                    int i;
+                    pause |= e.key.key == SDLK_ESCAPE;
+                    for (i = 0; i < 2; i++)
+                        pause |= gPortConfig.keys[PORT_ACT_START][i] != 0 &&
+                                 e.key.key == (SDL_Keycode)gPortConfig.keys[PORT_ACT_START][i];
+                }
                 break;
             case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-                if (e.gbutton.button == SDL_GAMEPAD_BUTTON_START || e.gbutton.button == SDL_GAMEPAD_BUTTON_SOUTH ||
-                    e.gbutton.button == SDL_GAMEPAD_BUTTON_EAST)
-                    skip = 1;
+                pause |= e.gbutton.button == SDL_GAMEPAD_BUTTON_START;
                 break;
             case SDL_EVENT_FINGER_DOWN:
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                skip = 1;
+                pause = 1;
                 break;
             default:
                 break;
         }
     }
-    return skip;
+    return pause;
+}
+
+/* the presses that started the movie (the dialogue's A) are not the movie's */
+static void DropPendingInput(void) {
+    SDL_PumpEvents();
+    SDL_FlushEvents(SDL_EVENT_KEY_DOWN, SDL_EVENT_KEY_UP);
+    SDL_FlushEvents(SDL_EVENT_MOUSE_BUTTON_DOWN, SDL_EVENT_MOUSE_BUTTON_UP);
+    SDL_FlushEvents(SDL_EVENT_GAMEPAD_BUTTON_DOWN, SDL_EVENT_GAMEPAD_BUTTON_UP);
+    SDL_FlushEvents(SDL_EVENT_FINGER_DOWN, SDL_EVENT_FINGER_UP);
+}
+
+/* The scene pause over the frozen picture: the frame as shown (shot), brought to the game's canvas, with the pause
+   window drawn on it by port_ui.c as over any scene. The sound waits paused. 1: skip the movie. */
+static int MoviePause(SDL_Renderer* renderer, SDL_Surface* shot, SDL_AudioStream* audio, int* quit) {
+    extern void PortUiOpenHdMoviePause(void);
+    extern int PortUiHdMovieSkipTaken(void);
+    extern int PortUiHandleEvent(const void* event);
+    extern void PortUiDraw(uint32_t* frame, int width, int height);
+    extern int PortUiActive(void);
+    int cw = gPortScreen.width, ch = gPortScreen.height, x, y;
+    uint32_t *base, *work;
+    SDL_Surface* argb = shot ? SDL_ConvertSurface(shot, SDL_PIXELFORMAT_ARGB8888) : NULL;
+    SDL_Texture* layer;
+    if (!argb || cw <= 0 || ch <= 0) {
+        SDL_DestroySurface(argb);
+        return 0;
+    }
+    base = SDL_malloc((size_t)cw * ch * 4);
+    work = SDL_malloc((size_t)cw * ch * 4);
+    layer = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, cw, ch);
+    if (!base || !work || !layer) {
+        SDL_free(base);
+        SDL_free(work);
+        SDL_DestroyTexture(layer);
+        SDL_DestroySurface(argb);
+        return 0;
+    }
+    for (y = 0; y < ch; y++) {
+        const uint32_t* row = (const uint32_t*)((const uint8_t*)argb->pixels + (size_t)(y * argb->h / ch) * argb->pitch);
+        for (x = 0; x < cw; x++)
+            base[y * cw + x] = row[x * argb->w / cw];
+    }
+    SDL_DestroySurface(argb);
+    SDL_SetTextureScaleMode(layer, SDL_SCALEMODE_NEAREST);
+    if (audio)
+        SDL_PauseAudioStreamDevice(audio);
+    PortUiOpenHdMoviePause();
+    {
+        /* test harness (KHCOM_HDMOVIE_PAUSETEST): the pause is walked to "skip" and "yes" by key presses */
+        static const SDL_Keycode walk[] = { SDLK_DOWN, SDLK_RETURN, SDLK_UP, SDLK_RETURN };
+        int step = 0, tick = 0, test = SDL_getenv("KHCOM_HDMOVIE_PAUSETEST") != NULL;
+    while (PortUiActive() && !*quit) {
+        SDL_Event e;
+        if (test && ++tick % 10 == 0 && step < 4) {
+            SDL_Event k;
+            SDL_zero(k);
+            k.type = SDL_EVENT_KEY_DOWN;
+            k.key.key = walk[step++];
+            k.key.down = true;
+            SDL_PushEvent(&k);
+        }
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_EVENT_QUIT)
+                *quit = 1;
+            else
+                PortUiHandleEvent(&e);
+        }
+        SDL_memcpy(work, base, (size_t)cw * ch * 4);
+        PortUiDraw(work, cw, ch);
+        SDL_UpdateTexture(layer, NULL, work, cw * 4);
+        SDL_SetRenderViewport(renderer, NULL);
+        SDL_SetRenderClipRect(renderer, NULL);
+        SDL_SetRenderScale(renderer, 1.0f, 1.0f);
+        SDL_RenderTexture(renderer, layer, NULL, NULL);
+        if (test && tick == 5) {
+            SDL_Surface* s = SDL_CreateSurfaceFrom(cw, ch, SDL_PIXELFORMAT_ARGB8888, work, cw * 4);
+            if (s) {
+                SDL_SaveBMP(s, PortConfigPath("hdmovie_pause.bmp"));
+                SDL_DestroySurface(s);
+            }
+        }
+        SDL_RenderPresent(renderer);
+        SDL_Delay(16);
+    }
+    }
+    SDL_DestroyTexture(layer);
+    SDL_free(base);
+    SDL_free(work);
+    if (audio)
+        SDL_ResumeAudioStreamDevice(audio);
+    DropPendingInput();
+    return PortUiHdMovieSkipTaken() || *quit;
 }
 
 static int PlayFile(const char* name);
@@ -331,8 +427,9 @@ static int PlayFile(const char* name) {
         MFShutdown();
         return 0;
     }
-    /* video as the decoder's NV12 (32-bit BGRX if it cannot), audio as 16-bit PCM */
-    for (nv12 = 1; nv12 >= 0; nv12--) {
+    /* video as the decoder's NV12 (32-bit BGRX if it cannot, or for SDL's software renderer: its NV12 textures with
+       the BT.709 colour space crashed the game), audio as 16-bit PCM */
+    for (nv12 = SDL_strcmp(SDL_GetRendererName(renderer), "software") != 0; nv12 >= 0; nv12--) {
         MFCreateMediaType(&type);
         IMFMediaType_SetGUID(type, &MF_MT_MAJOR_TYPE, &MFMediaType_Video);
         IMFMediaType_SetGUID(type, &MF_MT_SUBTYPE, nv12 ? &MFVideoFormat_NV12 : &MFVideoFormat_RGB32);
@@ -407,11 +504,21 @@ static int PlayFile(const char* name) {
     PortLog("hd movie: %s (%ux%u%s, %u Hz)", name, width, height, nv12 ? " NV12" : " RGB", rate);
     LoadSubs(&subs, name);
     played = 1;
+    DropPendingInput();
 
     while (!quit && !(videoDone && audioDone)) {
         Uint64 frameStart = SDL_GetTicksNS();
         LONGLONG clock;
-        if (SkipPressed(&quit))
+        int pause = PauseWanted(&quit);
+        {
+            static int tested;
+            const char* at = SDL_getenv("KHCOM_HDMOVIE_PAUSETEST");
+            if (at && !tested && nextVideo >= (LONGLONG)SDL_atoi(at) * 10000000) {
+                tested = 1;
+                pause = 1;
+            }
+        }
+        if (quit)
             break;
         /* keep about half a second of audio queued: it is the clock */
         while (!audioDone && audio && SDL_GetAudioStreamQueued(audio) < (int)(rate * channels * 2 / 2)) {
@@ -568,6 +675,15 @@ static int PlayFile(const char* name) {
                     shot = 1;
                 }
             }
+            if (pause) {
+                /* the frame just drawn is the one that stays behind the pause window */
+                SDL_Surface* frozen = SDL_RenderReadPixels(renderer, NULL);
+                int skip = MoviePause(renderer, frozen, audio, &quit);
+                SDL_DestroySurface(frozen);
+                if (skip)
+                    break;
+                continue;
+            }
             SDL_RenderPresent(renderer);
         }
         {
@@ -576,7 +692,7 @@ static int PlayFile(const char* name) {
                 SDL_DelayNS(16000000 - spent);
         }
         if (audioDone && audio && SDL_GetAudioStreamQueued(audio) > 0 && videoDone)
-            while (SDL_GetAudioStreamQueued(audio) > 0 && !SkipPressed(&quit))
+            while (SDL_GetAudioStreamQueued(audio) > 0 && !quit && !PauseWanted(&quit))
                 SDL_Delay(10);
     }
 

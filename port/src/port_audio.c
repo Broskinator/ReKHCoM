@@ -238,7 +238,7 @@ static void PsgRender(int n, int rate) {
         if (info != NULL && info->cgbChans != NULL) {
             const MusicPlayerTrack* t = info->cgbChans[ch].track;
             if (t != NULL && gMPlayInfo_BGM.tracks != NULL && t >= gMPlayInfo_BGM.tracks
-                && t < gMPlayInfo_BGM.tracks + MAX_MUSICPLAYER_TRACKS)
+                && t < gMPlayInfo_BGM.tracks + gMPlayInfo_BGM.trackCount) /* its own tracks only (m4a_port.c) */
                 gain[ch] = gPortMix.musicGain;
         }
     }

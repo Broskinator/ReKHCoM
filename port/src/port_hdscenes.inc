@@ -1,5 +1,6 @@
 /* Story events → Re:CoM HD scenes (port/progress/HD_MOD.md): the "reasonably located" rows of issue #25's map by
-   DL-6-case (strong or partial dialogue match), checked against include/evt/event_ids.h names. */
+   DL-6-case (strong or partial dialogue match), checked against include/evt/event_ids.h names, then checked and completed by dialogue (match_hd_scenes.py:
+   69 of the 72 confirmed, one corrected, eight added). */
 #include "evt/event_ids.h"
 static const struct { unsigned short eventId; const char* movie; } kHdScenes[] = {
     { EVENT_000_1F_ENTRANCE_PART1, "zz_event_011" },
@@ -64,7 +65,7 @@ static const struct { unsigned short eventId; const char* movie; } kHdScenes[] =
     { EVENT_175_RIKU_B4F_DEMO, "zz_event_586" },
     { EVENT_176_RIKU_B3F_ENTRANCE, "zz_event_591" },
     { EVENT_179_RIKU_B3F_E2, "zz_event_592" },
-    { EVENT_181_RIKU_B3F_E2_2, "zz_event_594" },
+    { EVENT_182_RIKU_B3F_LIGHT, "zz_event_594" }, /* by dialogue (match_hd_scenes.py), was EVENT_181 */
     { EVENT_184_RIKU_B3F_DEMO, "zz_event_596" },
     { EVENT_185_RIKU_B2F_ENTRANCE, "zz_event_601" },
     { EVENT_186_RIKU_B2F_E0, "zz_event_602" },
@@ -74,4 +75,13 @@ static const struct { unsigned short eventId; const char* movie; } kHdScenes[] =
     { EVENT_191_RIKU_B1F_ENTRANCE, "zz_event_611" },
     { EVENT_193_RIKU_B1F_LAST1, "zz_event_613" },
     { EVENT_195_RIKU_ENDING, "zz_event_621" },
+    /* matched by dialogue, 22/10 (port/tools/match_hd_scenes.py: the subtitles against the event text) */
+    { EVENT_031_7F_GOAL_2, "zz_event_073" },
+    { EVENT_061_13F_ENTRANCE, "zz_event_131" },
+    { EVENT_067_13F_CASTLE_OBLIVION_LAST2, "zz_event_137" },
+    { EVENT_165_RIKU_B8F_DEMO, "zz_event_543" },
+    { EVENT_170_RIKU_B4F_ENTRANCE, "zz_event_581" },
+    { EVENT_183_RIKU_B3F_E2_3, "zz_event_595" },
+    { EVENT_188_RIKU_B2F_E1_2, "zz_event_604" },
+    { EVENT_194_RIKU_B1F_LAST2, "zz_event_615" },
 };

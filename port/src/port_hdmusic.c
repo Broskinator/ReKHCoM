@@ -32,6 +32,7 @@ static const char* const kTracks[44] = {
     "28_Forget_F", "29_Forget_B", "33_Destiny_B", "Boss2_World", "40_LastBoss2", "31_Twilight_B",
 };
 
+#define HD_MUSIC_LEVEL 0.33f
 static int sSong = -1, sMissing = -1; /* sMissing: the song whose track did not open (tried once) */
 
 const char* PortHdMusicTrack(int song) {
@@ -66,6 +67,58 @@ static int sRate;
 static unsigned sLoopStart, sLoopEnd, sPosition;
 static unsigned char* sFile;
 
+/* The track file is read on a thread of its own (a 7 MB read on the game's thread was a hitch at doors and battle
+   starts): while it loads, the cartridge's song keeps playing. */
+static SDL_Thread* sLoader;
+static SDL_AtomicInt sLoaderDone;
+static int sLoaderSong = -1;
+static void* sLoaderData;
+static size_t sLoaderSize;
+static char sLoaderPath[512];
+
+static int SDLCALL LoaderMain(void* unused) {
+    (void)unused;
+    sLoaderData = SDL_LoadFile(sLoaderPath, &sLoaderSize);
+    SDL_SetAtomicInt(&sLoaderDone, 1);
+    return 0;
+}
+
+/* The loaded file of song, or NULL with *pending set while it still loads (a load for another song is let finish
+   and dropped). */
+static void* TakeLoaded(int song, size_t* size, int* pending) {
+    *pending = 0;
+    if (sLoader != NULL) {
+        void* data;
+        if (!SDL_GetAtomicInt(&sLoaderDone)) {
+            *pending = 1;
+            return NULL;
+        }
+        SDL_WaitThread(sLoader, NULL);
+        sLoader = NULL;
+        data = sLoaderData;
+        sLoaderData = NULL;
+        if (sLoaderSong == song) {
+            sLoaderSong = -1;
+            *size = sLoaderSize;
+            return data;
+        }
+        SDL_free(data);
+        sLoaderSong = -1;
+    }
+    SDL_snprintf(sLoaderPath, sizeof(sLoaderPath), "%s", PortConfigPath(""));
+    SDL_snprintf(sLoaderPath + SDL_strlen(sLoaderPath), sizeof(sLoaderPath) - SDL_strlen(sLoaderPath), "hd/music/%s.ogg",
+                 kTracks[song]);
+    SDL_SetAtomicInt(&sLoaderDone, 0);
+    sLoaderSong = song;
+    sLoader = SDL_CreateThread(LoaderMain, "hd music", NULL);
+    if (sLoader == NULL) { /* no thread: read it here */
+        sLoaderSong = -1;
+        return SDL_LoadFile(sLoaderPath, size);
+    }
+    *pending = 1;
+    return NULL;
+}
+
 static void Close(void) {
     if (sVorbis)
         stb_vorbis_close(sVorbis);
@@ -77,15 +130,18 @@ static void Close(void) {
     sSong = -1;
 }
 
+/* 1: the track plays, 0: no track, -1: still loading (the cartridge's song plays meanwhile) */
 static int Open(int song) {
     char name[160];
     size_t size = 0;
-    int error = 0;
+    int error = 0, pending;
     FILE* loop;
 
     Close();
     SDL_snprintf(name, sizeof(name), "hd/music/%s.ogg", kTracks[song]);
-    sFile = SDL_LoadFile(PortConfigPath(name), &size);
+    sFile = TakeLoaded(song, &size, &pending);
+    if (pending)
+        return -1;
     if (sFile == NULL)
         return 0;
     sVorbis = stb_vorbis_open_memory(sFile, (int)size, &error, NULL);
@@ -157,6 +213,12 @@ static void Pause(void) {
 
 static void Shutdown(void) {
     Close();
+    if (sLoader != NULL) {
+        SDL_WaitThread(sLoader, NULL);
+        sLoader = NULL;
+        SDL_free(sLoaderData);
+        sLoaderData = NULL;
+    }
     if (sStream)
         SDL_DestroyAudioStream(sStream);
     sStream = NULL;
@@ -220,16 +282,22 @@ void PortHdMusicFrame(void) {
         return;
     }
     if (song != sSong) {
+        int opened;
         if (song == sMissing)
             return; /* not imported: the cartridge's song plays */
-        if (!Open(song)) {
+        opened = Open(song);
+        if (opened < 0)
+            return; /* loading: the cartridge's song plays meanwhile */
+        if (!opened) {
             PortLog("hd music: no track for song %d (%s)", song, kTracks[song]);
             sMissing = song;
             return;
         }
         sMissing = -1;
     }
-    gain = gPortMix.musicGain * gPortConfig.masterVolume / 100.0f;
+    /* the Re:CoM tracks are mastered about 10 dB above the cartridge's mix (title -7, field -10, battle -11 dB,
+       measured 22/10): this brings them to its loudness, so the sound effects keep their balance */
+    gain = HD_MUSIC_LEVEL * gPortMix.musicGain * gPortConfig.masterVolume / 100.0f;
     if (bgm->fadeOI)
         gain *= (float)(bgm->fadeOV >> FADE_VOL_SHIFT) / FADE_VOL_MAX;
     gPortMix.musicGain = 0.0f; /* the cartridge's song keeps playing, silent */

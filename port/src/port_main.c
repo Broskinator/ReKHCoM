@@ -1669,6 +1669,20 @@ static void Present(void) {
 #ifdef PORT_LINUX
     PortFbPresent(sRenderer);
 #endif
+    {
+        /* KHCOM_PRESENTSHOTS=a-b (harness): the window as shown, frames a..b (present_<frame>.bmp) */
+        const char* range = SDL_getenv("KHCOM_PRESENTSHOTS");
+        int from = 0, to = -1;
+        if (range && SDL_sscanf(range, "%d-%d", &from, &to) == 2 && (int)sFrameCount >= from && (int)sFrameCount <= to) {
+            SDL_Surface* s = SDL_RenderReadPixels(sRenderer, NULL);
+            if (s) {
+                char name[64];
+                SDL_snprintf(name, sizeof(name), "present_%05u.bmp", (unsigned)sFrameCount);
+                SDL_SaveBMP(s, PortConfigPath(name));
+                SDL_DestroySurface(s);
+            }
+        }
+    }
     SDL_RenderPresent(sRenderer);
 }
 
@@ -1916,6 +1930,14 @@ static void HarnessFrame(void) {
         PortUiForceClose();
     }
 
+    {
+        /* KHCOM_WIZARD_OPEN=frame (harness): the new game page opens there, for KHCOM_WIZARD_KEYS */
+        const char* wizard = SDL_getenv("KHCOM_WIZARD_OPEN");
+        if (wizard && sFrameCount == (uint32_t)SDL_atoi(wizard)) {
+            extern void PortUiOpenNewGame(void);
+            PortUiOpenNewGame();
+        }
+    }
     if (shots && HarnessListHas(shots, sFrameCount)) {
         SDL_Surface* s = SDL_CreateSurfaceFrom(gPortScreen.width, gPortScreen.height, SDL_PIXELFORMAT_XRGB8888,
                                                gPortFrame, gPortScreen.width * 4);
@@ -2129,6 +2151,17 @@ static void VBlankCycle(void) {
         skip = FrameSkipDue(w != gPortScreen.width || h != gPortScreen.height);
     }
 
+    {
+        /* KHCOM_REGLOG=from-to (harness): the display registers each frame of that range */
+        const char* reg = SDL_getenv("KHCOM_REGLOG");
+        int from = 0, to = -1;
+        if (reg && SDL_sscanf(reg, "%d-%d", &from, &to) == 2 && (int)sFrameCount >= from && (int)sFrameCount <= to)
+            PortLog("reg %u: DISPCNT %04x BG0 %04x BG1 %04x BG2 %04x BG3 %04x BLDCNT %04x BLDALPHA %04x BLDY %04x "
+                    "WININ %04x WINOUT %04x WIN0H %04x WIN0V %04x MOSAIC %04x", (unsigned)sFrameCount, IO16(0x00),
+                    IO16(0x08), IO16(0x0A), IO16(0x0C), IO16(0x0E), IO16(0x50), IO16(0x52), IO16(0x54), IO16(0x48),
+                    IO16(0x4A), IO16(0x40), IO16(0x44), IO16(0x4C));
+    }
+
     /* Visible lines (HBlank / VCount events in between). */
     if (skip) {
         PortPpuRunFrameEvents();
@@ -2235,13 +2268,13 @@ static void VBlankCycle(void) {
         if (!attempted) {
             attempted = 1;
             frameLog = fopen(frameLogPath, "w");
-            if (frameLog) fprintf(frameLog, "frame,interval_ms,render_work_ms,logic,screen\n");
+            if (frameLog) fprintf(frameLog, "frame,interval_ms,render_work_ms,logic,screen,fit\n");
         }
         if (frameLog && previous)
-            fprintf(frameLog, "%u,%.6f,%.6f,%u,%d\n", (unsigned)sFrameCount,
+            fprintf(frameLog, "%u,%.6f,%.6f,%u,%d,%d\n", (unsigned)sFrameCount,
                     1000.0 * (end - previous) / sPerfFreq,
                     1000.0 * (frameLogWork - frameLogStart) / sPerfFreq,
-                    (unsigned)gFrameCounter, gPortScreenLayer);
+                    (unsigned)gFrameCounter, gPortScreenLayer, (int)sFit);
         previous = end;
     }
     if (SDL_getenv("KHCOM_TIMING") && sFrameCount % 300 == 0) {

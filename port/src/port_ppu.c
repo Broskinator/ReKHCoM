@@ -297,6 +297,12 @@ void PortTitleArtFade(int enabled) {
     sTitleArtFade = enabled != 0;
     sTitlePaletteValid = 0;
 }
+/* The first illustration (the developer credit over Sora) is on BG0 until the press-start bar takes that layer: its
+   right and bottom edges fade as the title's (BG1) do. */
+static int sTitleArtFadeBg0;
+void PortTitleArtFadeFirst(int enabled) {
+    sTitleArtFadeBg0 = enabled != 0;
+}
 void PortSetSpotlight(int active) { sSpotlight = active; }
 int PortSpotlightActive(void) { return sSpotlight; }
 void PortPpuVisitState(PortStateVisitor visit) {
@@ -2155,7 +2161,7 @@ static void BuildNarrowSides(int gy, uint16_t dispcnt, const int* bgOn, const in
 /* The approved study: six native pixels, original palette only. White is
    entry31 in both regional title palettes. Use its LIVE value so palette
    fades/brightness remain coherent. Cache only while that palette is stable. */
-static void TitleArtFadeLine(int gy) {
+static void TitleArtFadeLine(int gy, int bg) {
     static const int ramp[7] = {0, 19, 66, 128, 189, 236, 255};
     int x, by;
     if (!sTitleArtFade || gy < 0 || gy >= GBA_SCREEN_H) return;
@@ -2165,7 +2171,7 @@ static void TitleArtFadeLine(int gy) {
         if (gx < 0 || gx >= GBA_SCREEN_W) continue;
         rx = gx > 233 ? gx - 233 : 0;
         if (!rx && !by) continue;
-        c = sBgLine[1][x];
+        c = sBgLine[bg][x];
         if (c == TRANSPARENT) continue;
         for (index = 0; index < 256 && (sTitlePalette[index] & 0x7FFF) != c; index++) {}
         if (index == 256) continue;
@@ -2186,7 +2192,7 @@ static void TitleArtFadeLine(int gy) {
             sTitleFadeColors[code][index] = sTitlePalette[best] & 0x7FFF;
             sTitleFadeReady[code][index] = 1;
         }
-        sBgLine[1][x] = sTitleFadeColors[code][index];
+        sBgLine[bg][x] = sTitleFadeColors[code][index];
     }
 }
 
@@ -2586,7 +2592,8 @@ static void RenderLine(int y, int gy) {
                     sBgLine[b][x] = TRANSPARENT;
         }
     }
-    if (bgOn[1]) TitleArtFadeLine(gy);
+    if (bgOn[1]) TitleArtFadeLine(gy, 1);
+    if (bgOn[0] && sTitleArtFadeBg0) TitleArtFadeLine(gy, 0);
     DrawObjs(gy, dispcnt);
     BuildTitleBands(gy, bgOn);
     BuildWindows(gy, dispcnt);

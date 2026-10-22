@@ -66,10 +66,6 @@ enum {
     ITEM_CARDS,
     ITEM_FPS,
     ITEM_DISCORD,
-    ITEM_HD_MOVIES,    /* the HD mod (HD_MOD.md): shown only once imported */
-    ITEM_HD_MUSIC,
-    ITEM_HD_SCENES,
-    ITEM_HD_SUBTITLES,
     ITEM_DODGE,
     ITEM_STOCK,
     ITEM_SAVEBANK,
@@ -89,6 +85,10 @@ enum {
     ITEM_HIDE_TOUCH,
     ITEM_FRAMESKIP,
     ITEM_RECOM_EXTRAS, /* section heading, not selectable */
+    ITEM_HD_MOVIES,    /* the HD mod (HD_MOD.md): shown only once imported */
+    ITEM_HD_MUSIC,
+    ITEM_HD_SCENES,
+    ITEM_HD_SUBTITLES,
     ITEM_TITLE,        /* back to the title screen, as the game's own Continue screen does */
     ITEM_UNSTOCK,
     ITEM_PS2_MODE,
@@ -101,6 +101,7 @@ enum {
     /* the Re:Chain of Memories page */
     ITEM_PS2_DIFFICULTY,
     ITEM_PS2_FASTTEXT,
+    ITEM_PS2_HDSCENES, /* the HD mod's scenes in place of the events (only once imported) */
     ITEM_PS2_BACK,
     /* the new game page: how to start it */
     ITEM_NG_VERSION,
@@ -195,7 +196,8 @@ static int ItemVisible(int item) {
         case ITEM_DISCORD: return PortDiscordAvailable();
         case ITEM_HD_MOVIES: return HdImported("hd/movies/ROP.mp4");
         case ITEM_HD_MUSIC: return HdImported("hd/music/Title.ogg");
-        case ITEM_HD_SCENES: return HdImported("hd/movies/zz_event_011.mp4");
+        case ITEM_HD_SCENES:
+        case ITEM_PS2_HDSCENES: return HdImported("hd/movies/zz_event_011.mp4");
         case ITEM_HD_SUBTITLES: return HdImported("hd/subs/ROP.us.txt");
         /* the version and its difficulty are chosen at New Game and stay
            with the save, as in the original: no switch for them here */
@@ -246,10 +248,6 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Subir cartas en combate", "カードを上げる" },
     { "Show FPS", "Afficher FPS", "FPS anzeigen", "Mostra FPS", "Mostrar FPS", "FPS表示" },
     { "Discord status", "Statut Discord", "Discord-Status", "Stato Discord", "Estado en Discord", "Discordステータス" },
-    { "HD movies", "Vidéos HD", "HD-Videos", "Video HD", "Videos HD", "HDムービー" },
-    { "HD music", "Musique HD", "HD-Musik", "Musica HD", "Música HD", "HDミュージック" },
-    { "HD scenes", "Scènes HD", "HD-Szenen", "Scene HD", "Escenas HD", "HDシーン" },
-    { "HD subtitles", "Sous-titres HD", "HD-Untertitel", "Sottotitoli HD", "Subtítulos HD", "HD字幕" },
     { "One-button dodge roll", "Roulade en un bouton", "Ausweichrolle mit einer Taste", "Capriola con un tasto",
       "Voltereta con un botón", "ワンボタンドッジ" },
     { "One-button stock (L+R)", "Réserve en un bouton (L+R)", "Vorrat mit einer Taste (L+R)",
@@ -279,6 +277,10 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Skip frames when slow", "Sauter des images si lent", "Bilder überspringen wenn langsam",
       "Salta fotogrammi se lento", "Saltar cuadros si va lento", "遅い時はフレームを飛ばす" },
     { "Re:CoM improvements", "Améliorations Re:CoM", "Re:CoM-Verbesserungen", "Miglioramenti Re:CoM", "Mejoras de Re:CoM", "Re:CoMの改善" },
+    { "HD movies", "Vidéos HD", "HD-Videos", "Video HD", "Videos HD", "HDムービー" },
+    { "HD music", "Musique HD", "HD-Musik", "Musica HD", "Música HD", "HDミュージック" },
+    { "HD scenes", "Scènes HD", "HD-Szenen", "Scene HD", "Escenas HD", "HDシーン" },
+    { "HD subtitles", "Sous-titres HD", "HD-Untertitel", "Sottotitoli HD", "Subtítulos HD", "HD字幕" },
     { "Return to title screen", "Retour à l'écran titre", "Zurück zum Titelbildschirm",
       "Torna alla schermata del titolo", "Volver a la pantalla de título", "タイトル画面に戻る" },
     { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
@@ -294,6 +296,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
     { "Fast dialogue", "Dialogues rapides", "Schnelle Dialoge", "Dialoghi veloci", "Diálogos rápidos",
       "会話を早く" },
+    { "HD scenes in place of the events", "Scènes HD à la place des évènements", "HD-Szenen statt der Ereignisse",
+      "Scene HD al posto degli eventi", "Reemplazar escenas por las HD", "イベントをHDシーンに置き換え" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
     { "Version", "Version", "Version", "Versione", "Versión", "バージョン" },
     { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
@@ -414,6 +418,30 @@ static const char* const sNgDescHd[LANG_COUNT] = {
     "Dialoghi disegnati con un carattere nitido alla risoluzione della finestra.",
     "Diálogos con una fuente nítida a la resolución de la ventana.",
     "会話をウィンドウ解像度のくっきりしたフォントで表示。",
+};
+static const char* const sNgDescHdMusic[LANG_COUNT] = {
+    "Re:Chain of Memories' soundtrack from your KH HD 1.5+2.5 in place of the cartridge's music.",
+    "La bande-son de Re:Chain of Memories de votre KH HD 1.5+2.5 à la place de la musique de la cartouche.",
+    "Der Soundtrack von Re:Chain of Memories aus deinem KH HD 1.5+2.5 statt der Musik des Moduls.",
+    "La colonna sonora di Re:Chain of Memories del tuo KH HD 1.5+2.5 al posto della musica della cartuccia.",
+    "La banda sonora de Re:Chain of Memories de tu KH HD 1.5+2.5 en lugar de la música del cartucho.",
+    "カートリッジの音楽の代わりにKH HD 1.5+2.5のRe:チェイン オブ メモリーズのサウンドトラック。",
+};
+static const char* const sNgDescHdMovies[LANG_COUNT] = {
+    "The opening and the endings as the HD movies of your KH HD 1.5+2.5.",
+    "L'ouverture et les fins avec les vidéos HD de votre KH HD 1.5+2.5.",
+    "Intro und Abspänne als HD-Videos aus deinem KH HD 1.5+2.5.",
+    "L'introduzione e i finali con i video HD del tuo KH HD 1.5+2.5.",
+    "La introducción y los finales con los videos HD de tu KH HD 1.5+2.5.",
+    "オープニングとエンディングをKH HD 1.5+2.5のHDムービーで。",
+};
+static const char* const sNgDescHdScenes[LANG_COUNT] = {
+    "Story scenes that Re:CoM has as movies play them instead (English voices, subtitles in your language).",
+    "Les scènes que Re:CoM a en vidéo les jouent à la place (voix anglaises, sous-titres dans votre langue).",
+    "Szenen, die Re:CoM als Video hat, laufen stattdessen so (englische Stimmen, Untertitel in deiner Sprache).",
+    "Le scene che Re:CoM ha come video vengono riprodotte così (voci inglesi, sottotitoli nella tua lingua).",
+    "Las escenas que Re:CoM tiene en video se ven así (voces en inglés, subtítulos en tu idioma).",
+    "Re:CoMでムービーになっている場面はそれで再生（英語音声、字幕はゲームの言語）。",
 };
 static const char* const sNgDescQol[LANG_COUNT] = {
     "One button for the dodge roll and for stocking cards (L+R).",
@@ -903,6 +931,7 @@ static void ValueText(int item, char* out, size_t size) {
             SDL_strlcpy(out, sOnOff[gPortConfig.hdMusic != 0][l], size);
             break;
         case ITEM_HD_SCENES:
+        case ITEM_PS2_HDSCENES:
             SDL_strlcpy(out, sOnOff[gPortConfig.hdScenes != 0][l], size);
             break;
         case ITEM_HD_SUBTITLES:
@@ -1126,6 +1155,7 @@ static void Change(int item, int dir) {
             gPortConfig.hdMusic = !gPortConfig.hdMusic;
             break;
         case ITEM_HD_SCENES:
+        case ITEM_PS2_HDSCENES:
             gPortConfig.hdScenes = !gPortConfig.hdScenes;
             break;
         case ITEM_HD_SUBTITLES:
@@ -1990,8 +2020,26 @@ static const char* const sWizHelpFirst[LANG_COUNT] = {
     "\xE2\x86\x91\xE2\x86\x93 選択   A 決定",
 };
 
+/* the options step: HD text, the one-button controls, then the HD mod's music, movies and (Re:CoM) scenes once
+   imported, then Start */
+enum { WOPT_HDTEXT, WOPT_QOL, WOPT_HDMUSIC, WOPT_HDMOVIES, WOPT_HDSCENES, WOPT_START };
+static int WizOptions(int* kinds) {
+    int n = 0;
+    kinds[n++] = WOPT_HDTEXT;
+    kinds[n++] = WOPT_QOL;
+    if (ItemVisible(ITEM_HD_MUSIC))
+        kinds[n++] = WOPT_HDMUSIC;
+    if (ItemVisible(ITEM_HD_MOVIES))
+        kinds[n++] = WOPT_HDMOVIES;
+    if (sNgRecom && ItemVisible(ITEM_HD_SCENES))
+        kinds[n++] = WOPT_HDSCENES;
+    kinds[n++] = WOPT_START;
+    return n;
+}
+
 static int WizRows(void) {
-    return sWizStep == WIZ_VERSION ? 2 : sWizStep == WIZ_DIFFICULTY ? 3 : 3;
+    int kinds[6];
+    return sWizStep == WIZ_VERSION ? 2 : sWizStep == WIZ_DIFFICULTY ? 3 : WizOptions(kinds);
 }
 
 static void WizFinish(void) {
@@ -2036,13 +2084,35 @@ static void WizKey(int key) {
         sWizStep = WIZ_OPTIONS;
         sWizCursor = 0;
     } else if (sWizStep == WIZ_OPTIONS) {
-        if (sWizCursor == 0 && (key == 2 || key == 3)) {
-            gPortConfig.hdText = !gPortConfig.hdText;
-            PortVideoApplyConfig();
-        } else if (sWizCursor == 1 && (key == 2 || key == 3)) {
-            PortSetQolButtons(!PortQolButtons());
-        } else if (sWizCursor == 2 && key == 3) {
-            WizFinish();
+        int kinds[6], toggle = key == 2 || key == 3;
+        WizOptions(kinds);
+        switch (kinds[sWizCursor]) {
+            case WOPT_HDTEXT:
+                if (toggle) {
+                    gPortConfig.hdText = !gPortConfig.hdText;
+                    PortVideoApplyConfig();
+                }
+                break;
+            case WOPT_QOL:
+                if (toggle)
+                    PortSetQolButtons(!PortQolButtons());
+                break;
+            case WOPT_HDMUSIC:
+                if (toggle)
+                    gPortConfig.hdMusic = !gPortConfig.hdMusic;
+                break;
+            case WOPT_HDMOVIES:
+                if (toggle)
+                    gPortConfig.hdMovies = !gPortConfig.hdMovies;
+                break;
+            case WOPT_HDSCENES:
+                if (toggle)
+                    gPortConfig.hdScenes = !gPortConfig.hdScenes;
+                break;
+            default:
+                if (key == 3)
+                    WizFinish();
+                break;
         }
     }
 }
@@ -2080,9 +2150,9 @@ static int DrawWrapped(const char* text, int x, int y, int maxW, uint32_t color,
 }
 
 static void DrawWizard(int l, int width, int height) {
-    const char* labels[3];
-    const char* subs[3];
-    const char* values[3] = { NULL, NULL, NULL };
+    const char* labels[6];
+    const char* subs[6];
+    const char* values[6] = { NULL, NULL, NULL, NULL, NULL, NULL };
     int rows = WizRows(), i, panelW = SDL_min(width - 24, 250), x0, y0, h, y, textW;
     static const int order[3] = { 1, 0, 2 };
 
@@ -2095,11 +2165,34 @@ static void DrawWizard(int l, int width, int height) {
             subs[i] = sNgDescDifficulty[order[i]][l];
         }
     } else {
-        labels[0] = sLabels[ITEM_NG_HDTEXT][l]; subs[0] = sNgDescHd[l];
-        values[0] = sOnOff[gPortConfig.hdText != 0][l];
-        labels[1] = sLabels[ITEM_NG_QOL][l]; subs[1] = sNgDescQol[l];
-        values[1] = sOnOff[PortQolButtons() != 0][l];
-        labels[2] = sWizConfirm[l]; subs[2] = sNgDescStart[l];
+        int kinds[6], n = WizOptions(kinds);
+        for (i = 0; i < n; i++) {
+            switch (kinds[i]) {
+                case WOPT_HDTEXT:
+                    labels[i] = sLabels[ITEM_NG_HDTEXT][l]; subs[i] = sNgDescHd[l];
+                    values[i] = sOnOff[gPortConfig.hdText != 0][l];
+                    break;
+                case WOPT_QOL:
+                    labels[i] = sLabels[ITEM_NG_QOL][l]; subs[i] = sNgDescQol[l];
+                    values[i] = sOnOff[PortQolButtons() != 0][l];
+                    break;
+                case WOPT_HDMUSIC:
+                    labels[i] = sLabels[ITEM_HD_MUSIC][l]; subs[i] = sNgDescHdMusic[l];
+                    values[i] = sOnOff[gPortConfig.hdMusic != 0][l];
+                    break;
+                case WOPT_HDMOVIES:
+                    labels[i] = sLabels[ITEM_HD_MOVIES][l]; subs[i] = sNgDescHdMovies[l];
+                    values[i] = sOnOff[gPortConfig.hdMovies != 0][l];
+                    break;
+                case WOPT_HDSCENES:
+                    labels[i] = sLabels[ITEM_PS2_HDSCENES][l]; subs[i] = sNgDescHdScenes[l];
+                    values[i] = sOnOff[gPortConfig.hdScenes != 0][l];
+                    break;
+                default:
+                    labels[i] = sWizConfirm[l]; subs[i] = sNgDescStart[l];
+                    break;
+            }
+        }
     }
     textW = panelW - 30;
     /* measure, then a white window in the middle of a darkened screen */
@@ -2545,12 +2638,33 @@ void PortUiOpenMoviePause(void) {
     sSceneMovie = 1;
 }
 
+/* The same pause over an imported HD movie or scene (port_hdmovie.c): skipping only stops the movie; the cartridge
+   movie or the event then ends as after the movie itself. */
+static int sHdMoviePause, sHdMovieSkip;
+
+void PortUiOpenHdMoviePause(void) {
+    PortUiOpenMoviePause();
+    sHdMoviePause = sScenePause;
+    sHdMovieSkip = 0;
+}
+
+int PortUiHdMovieSkipTaken(void) {
+    int skip = sHdMovieSkip;
+    sHdMovieSkip = 0;
+    return skip;
+}
+
 static void ScenePauseClose(int skip) {
     extern void PortInputSuppressUntilRelease(void);
     extern void PortEventSkipScene(void);
     extern void PortMovieSkipRequest(void);
     sScenePause = 0;
     PortInputSuppressUntilRelease(); /* the closing press does not reach the scene */
+    if (sHdMoviePause) {
+        sHdMoviePause = 0;
+        sHdMovieSkip = skip;
+        return;
+    }
     if (skip) {
         if (sSceneMovie)
             PortMovieSkipRequest();

@@ -2,7 +2,7 @@
  * HD movies on Android (port/progress/HD_MOD.md): the player behind port_hdmovie.c on 32-bit Android and behind the
  * hd_movie bridge entry of the 64-bit host (port/android64/host/android64_host.c). Same behaviour as the Windows
  * player: the movie plays to the end on the game's renderer, its audio on a stream of its own is the clock, late
- * frames are not uploaded, Start/A/B/Enter/Escape/Back or a tap skip it, and Re:CoM's subtitles are drawn under the
+ * frames are not uploaded, Start/Escape/Back skip it, and Re:CoM's subtitles are drawn under the
  * picture (white KHMenu letters with a dark outline).
  *
  * Decoding: the NDK's MediaExtractor + MediaCodec (format keys as plain strings: the AMEDIAFORMAT_KEY_ variables
@@ -307,18 +307,16 @@ static int SkipPressed(SDL_AudioStream* audio) {
                 if (audio)
                     SDL_ResumeAudioStreamDevice(audio);
                 break;
+            /* only Back, Escape or the pad's Start: taps and A advance the dialogue, so they reached the movie at once
+               and ended the HD scenes as they began (22/10) */
             case SDL_EVENT_KEY_DOWN:
-                if (!e.key.repeat && (e.key.key == SDLK_RETURN || e.key.key == SDLK_ESCAPE || e.key.key == SDLK_SPACE ||
-                                      e.key.key == SDLK_AC_BACK || e.key.key == SDLK_X || e.key.key == SDLK_Z))
+                if (!e.key.repeat && (e.key.key == SDLK_ESCAPE || e.key.key == SDLK_AC_BACK))
                     skip = 1;
                 break;
             case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-                if (e.gbutton.button == SDL_GAMEPAD_BUTTON_START || e.gbutton.button == SDL_GAMEPAD_BUTTON_SOUTH ||
-                    e.gbutton.button == SDL_GAMEPAD_BUTTON_EAST)
+                if (e.gbutton.button == SDL_GAMEPAD_BUTTON_START)
                     skip = 1;
                 break;
-            case SDL_EVENT_FINGER_DOWN:
-            case SDL_EVENT_MOUSE_BUTTON_DOWN: skip = 1; break;
             default: break;
         }
     }
@@ -513,6 +511,12 @@ int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* sub
     LoadSubs(&subs, subs1, subs2, fontPath);
     played = 1;
     start = (int64_t)(SDL_GetTicksNS() / 1000);
+    /* the presses that started the movie (the dialogue's A or tap) are not the movie's */
+    SDL_PumpEvents();
+    SDL_FlushEvents(SDL_EVENT_KEY_DOWN, SDL_EVENT_KEY_UP);
+    SDL_FlushEvents(SDL_EVENT_MOUSE_BUTTON_DOWN, SDL_EVENT_MOUSE_BUTTON_UP);
+    SDL_FlushEvents(SDL_EVENT_GAMEPAD_BUTTON_DOWN, SDL_EVENT_GAMEPAD_BUTTON_UP);
+    SDL_FlushEvents(SDL_EVENT_FINGER_DOWN, SDL_EVENT_FINGER_UP);
 
     while (!(video.outputDone && audioTrack.outputDone)) {
         Uint64 frameStart = SDL_GetTicksNS();

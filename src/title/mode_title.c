@@ -146,6 +146,7 @@ void TitleFinishIntro() {
 
 #ifdef PLATFORM_PC
     PortTitleBands(1);
+    PortTitleArtFadeFirst(0); /* BG0 takes the press-start bar */
 #endif
     SetBgBlend(0, 5, 16);
     EnableBg(1);
@@ -174,6 +175,7 @@ void mode_title_0() {
 #ifdef PLATFORM_PC
     /* Riku's illustration already ends in white within the native canvas. */
     PortTitleArtFade(!(gGameState.flags & GAME_FLAG_RIKU_TITLE));
+    PortTitleArtFadeFirst(!(gGameState.flags & GAME_FLAG_RIKU_TITLE));
 #endif
     SaveLoadHeader();
     InitMapCardInventory();
@@ -473,6 +475,7 @@ void mode_title_1() {
 void mode_title_2() {
 #ifdef PLATFORM_PC
     PortTitleArtFade(0);
+    PortTitleArtFadeFirst(0);
     PortTitleBands(0);
 #endif
     TaskPoolDestroy(&sTitleTaskPool);
