@@ -79,10 +79,8 @@ def border_oblivion():
     for i, x in enumerate(range(HX + 20, HX + 240 - 10, 24)):
         stamp(d, HEART if i % 2 else CROWN, x, H - 18, c5(168, 172, 192), 1)
         stamp(d, HEART if i % 2 else CROWN, x, 9, c5(168, 172, 192), 1)
-    for side in (0, 1):  # a column of small cards on each side
-        x0 = 14 if side == 0 else W - 14 - 9
-        for k, y in enumerate(range(48, H - 48, 24)):
-            stamp(d, CARD, x0, y, (c5(216, 72, 72), c5(64, 176, 88), c5(72, 112, 224))[k % 3], 1)
+    # the sides get three of the game's own map cards each, drawn from the player's ROM when the game makes the
+    # border (port_main.c, BorderMapCards): nothing of the game ships here
     return img
 
 

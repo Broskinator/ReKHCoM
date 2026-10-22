@@ -406,6 +406,76 @@ static int ClassicBorder(void) {
            gPortScreen.width == GBA_SCREEN_W && gPortScreen.height == GBA_SCREEN_H && sFitScale == 0 && sAutoScale == 0;
 }
 
+/* Border 1's sides: six of the game's map cards (illustration over its colour's border), drawn from the ROM. */
+extern const unsigned char gMapCardBorderPalettes[];
+extern const unsigned char gMapCardBorderRedFrame0[], gMapCardBorderRedTiles[];
+extern const unsigned char gMapCardBorderGreenFrame0[], gMapCardBorderGreenTiles[];
+extern const unsigned char gMapCardBorderBlueFrame0[], gMapCardBorderBlueTiles[];
+extern const unsigned char gCardRoom01Frame0[], gCardRoom01Tiles[], gCardRoom01Palette[];
+extern const unsigned char gCardRoom03Frame0[], gCardRoom03Tiles[], gCardRoom03Palette[];
+extern const unsigned char gCardRoom09Frame0[], gCardRoom09Tiles[], gCardRoom09Palette[];
+extern const unsigned char gCardRoom10Frame0[], gCardRoom10Tiles[], gCardRoom10Palette[];
+extern const unsigned char gCardRoom14Frame0[], gCardRoom14Tiles[], gCardRoom14Palette[];
+extern const unsigned char gCardRoom15Frame0[], gCardRoom15Tiles[], gCardRoom15Palette[];
+
+/* A sprite frame (a count, then each part's three OAM attributes; 4bpp tiles in order) onto px, its origin at
+   (ox, oy). Only colours 1..15 of its palette bank, never the white value-slot mark at the frame's right edge. */
+static void BlitFrame(unsigned char* px, int w, int h, const unsigned char* frame, const unsigned char* tiles,
+                      const unsigned char* palette, int ox, int oy, int clipRight) {
+    static const unsigned char kSize[3][4][2] = { { { 8, 8 }, { 16, 16 }, { 32, 32 }, { 64, 64 } },
+                                                  { { 16, 8 }, { 32, 8 }, { 32, 16 }, { 64, 32 } },
+                                                  { { 8, 16 }, { 8, 32 }, { 16, 32 }, { 32, 64 } } };
+    int n = frame[0] | frame[1] << 8, k;
+    for (k = 0; k < n && k < 64; k++) {
+        const unsigned char* a = frame + 2 + k * 6;
+        int a0 = a[0] | a[1] << 8, a1 = a[2] | a[3] << 8, a2 = a[4] | a[5] << 8;
+        int shape = a0 >> 14, size = a1 >> 14, pw, ph, x = a1 & 0x1FF, y = a0 & 0xFF, tx, ty;
+        if (shape > 2)
+            continue;
+        pw = kSize[shape][size][0];
+        ph = kSize[shape][size][1];
+        if (x & 0x100) x -= 512;
+        if (y & 0x80) y -= 256;
+        for (ty = 0; ty < ph; ty++)
+            for (tx = 0; tx < pw; tx++) {
+                int sx = (a1 & 0x1000) ? pw - 1 - tx : tx, sy = (a1 & 0x2000) ? ph - 1 - ty : ty;
+                int tile = (a2 & 0x3FF) + (sy >> 3) * (pw >> 3) + (sx >> 3);
+                int b = tiles[tile * 32 + (sy & 7) * 4 + ((sx & 7) >> 1)], v = (sx & 1) ? b >> 4 : b & 15;
+                int X = ox + x + tx, Y = oy + y + ty, c;
+                unsigned char* d;
+                if (!v || X < 0 || Y < 0 || X >= w || Y >= h || x + tx >= clipRight)
+                    continue;
+                c = palette[(a2 >> 12) * 32 + v * 2] | palette[(a2 >> 12) * 32 + v * 2 + 1] << 8;
+                d = px + (Y * w + X) * 4;
+                d[0] = (unsigned char)((c & 31) * 255 / 31);
+                d[1] = (unsigned char)(((c >> 5) & 31) * 255 / 31);
+                d[2] = (unsigned char)(((c >> 10) & 31) * 255 / 31);
+                d[3] = 255;
+            }
+    }
+}
+
+static void BorderMapCards(unsigned char* px, int w, int h) {
+    static const struct { const unsigned char *frame, *tiles, *palette; int colour; } kCards[6] = {
+        { gCardRoom01Frame0, gCardRoom01Tiles, gCardRoom01Palette, 0 },
+        { gCardRoom09Frame0, gCardRoom09Tiles, gCardRoom09Palette, 1 },
+        { gCardRoom14Frame0, gCardRoom14Tiles, gCardRoom14Palette, 2 },
+        { gCardRoom15Frame0, gCardRoom15Tiles, gCardRoom15Palette, 2 },
+        { gCardRoom10Frame0, gCardRoom10Tiles, gCardRoom10Palette, 1 },
+        { gCardRoom03Frame0, gCardRoom03Tiles, gCardRoom03Palette, 0 },
+    };
+    const unsigned char* borderFrame[3] = { gMapCardBorderRedFrame0, gMapCardBorderGreenFrame0, gMapCardBorderBlueFrame0 };
+    const unsigned char* borderTiles[3] = { gMapCardBorderRedTiles, gMapCardBorderGreenTiles, gMapCardBorderBlueTiles };
+    int i;
+    for (i = 0; i < 6; i++) {
+        /* frames centre on (16, 20) of the card's 32x39: columns at x 20 and 332, rows at y 36, 85, 134 */
+        int ox = (i < 3 ? 20 : BORDER_W - 20 - 32) + 16, oy = 36 + (i % 3) * 49 + 20;
+        BlitFrame(px, w, h, borderFrame[kCards[i].colour], borderTiles[kCards[i].colour], gMapCardBorderPalettes,
+                  ox, oy, 15);
+        BlitFrame(px, w, h, kCards[i].frame, kCards[i].tiles, kCards[i].palette, ox, oy, 16);
+    }
+}
+
 static void DrawClassicBorder(const SDL_FRect* picture) {
     float s = picture->w / GBA_SCREEN_W;
     SDL_FRect r;
@@ -418,7 +488,10 @@ static void DrawClassicBorder(const SDL_FRect* picture) {
             SDL_DestroyTexture(sBorderTex);
         sBorderTex = NULL;
         if (px) {
-            SDL_Surface* surf = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_RGBA32, px, w * 4);
+            SDL_Surface* surf;
+            if (i == 0)
+                BorderMapCards(px, w, h);
+            surf = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_RGBA32, px, w * 4);
             if (surf) {
                 sBorderTex = SDL_CreateTextureFromSurface(sRenderer, surf);
                 SDL_DestroySurface(surf);
