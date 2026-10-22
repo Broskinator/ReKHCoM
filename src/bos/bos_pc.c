@@ -6019,7 +6019,12 @@ u8 task_bos_pc_1(PcWork* work, Task* task) {
     btl->bossX = body->x;
     btl->bossY = body->y;
     btl->bossZ = body->z;
+#ifdef PLATFORM_PC
+    /* @bug: a frame before the maximum HP is set divides by zero (the gauges' #40 class) */
+    work->shared.hpRatio = work->body.maxHp > 0 ? (work->body.hp << 8) / work->body.maxHp : 0;
+#else
     work->shared.hpRatio = (work->body.hp << 8) / work->body.maxHp;
+#endif
     return alive;
 }
 

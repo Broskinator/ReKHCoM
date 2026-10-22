@@ -124,7 +124,12 @@ s32 task_btl_hpenm_1(BtlHpenmWork* work) {
         break;
     case BTL_HPENM_GAUGE_LAYER_GREEN:
         if (work->gaugeSize <= 6) {
+#ifdef PLATFORM_PC
+            /* @bug: a frame before the maximum HP is set divides by zero (the gauges' #40 class) */
+            work->hpRatio = actor->maxHp > 0 ? (work->displayHp << 8) / actor->maxHp : 0;
+#else
             work->hpRatio = (work->displayHp << 8) / actor->maxHp;
+#endif
         } else {
             work->hpRatio = (work->displayHp << 8) / 560;
         }

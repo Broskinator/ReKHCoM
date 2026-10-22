@@ -1931,6 +1931,14 @@ static void HarnessFrame(void) {
     }
 
     {
+        /* KHCOM_RECOM=1 (harness): the game being played is the Re:CoM version (as chosen at New Game) */
+        static int recom;
+        if (!recom && SDL_getenv("KHCOM_RECOM")) {
+            recom = 1;
+            PortRecomSetActive(1);
+        }
+    }
+    {
         /* KHCOM_OPTIONS_AT=frame (harness): the Options overlay opens there; KHCOM_OPTIONS_HOLD closes it */
         const char* optionsAt = SDL_getenv("KHCOM_OPTIONS_AT");
         if (optionsAt && sFrameCount == (uint32_t)SDL_atoi(optionsAt))

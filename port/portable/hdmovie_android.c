@@ -46,6 +46,7 @@ static struct {
     bool (*extractorAdvance)(AMediaExtractor*);
     bool (*formatString)(AMediaFormat*, const char*, const char**);
     bool (*formatInt)(AMediaFormat*, const char*, int32_t*);
+    bool (*formatInt64)(AMediaFormat*, const char*, int64_t*);
     media_status_t (*formatDelete)(AMediaFormat*);
     AMediaCodec* (*codecNew)(const char*);
     AMediaCodec* (*codecByName)(const char*);
@@ -90,7 +91,7 @@ static int LoadMedia(void) {
     SYM(extractorFormat, "AMediaExtractor_getTrackFormat") SYM(extractorSelect, "AMediaExtractor_selectTrack")
     SYM(extractorRead, "AMediaExtractor_readSampleData") SYM(extractorTime, "AMediaExtractor_getSampleTime")
     SYM(extractorAdvance, "AMediaExtractor_advance") SYM(formatString, "AMediaFormat_getString")
-    SYM(formatInt, "AMediaFormat_getInt32") SYM(formatDelete, "AMediaFormat_delete")
+    SYM(formatInt, "AMediaFormat_getInt32") SYM(formatInt64, "AMediaFormat_getInt64") SYM(formatDelete, "AMediaFormat_delete")
     SYM(codecNew, "AMediaCodec_createDecoderByType") SYM(codecByName, "AMediaCodec_createCodecByName") SYM(codecConfigure, "AMediaCodec_configure")
     SYM(codecStart, "AMediaCodec_start") SYM(codecStop, "AMediaCodec_stop") SYM(codecDelete, "AMediaCodec_delete")
     SYM(codecInput, "AMediaCodec_dequeueInputBuffer") SYM(codecInputBuffer, "AMediaCodec_getInputBuffer")
@@ -672,6 +673,19 @@ int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* sub
                 dst.y = (oh - dst.h) / 2;
                 SDL_RenderTexture(renderer, texture, NULL, &dst);
                 DrawSubs(&subs, renderer, clock, &dst, oh);
+                {
+                    /* fades in from black and out to black (0.3 s each), as the desktop player (port_hdmovie.c) */
+                    const int64_t fade = 300000;
+                    int64_t duration = 0, edge;
+                    if (vFormat)
+                        M.formatInt64(vFormat, "durationUs", &duration);
+                    edge = clock < fade ? clock : (duration > fade && clock > duration - fade ? duration - clock : fade);
+                    if (edge < fade) {
+                        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+                        SDL_SetRenderDrawColor(renderer, 0, 0, 0, (Uint8)(255 - (edge < 0 ? 0 : edge) * 255 / fade));
+                        SDL_RenderFillRect(renderer, NULL);
+                    }
+                }
             }
             {
                 /* test harness: KHCOM_HDMOVIE_SHOT=<seconds> saves that moment as hdmovie.bmp next to the movie's

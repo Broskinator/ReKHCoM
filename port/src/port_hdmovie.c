@@ -82,6 +82,8 @@ int PortHdScenePlay(int eventId) {
     size_t i;
     if (!gPortConfig.hdScenes)
         return 0;
+    eventId &= 0x7FFF; /* the debug menu's events carry 0x8000 (mode_event.c) */
+    PortLog("hd scene: event %d", eventId);
     for (i = 0; i < sizeof(kHdScenes) / sizeof(kHdScenes[0]); i++)
         if (kHdScenes[i].eventId == eventId) {
             int played;
@@ -422,6 +424,7 @@ static int PlayFile(const char* name) {
     UINT32 width = 0, height = 0, rate = 48000, channels = 2;
     UINT32 bufferHeight = 0; /* NV12: the decoder's rows (1088 for a 1080p H.264), the colour plane after them */
     LONGLONG frameTime = 333333; /* 100 ns units per frame, from the frame rate */
+    LONGLONG duration = 0;       /* 100 ns units, from the file (0: unknown) */
     int nv12 = 0, dropped = 0;
     LONGLONG audioPushed = 0; /* 100 ns units of audio handed to the stream */
     LONGLONG nextVideo = -1;
@@ -479,6 +482,14 @@ static int PlayFile(const char* name) {
                 frameTime = (LONGLONG)10000000 * (UINT32)fps / (UINT32)(fps >> 32);
             IMFMediaType_Release(actual);
         }
+    }
+    {
+        PROPVARIANT var;
+        PropVariantInit(&var);
+        if (SUCCEEDED(IMFSourceReader_GetPresentationAttribute(reader, (DWORD)MF_SOURCE_READER_MEDIASOURCE, &MF_PD_DURATION,
+                                                               &var)) && var.vt == VT_UI8)
+            duration = (LONGLONG)var.uhVal.QuadPart;
+        PropVariantClear(&var);
     }
     MFCreateMediaType(&type);
     IMFMediaType_SetGUID(type, &MF_MT_MAJOR_TYPE, &MFMediaType_Audio);
@@ -685,6 +696,18 @@ static int PlayFile(const char* name) {
             SDL_RenderClear(renderer);
             SDL_RenderTexture(renderer, texture, NULL, &dst);
             DrawSubs(&subs, renderer, clock, &dst, oh);
+            {
+                /* the movie fades in from black and out to black (0.3 s each), as the game's own scenes do: no hard
+                   cut from the field into the movie and back */
+                const LONGLONG fade = 3000000;
+                LONGLONG edge = clock < fade ? clock : (duration > fade && clock > duration - fade ? duration - clock : fade);
+                if (edge < fade) {
+                    Uint8 a = (Uint8)(255 - (edge < 0 ? 0 : edge) * 255 / fade);
+                    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+                    SDL_SetRenderDrawColor(renderer, 0, 0, 0, a);
+                    SDL_RenderFillRect(renderer, NULL);
+                }
+            }
             {
                 /* test harness: KHCOM_HDMOVIE_SHOT=<seconds> saves that moment as hdmovie.bmp */
                 static int shot;
