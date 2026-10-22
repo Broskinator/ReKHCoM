@@ -162,3 +162,36 @@ CStockFolder, CBattleCard, CCardBattle, C2DSeqNumericCtrl). **CPlayerGauge::upda
   cara 3, apaga la alarma. Vida 0: grupo 15, cara 2, estado 5. Botón (máscara 0xE2) mantenido: oculta el medidor.
 - Importación: `gHudGaugeLad`/`gHudCockpitLad` (`raw`: el archivo del .SPR tal cual) y las texturas enteras
   (`gHudGaugeTex0/1`, `gHudRikuGaugeTex0`, `gHudCockpitTex`); Python y launcher idénticos.
+
+- **En main (977f064cf):** `port_hdlayout.c` lee y dibuja LAYD/SEQD en C; el medidor de vida usa gauge.lad con la lógica
+  de CPlayerGauge (rastro rojo que espera y se cierra, caras normal/dolor/poca vida/caído). Con Cartas HD encendido
+  reemplaza la cara y el medidor del cartucho (`btl_hpply.c`). Probado en combate EU (golpe, rastro, cara).
+
+## Menús de Re:CoM: inventario para replicarlos (22/10 tarde, pedido del usuario: "la mayor cantidad de assets y lógica")
+- **268 layouts** en `FORM/*/FO####.SPR` (lista: `D:/01Claude/ReKHCoM-build/hdhud/layouts.tsv`). Cada menú: `.lad` en el
+  .SPR (con variantes por idioma `SP_*.lad` en las entradas remasterizadas) y su textura HD `SP_<menú>.imz` en el
+  `.RTM` del mismo número (**el español ya viene rotulado**: PAUSA, NIVEL ↑, CARGAR/GUARDAR, SÍNTESIS DE ESTANCIAS,
+  ELIGE UN MUNDO / NAIPES MUNDO, ¡NAIPE CONSEGUIDO!, MENÚ, DIARIO, VÓRTICE, PUNTOS MOGURI, dígitos, iconos).
+- Contactos y atlas: `D:/01Claude/ReKHCoM-build/hdhud/menus/` (`*_tex0.png`, `atlases.png`; script en el scratchpad
+  de la sesión, `menu_sheets.py`). Los grupos del layout son piezas sueltas: **la composición la hace el código**.
+- Correspondencias con el GBA (form → clase del .exe):
+  | Re:CoM | Clase | GBA |
+  |---|---|---|
+  | 0004 pause | CPause | pausa en combate/campo |
+  | 0100 camp + worldmap | CCamp | menú de campamento (barajas, estado, diario) y mapa |
+  | 0006 wselect, 0108 wwarp | CWorldSelect, CWorldWarp | elegir mundo, vórtice |
+  | 0102 room01 | CRoomCreation | síntesis de estancias (puertas) |
+  | 0103/0104 levelup | CLevelUp | subida de nivel (PV/PC/truco) |
+  | 0106 save, 0107 load | CSaveLoad(UI) | guardar/cargar |
+  | 0005 get_card, 0063 get_wcard | — | naipe conseguido |
+  | 0109 m_shop | CMoogleShop* | tienda moguri |
+  | 0110 jiminy_top, 0112 Drepo | CJiminyMemo | diario de Pepito (y el de Riku) |
+  | 0150-0162 world_title, 0180-0195 | CWorldText | título del mundo al entrar |
+  | 3001-3013 *_navi | Gauge::CNaviMap | minimapa de cada mundo |
+  | 0500-0514 title/end_* | CTitle, CGameOver | título, fin, game over |
+  | 0111 aleart, gamehelp, help_stock | CTechHelp, CYesNoWindow | avisos, ayudas, sí/no |
+  Medidores de combate: CEnemyGauge, CFriendGauge, CPrizeGauge, CEnchantGauge, CDuelGauge, CLockonMarker.
+- **Decompilado**: `refs/ghidra/menus.c` (28 clases, 113 métodos; `run_menus.bat`, sin reanalizar). Siguiente: por
+  menú, leer su update/draw (qué grupo y dónde según el estado) y, como el medidor, dibujarlo con `PortHdLayoutDraw`
+  sobre la lógica del GBA (el juego sigue igual por dentro). Hace falta: importar cada `.lad` + `SP_/UK_/...imz` según
+  el idioma (importador Python y launcher idénticos) y ampliar `kLayoutFiles`/`kTextureFiles`.
