@@ -4,6 +4,12 @@ Regla del usuario: cuando aparece un bug, buscar sus "parientes" (la misma clase
 seguir solo mientras sigan apareciendo; nada de bucles de pruebas sin resultado. Cada clase encontrada deja una
 prueba o un chequeo reutilizable. Lo terminado se anota en PENDIENTES_VIGENTES.md.
 
+**Regla (usuario 22/10):** un caso de batería que se corta por tiempo, se cae o sale con código distinto de 0 **es un
+bug**: se reproduce solo enseguida (escritorio con `bios:` primero, luego el arnés del dispositivo), se explica, se
+arregla y deja un caso de regresión. Nunca "repetir cuando haya tiempo" (US 124/126 de Android quedaron así el 22/10 y
+esa noche llegó #46). Después de cada arreglo: buscar sus parientes en el resto del juego (misma función, mismo tipo de
+combate/evento más adelante en la historia, las tres versiones) y correrlos.
+
 ## Clases de bugs encontradas y cómo se buscan sus parientes
 | Clase | Origen | Cómo buscar parientes / prueba |
 |---|---|---|

@@ -78,6 +78,11 @@ Reglas del usuario:
   esa lógica; luego CCardRevolver (pila, contador CARDS, recarga). Prueba de juego del anillo actual: daño, cura y
   >280 ok, 0 fallos; audio: test_hd_audio 0/9, test_hd_audio_flow 7/8 (el título se cortó por tiempo: revisar).
 - **22/10 ~16:30 (Claude que retomó):** medidor de vida de Re:CoM 1.5 en main (977f064cf, `port_hdlayout.c`). Inventario de los menús de Re:CoM (268 layouts, texturas en español, 28 clases decompiladas): HUD_HD_RECOM.md "Menús de Re:CoM". Sigue: un menú por vez con su lógica decompilada (orden propuesto: pausa, subida de nivel, naipe conseguido, guardar/cargar, elegir mundo, síntesis, campamento, tienda, diario, minimapa).
+- **Issues abiertos (22/10 21:00, usuario: leerlos todos y replicar hasta arreglarlos):** #46 Android se cierra al
+  ganar el primer combate del evento de Agrabah (US 124 ya se cortaba por tiempo en la batería: era este bug); #44
+  efectos/voces mudos con la música HD (v1.9.15-pre1); #45 voces undub que suenan en inglés (ataque en el campo, 2º
+  golpe aéreo); #42 finales HD: solo créditos; #43 Switch: cortes en cartas superpuestas. Pedidos datos de equipo en
+  #46, #42, #43. #40 arreglado (avisar al publicar).
 - **Pendientes HD (22/10 noche, Claude; se van tachando):**
   - [x] TIENDA en alemán e italiano (22/10 20:35): MOGRY-LADEN y NEGOZIO MOGURI en HD (`--language de/it`, registro
     `KHCOM_HDDRAWLOG`).
@@ -85,13 +90,13 @@ Reglas del usuario:
     de la caja).
   - [x] `check_hd_sprites.py` (nombres únicos, símbolos por versión, piezas dentro de la caja, tiles que el código
     nombra) corre en `check_sources.py`: 300 filas, 0 problemas.
-  - [ ] Registro `KHCOM_HDDRAWLOG` (hecho: "hd draw <cuadro> <pieza>", "hd gauge ...") y batería `test_hd_menus.py`: cada menú
+  - [x] Registro `KHCOM_HDDRAWLOG` y batería `test_hd_menus.py`: **68/68 ok** en EU (22/10 21:00): cada menú
     en 5 idiomas + medidor a 3..100 %, comprobando que el HD sigue en el cuadro quieto (no solo al entrar).
   - [ ] Contador de mazo (`gRevCount*`) y medidor del enemigo como Re:CoM: buscar capturas del HUD de combate de
     Re:CoM en internet y reconstruirlos con Cockpit/gauge.lad y el código decompilado (CCardRevolver, CEnemyGauge).
   - [ ] Revisar en el juego BONUS ÉLITE / PREMIUM BONUS y VER BARAJA (Riku): filas hechas, no vistas.
   - [ ] US y JP: correr la batería de menús también en esas versiones (solo se vio EU en 5 idiomas).
-  - [ ] Pasar el gemelo Python del dibujante (`seqdraw.py`, rotación y máscaras) a `port/tools`.
+  - [x] Gemelo Python del dibujante: `port/tools/khhd_seqdraw.py`.
   - [ ] Batería HD de escritorio (`run_batteries.py --hd`): corría con el build anterior; repetirla con los cambios
     de hoy al terminar.
   - Sin equivalente en Re:CoM (se quedan GBA salvo decisión del usuario): TRANSFERT, BOUTIQUE MOG, REISEBERICHT y
