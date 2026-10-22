@@ -52,6 +52,13 @@ def generated_problems():
     return [l for l in r.stdout.splitlines() if l.strip()] if r.returncode else []
 
 
+def jp_glyph_problems():
+    import subprocess
+    r = subprocess.run([sys.executable, '-X', 'utf8', str(ROOT / 'port/tools/check_jp_glyphs.py')],
+                       capture_output=True, text=True, encoding='utf-8')
+    return [l for l in r.stdout.splitlines() if l.strip()] if r.returncode else []
+
+
 def guest_compile_problems():
     import subprocess
     cc = ROOT.parent / 'toolchain/llvm-mingw-20261006-ucrt-x86_64/bin/clang.exe'
@@ -105,7 +112,7 @@ def java_problems():
 
 
 def main():
-    problems = shim_problems() + java_problems() + generated_problems() + guest_compile_problems()
+    problems = shim_problems() + java_problems() + generated_problems() + jp_glyph_problems() + guest_compile_problems()
     for p in problems:
         print(p)
     if problems:

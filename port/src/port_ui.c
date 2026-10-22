@@ -245,9 +245,9 @@ static const char* const sMainZoom[LANG_COUNT] = {
 };
 static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "View", "Vue", "Ansicht", "Visuale", "Vista", "表示" },
-    { "Aspect ratio", "Format d'image", "Seitenverhältnis", "Proporzioni", "Relación de aspecto", "アスペクト比" },
+    { "Aspect ratio", "Format d'image", "Seitenverhältnis", "Proporzioni", "Relación de aspecto", "画面の形" },
     { "Zoom", "Zoom", "Zoom", "Zoom", "Zoom", "ズーム" },
-    { "Integer scales only", "Échelles entières seules", "Nur ganze Pixelskalen", "Solo scale intere", "Solo escalas enteras", "整数スケールのみ" },
+    { "Integer scales only", "Échelles entières seules", "Nur ganze Pixelskalen", "Solo scale intere", "Solo escalas enteras", "せいすうスケールのみ" },
     { "Scaling", "Mise à l'échelle", "Skalierung", "Scala", "Escalado", "スケール" },
     { "HUD size", "Taille du HUD", "HUD-Größe", "Dimensione HUD", "Tamaño del HUD", "HUDサイズ" },
     { "GBA-size scenes", "Scènes format GBA", "Szenen im GBA-Format", "Scene formato GBA", "Escenas tamaño GBA", "GBAサイズの場面" },
@@ -287,44 +287,44 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Invert card scrolling", "Inverser le défilement", "Kartenauswahl umkehren", "Inverti scorrimento carte",
       "Invertir selección de cartas", "カード送りを反転" },
     { "Hide touch controls", "Masquer les commandes tactiles", "Touch-Steuerung ausblenden",
-      "Nascondi controlli touch", "Ocultar controles táctiles", "タッチ操作を非表示" },
+      "Nascondi controlli touch", "Ocultar controles táctiles", "タッチボタンを非表示" },
     { "Skip frames when slow", "Sauter des images si lent", "Bilder überspringen wenn langsam",
       "Salta fotogrammi se lento", "Saltar cuadros si va lento", "遅い時はフレームを飛ばす" },
     { "Re:CoM improvements", "Améliorations Re:CoM", "Re:CoM-Verbesserungen", "Miglioramenti Re:CoM", "Mejoras de Re:CoM", "Re:CoMの改善" },
     { "HD movies", "Vidéos HD", "HD-Videos", "Video HD", "Videos HD", "HDムービー" },
     { "HD music", "Musique HD", "HD-Musik", "Musica HD", "Música HD", "HDミュージック" },
     { "HD scenes", "Scènes HD", "HD-Szenen", "Scene HD", "Escenas HD", "HDシーン" },
-    { "HD subtitles", "Sous-titres HD", "HD-Untertitel", "Sottotitoli HD", "Subtítulos HD", "HD字幕" },
+    { "HD subtitles", "Sous-titres HD", "HD-Untertitel", "Sottotitoli HD", "Subtítulos HD", "HDじまく" },
     { "HD cards and battle HUD", "Cartes et ATH de combat HD", "HD-Karten und Kampf-HUD", "Carte e HUD di battaglia HD",
       "Cartas y HUD de combate HD", "HDカードと戦闘HUD" },
     { "HD title logo", "Logo de titre HD", "HD-Titellogo", "Logo del titolo HD", "Logo del título HD", "HDタイトルロゴ" },
     { "Reset to a mode's defaults", "Réglages d'un mode", "Standard eines Modus", "Predefiniti di una modalità",
-      "Restablecer según el modo", "モードの初期設定に戻す" },
+      "Restablecer según el modo", "モードの初期値に戻す" },
     { "Border (Original view)", "Bordure (vue originale)", "Rahmen (Originalansicht)", "Cornice (vista originale)",
-      "Borde (vista Original)", "枠（オリジナル表示）" },
+      "Borde (vista Original)", "わく（オリジナル表示）" },
     { "Return to title screen", "Retour à l'écran titre", "Zurück zum Titelbildschirm",
       "Torna alla schermata del titolo", "Volver a la pantalla de título", "タイトル画面に戻る" },
     { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
-      "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックを手札に戻す" },
+      "Riprendi carte accumulate", "Devolver cartas acumuladas", "ストックをてふだに戻す" },
     { "Re:CoM mode", "Mode Re:CoM", "Re:CoM-Modus", "Modalità Re:CoM", "Modo Re:CoM", "Re:CoMモード" },
     { "Re:CoM settings", "Réglages Re:CoM", "Re:CoM-Einstellungen", "Impostazioni Re:CoM", "Ajustes Re:CoM",
-      "Re:CoM設定" },
-    { "Controls", "Commandes", "Steuerung", "Controlli", "Controles", "操作" },
+      "Re:CoMオプション" },
+    { "Controls", "Commandes", "Steuerung", "Controlli", "Controles", "コントロール" },
     { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" },
     { "Boss rematches", "Revanches de boss", "Boss-Revanchen", "Rivincite coi boss", "Revancha de jefes", "ボス再戦" },
-    { "Achievements", "Succès", "Erfolge", "Obiettivi", "Logros", "実績" },
+    { "Achievements", "Succès", "Erfolge", "Obiettivi", "Logros", "じっせき" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
-    { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
+    { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難しさ" },
     { "Fast dialogue", "Dialogues rapides", "Schnelle Dialoge", "Dialoghi veloci", "Diálogos rápidos",
       "会話を早く" },
     { "HD scenes in place of the events", "Scènes HD à la place des évènements", "HD-Szenen statt der Ereignisse",
       "Scene HD al posto degli eventi", "Reemplazar escenas por las HD", "イベントをHDシーンに置き換え" },
     { "Back", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
     { "Version", "Version", "Version", "Versione", "Versión", "バージョン" },
-    { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
+    { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難しさ" },
     { "HD text", "Texte HD", "HD-Text", "Testo HD", "Texto HD", "HDテキスト" },
     { "One-button dodge and stock", "Roulade et réserve en un bouton", "Ausweichen und Vorrat mit einer Taste",
-      "Capriola e accumulo con un tasto", "Rodar y acumular con un botón", "ワンボタン操作" },
+      "Capriola e accumulo con un tasto", "Rodar y acumular con un botón", "ワンボタンそうさ" },
     { "Start", "Commencer", "Beginnen", "Inizia", "Comenzar", "はじめる" },
     { "Enter debug mode", "Entrer en mode debug", "Debug-Modus starten", "Entra in modalità debug", "Entrar al modo debug", "デバッグモード" },
     { "Unlock Riku", "Débloquer Riku", "Riku freischalten", "Sblocca Riku", "Desbloquear a Riku", "リクを解放" },
@@ -332,11 +332,11 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Nemici sconfitti con un colpo", "Enemigos caen de un golpe", "敵を一撃で倒す" },
     { "Infinite HP", "PV infinis", "Unendliche KP", "PS infiniti", "Vida infinita", "HP無限" },
     { "Level 99 with every bonus", "Niveau 99 avec tous les bonus", "Stufe 99 mit allen Boni",
-      "Livello 99 con tutti i bonus", "Nivel 99 con todos los bonos", "全ボーナス付きレベル99" },
+      "Livello 99 con tutti i bonus", "Nivel 99 con todos los bonos", "全ボーナスつきレベル99" },
     { "Every map card (9 each)", "Toutes les cartes de salle (9)", "Alle Raumkarten (je 9)",
-      "Tutte le carte stanza (9)", "Todas las cartas de mapa (9 c/u)", "全マップカード (各9枚)" },
+      "Tutte le carte stanza (9)", "Todas las cartas de mapa (9 c/u)", "全マップカード (9枚ずつ)" },
     { "Complete the journal", "Compléter le journal", "Tagebuch vervollständigen",
-      "Completa il diario", "Completar el diario", "日記をすべて埋める" },
+      "Completa il diario", "Completar el diario", "日記をすべてうめる" },
     { "Debug mode", "Mode debug", "Debug-Modus", "Modalità debug", "Modo debug", "デバッグモード" },
     { "[ReKHCoM] GBA map logic", "[ReKHCoM] Logique carte GBA", "[ReKHCoM] GBA-Kartenlogik",
       "[ReKHCoM] Logica mappa GBA", "[ReKHCoM] Lógica Mapa GBA", "[ReKHCoM] GBAマップロジック" },
@@ -369,10 +369,10 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "Acumular", "Stock", "Stock", "Accumula", "Acumular", "ストック" },
     { "Esquivar", "Esquive", "Ausweichen", "Schiva", "Esquivar", "ドッジ" },
     { "Devolver cartas", "Rendre les cartes", "Karten zurückgeben", "Restituisci carte", "Devolver cartas", "カードを戻す" },
-    { "Restaurar valores predeterminados", "Restaurer les valeurs par défaut", "Standardwerte wiederherstellen", "Ripristina valori predefiniti", "Restaurar valores predeterminados", "初期設定に戻す" },
-    { "Nintendo controller", "Manette Nintendo", "Nintendo-Controller", "Controller Nintendo", "Mando Nintendo", "任天堂のコントローラー" },
+    { "Restaurar valores predeterminados", "Restaurer les valeurs par défaut", "Standardwerte wiederherstellen", "Ripristina valori predefiniti", "Restaurar valores predeterminados", "初期値に戻す" },
+    { "Nintendo controller", "Manette Nintendo", "Nintendo-Controller", "Controller Nintendo", "Mando Nintendo", "ニンテンドーのコントローラー" },
     { "Force Nintendo layout", "Forcer la disposition Nintendo", "Nintendo-Belegung erzwingen", "Forza disposizione Nintendo",
-      "Forzar mando Nintendo", "任天堂配置に固定" },
+      "Forzar mando Nintendo", "ニンテンドーの配置にこてい" },
     { "Volver", "Retour", "Zurück", "Indietro", "Volver", "戻る" },
 };
 static const char* const sCheatsTitle[LANG_COUNT] = { "Cheats", "Codes", "Cheats", "Trucchi", "Trucos", "チート" };
@@ -382,7 +382,7 @@ static const char* const sCheatsHelp[LANG_COUNT] = {
     "Debug: nur im Titel. Stufe, Karten, Tagebuch: auf der Karte.",
     "Debug: solo dal titolo. Livello, carte, diario: sulla mappa.",
     "Debug: solo en el título. Nivel, cartas y diario: en el mapa; luego guarda.",
-    "デバッグはタイトルで。レベル・カード・日記はマップ上で。保存して反映。",
+    "デバッグはタイトルで。レベル・カード・日記はマップ上で。セーブすると有効になります。",
 };
 static const char* const sRematchTitle[LANG_COUNT] = { "Boss rematches", "Revanches de boss", "Boss-Revanchen",
     "Rivincite coi boss", "Revancha de jefes", "ボス再戦" };
@@ -395,7 +395,7 @@ static const char* const sRematchHelp[LANG_COUNT] = {
     "倒したボスと再戦（部屋から）。終了後ここへ戻り、戦闘の結果は残りません。",
 };
 static const char* const sCheatDone[LANG_COUNT] = {
-    "Cheat applied", "Code appliqué", "Cheat angewendet", "Trucco applicato", "Truco aplicado", "チートを適用",
+    "Cheat applied", "Code appliqué", "Cheat angewendet", "Trucco applicato", "Truco aplicado", "チートを使う",
 };
 static const char* const sNgTitle[LANG_COUNT] = { "New game", "Nouvelle partie", "Neues Spiel", "Nuova partita",
     "Nueva partida", "ニューゲーム" };
@@ -411,7 +411,7 @@ static const char* const sNgDescOriginal[LANG_COUNT] = {
     "Die originale Game-Boy-Advance-Version, genau wie auf dem Modul.",
     "La versione originale per Game Boy Advance, esattamente come sulla cartuccia.",
     "La versión original de Game Boy Advance, exactamente como en el cartucho.",
-    "ゲームボーイアドバンス版そのままのオリジナル。",
+    "ゲームボーイアドバンスそのままのオリジナル。",
 };
 static const char* const sNgDescRecom[LANG_COUNT] = {
     "With improvements from Re:Chain of Memories (PS2): difficulty levels and faster dialogue.",
@@ -419,7 +419,7 @@ static const char* const sNgDescRecom[LANG_COUNT] = {
     "Mit Verbesserungen aus Re:Chain of Memories (PS2): Schwierigkeitsgrade und schnellere Dialoge.",
     "Con i miglioramenti di Re:Chain of Memories (PS2): livelli di difficoltà e dialoghi più rapidi.",
     "Con mejoras de Re:Chain of Memories (PS2): niveles de dificultad y diálogos más rápidos.",
-    "Re:チェイン オブ メモリーズ (PS2) の改良入り：難易度の選択と会話の高速化。",
+    "Re:チェイン オブ メモリーズ (PS2) の改良入り：難しさの選択と会話の高速化。",
 };
 static const char* const sNgDescDifficulty[3][LANG_COUNT] = {
     { "As the original: the cartridge's damage.", "Comme l'original : les dégâts de la cartouche.",
@@ -462,7 +462,7 @@ static const char* const sNgDescHdScenes[LANG_COUNT] = {
     "Szenen, die Re:CoM als Video hat, laufen stattdessen so (englische Stimmen, Untertitel in deiner Sprache).",
     "Le scene che Re:CoM ha come video vengono riprodotte così (voci inglesi, sottotitoli nella tua lingua).",
     "Las escenas que Re:CoM tiene en video se ven así (voces en inglés, subtítulos en tu idioma).",
-    "Re:CoMでムービーになっている場面はそれで再生（英語音声、字幕はゲームの言語）。",
+    "Re:CoMでムービーになっている場面はそれで再生（英語音声、じまくはゲームの言語）。",
 };
 static const char* const sNgDescQol[LANG_COUNT] = {
     "One button for the dodge roll and for stocking cards (L+R).",
@@ -470,7 +470,7 @@ static const char* const sNgDescQol[LANG_COUNT] = {
     "Eine Taste für Ausweichen und Vorrat (L+R).",
     "Un tasto per la capriola e per l'accumulo (L+R).",
     "Un botón para rodar y para acumular cartas (L+R).",
-    "ドッジロールとカードストック（L+R）を専用ボタンで操作。",
+    "ドッジロールとカードストック（L+R）を別のボタンで使う。",
 };
 static const char* const sNgDescStart[LANG_COUNT] = {
     "Everything here can be changed later with START + SELECT.",
@@ -529,8 +529,8 @@ static const char* const sOnOff[2][LANG_COUNT] = {
 static const char* const sViews[PORT_VIEW_COUNT][LANG_COUNT] = {
     { "Original 240x160", "Originale 240x160", "Original 240x160", "Originale 240x160", "Original 240x160", "オリジナル 240x160" },
     { "Wide 284x160", "Large 284x160", "Breit 284x160", "Panoramica 284x160", "Panorámica 284x160", "ワイド 284x160" },
-    { "Extended 320x180", "Étendue 320x180", "Erweitert 320x180", "Estesa 320x180", "Ampliada 320x180", "拡張 320x180" },
-    { "Maximum 384x216", "Maximale 384x216", "Maximal 384x216", "Massima 384x216", "Máxima 384x216", "最大 384x216" },
+    { "Extended 320x180", "Étendue 320x180", "Erweitert 320x180", "Estesa 320x180", "Ampliada 320x180", "ワイド＋ 320x180" },
+    { "Maximum 384x216", "Maximale 384x216", "Maximal 384x216", "Massima 384x216", "Máxima 384x216", "いちばん広い 384x216" },
     { "Auto (fill window)", "Auto (remplir)", "Auto (füllen)", "Auto (riempi)", "Auto (llenar ventana)", "自動 (画面に合わせる)" },
 };
 static const char* const sZoomHeavy[LANG_COUNT] = {
@@ -541,7 +541,7 @@ static const char* const sZoomHeavy[LANG_COUNT] = {
 static const char* const sScales[PORT_SCALE_COUNT][LANG_COUNT] = {
     { "Integer", "Entière", "Ganzzahlig", "Intera", "Entero", "ドットばい" },
     { "Fit", "Ajuster", "Einpassen", "Adatta", "Ajustar", "合わせる" },
-    { "Stretch", "Étirer", "Strecken", "Allunga", "Estirar", "引き伸ばし" },
+    { "Stretch", "Étirer", "Strecken", "Allunga", "Estirar", "引きのばし" },
 };
 static const char* const sFilters[PORT_FILTER_COUNT][LANG_COUNT] = {
     { "Sharp", "Net", "Scharf", "Nitido", "Nítido", "シャープ" },
@@ -550,23 +550,23 @@ static const char* const sFilters[PORT_FILTER_COUNT][LANG_COUNT] = {
 };
 static const char* const sHudSizes[3][LANG_COUNT] = {
     { "Original", "Original", "Original", "Originale", "Original", "オリジナル" },
-    { "Large", "Grand", "Groß", "Grande", "Grande", "大きい" },
-    { "Larger", "Plus grand", "Größer", "Più grande", "Más grande", "もっと大きい" },
+    { "Large", "Grand", "Groß", "Grande", "Grande", "おおきい" },
+    { "Larger", "Plus grand", "Größer", "Più grande", "Más grande", "もっとおおきい" },
 };
 static const char* const sAspect[PORT_ASPECT_COUNT][LANG_COUNT] = {
     { "Fill window", "Remplir la fenêtre", "Fenster füllen", "Riempi finestra", "Llenar ventana", "ウィンドウに合わせる" },
     { "16:9", "16:9", "16:9", "16:9", "16:9", "16:9" },
     { "21:9", "21:9", "21:9", "21:9", "21:9", "21:9" },
-    { "Force 21:9", "Forcer 21:9", "21:9 erzwingen", "Forza 21:9", "Forzar 21:9", "21:9に固定" },
-    { "Force 32:9", "Forcer 32:9", "32:9 erzwingen", "Forza 32:9", "Forzar 32:9", "32:9に固定" },
+    { "Force 21:9", "Forcer 21:9", "21:9 erzwingen", "Forza 21:9", "Forzar 21:9", "21:9にこてい" },
+    { "Force 32:9", "Forcer 32:9", "32:9 erzwingen", "Forza 32:9", "Forzar 32:9", "32:9にこてい" },
     { "4:3", "4:3", "4:3", "4:3", "4:3", "4:3" },
     { "GBA 3:2", "GBA 3:2", "GBA 3:2", "GBA 3:2", "GBA 3:2", "GBA 3:2" },
 };
 static const char* const sPressA[LANG_COUNT] = { "A: apply", "A : appliquer", "A: übernehmen", "A: applica",
     "A: aplicar", "A: 決定" };
-static const char* const sIntegralReference[LANG_COUNT] = { "integer", "entière", "ganzzahlig", "intera", "íntegra", "整数" };
+static const char* const sIntegralReference[LANG_COUNT] = { "integer", "entière", "ganzzahlig", "intera", "íntegra", "せいすう" };
 static const char* const sNarrow[2][LANG_COUNT] = {
-    { "Exact pixels", "Pixels exacts", "Exakte Pixel", "Pixel esatti", "Píxel exacto", "等倍ピクセル" },
+    { "Exact pixels", "Pixels exacts", "Exakte Pixel", "Pixel esatti", "Píxel exacto", "1:1ピクセル" },
     { "Fill height", "Remplir la hauteur", "Höhe füllen", "Riempi altezza", "Llenar altura", "高さに合わせる" },
 };
 static const char* const sDesktop[LANG_COUNT] = { "Desktop", "Bureau", "Desktop", "Desktop", "Escritorio",
@@ -648,6 +648,8 @@ static int NextChar(const char** s) {
             return 0x0D;
         case 0x25CB:
             return 0x0E;
+        case 0xFF1A:
+            return ':'; /* the Japanese font has no full-width colon */
     }
 #ifdef VERSION_JP
     if (c >= 0x3000)
@@ -2079,7 +2081,7 @@ static void ShortValue(int item, char* out, size_t size) {
 static const char* const sWizAsk[5][LANG_COUNT] = {
     { "Which version do you want to play?", "Quelle version veux-tu jouer ?", "Welche Version möchtest du spielen?",
       "Quale versione vuoi giocare?", "¿Qué versión quieres jugar?", "どのバージョンで遊びますか？" },
-    { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
+    { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難しさ" },
     { "Before you start", "Avant de commencer", "Bevor es losgeht", "Prima di iniziare", "Antes de empezar",
       "はじめる前に" },
     { "How do you want to play?", "Comment veux-tu jouer ?", "Wie möchtest du spielen?", "Come vuoi giocare?",
@@ -2133,7 +2135,7 @@ static const char* const sModeDescClassic[LANG_COUNT] = {
     "disattivati. Quasi un emulatore, ma nativo.",
     "Como en la consola: la imagen de 240x160 a escala entera con un borde decorativo y todas las mejoras apagadas. "
     "Casi un emulador, pero nativo.",
-    "本体と同じ：240x160の画面を整数倍で表示し、飾り枠付き。改善はすべてオフ。ほぼエミュレーター、でもネイティブ。",
+    "本体と同じ：240x160の画面をせいすう倍で表示し、まわりにかざりのわく。改善はすべてオフ。ほぼエミュレーター、でもネイティブ。",
 };
 static const char* const sWizWide[LANG_COUNT] = { "Wide view", "Vue large", "Breitbild", "Vista larga",
                                                   "Vista amplia", "ワイド表示" };
@@ -2302,6 +2304,28 @@ static void WizKey(int key) {
     }
 }
 
+/* A three-byte UTF-8 character (Japanese): a line may break before and after it, it has no spaces. */
+static int WideChar(const char* s) {
+    return ((unsigned char)*s & 0xF0) == 0xE0;
+}
+
+/* Japanese punctuation that never starts a line (、。）」): kept at the end of the line before. */
+static int ClosingMark(const char* s) {
+    return !SDL_strncmp(s, "\xE3\x80\x81", 3) || !SDL_strncmp(s, "\xE3\x80\x82", 3) ||
+           !SDL_strncmp(s, "\xEF\xBC\x89", 3) || !SDL_strncmp(s, "\xE3\x80\x8D", 3);
+}
+
+/* The end of the next unit that is not broken: a word, or one Japanese character with its closing marks. */
+static const char* WrapUnit(const char* q) {
+    if (WideChar(q)) {
+        q += 3;
+        while (WideChar(q) && ClosingMark(q)) q += 3;
+        return q;
+    }
+    while (*q && *q != ' ' && !WideChar(q)) q++;
+    return q;
+}
+
 /* Text wrapped to maxW; returns the lines drawn (draw = 0: only measures). */
 static int DrawWrapped(const char* text, int x, int y, int maxW, uint32_t color, int draw) {
     char line[200];
@@ -2312,8 +2336,7 @@ static int DrawWrapped(const char* text, int x, int y, int maxW, uint32_t color,
         const char* q = p;
         int n;
         while (1) {
-            const char* e = q;
-            while (*e && *e != ' ') e++;
+            const char* e = WrapUnit(q);
             n = (int)(e - p);
             if (n >= (int)sizeof(line)) break;
             SDL_memcpy(line, p, (size_t)n);
@@ -2321,7 +2344,7 @@ static int DrawWrapped(const char* text, int x, int y, int maxW, uint32_t color,
             if (TextWidth(line) > maxW && best != NULL) break;
             best = e;
             if (!*e) break;
-            q = e + 1;
+            q = *e == ' ' ? e + 1 : e;
         }
         if (best == NULL) best = p + SDL_strlen(p);
         n = SDL_min((int)(best - p), (int)sizeof(line) - 1);
@@ -2329,7 +2352,7 @@ static int DrawWrapped(const char* text, int x, int y, int maxW, uint32_t color,
         line[n] = 0;
         if (draw) DrawText(line, x, y + lines * 11, color, 0xFFD8D8D8u);
         lines++;
-        p = *best ? best + 1 : best;
+        p = *best == ' ' ? best + 1 : best;
     }
     return lines;
 }
@@ -2560,9 +2583,9 @@ static const char* const sNintendoNote[LANG_COUNT] = {
     "Los mandos de Nintendo (Switch Pro, Joy-Con, 8BitDo en modo Switch) tienen A y B, X e Y al revés que los de "
     "Xbox. ReKHCoM los detecta; actívalo si el tuyo se toma por un mando de Xbox (por ejemplo con Steam o Lutris). "
     "Activado: el botón rotulado A es la A del juego, B es B, X es X e Y es Y. Tus asignaciones no cambian.",
-    "任天堂のコントローラー（Switch Pro、ジョイコン、Switchモードの8BitDo）は Xboxと比べて AとB、XとYが逆です。 "
-    "ReKHCoMは自動で判別します。 Xboxのパッドと判定される場合（SteamやLutris経由など）はオンに。 "
-    "オン: Aと書かれたボタンがゲームのA、BはB、XはX、YはYになります。 割り当ては変わりません。",
+    "ニンテンドーのコントローラー（Switch Pro、ジョイコン、Switchモードの8BitDo）は Xboxとくらべて AとB、XとYが逆です。 "
+    "ReKHCoMは自動で判別します。 Xboxのパッドと判定される場合（SteamやLutrisを通してなど）はオンに。 "
+    "オン: Aと書かれたボタンがゲームのA、BはB、XはX、YはYになります。 わりあては変わりません。",
 };
 
 static void DrawNintendoNote(int l, int width, int height, int left) {
