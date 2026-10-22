@@ -93,12 +93,8 @@ Pasos siguientes, en orden:
   lo que el cartucho dibuja delante va a una capa encima (`PortPpuHudOver`). EU/US/JP, mano, cartas enemigas
   girando, jefe: sin caídas (el renderer por software de SDL se colgaba con quads espejados: ver DEBUG_WORKFLOW).
 - [ ] Opción en Opciones/launcher (Mejoras de Re:CoM, beta), modos GBA/HD.
-- [x] Menú de barajas y vista Original (22/10): las piezas HD de la imagen principal quedan detrás de lo que el
-  cartucho dibuja delante (`MainHdOver` en port_ppu.c: esos píxeles van a una capa encima, `PortPpuMainOver`).
-  Las cartas chicas del menú no tienen ilustración 1:1; solo el dígito es HD.
-- [x] Pruebas: con las opciones HD apagadas, 12/12 capturas idénticas a antes del HD (`compare_present_builds.py`, 22/10).
-- [x] Dígitos del valor con la fuente HD de los diálogos (pedido del usuario 22/10: la cursiva de Re:CoM no le gustó):
-  `gen_card_digits_inc.py` → `hd_card_digits.inc`, dentro del juego (filas `builtin` de la receta, el importador las salta).
+- [ ] Menú de barajas (cartas chicas, capa de pantalla) y vista GBA (sin capa HUD).
+- [ ] Pruebas: capturas con la opción apagada idénticas (`compare_present_builds.py`).
 
 ## Título HD (22/10, `hd_title`, beta)
 El logo del título de GBA son sprites (`task_title_logo_2`): corazón, letras KINGDOM HEARTS, corona, Disney/Square
@@ -116,7 +112,7 @@ caja -16 -12 32 32, arte en 3,2..29,30 como las de combate: sirve la receta `cro
 Key to Rewards (`gCardRoom23`) no tiene. GBA→cr: 01→002 02→001 03→018 04→006 05→005 06→020 07→003 08→004 09→017
 10→019 11→022 12→011 13→010 14→012 15→013 16→021 17→015 18→016 19→014 20→007 21→008 22→009 (carpetas: cr_001..009 =
 0601..0609, 010..016 = 0621..0627, 017..022 = 0641..0646). Mundos: `cl_001..013` (CARD/0301..).
-Oclusión hecha (22/10, `MainHdOver`): ya pueden entrar. Antes: la síntesis de estancias las dibuja en la capa principal, con el guante del cursor y el círculo del
+No entran todavía: la síntesis de estancias las dibuja en la capa principal, con el guante del cursor y el círculo del
 valor encima; la capa principal HD se pinta sobre todo. Hace falta oclusión en la capa principal (repintar encima los
 píxeles de lo que va delante, como `sHdCover`/`sHudOver` del HUD) antes de añadirlas como grupo propio.
 Prueba: `KHCOM_MODE='60:room:10901,120:fieldfreeze,200:doorpose:0' KHCOM_KEYS='240-242:A'` (test_door_views.py).

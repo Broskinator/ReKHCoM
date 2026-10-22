@@ -32,18 +32,6 @@ typedef struct HdSpriteDef {
 } HdSpriteDef;
 
 #include "port/hd_sprites.inc"
-#include "port/hd_card_digits.inc"
-
-/* The card value digits are ours (gen_card_digits_inc.py: the dialogue's HD font), built into the game. */
-static const unsigned char* OwnPicture(const char* name, int* size) {
-    int k;
-    for (k = 0; k < (int)(sizeof(kCardDigits) / sizeof(kCardDigits[0])); k++)
-        if (SDL_strcmp(kCardDigits[k].name, name) == 0) {
-            *size = kCardDigits[k].size;
-            return kCardDigits[k].png;
-        }
-    return NULL;
-}
 
 #define HD_SPRITE_COUNT ((int)(sizeof(kHdSprites) / sizeof(kHdSprites[0])))
 #define MAX_DRAWS 128
@@ -90,11 +78,6 @@ int PortHdSpriteFind(const void* tiles, const void* frame) {
         if (!sState[i].present) {
             char file[160];
             FILE* f;
-            int size;
-            if (OwnPicture(d->name, &size)) {
-                sState[i].present = 2;
-                return i + 1;
-            }
             SDL_snprintf(file, sizeof(file), "hd/sprites/%s.png", d->name);
             f = fopen(PortConfigPath(file), "rb");
             sState[i].present = f ? 2 : 1;
@@ -128,11 +111,8 @@ static int Load(int i) {
     unsigned char* px;
     SDL_Surface* s;
     size_t need;
-    const unsigned char* own;
-    int ownSize;
     SDL_snprintf(file, sizeof(file), "hd/sprites/%s.png", kHdSprites[i].name);
-    own = OwnPicture(kHdSprites[i].name, &ownSize);
-    px = own ? stbi_load_from_memory(own, ownSize, &w, &h, &n, 4) : stbi_load(PortConfigPath(file), &w, &h, &n, 4);
+    px = stbi_load(PortConfigPath(file), &w, &h, &n, 4);
     if (!px || w < 1 || h < 1 || w > 4096 || h > 4096) {
         if (px) stbi_image_free(px);
         sState[i].present = 1;
