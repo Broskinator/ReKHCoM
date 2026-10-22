@@ -121,3 +121,15 @@ Diferencias para Android:
   `doorselect` fuera de la lista (artefacto del arnés ya conocido en `debug_kit.py`).
 - [x] #22 y #34 (y #33, #35 Switch) comentados con la prerelease de prueba v1.9.13-pre2 (21/10): se pidió que
   prueben y dejen modelo y versión de Android; se cierran con su confirmación.
+- [ ] **Respuestas a la pre2 (21/10, 16:16 UTC):** Odin 2 Portal anda bien (#22, xsm2). Poco F8 Ultra (#22) y
+  Huawei Mate XT, HarmonyOS 4.2 / Android 12 (#34, Xivadas): "The game image could not be loaded" al pulsar jugar.
+  Pixel 4 con Android 13 (#22, DrunkECheese) sin resultado todavía. Causa más probable: en teléfonos reales algo ocupa
+  0x01000000-0x0C000000 (ART reparte sus bloques de memoria baja desde abajo; en el emulador estaba libre), la reserva
+  del constructor falla y el `MAP_FIXED_NOREPLACE` de cada segmento también. **Arreglo escrito (rama, sin probar en
+  emulador todavía):** la imagen ya es un Mach-O PIE con su tabla de reubicaciones (`LC_DYLD_INFO_ONLY`, 78.552
+  punteros en EU): el host intenta 0x01000000 y, si está ocupada, deja en el log qué la ocupa, busca un hueco libre
+  por debajo de 4 GiB (desde 0xF0000000 hacia abajo, que ART llena último), carga la imagen ahí y aplica las
+  reubicaciones. El mensaje de error ahora dice la causa en pantalla (los testers no encuentran cómo pasar el log).
+  Los estados rápidos de otra dirección se rechazan solos (su firma incluye la dirección de los datos); las partidas
+  `.sav` no dependen de ella. Falta: probar en el emulador con `KHCOM_IMAGE_MOVE=1` (fuerza otra dirección) la
+  batería de menús y jefes, rehacer el APK y pedir a los testers que lo prueben (con el OK del usuario).

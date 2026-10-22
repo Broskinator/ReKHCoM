@@ -87,6 +87,7 @@ enum {
     ITEM_MOOGLE_NOTICE,
     ITEM_INVERT_CARD_SCROLL,
     ITEM_HIDE_TOUCH,
+    ITEM_FRAMESKIP,
     ITEM_RECOM_EXTRAS, /* section heading, not selectable */
     ITEM_TITLE,        /* back to the title screen, as the game's own Continue screen does */
     ITEM_UNSTOCK,
@@ -275,6 +276,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
       "Invertir selección de cartas", "カード送りを反転" },
     { "Hide touch controls", "Masquer les commandes tactiles", "Touch-Steuerung ausblenden",
       "Nascondi controlli touch", "Ocultar controles táctiles", "タッチ操作を非表示" },
+    { "Skip frames when slow", "Sauter des images si lent", "Bilder überspringen wenn langsam",
+      "Salta fotogrammi se lento", "Saltar cuadros si va lento", "遅い時はフレームを飛ばす" },
     { "Re:CoM improvements", "Améliorations Re:CoM", "Re:CoM-Verbesserungen", "Miglioramenti Re:CoM", "Mejoras de Re:CoM", "Re:CoMの改善" },
     { "Return to title screen", "Retour à l'écran titre", "Zurück zum Titelbildschirm",
       "Torna alla schermata del titolo", "Volver a la pantalla de título", "タイトル画面に戻る" },
@@ -887,6 +890,9 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_FPS:
             SDL_strlcpy(out, sOnOff[gPortConfig.showFps != 0][l], size);
             break;
+        case ITEM_FRAMESKIP:
+            SDL_strlcpy(out, sOnOff[gPortConfig.frameSkip != 0][l], size);
+            break;
         case ITEM_DISCORD:
             SDL_strlcpy(out, sOnOff[gPortConfig.discordPresence != 0][l], size);
             break;
@@ -1106,6 +1112,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_FPS:
             gPortConfig.showFps = !gPortConfig.showFps;
+            break;
+        case ITEM_FRAMESKIP:
+            gPortConfig.frameSkip = !gPortConfig.frameSkip;
             break;
         case ITEM_DISCORD:
             gPortConfig.discordPresence = !gPortConfig.discordPresence;
@@ -1585,13 +1594,16 @@ int PortUiHandleEvent(const void* p) {
     if (sPage == PAGE_CONTROLS && sControlCapture && sCursor >= ITEM_CONTROL_A && sCursor <= ITEM_CONTROL_UNSTOCK) {
         int action = sCursor - ITEM_CONTROL_A;
         if (ev->type == SDL_EVENT_KEY_DOWN && !ev->key.repeat) {
-            if (ev->key.key == SDLK_ESCAPE) sControlCapture = 0;
+            if (ev->key.key == SDLK_ESCAPE || ev->key.key == SDLK_AC_BACK) sControlCapture = 0;
             else if (!sControlPad) { gPortConfig.keys[action][0] = ev->key.key == SDLK_DELETE ? 0 : (int)ev->key.key; sControlCapture = 0; PortConfigSave(); }
             else if (ev->key.key == SDLK_DELETE) { gPortConfig.pad[action] = -1; sControlCapture = 0; PortConfigSave(); }
             return 1;
         }
         if (sControlPad && ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) { gPortConfig.pad[action] = ev->gbutton.button; sControlCapture = 0; PortConfigSave(); return 1; }
         if (sControlPad && ev->type == SDL_EVENT_GAMEPAD_AXIS_MOTION && SDL_abs(ev->gaxis.value) > 16000) { gPortConfig.pad[action] = PORT_PAD_AXIS_BASE + ev->gaxis.axis * 2 + (ev->gaxis.value < 0); sControlCapture = 0; PortConfigSave(); return 1; }
+        /* waiting for a key with no keyboard (issue #37): a gamepad button, a tap or a click cancels it */
+        if (!sControlPad && (ev->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || ev->type == SDL_EVENT_MOUSE_BUTTON_DOWN || ev->type == SDL_EVENT_FINGER_DOWN))
+            sControlCapture = 0;
         return 1;
     }
     if (ev->type == SDL_EVENT_KEY_DOWN) {

@@ -1,11 +1,37 @@
 # Changelog
 
-## v1.9.13 — 2026-10-21
+## v1.9.15 — in progress
 
-- Nintendo Switch (alpha, never run on a console yet): a homebrew `ReKHCoM.nro` for custom
+- Switch: with "Hide touch controls" on, no touch button shows anywhere, pause and Options included; hold Minus +
+  Plus for three seconds to open the Options (#36).
+- Switch and PS Vita: when the console cannot draw every frame, the frame is skipped instead of slowing the game:
+  the game and the sound keep their original speed (#35, #36). Options > Experimental, on by default everywhere.
+- PS Vita: the picture is drawn by the GPU.
+- Consoles and Android 64-bit: the sound's buffer level is measured in the right units.
+
+## v1.9.14 — 2026-10-21
+
+v1.9.13 came out only as a test prerelease; this stable release carries all of it. Windows, Linux and
+Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, Anbernic and the web player are betas
+(their files say "beta": we are still debugging them, reports welcome).
+
+- Android: phones where the game's usual memory range is taken (Poco F8 Ultra, Huawei Mate XT) load
+  the 64-bit game elsewhere instead of stopping with "The game image could not be loaded" (#22, #34).
+  The error box itself has a "Share log" button, so a log can be sent without reaching Settings.
+- Android: remapping a key without a keyboard can be cancelled with a gamepad button, a touch or
+  Back (#37); "Hide touch controls" with a gamepad connected hides every touch button, menus
+  included (#38).
+- Android: no more crash in the debug event select and at two spots of the 100 Acre Wood that the
+  PC recovered silently.
+- Windows: faster widescreen drawing (the area beyond the GBA picture uses several CPU cores).
+- HD mod (beta): marked as beta in the launcher.
+
+### From v1.9.13 (test prerelease)
+
+- Nintendo Switch (beta): a homebrew `ReKHCoM.nro` for custom
   firmware (Atmosphère, Homebrew Menu in title takeover). Copy it and your cartridge dump (EU, US
   or JP) to `sdmc:/switch/ReKHCoM/`. Minus + L3 / R3 save and load a state.
-- PS Vita (alpha, never run on a console yet): `ReKHCoM.vpk` for HENkaku/Ensō, installed with
+- PS Vita (beta): `ReKHCoM.vpk` for HENkaku/Ensō, installed with
   VitaShell; the cartridge dump goes in `ux0:data/ReKHCoM/`. Select + L / R save and load a state.
 - Discord: with the Discord app open, your profile shows the world and floor, Sora or Riku with
   the level, the boss you are fighting and the session time, in the game's language, with the

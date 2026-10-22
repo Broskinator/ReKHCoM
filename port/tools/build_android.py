@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import struct
 import urllib.request
 
@@ -58,9 +59,11 @@ def main():
     p.add_argument('--smoke',action='store_true',help='Separate test app: starts a debug battle, captures frame 600 and exits at 900')
     p.add_argument('--smoke-env',default='',help='Smoke app only: KEY=VALUE;KEY=VALUE harness settings replacing the debug battle')
     args=p.parse_args()
+    # seconds instead of a failed guest or Gradle build minutes later (check_sources.py)
+    subprocess.run([sys.executable,str(ROOT/'port/tools/check_sources.py')],check=True)
     release=re.search(r'#define REKHCOM_VERSION\s+"([^"]+)"',
                       (ROOT/'port/decompui/decompui.cpp').read_text(encoding='utf-8'))[1]
-    version_name=release.removeprefix('v')+'-android-alpha'
+    version_name=release.removeprefix('v')+'-android-beta'
     parts=re.match(r'v(\d+)\.(\d+)\.(\d+)',release)
     major,minor,patch=map(int,parts.groups())
     nightly=re.search(r'nightly\.(\d{8})\.(\d+)$',release)
@@ -81,7 +84,6 @@ def main():
     def run(cmd,cwd=ROOT):subprocess.run([str(x) for x in cmd],cwd=cwd,env=env,check=True)
     for region in args.regions:
         if not (ROOT/f'build/{region}/pc/rom_symbols.s').is_file():
-            import sys
             run([sys.executable,'port/tools/gen_pc_assets.py','--version',region])
     run([cmake,'-S',ROOT/'port/android','-B',native,'-G','Ninja',f'-DCMAKE_MAKE_PROGRAM={ninja}',
          f'-DCMAKE_TOOLCHAIN_FILE={ndk}/build/cmake/android.toolchain.cmake','-DANDROID_ABI='+args.abi,

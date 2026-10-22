@@ -2074,6 +2074,37 @@ int PortPacedByVsync(void) {
 
 static uint64_t sPpuTicks;
 
+/* experimental_frame_skip: a frame that starts half a frame late is not drawn nor presented (at most three in a
+   row); the game, its line events and the sound run as always, so it keeps the original speed on devices that
+   cannot draw every frame (Switch, Vita: #35, #36). A new canvas size is always drawn. */
+static int FrameSkipDue(int sizeChanged) {
+    static int skipped;
+    uint64_t now;
+
+    /* KHCOM_SKIPTEST=1 (harness): two frames of three are skipped whatever the clock; shots taken on multiples of 3
+       must match a run without it pixel for pixel (the game's logic does not depend on drawing) */
+    if (SDL_getenv("KHCOM_SKIPTEST") && !sizeChanged && !PortUiActive())
+        return sFrameCount % 3 != 0;
+    if (!gPortConfig.frameSkip || sizeChanged || !sNextFrame || SDL_getenv("KHCOM_FAST") || PortUiActive()) {
+        skipped = 0;
+        return 0;
+    }
+    now = SDL_GetPerformanceCounter();
+    {
+        /* the log says how often it acts: "frame skip: N of the last 600 frames" when any were skipped */
+        static int window, total;
+        int skip = now > sNextFrame + (uint64_t)(sPerfFreq / GBA_FPS / 2) && skipped < 3;
+        skipped = skip ? skipped + 1 : 0;
+        total += skip;
+        if (++window == 600) {
+            if (total)
+                PortLog("frame skip: %d of the last 600 frames not drawn", total);
+            window = total = 0;
+        }
+        return skip;
+    }
+}
+
 /* One display frame: draw, vertical blank, present, input, pacing. */
 static void VBlankCycle(void) {
     const char* frameLogPath = SDL_getenv("KHCOM_FRAMELOG");
@@ -2091,10 +2122,17 @@ static void VBlankCycle(void) {
         gPortScreenLayer = (mark || sPrevMark) && gPortConfig.viewMode == PORT_VIEW_AUTO;
         sPrevMark = mark;
     }
-    UpdateResolution();
+    int skip;
+    {
+        int w = gPortScreen.width, h = gPortScreen.height;
+        UpdateResolution();
+        skip = FrameSkipDue(w != gPortScreen.width || h != gPortScreen.height);
+    }
 
     /* Visible lines (HBlank / VCount events in between). */
-    {
+    if (skip) {
+        PortPpuRunFrameEvents();
+    } else {
         uint64_t t0 = SDL_GetPerformanceCounter();
         PortPpuRenderFrame();
         sPpuTicks = SDL_GetPerformanceCounter() - t0;
@@ -2115,7 +2153,8 @@ static void VBlankCycle(void) {
         static uint64_t ppuSum, presSum;
         static int n;
         uint64_t p0 = SDL_GetPerformanceCounter();
-        Present();
+        if (!skip)
+            Present();
         {
             extern void PortMenuLatch(void);
             PortMenuLatch(); /* this frame's menu sprites show from the next one */
@@ -2405,8 +2444,11 @@ int main(int argc, char** argv) {
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
     SDL_RenderClear(sRenderer);
     SDL_RenderPresent(sRenderer);
-    SDL_ShowWindow(sWindow);
-    SDL_SyncWindow(sWindow);
+    /* harness: KHCOM_HIDDEN keeps the window hidden, so timing runs draw on the real GPU without showing it */
+    if (!SDL_getenv("KHCOM_HIDDEN")) {
+        SDL_ShowWindow(sWindow);
+        SDL_SyncWindow(sWindow);
+    }
 #endif
     sPerfFreq = SDL_GetPerformanceFrequency();
     sFpsTime = SDL_GetPerformanceCounter();

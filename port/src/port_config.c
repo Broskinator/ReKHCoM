@@ -22,7 +22,7 @@ PortConfig gPortConfig = {
     1,                  /* narrowFit */
     0,                  /* scanlines */
     0,                  /* colorCorrection */
-    0,                  /* frameSkip */
+    1,                  /* frameSkip: a late frame is not drawn, the logic stays exact (test_frameskip.py) */
     0,                  /* showFps */
     4,                  /* windowScale */
     0,                  /* fullscreenWidth: 0 = the desktop's resolution */
@@ -109,6 +109,7 @@ static const Key sKeys[] = {
     { "scanlines", &gPortConfig.scanlines, 0, 100 },
     { "color_correction", &gPortConfig.colorCorrection, 0, 1 },
     { "show_fps", &gPortConfig.showFps, 0, 1 },
+    { "experimental_frame_skip", &gPortConfig.frameSkip, 0, 1 },
     { "window_scale", &gPortConfig.windowScale, 1, 8 },
     { "fullscreen_width", &gPortConfig.fullscreenWidth, 0, 16384 },
     { "fullscreen_height", &gPortConfig.fullscreenHeight, 0, 16384 },
@@ -301,7 +302,7 @@ void PortConfigLoad(void) {
 
     gPortConfig.discordPresence = 1; /* on unless the file says otherwise */
 #ifdef PORT_SWITCH
-    gPortConfig.hideTouchControls = 1; /* the console has buttons: only the touch options button shows (issue #35) */
+    gPortConfig.hideTouchControls = 1; /* the console has buttons; Minus + Plus held opens the options (issue #36) */
 #endif
     gPortConfig.hdSubtitles = 1;
     gPortConfig.hdMovies = 1;        /* the HD mod is used once imported (HD_MOD.md); the full scenes mod is opt-in */

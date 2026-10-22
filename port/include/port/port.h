@@ -112,7 +112,7 @@ typedef struct PortConfig {
     int narrowFit;        /* scenes without a wide view: 1 fill the height, 0 exact pixels */
     int scanlines;        /* 0..100 % intensity */
     int colorCorrection;  /* emulate the GBA LCD colours */
-    int frameSkip;        /* reserved */
+    int frameSkip;        /* 1: a late frame runs the game and the line events but is not drawn (slow devices) */
     int showFps;
     int windowScale;
     int fullscreenWidth;  /* 0 = desktop resolution (borderless) */
@@ -301,6 +301,7 @@ uint32_t PortMenuTabPixel(int y, int phase, int side);
 
 void PortPpuSetResolution(int w, int h);
 void PortPpuRenderFrame(void);
+void PortPpuRunFrameEvents(void); /* a skipped frame's line events, nothing drawn */
 void PortPpuVBlankLines(void);
 /* HUD layer: sprites anchored with PortHudBegin, drawn at their own scale. */
 extern int gPortHudScale;   /* output pixels per HUD pixel; 0 = no separate layer */

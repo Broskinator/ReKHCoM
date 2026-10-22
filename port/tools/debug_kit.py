@@ -65,6 +65,10 @@ HARNESS_ONLY = {
     ('UpdateLevelUpSelect', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
     ('WorldToScreen', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
     ('LVUP_EFFECT_3', 'menu-Mode_Premire'): 'level-up screen opened with no battle before it',
+    ('CountLinkPartnerDeckCards', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
+    ('FillCardSlotsFromIds', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
+    ('task_btl_hpply_1', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
+    ('task_btl_hpoth_1', 'menu-mode_vsbattle'): 'link battle opened with no link partner',
     ('Event_0', 'events/'): 'debug-menu events carry 0x8000; the game passes plain ids',
 }
 
@@ -150,6 +154,8 @@ def suite_commands(suite, version, jobs, quick):
         return py + [str(TOOLS / 'test_events.py'), *b, '--wide'] + (['--frames', '2000'] if quick else [])
     if suite == 'rooms':
         return py + [str(TOOLS / 'test_rooms.py'), *b] + (['--frames', '1500'] if quick else [])
+    if suite == 'skip':
+        return py + [str(TOOLS / 'test_frameskip.py'), *b]
     if suite == 'monkey':
         return py + [str(TOOLS / 'test_monkey.py'), *b, '--minutes', '2' if quick else '10']
     raise SystemExit(f'unknown suite {suite}')
@@ -286,6 +292,8 @@ def main():
     ap.add_argument('--jobs', type=int, default=0)
     ap.add_argument('--quick', action='store_true')
     ap.add_argument('--build', action='store_true', help='ninja the desktop test builds first')
+    ap.add_argument('--resume', action='store_true',
+                    help='skip the suites that already finished (a run killed from outside leaves no .done mark)')
     args = ap.parse_args()
     if args.command == 'run':
         versions = [v for v in args.versions.split(',') if v]
@@ -302,14 +310,25 @@ def main():
                 raise SystemExit(f'{build_dir(v)}/khcom.exe missing: run with --build')
             for suite in [s for s in args.suites.split(',') if s]:
                 jobs = args.jobs or default_jobs()
+                done = OUT / f'{suite}-{v}.done'
+                if args.resume and done.exists():
+                    print(f'== {suite} {v}: done before, skipped', flush=True)
+                    continue
+                done.unlink(missing_ok=True)
                 if suite == 'scenes':
                     print(f'== scenes {v} (jobs {jobs})', flush=True)
                     print(run_scenes(v, jobs), flush=True)
+                    done.write_text('', encoding='utf-8')
                     continue
                 cmd = suite_commands(suite, v, jobs, args.quick)
+                if args.resume and suite in ('events', 'wide', 'rooms'):
+                    cmd.append('--resume')  # those keep each finished case: a cut run goes on from there
                 print(f'== {suite} {v} (jobs {jobs})', flush=True)
-                with open(OUT / f'{suite}-{v}.txt', 'w', encoding='utf-8') as log:
-                    subprocess.run(cmd, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env)
+                with open(OUT / f'{suite}-{v}.txt', 'a' if args.resume else 'w', encoding='utf-8') as log:
+                    code = subprocess.run(cmd, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env).returncode
+                # killed from outside (0x40010004 on Windows, or a signal): not finished, --resume runs it again
+                if code not in (0x40010004, 0xC000013A) and code >= 0:
+                    done.write_text('', encoding='utf-8')
                 print((OUT / f'{suite}-{v}.txt').read_text(encoding='utf-8', errors='replace').strip().splitlines()[-1:],
                       flush=True)
     report()

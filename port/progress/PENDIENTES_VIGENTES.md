@@ -1,49 +1,90 @@
 # Cola vigente (21/10/2026, reparto con Codex)
 
-Publicado: v1.9.12 estable (Latest) con Windows, Linux, Steam Deck, Anbernic, Android, PS5, PS4 y ahora las alphas de Switch y Vita; web en Pages. Issues #23, #24, #30 y #31 cerrados; #25 abierto. PR #32 integrado.
-
-Prerelease de prueba v1.9.13-pre2 (21/10, pedido del usuario): Windows + APK (32 y 64 bits) + Switch .nro (GPU).
-Comentado en #22, #33, #34 y #35 pidiendo que prueben y dejen modelo/versión de su equipo; se cierran con su
-confirmación. Copia local: `Probar ReKHCoM v1.9.13 pre2.bat`.
-
-Única cola de trabajo; los demás .md son evidencia. Lo terminado sale de aquí
-(queda en el historial de git y en CHANGELOG.md). Numeración histórica conservada.
+Única cola de trabajo; los demás .md son evidencia. Lo terminado sale de aquí (queda en git y en CHANGELOG.md).
 
 Reglas del usuario:
-- Claude y Codex commitean y pushean a main; si uno lleva más de 10 min sin commits ni
-  archivos tocados, el otro toma sus puntos anotando hora y evidencia aquí.
-- Todo lo visual se entrega como copia jugable + .bat y espera aprobación del usuario; lo
-  aprobado va a LOGICA_APROBADOS.md; método en PRUEBAS_VISUALES.md.
+- Claude y Codex commitean y pushean a main; si uno lleva más de 10 min sin commits ni archivos tocados, el otro toma
+  sus puntos anotando hora y evidencia aquí.
+- Todo lo visual se entrega como copia jugable + .bat y espera aprobación del usuario; lo aprobado va a
+  LOGICA_APROBADOS.md; método en PRUEBAS_VISUALES.md.
 - La validación en hardware real no es pendiente: llega como reporte.
 - Nunca borrar carpetas ReKHCoM-vX sin que el usuario lo pida.
+- Publicar (releases, comentarios en issues) solo con el OK del usuario.
 
-## Traspaso 21/10 11:10
+## Estado (21/10 ~19:15)
 
-El usuario cambió de chat: un Claude nuevo toma los puntos del Claude anterior (sin cambios desde
-las 11:04) y sigue de integrador de Codex. El WIP de música HD en los hosts con puente quedó commiteado
-tal cual (build PC verificada); falta lo anotado en `HD_MOD.md` (emulador Android 64, Switch/Vita/PS5 en la VM).
+- **v1.9.14 publicada (estable, Latest)**, commit a97268171 (main): PC (Windows, Linux, Steam Deck) estable; Android,
+  Switch, Vita, PS4, PS5 (PPSA98511.zip, etiqueta ps5-beta) y Anbernic como `-beta`. Incluye J, #37, #38, I (PPU en
+  varios núcleos, 90 eventos sin MISMATCH), mod HD (beta). Android 64 con imagen movida: 37/37 ok. Comentado en #22,
+  #25, #33-#38; #25 cerrado. Los demás se cierran cuando el reporter confirme. Releases v1.9.12 y v1.9.13-pre2: borrar
+  (el clasificador bloqueó `gh release delete`; lo hace el usuario). Escenas Preliminar V1 de Codex sin aprobar: NO
+  integradas (rama claude/integrate-20261021).
 
-## Traspaso 21/10 12:55
 
-Otro Claude nuevo retoma (el anterior sin actividad desde las 12:53). La batería Android 64 se cortó a las 12:53
-porque adb no arrancó (0xC0000142, no es fallo del juego); se retoma desde el combate 30 de EU. Codex integrado hasta
-457d10854 (Atlántica 102).
+- **Publicado:** v1.9.12 estable (Latest), todas las plataformas + alphas de Switch y Vita; web en Pages.
+  v1.9.13-pre2 de prueba (Windows, APK 32/64, Switch GPU) comentada en #22, #33, #34, #35.
+- **Rama `claude/perf-android-reloc`** (no está en main; va a main cuando pasen sus dos baterías):
+  - J, Android 64 en teléfonos donde 0x01000000 está ocupada (#22 Poco F8 Ultra, #34 Mate XT): la imagen se carga en
+    otro hueco y se reubica. En el emulador con `KHCOM_IMAGE_MOVE=1` carga en 0xe2600000 y los menús salen bien.
+  - Caja de error con "Share log" (modelo, Android, logs). Si el juego se cae, `kh_com_host.log` trae la señal y la
+    cadena de llamadas del juego (direcciones del enlace: `llvm-symbolizer --obj=guest-<región>.macho`).
+  - #37 (sin teclado no se salía de "Press..."): un botón del mando, un toque o Atrás cancelan la captura.
+  - #38: "ocultar controles táctiles" con un mando conectado no dibuja nada, ni en menús (sin mando queda el botón
+    de opciones). Solo Android.
+  - I, PPU en varios núcleos (Windows): falta la verificación.
+- **21/10 ~17:00, pausadas por espacio:** el emulador reservaba 9 GB y el pagefile creció a 35,7 GB (C: llegó a
+  0,3 GB). Android (menús y fixtures con imagen movida: todo ok salvo el selector de eventos, ya arreglado) y la PPU
+  (80/194, 0 `MISMATCH`) se retoman con `--resume` cuando haya RAM/disco; la de escritorio sigue. Reiniciar Windows
+  devuelve el pagefile. Arreglados después: Event_0 (selector de eventos) y los dos sitios del Bosque de los 100 Acres
+  (`BUS_PTR`, `port/src/port_bus.c`), vistos en el informe de escritorio (`scenes` ahora va primero en las baterías).
+- **Baterías (estado anterior):**
+  - Android, imagen movida, EU menús/fixtures/jefes: `build/android-move-battery.log`,
+    `build/android-scenarios/report-eu-khcom_image_move.json`. Relanzar: el mismo comando con `--resume`
+    (`build/move_cmd.txt`).
+  - PPU: `KHCOM_PPU_VERIFY=1`, eventos US en vista 16:9 (`--wide`; en vista GBA no hay filas fuera de la imagen y la
+    verificación no prueba nada): `build/ppuverify-us.log`, `build/ppuverify/us_wide/*/kh_com.log` sin `MISMATCH`.
+  - Escritorio (`run_batteries.py --status`): eventos EU hechos, US en curso; luego JP, 16:9 y salas.
+- **Protecciones nuevas (21/10):** `check_sources.py` (constantes SDL del shim de consolas con el valor de SDL,
+  literales de Java cerrados) corre en `build_android.py` y en `release_check.py`; ya encontró `SDLK_DELETE` mal en el
+  shim. El arnés Android ya no da "ok" a un caso que todavía no arrancó, cuenta como caída el `crash:` del host y marca
+  `BAD-APK` si el APK de prueba se armó sin `--smoke-env KHCOM_FAST=1` (corría la batalla de prueba en cada caso).
+
+## 21/10 noche (usuario ausente, /goal: bugs y pendientes sin imágenes)
+
+- **v1.9.15-pre1 publicada (prueba: Windows, Switch, Vita)**, comentada en #35 y #36. Incluye: #36 (táctil oculto en
+  pausa/Opciones, Minus + Plus 3 s abre Opciones), salto de cuadros (`experimental_frame_skip`, encendido en todo tras
+  `test_frameskip.py` 24/24 idénticos y 1/3600 saltados en PC con VSync; RENDIMIENTO.md), Vita en GPU (SDL2 GXM de
+  vdpm), cola de audio del puente en unidades de entrada.
+- **F. Discord en Linux: hecho.** VM Debian con un socket falso: handshake y SET_ACTIVITY (mundo, piso, nivel, combate).
+- #34 cerrado (confirmado). #39 (recortar relleno) respondido: idea, no bug.
+- Builds de consolas: `build_ps5.py` enlaza con archivo de respuesta (límite de 32 K) y lee bien los `.d` con rutas de
+  Windows; Switch/Vita/PS5 ya no reusan un paquete viejo si la VM falla; Vita rellena 8 KiB si `vita-elf-create` no
+  tiene lugar.
+- Baterías: `run_batteries.py` suma battles, riku, monkey y skip (EU/US/JP); el AVD se encuentra con ANDROID_AVD_HOME.
+
+## Carpetas de KHCoMPC (21/10, pedido del usuario)
+
+La raíz quedó en: `jugar/` (copias ReKHCoM-vX con partidas del usuario + su .bat), `pruebas/` (copias que esperan
+aprobación + .bat), `roms/`, `arte/` (fuentes, imágenes, Showcase, Trailer), `respaldos/`, `toolchain/` y los repos.
+Cada una tiene `LEEME.md`. **Codex:** `package_preliminar_v1.py` ahora escribe en `../pruebas/ReKHCoM-preliminarV1`,
+`crystal_parity.py` lee `../respaldos/` y el tráiler sale en `../arte/Trailer/` (main); trae main antes de usarlos.
 
 ## Reparto
 
 | Quién | Pendiente |
 |---|---|
-| **Claude** | **A. Batería Android 64** (corriendo 21/10 en el emulador Android 14: EU menús/fixtures/jefes, EU jefes con Riku, US/JP menús y jefes). Al terminar: rehacer el APK de prueba y repetir las 7 pantallas agregadas al arnés (f15eee5dd y anterior); arreglar cada fallo real; luego otros perfiles (Android 13/15, tablet, plegable) y el bot de partida. Estado en `ANDROID_64.md` |
-| **Claude** | **B. Batería de escritorio** con el kit (`debug_kit.py run --build --versions eu,us,jp`, `--jobs 2`): Riku, eventos, eventos 16:9, juego aleatorio; cada `bios:` nuevo se arregla (#30, `KIT_DEPURACION.md`) |
-| **Claude** | **C. Videos HD en Android**: rama `claude/android-hd-movies`; el emulador se cuelga en la primera textura YUV (`glCreateProgram`). Probar otra imagen de emulador o subir los cuadros como RGB; a main solo verificado (`HD_MOD.md`) |
-| **Claude** | **D. Videos HD en consolas y Linux** (Switch/Vita/PS4/PS5, MP4 en Linux): después de Android |
-| **Claude** | **E. Issues de la pre2** (#22, #33, #34, #35): leer las respuestas de los testers, arreglar lo que reporten y cerrar con su confirmación; #35 Switch: si sigue lento con la GPU actual, evaluar deko3d. #25 (escenas HD): agradecer a DL-6-case y cerrar cuando salga el mod HD en una estable |
-| **Claude** | **F. Discord Rich Presence**: hecho; falta el Application ID que crea el usuario (`REKHCOM_DISCORD_APP_ID`) y probar Linux |
-| **Claude** | **G. Integración de Codex**: traer sus commits de `khcom-codex` (rama codex/preliminar-v1) y `khcom` a main con build y prueba antes de cada push (al día hasta 457d10854, 21/10) |
-| **Claude** | **H. Próxima estable**: con el OK del usuario; `release_check.py` antes/después, todas las plataformas (Switch y Vita incluidas), web, CHANGELOG ya al día con v1.9.13 |
+| **Claude** | **J + I a main**: cuando las dos baterías de arriba terminen limpias, build pc-eu/us/jp, prueba de combate, merge a main, APK de prueba. Con el OK del usuario: prerelease y pedir a #22/#34 que prueben; #37/#38 se cierran con la confirmación de xsm2 |
+| **Claude** | **A. Batería Android 64 completa**: EU jefes con Riku, US/JP menús y jefes; luego otros perfiles (Android 13/15, tablet, plegable como el Mate XT) y el bot de partida (`ANDROID_64.md`) |
+| **Claude** | **B. Batería de escritorio** (`run_batteries.py`): cada `bios:` nuevo se arregla (`KIT_DEPURACION.md`) |
+| **Claude** | **C. Videos HD en Android**: rama `claude/android-hd-movies`; el emulador se cuelga en la primera textura YUV. Probar `KHCOM_HDMOVIE_RGB=1` (b4cb4730d) en el emulador; a main solo verificado (`HD_MOD.md`). Luego **D**: consolas y MP4 en Linux |
+| **Claude** | **E'. Reportes nuevos (21/10 ~16:15, prioridad del usuario)**: #22 xsm2 Poco F8 Ultra y #34 Mate XT con la pre2: "The game image could not be loaded" = bug J (imagen de 64 bits sin hueco en 0x01000000), arreglado en `claude/perf-android-reloc`; xsm2 no llega a Settings para el log (la rama pone "Share log" en la caja de error). Odin 2 Portal anda bien con la pre2. Casos en la batería: grupo `issues` de `test_android_scenarios.py` (#33 evento 099, Bosque 100 Acres) y paso `android eu move` con `KHCOM_IMAGE_MOVE=1`. `mode_vsbattle` sale de la batería: arnés sin compañero de link (HARNESS_ONLY) |
+| **Claude** | **E. Issues**: #33 (Trickmaster, arreglado en pre2) y #35 (Switch lento: si sigue con la GPU, deko3d) esperan a los testers; #36 (Switch se cierra en el título): comentario listo en `build/issue36-comment.md`, sale con la próxima prueba; #25 se cierra cuando el mod HD salga en una estable |
+| **Claude** | **G. Integración de Codex**: traer sus commits (`khcom-codex` codex/preliminar-v1 y `khcom`) a main con build y prueba (al día hasta 457d10854) |
+| **Claude** | **I'. Rendimiento en consolas**: Vita a la GPU (necesita OK del usuario para `vdpm sdl2` en la VM), PS4 a la GPU (Piglet) (`RENDIMIENTO.md`) |
+| **Claude** | **H. Próxima estable**: solo con el OK del usuario; `release_check.py` antes/después, todas las plataformas, web |
 | **ChatGPT/Codex** | 39: rutas completas de Sora y de Reverse/Rebirth |
 | **ChatGPT/Codex** | 16–24: arte de jefes y escenas, de a uno con antes/después, con el método de abajo ("Para Codex: cómo hacer el arte") |
-| **Usuario** | Crear la aplicación de Discord y pasar su Application ID; probar `Probar Discord.bat` y `Probar ReKHCoM v1.9.13 pre2.bat` (pantalla completa sin parpadeo, mod HD, volver al título) |
+| **Usuario** | Probar `Probar Discord.bat` y `Probar ReKHCoM v1.9.13 pre2.bat` (pantalla completa sin parpadeo, mod HD, volver al título) |
 | **Usuario** | Aprobar el launcher nuevo (`Probar launcher nuevo.bat`, commit 07a6fa9ab); revisar 61–62 cuando Claude las muestre |
 
 ## Para Codex: cómo hacer el arte (16–24), según lo aprobado (21/10/2026)
@@ -102,14 +143,8 @@ Hecho:
 Sin verificar (no hay consola ni emulador aquí): mapeo de memoria de código en Switch real, pantalla,
 audio y mandos del host de Vita, rendimiento. Llega como reporte de quien lo pruebe.
 
-Siguiente:
-1. Switch: PUBLICADA como alpha dentro de la release v1.9.12 (`ReKHCoM-v1.9.12-switch-alpha.nro`,
-   pedido del usuario 20/10; archivos viejos intactos). La próxima release la lleva desde stage_release.
-   Vita: PUBLICADA igual (`ReKHCoM-v1.9.12-vita-alpha.vpk`, 20/10).
 
 ## Esperando a terceros (no se trabaja)
 
-- #23 mandos Nintendo: opción y normalización listas en juego y launcher; falta reporte con mando real (Switch Pro, 8BitDo, SN30).
-- Issue #27 (scanlines en márgenes): abierto hasta que quien lo reportó confirme.
 - Quiver: issue tgeorgiadis/quiver-launcher#182, pedimos levantar la retención del
   repositorio (VirusTotal 0/68; la causa fueron releases borrados mientras los revisaban).
