@@ -49,6 +49,46 @@ Reglas del usuario:
   shim. El arnés Android ya no da "ok" a un caso que todavía no arrancó, cuenta como caída el `crash:` del host y marca
   `BAD-APK` si el APK de prueba se armó sin `--smoke-env KHCOM_FAST=1` (corría la batalla de prueba en cada caso).
 
+## v2.0 — próxima estable (pedido del usuario 22/10: "stable nueva con 2.0 y anunciar la inclusión del HD")
+
+Es un lanzamiento grande: no publicar hasta pasar TODA la lista de verificación de abajo. PC (Windows, Linux, Steam Deck)
+estable; Android, Switch, Vita, PS4, PS5, Anbernic, web como `-beta`. Al final: revisar issues, arreglar sus bugs,
+publicar y anunciar el mod HD en las notas. El usuario prueba con `Probar ReKHCoM v1.9.15 completo.bat` (raíz).
+
+Hecho desde la v1.9.14 (en main): efectos que se silenciaban con la música HD (canales del BGM por su `trackCount`),
+música HD al volumen del cartucho, carga en hilo aparte, pausa en el lugar (sin tirar la cola), sigue sonando bajo
+Opciones, silencio mientras carga; pausa de escena en videos HD (START/Esc; A ya no corta); 97/100 escenas HD
+asignadas (`match_hd_scenes.py`); opciones HD en Mejoras de Re:CoM y en el asistente de partida nueva; inicio de
+combate sin el cuadro del corazón chico; arte del título difuminado; videos HD con el renderer por software; barras de
+vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch #36; Vita en GPU; Discord en Linux.
+
+### Pendientes v2.0 (en orden)
+1. **Escenas HD: disparo real.** `PortHdScenePlay` se llama desde `event_message.c` (2942) solo en eventos con texto;
+   comprobar con partidas reales (no el atajo `KHCOM_EVENT`, que no llegó a reproducirlas) que cada una de las 97 se
+   dispara, y las exclusivas de Re:CoM (`kHdSceneExtras`: 001 antes de 011, 614 tras 613, 631 tras 621) solo con
+   `PortRecomActive()`. Eventos sin texto (014, 020, 062, 071: escenas mudas) quizás no pasan por ese punto: verificar.
+2. **Transiciones profesionales** juego ↔ video HD: fundido a negro antes y al volver (hoy corte seco), audio sin pop.
+3. **Mirar el proyecto reciente de 358/2 Days** que implementó escenas HD, para aprender (transiciones, sincronía).
+4. **Consolas:** el HD (videos) no existe ahí; dejar documentado qué haría falta (decodificador por consola).
+5. Revisar issues abiertos al final, arreglar bugs, responder breve.
+
+### Lista de verificación antes de publicar (no saltear)
+- `release_check.py v2.0` antes y `--post` después (versión en launcher, rc, CHANGELOG, web, paquetes, Quiver).
+- `check_sources.py` (lo corre build_android y release_check): constantes del shim de consolas.
+- Builds: Windows, Linux, Android, PS4, Switch, Vita, PS5 (VM), web — desde el commit final; ningún paquete viejo
+  (los scripts de VM ya no reusan paquetes, verificar "fetched" en los logs).
+- Combate de prueba con cada ejecutable de PC (`KHCOM_BATTLE=10:4`), sin `bios:`/CRASH.
+- `debug_kit.py report` (baterías de escritorio: scenes, events, wide, rooms, battles, riku, monkey, skip) sin
+  sitios nuevos.
+- Android 64 (`run_android_full.py` / pasos `android ...` de run_batteries): imagen movida + jefes EU/US/JP, Riku.
+- `test_hd_audio.py` (ningún efecto tomado por música), `test_hd_audio_flow.py` con `uv run --with numpy --with
+  soundfile` (driver "disk": 0 cortes, 0 solapamientos, 0 saltos audibles; incluye Opciones abiertas).
+- `test_frameskip.py` (lógica idéntica con salto de cuadros).
+- Videos HD: `KHCOM_HDMOVIE_PAUSETEST` (pausa y salto), renderer por software, Android (`KHCOM_MOVIE=1` en el emulador,
+  `build/hdtest/run_hdmovie.py` en khcom-claude-hdmov).
+- `match_hd_scenes.py --check` (asignaciones consistentes).
+- Copia de prueba para el usuario + `.bat`; notas cortas; nunca decir en público que algo no se probó en hardware.
+
 ## 21/10 noche (usuario ausente, /goal: bugs y pendientes sin imágenes)
 
 - **v1.9.15-pre1 publicada (prueba: Windows, Switch, Vita)**, comentada en #35 y #36. Incluye: #36 (táctil oculto en

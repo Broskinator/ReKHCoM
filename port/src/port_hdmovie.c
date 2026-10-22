@@ -61,13 +61,36 @@ int PortHdMoviePlay(int movieId) {
 
 /* The full mod: the story event's Re:CoM scene, if imported and hd_scenes is on (event_message.c then ends the event
    through the game's own scene skip, so the event's results stay the game's). */
+/* Re:CoM's own scenes, which have no event on the cartridge: in the Re:CoM mode they play next to their neighbour
+   (before = 1: ahead of it), in their order in Re:CoM; the original mode stays as the cartridge. */
+static const struct { unsigned short eventId; const char* movie; unsigned char before; } kHdSceneExtras[] = {
+    { EVENT_000_1F_ENTRANCE_PART1, "zz_event_001", 1 }, /* the hooded man's prologue, then the castle */
+    { EVENT_193_RIKU_B1F_LAST1, "zz_event_614", 0 },
+    { EVENT_195_RIKU_ENDING, "zz_event_631", 0 },       /* the crossroads: the road to light or to darkness */
+};
+
+static void PlayExtras(int eventId, int before) {
+    size_t i;
+    if (!PortRecomActive())
+        return;
+    for (i = 0; i < sizeof(kHdSceneExtras) / sizeof(kHdSceneExtras[0]); i++)
+        if (kHdSceneExtras[i].eventId == eventId && kHdSceneExtras[i].before == before)
+            PlayFile(kHdSceneExtras[i].movie);
+}
+
 int PortHdScenePlay(int eventId) {
     size_t i;
     if (!gPortConfig.hdScenes)
         return 0;
     for (i = 0; i < sizeof(kHdScenes) / sizeof(kHdScenes[0]); i++)
-        if (kHdScenes[i].eventId == eventId)
-            return PlayFile(kHdScenes[i].movie);
+        if (kHdScenes[i].eventId == eventId) {
+            int played;
+            PlayExtras(eventId, 1);
+            played = PlayFile(kHdScenes[i].movie);
+            if (played)
+                PlayExtras(eventId, 0);
+            return played;
+        }
     return 0;
 }
 
