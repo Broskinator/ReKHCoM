@@ -195,3 +195,19 @@ CStockFolder, CBattleCard, CCardBattle, C2DSeqNumericCtrl). **CPlayerGauge::upda
   menú, leer su update/draw (qué grupo y dónde según el estado) y, como el medidor, dibujarlo con `PortHdLayoutDraw`
   sobre la lógica del GBA (el juego sigue igual por dentro). Hace falta: importar cada `.lad` + `SP_/UK_/...imz` según
   el idioma (importador Python y launcher idénticos) y ampliar `kLayoutFiles`/`kTextureFiles`.
+
+### Títulos de menú HD (22/10 noche, en main: dad13815b, 0be7323d3)
+- `port/tools/hd_menu_titles.py` genera las filas del grupo 5 (con Cartas HD): el cartel del cartucho (barra con
+  punta de flecha) dibujado con polígonos a 8x en los colores de **su paleta de la ROM**, y el título con las letras
+  de Re:CoM (la misma tipografía que el GBA): palabras enteras donde Re:CoM las tiene, letra por letra donde no.
+  Todo se mide de la ROM (piezas OAM = caja, largo de la línea superior = dónde empieza la flecha, dónde empieza el
+  texto); las mayúsculas llenan las filas 4..10.
+- Operaciones nuevas del importador (Python y launcher idénticos, dif. máx. 1): `poly`, `ink`, `sblit` (letra sin
+  las esquinas itálicas de las vecinas), `src=` (letras de otra textura).
+- Español hecho y visto en el juego: MENÚ, NAIPES MUNDO, NAIPES MAPA, ESTADO, CARGAR, DIARIO, GUARDAR, SÍNTESIS DE
+  ESTANCIAS, VÓRTICE, ELIGE UN MUNDO, ¡NIVEL↑!, TIENDA MOGURI (BONUS ÉLITE y VER BARAJA de Riku: filas listas, sin
+  ver en el juego). Donde la pantalla pasa el título a un BG al quedar quieta (mapa, diario, subida de nivel, elegir
+  mundo, tienda) el sprite sigue encima con HD (prioridad sobre ese BG).
+- Pendiente: **VER BARAJAS** solo es HD mientras entra: el menú libera sus tiles y su paleta y queda la copia en el BG3
+  (mantenerlos sería alargar la vida de un objeto del juego). Camino: una pieza HD sin OAM con el fundido del BG.
+  Otros idiomas (UK/FR/GR/IT en Re:CoM; inglés también para US).
