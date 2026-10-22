@@ -1,8 +1,20 @@
 # Changelog
 
-## v1.9.15 — 2026-10-22
+## v2.0 — 2026-10-22
+
+**The HD mod.** With your own copy of KINGDOM HEARTS -HD 1.5+2.5 ReMIX- on PC, the launcher imports Re:Chain of
+Memories' HD music, movies and story scenes (with their subtitles in every language Re:CoM has), and the game uses
+them in place of the cartridge's: the opening and endings, 97 of Re:CoM's 100 story scenes, and the HD soundtrack.
+All optional, under Options > Re:CoM improvements and in the New Game window. v1.9.15 came out only as a test
+prerelease; this release carries all of it.
 
 Windows, Linux and Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, Anbernic and the web player are betas.
+HD music plays on PC, Steam Deck, Android and the consoles; HD movies and scenes on Windows and Android.
+
+- HD scenes: smooth in and out of each scene (no flash of the event's picture when it ends), skipping a scene or
+  movie fades the picture and its sound out instead of cutting them, the field's music fades out before a scene
+  starts, and the scene pause sounds like the game's menus.
+- Agrabah: the street of Aladdin's rescue and the Genie's market now continue to the edges of the widescreen view.
 
 - Switch: with "Hide touch controls" on, no touch button shows anywhere, pause and Options included; hold Minus +
   Plus for three seconds to open the Options (#36).

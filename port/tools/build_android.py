@@ -64,8 +64,8 @@ def main():
     release=re.search(r'#define REKHCOM_VERSION\s+"([^"]+)"',
                       (ROOT/'port/decompui/decompui.cpp').read_text(encoding='utf-8'))[1]
     version_name=release.removeprefix('v')+'-android-beta'
-    parts=re.match(r'v(\d+)\.(\d+)\.(\d+)',release)
-    major,minor,patch=map(int,parts.groups())
+    parts=re.match(r'v(\d+)\.(\d+)(?:\.(\d+))?',release)  # v2.0 = v2.0.0
+    major,minor,patch=(int(g or 0) for g in parts.groups())
     nightly=re.search(r'nightly\.(\d{8})\.(\d+)$',release)
     version_code=major*1000000+minor*10000+patch*100+(int(nightly[2]) if nightly else 99)
     if args.jobs<1:p.error('--jobs must be positive')

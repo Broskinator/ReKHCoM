@@ -63,7 +63,7 @@ namespace fs = std::filesystem;
 #include "../achievements/toast_layout.h"
 
 #ifndef REKHCOM_VERSION
-#define REKHCOM_VERSION "v1.9.15"
+#define REKHCOM_VERSION "v2.0"
 #endif
 
 static bool sSpanish;

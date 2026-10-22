@@ -79,10 +79,11 @@ def main():
                                 (ROOT / 'port/decompui/decompui.cpp').read_text(encoding='utf-8'))
             if not version or args.release_version != version[1]:
                 p.error('--release-version must match REKHCOM_VERSION in the launcher')
-            numeric_version = re.match(r'v?(\d+\.\d+\.\d+)', args.release_version)
+            numeric_version = re.match(r'v?(\d+)\.(\d+)(?:\.(\d+))?', args.release_version)
             if not numeric_version:
-                p.error('--release-version must start with vX.Y.Z for the PS5 package')
-            command += ['--version', numeric_version[1], '--package']
+                p.error('--release-version must start with vX.Y or vX.Y.Z for the PS5 package')
+            # v2.0 is 2.0.0 for the PS5 package (contentVersion and the in-app updater compare three numbers)
+            command += ['--version', '.'.join(g or '0' for g in numeric_version.groups()), '--package']
         elif args.release_version:
             command += ['--version', args.release_version]
         if args.dry_run:
