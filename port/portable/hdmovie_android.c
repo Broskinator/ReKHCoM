@@ -394,28 +394,48 @@ static void Feed(Track* t) {
     }
 }
 
-/* KHCOM_HDMOVIE_RGB=1: the frame is converted to RGB here (BT.709, studio range) and uploaded as a plain texture,
-   for GPUs/emulators whose YUV textures do not work (the Android 14 emulator hangs creating SDL's YUV shader) */
+/* The frame is converted to RGB here (BT.709, studio range) and uploaded as a plain texture, the default: SDL's YUV
+   textures (KHCOM_HDMOVIE_YUV=1) hang some GPUs while their shader is built (the Android 14 emulator, 21/10) */
 static void YuvToRgb(SDL_Texture* texture, int w, int h, const uint8_t* y, int sy, const uint8_t* u, const uint8_t* v,
                      int su, int sv, int pu) {
+    /* the same integer formula per pixel, from tables built once; chroma once per pixel pair; one 32-bit store
+       (ABGR8888: bytes R, G, B, A) */
+    static int tY[256], tRv[256], tGu[256], tGv[256], tBu[256], ready;
+    static uint8_t clampTab[1024];
     uint8_t* out;
     int pitch;
+    if (!ready) {
+        for (int k = 0; k < 256; k++) {
+            tY[k] = (k - 16) * 298 + 128;
+            tRv[k] = 459 * (k - 128);
+            tGu[k] = -55 * (k - 128);
+            tGv[k] = -136 * (k - 128);
+            tBu[k] = 541 * (k - 128);
+        }
+        for (int k = 0; k < 1024; k++)
+            clampTab[k] = (uint8_t)(k < 384 ? 0 : k > 384 + 255 ? 255 : k - 384);
+        ready = 1;
+    }
+#define CLAMP8(x) clampTab[((x) >> 8) + 384]
     if (!SDL_LockTexture(texture, NULL, (void**)&out, &pitch))
         return;
     for (int j = 0; j < h; j++) {
         const uint8_t* ly = y + (size_t)j * sy;
         const uint8_t* lu = u + (size_t)(j / 2) * su;
         const uint8_t* lv = v + (size_t)(j / 2) * sv;
-        uint8_t* d = out + (size_t)j * pitch;
-        for (int i = 0; i < w; i++) {
-            int c = (ly[i] - 16) * 298, cb = lu[(i / 2) * pu] - 128, cr = lv[(i / 2) * pu] - 128;
-            int r = (c + 459 * cr + 128) >> 8, g = (c - 55 * cb - 136 * cr + 128) >> 8, b = (c + 541 * cb + 128) >> 8;
-            d[i * 4 + 0] = (uint8_t)(r < 0 ? 0 : r > 255 ? 255 : r);
-            d[i * 4 + 1] = (uint8_t)(g < 0 ? 0 : g > 255 ? 255 : g);
-            d[i * 4 + 2] = (uint8_t)(b < 0 ? 0 : b > 255 ? 255 : b);
-            d[i * 4 + 3] = 255;
+        uint32_t* d = (uint32_t*)(out + (size_t)j * pitch);
+        for (int i = 0; i < w; i += 2) {
+            int cu = lu[(i / 2) * pu], cv = lv[(i / 2) * pu];
+            int rv = tRv[cv], g = tGu[cu] + tGv[cv], bu = tBu[cu];
+            int c = tY[ly[i]];
+            d[i] = 0xFF000000u | (uint32_t)CLAMP8(c + bu) << 16 | (uint32_t)CLAMP8(c + g) << 8 | CLAMP8(c + rv);
+            if (i + 1 < w) {
+                c = tY[ly[i + 1]];
+                d[i + 1] = 0xFF000000u | (uint32_t)CLAMP8(c + bu) << 16 | (uint32_t)CLAMP8(c + g) << 8 | CLAMP8(c + rv);
+            }
         }
     }
+#undef CLAMP8
     SDL_UnlockTexture(texture);
 }
 
@@ -434,7 +454,7 @@ int HdMovieAndroidPlay(SDL_Renderer* renderer, const char* path, const char* sub
     int64_t audioPushed = 0, pendingPts = 0, start = 0; /* microseconds */
     Uint64 lastShown = 0; /* when a frame last went to the screen */
     ssize_t pending = -1;
-    int fd, quit = 0, played = 0, shown = 0, dropped = 0, audioOn, rgb = SDL_getenv("KHCOM_HDMOVIE_RGB") != NULL;
+    int fd, quit = 0, played = 0, shown = 0, dropped = 0, audioOn, rgb = SDL_getenv("KHCOM_HDMOVIE_YUV") == NULL;
     struct stat st;
     Subs subs;
 
