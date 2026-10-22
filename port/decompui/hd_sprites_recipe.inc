@@ -211,4 +211,10 @@ static const char* const kHdSpriteRecipe[] = {
     "gReloadCounterWhiteTiles_16\t1\tgReloadCounterWhiteFrame16\tgReloadCounterWhiteTiles\t-14\t-5\t26\t16\tFORM/0002/FO0002.RTM:UK_Cockpit.imz#0\tcanvas=208,128;blit=293,38,329,76,80,0,200,128;blit=46,38,72,76,24,0,112,128;scale=8",
     "gReloadCounterWhiteTiles_17\t1\tgReloadCounterWhiteFrame17\tgReloadCounterWhiteTiles\t-14\t-5\t25\t16\tFORM/0002/FO0002.RTM:UK_Cockpit.imz#0\tcanvas=200,128;blit=334,38,374,76,72,0,200,128;blit=46,38,72,76,24,0,112,128;scale=8",
     "gReloadCounterWhiteTiles_18\t1\tgReloadCounterWhiteFrame18\tgReloadCounterWhiteTiles\t-14\t-5\t25\t16\tFORM/0002/FO0002.RTM:UK_Cockpit.imz#0\tcanvas=200,128;blit=378,38,415,76,72,0,200,128;blit=46,38,72,76,24,0,112,128;scale=8",
+    "gHudGaugeLad\t3\t-\t-\t0\t0\t1\t1\tFORM/0002/FO0002.SPR:gauge.lad\traw",
+    "gHudCockpitLad\t3\t-\t-\t0\t0\t1\t1\tFORM/0002/FO0002.SPR:Cockpit.lad\traw",
+    "gHudGaugeTex0\t3\t-\t-\t0\t0\t32\t32\tFORM/0060/FO0060.RTM:UK_gauge.imz#0\tscale=8",
+    "gHudGaugeTex1\t3\t-\t-\t0\t0\t64\t64\tFORM/0060/FO0060.RTM:UK_gauge.imz#1\tscale=8",
+    "gHudRikuGaugeTex0\t3\t-\t-\t0\t0\t32\t32\tFORM/0061/FO0061.RTM:UK_gauge.imz#0\tscale=8",
+    "gHudCockpitTex\t3\t-\t-\t0\t0\t128\t128\tFORM/0002/FO0002.RTM:UK_Cockpit.imz#0\tscale=8",
 };

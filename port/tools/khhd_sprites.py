@@ -14,6 +14,7 @@ Recipe operations, applied in order to the texture (RGBA):
   blit=sx0,sy0,sx1,sy1,dx0,dy0,dx1,dy1  paste that rectangle of the texture, resized, over the picture's rectangle
   place=x0,y0,x1,y1  the picture fills only this part of the sprite's box (GBA pixels); the rest is transparent
   scale=k            the output is the sprite's box at k times the GBA's pixels (last; required)
+  raw                the whole recipe: copy the named file of a .SPR container as it is (<name><its extension>)
 
     python port/tools/khhd_sprites.py "<install>/Image/dt/Recom.hed" <data folder> [--only name,...]
 """
@@ -195,6 +196,22 @@ def apply(img, ops, box):
     raise ValueError('recipe without scale')
 
 
+def spr_entries(blob):
+    """(name, offset, size) of each file of a .SPR container: 0x20-byte entries (offset, name, size | 0x80000000)
+    up to the first file's offset."""
+    out, pos = [], 0
+    first = struct.unpack_from('<I', blob, 0)[0] if len(blob) >= 4 else 0
+    while pos + 0x20 <= first:
+        off = struct.unpack_from('<I', blob, pos)[0]
+        name = blob[pos + 4:pos + 0x1c].split(b'\0')[0].decode('latin1')
+        size = struct.unpack_from('<I', blob, pos + 0x1c)[0] & 0x7FFFFFFF
+        if not name:
+            break
+        out.append((name, off, size))
+        pos += 0x20
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('hed')
@@ -213,6 +230,17 @@ def main():
                 continue
             asset, _, tex = row['source'].partition(':')
             tex, _, num = tex.partition('#')
+            if row['ops'] == 'raw':
+                # a file of a .SPR container (the HUD's layouts, gauge.lad...), copied as it is (khhd_layout.py)
+                m = hashlib.md5(asset.encode()).hexdigest()
+                base = khhd_pkg.read_asset(pkg, idx[m], with_remastered=True)[0] if m in idx else b''
+                files = {n: base[o:o + s] for n, o, s in spr_entries(base)} if base else {}
+                if tex not in files:
+                    print(row['name'], 'MISSING', row['source'])
+                    continue
+                (out / f"{row['name']}{Path(tex).suffix}").write_bytes(files[tex])
+                done += 1
+                continue
             if asset not in cache:
                 m = hashlib.md5(asset.encode()).hexdigest()
                 cache[asset] = khhd_pkg.read_asset(pkg, idx[m], with_remastered=True)[2] if m in idx else {}

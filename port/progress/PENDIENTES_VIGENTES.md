@@ -73,6 +73,10 @@ Reglas del usuario:
 - **HUD de combate como el 1.5 PC (usuario 22/10 ~16:00):** dígitos de cartas de `Cockpit.imz` (los de Re:CoM, no
   `card_no`), contador CARDS de mazo restante, carta de recarga con su número, anillo con la lógica real. Hallazgos y
   plan en HUD_HD_RECOM.md ("HUD de combate de Re:CoM 1.5 PC"). Ajustar tamaños/posiciones de todo lo HD al original.
+- **Decompilación positiva (22/10 ~16:40):** CPlayerGauge leído (HUD_HD_RECOM.md "Decompilado"). Sigue:
+  `port_hdlayout.c` (lector/dibujante LAYD/SEQD en C, como el SequenceRenderer de OpenKh) y el medidor de vida de 1.5 con
+  esa lógica; luego CCardRevolver (pila, contador CARDS, recarga). Prueba de juego del anillo actual: daño, cura y
+  >280 ok, 0 fallos; audio: test_hd_audio 0/9, test_hd_audio_flow 7/8 (el título se cortó por tiempo: revisar).
 - Arreglado: las muescas de la corona dejaban ver la ilustración HD (se borra su franja superior, tapada por el marco).
 - Propuesta original: `pruebas/HD tentativos (medidores contador recarga).png` (medidor de vida en anillo de
   Re:CoM, medidor del enemigo, contador CARD/S, números de recarga): no son 1:1, espera su decisión.

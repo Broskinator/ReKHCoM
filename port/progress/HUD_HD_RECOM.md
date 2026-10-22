@@ -148,3 +148,17 @@ sprites y faltan letras del texto: artefacto de la prueba, también sin HD).
   Falta un decompilador (Ghidra + JDK) para leer los métodos de `CPlayerGauge` / `CCardRevolver`.
 - Plan: el juego sigue igual por dentro; el dibujo del HUD usa las piezas y animaciones de los .lad con los valores
   del juego (vida, cartas que quedan, recarga), con la lógica leída del .exe.
+
+### Decompilado (22/10, Ghidra 12.1.3 + JDK 21 en D:/01Claude/ReKHCoM-build, `refs/ghidra/DecompClasses.java`)
+Ghidra rehace las clases por RTTI; `refs/ghidra/hud.c` trae 45 métodos (CPlayerGauge, CCommonGauge, CCardRevolver,
+CStockFolder, CBattleCard, CCardBattle, C2DSeqNumericCtrl). **CPlayerGauge::update** (FUN_14020a0e0):
+- campos: +0xa4 vida, +0xa6 rastro (vida mostrada), +0xa8 vida máxima, +0xaa estado, +0x78 el control de la
+  secuencia (método +0x20 = poner grupo de animación de "gauge:01" en un hueco), +0x94 demora del rastro.
+- **longitud = valor / 560 × 470** (DAT_1405a6904 = 560.0, DAT_1405a6900 = 470.0): en gauge.lad los grupos 7/8/9
+  (fondo, rastro rojo, verde) van de los cuadros 0 a 470 y **el cuadro es la longitud**: hasta 270 el anillo (cuartos que
+  giran), desde 271 la barra (la punta se corre 200, el cuerpo escala de 0 a 1). La barra crece con la vida máxima.
+- **rastro**: tras la demora baja (rastro − vida)/10 + 1 por paso; al curarse salta a la vida.
+- **poca vida**: vida ≤ 25 % de la máxima → grupo 10 en el hueco 0, cara 0, **alarma (sonido 9)**; al subir: grupo 15,
+  cara 3, apaga la alarma. Vida 0: grupo 15, cara 2, estado 5. Botón (máscara 0xE2) mantenido: oculta el medidor.
+- Importación: `gHudGaugeLad`/`gHudCockpitLad` (`raw`: el archivo del .SPR tal cual) y las texturas enteras
+  (`gHudGaugeTex0/1`, `gHudRikuGaugeTex0`, `gHudCockpitTex`); Python y launcher idénticos.

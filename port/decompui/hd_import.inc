@@ -788,6 +788,25 @@ static int WriteSprites(const fs::path& hed, const fs::path& data) {
                 index = atoi(tex.c_str() + hash + 1);
                 tex = tex.substr(0, hash);
             }
+            if (f[9] == "raw") {
+                /* a file of a .SPR container (the HUD's layouts, gauge.lad...), as it is (khhd_sprites.spr_entries) */
+                uint32_t first = ok && base.size() >= 4 ? base[0] | base[1] << 8 | base[2] << 16 | (uint32_t)base[3] << 24 : 0;
+                for (size_t pos = 0; ok && pos + 0x20 <= first && pos + 0x20 <= base.size(); pos += 0x20) {
+                    const unsigned char* e = base.data() + pos;
+                    uint32_t off = e[0] | e[1] << 8 | e[2] << 16 | (uint32_t)e[3] << 24;
+                    uint32_t size = (e[0x1c] | e[0x1d] << 8 | e[0x1e] << 16 | (uint32_t)e[0x1f] << 24) & 0x7FFFFFFF;
+                    std::string name((const char*)e + 4, strnlen((const char*)e + 4, 24));
+                    if (name.empty())
+                        break;
+                    if (name == tex && (size_t)off + size <= base.size()) {
+                        std::ofstream(outDir / (f[0] + fs::path(tex).extension().string()), std::ios::binary)
+                            .write((const char*)base.data() + off, (std::streamsize)size);
+                        written++;
+                        break;
+                    }
+                }
+                continue;
+            }
             Rgba img, out;
             if (!ok || !extras.count(tex) || !DecodeTexture(extras[tex], index, img) ||
                 !ApplyRecipe(img, f[9], atoi(f[6].c_str()), atoi(f[7].c_str()), out))
