@@ -78,7 +78,11 @@ Reglas del usuario:
   esa lógica; luego CCardRevolver (pila, contador CARDS, recarga). Prueba de juego del anillo actual: daño, cura y
   >280 ok, 0 fallos; audio: test_hd_audio 0/9, test_hd_audio_flow 7/8 (el título se cortó por tiempo: revisar).
 - **22/10 ~16:30 (Claude que retomó):** medidor de vida de Re:CoM 1.5 en main (977f064cf, `port_hdlayout.c`). Inventario de los menús de Re:CoM (268 layouts, texturas en español, 28 clases decompiladas): HUD_HD_RECOM.md "Menús de Re:CoM". Sigue: un menú por vez con su lógica decompilada (orden propuesto: pausa, subida de nivel, naipe conseguido, guardar/cargar, elegir mundo, síntesis, campamento, tienda, diario, minimapa).
-- **Títulos de menú HD en español** en main (0be7323d3, HUD_HD_RECOM.md "Títulos de menú HD"). Sigue: otros idiomas, VER BARAJAS quieto.
+- **22/10 noche (Claude):** en main: títulos de menú HD en 5 idiomas (69 carteles), VER BARAJAS quieto
+  (`PortHdStillSprite`), iconos de los 13 mundos (world_icon), **medidor de vida corregido** (a1be11b8c: bucle, barra,
+  máscaras, layouts remasterizados). Todo en HUD_HD_RECOM.md. Sigue (necesita referencia visual de Re:CoM o decisión
+  del usuario): contador de mazo a lo "CARDS", medidor del enemigo, entradas del título (faltan letras), "NUEVO" →
+  "¡NUEVO!". La batería HD (`run_batteries.py --hd`) seguía corriendo a las 18:25 con el build anterior.
 - Arreglado: las muescas de la corona dejaban ver la ilustración HD (se borra su franja superior, tapada por el marco).
 - Propuesta original: `pruebas/HD tentativos (medidores contador recarga).png` (medidor de vida en anillo de
   Re:CoM, medidor del enemigo, contador CARD/S, números de recarga): no son 1:1, espera su decisión.
