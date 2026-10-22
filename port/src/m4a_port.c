@@ -8,7 +8,7 @@
  * output. The result is read by port_audio.c instead of the FIFO DMA.
  */
 #include <string.h>
-#include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL.h>
 
 #include "m4a.h"
 #include "port/port.h"
