@@ -72,6 +72,16 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
   (5) publicar v2.0 anunciando el mod HD, borrar releases viejos si el clasificador deja (si no, el usuario).
 - Copia del usuario: `Probar ReKHCoM v1.9.15 completo.bat` (actualizarla con cada build de Windows).
 
+### Estado 22/10 ~05:30 (Claude, sesión principal)
+- Hecho y en main: puntos 1-4 de abajo, arte x1 + Agrabah encendida, versión v2.0, suelo isométrico rápido, presentación
+  sin copia. Comprobado en el build v2.0: combate EU/US/JP limpio, `test_hd_audio.py` 0/9, `match_hd_scenes --check`.
+- **Espera al usuario:** (a) su OK para gastar recursos en los builds de la v2.0 (lo pidió el 22/10: "preguntarme antes
+  de empezar a usar recursos en la 2.0"); (b) aprobar las arenas de jefes que entrega la sesión "arenas-jefes"
+  (Darkside primero; 7 de 8 pendientes); (c) permiso para borrar scratchpads viejos de %TEMP%\claude (~5,4 GB).
+- En curso: repetir solo el combate Android US 124 (timeout con dos corridas en el emulador): `build/android-124-alone.log`.
+- Después de la v2.0: las 160 filas de la imagen GBA en varios núcleos (RENDIMIENTO.md) para 60 fps a x1.
+- Disco: C: ~5 GB libres por `pagefile.sys` 38,7 GB (falta de RAM: emulador + VM + baterías); se achica al reiniciar.
+
 ### Bugs encontrados y cerrados el 22/10 (todos en main)
 - Escena HD: destello de la imagen del evento al terminar (53f756bc7).
 - Música del campo bajo el video HD y corte seco; salto sin fundido de imagen y sonido (53f756bc7, PC y Android).
