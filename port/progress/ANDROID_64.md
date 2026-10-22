@@ -57,7 +57,7 @@ Diferencias para Android:
 ## Hoja de ruta (en orden; marcar en "Estado" al terminar cada paso)
 
 1. **Emuladores.** SDK: `toolchain/android/sdk` (JDK en `toolchain/android/java/jdk-17.0.20.1+1`,
-   `JAVA_HOME` apuntando ahí). AVDs en `D:/ReKHCoM-build/android-avd` (`ANDROID_AVD_HOME`). D: anda
+   `JAVA_HOME` apuntando ahí). AVDs en `D:/01Claude/ReKHCoM-build/android-avd` (`ANDROID_AVD_HOME`). D: anda
    justo de espacio: `disk.dataPartition.size=4G` en el `config.ini` del AVD y `-partition-size 4096`.
    Crear con `avdmanager create avd -n <nombre> -k "system-images;android-<API>;google_apis;x86_64"
    -d <perfil>` (el `.bat` parte los `;` de la línea de comandos: para `sdkmanager` usar

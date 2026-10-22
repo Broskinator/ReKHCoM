@@ -7,7 +7,7 @@ the event's scene ("hd scene: event N") and the movie opening ("hd movie: <name>
 KHCOM_HDMOVIE_SECONDS. With --recom the Re:CoM-only scenes (kHdSceneExtras) must play next to their neighbour, and
 without it they must not.
 
-    python port/tools/test_hd_scenes.py --hd D:/ReKHCoM-build/hd-completo [--build build/pc-eu] [--recom] [--jobs 6]
+    python port/tools/test_hd_scenes.py --hd D:/01Claude/ReKHCoM-build/hd-completo [--build build/pc-eu] [--recom] [--jobs 6]
 """
 import argparse
 import json

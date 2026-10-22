@@ -34,7 +34,7 @@ LLD = os.environ.get('LLD', str(LLVM / 'ld.lld.exe') if WINDOWS else 'ld.lld-18'
 TARGET = '--target=arm64_32-apple-watchos'
 CPU = '-mcpu=cortex-a57'  # the Switch's CPU (ARMv8.0): without it clang targets Apple's and emits ARMv8.3 (xpaci)
 BASE = 0x10000000
-VM_DISK = Path('D:/ReKHCoM-build/ps5/ps5env.qcow2')  # the consoles build VM (port/progress/TOOLKIT_CONSOLAS.md)
+VM_DISK = Path('D:/01Claude/ReKHCoM-build/ps5/ps5env.qcow2')  # the consoles build VM (port/progress/TOOLKIT_CONSOLAS.md)
 sys.path.insert(0, str(PS5))
 import build_ps5  # noqa: E402  (its PORT_PATCHES and PORT_EXCLUDED are shared)
 

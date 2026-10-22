@@ -2,7 +2,7 @@
 
 ## Una sola VM para las consolas
 
-La imagen `D:/ReKHCoM-build/ps5/ps5env.qcow2` (Debian 12 x86_64, con red) es la VM de
+La imagen `D:/01Claude/ReKHCoM-build/ps5/ps5env.qcow2` (Debian 12 x86_64, con red) es la VM de
 compilación de consolas. Se arranca con `port/tools/linux_vm_test.py --disk <imagen> --net`
 (la carpeta compartida viaja como tar). Debe servir para todas: PS5 (ya instalado),
 Vita (VitaSDK + vitaGL), PS4 (OpenOrbis) y Switch (devkitPro). Cada SDK va en su carpeta

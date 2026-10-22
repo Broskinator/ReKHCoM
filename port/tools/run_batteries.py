@@ -89,7 +89,7 @@ def emulator():
         return True
     # the AVD (13 GB) lives outside the user profile: without ANDROID_AVD_HOME the emulator finds none and never boots
     env = dict(os.environ)
-    for home in (ROOT.parent / 'toolchain/android/avd', Path('D:/ReKHCoM-build/android-avd')):
+    for home in (ROOT.parent / 'toolchain/android/avd', Path('D:/01Claude/ReKHCoM-build/android-avd')):
         if 'ANDROID_AVD_HOME' not in env and (home / 'Pixel6_API34.ini').exists():
             env['ANDROID_AVD_HOME'] = str(home)
     subprocess.Popen([str(SDK / 'emulator/emulator.exe'), '-avd', 'Pixel6_API34', '-no-window', '-no-audio',
