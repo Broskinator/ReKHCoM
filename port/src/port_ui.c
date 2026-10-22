@@ -89,6 +89,9 @@ enum {
     ITEM_HD_MUSIC,
     ITEM_HD_SCENES,
     ITEM_HD_SUBTITLES,
+    ITEM_HD_CARDS,     /* HD cards, faces and battle words (port_hdsprites.c), once imported */
+    ITEM_HD_TITLE,     /* the title's HD logo */
+    ITEM_MODE_RESET,   /* a graphics mode's defaults (PortApplyGraphicsMode), confirmed twice */
     ITEM_TITLE,        /* back to the title screen, as the game's own Continue screen does */
     ITEM_UNSTOCK,
     ITEM_PS2_MODE,
@@ -146,13 +149,20 @@ enum {
 enum { PAGE_MAIN, PAGE_PS2, PAGE_NEWGAME, PAGE_CHEATS, PAGE_CONTROLS, PAGE_REMATCH, PAGE_ACHIEVEMENTS };
 static int sPage;
 static int sTitleArmed, sTitleRequest; /* ITEM_TITLE: confirmed once / due once the menu has closed */
+static int sModePick = PORT_MODE_HD, sModeArmed, sModeConfirmKey; /* ITEM_MODE_RESET: the mode shown, confirmed once */
+static const char* const sModeNames[PORT_MODE_COUNT][LANG_COUNT] = {
+    { "Choose", "Choisir", "Wählen", "Scegli", "Escoger", "選ぶ" },
+    { "HD mode", "Mode HD", "HD-Modus", "Modalità HD", "Modo HD", "HDモード" },
+    { "GBA enhanced", "GBA amélioré", "GBA verbessert", "GBA migliorato", "GBA mejorado", "GBA強化" },
+    { "GBA classic", "GBA classique", "GBA klassisch", "GBA classico", "GBA clásico", "GBAクラシック" },
+};
 static void AchievementMenuOpen(void);
 static int AchievementMenuInput(const SDL_Event* ev);
 static int sControlPad, sControlCapture;
 static void ControlBindingName(int binding, int l, char* out, size_t size);
 static int sNgRecom; /* new game page: the Re:CoM version chosen */
 static int sNgQol;   /* the one-button controls as set before the new game page */
-enum { WIZ_VERSION, WIZ_DIFFICULTY, WIZ_OPTIONS };
+enum { WIZ_VERSION, WIZ_DIFFICULTY, WIZ_OPTIONS, WIZ_MODE, WIZ_MODE_GBA }; /* the last two: the graphics mode */
 static int sWizStep, sWizCursor; /* the new game window's step and row */
 static void WizKey(int key);
 static int PageFirst(void) {
@@ -199,6 +209,8 @@ static int ItemVisible(int item) {
         case ITEM_HD_SCENES:
         case ITEM_PS2_HDSCENES: return HdImported("hd/movies/zz_event_011.mp4");
         case ITEM_HD_SUBTITLES: return HdImported("hd/subs/ROP.us.txt");
+        case ITEM_HD_CARDS: return HdImported("hd/sprites/gCardWep01Tiles.png");
+        case ITEM_HD_TITLE: return HdImported("hd/sprites/gTitleLogoHeartTiles.png");
         /* the version and its difficulty are chosen at New Game and stay
            with the save, as in the original: no switch for them here */
         case ITEM_PS2_MODE:
@@ -281,6 +293,11 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "HD music", "Musique HD", "HD-Musik", "Musica HD", "Música HD", "HDミュージック" },
     { "HD scenes", "Scènes HD", "HD-Szenen", "Scene HD", "Escenas HD", "HDシーン" },
     { "HD subtitles", "Sous-titres HD", "HD-Untertitel", "Sottotitoli HD", "Subtítulos HD", "HD字幕" },
+    { "HD cards and battle HUD", "Cartes et ATH de combat HD", "HD-Karten und Kampf-HUD", "Carte e HUD di battaglia HD",
+      "Cartas y HUD de combate HD", "HDカードと戦闘HUD" },
+    { "HD title logo", "Logo de titre HD", "HD-Titellogo", "Logo del titolo HD", "Logo del título HD", "HDタイトルロゴ" },
+    { "Reset to a mode's defaults", "Réglages d'un mode", "Standard eines Modus", "Predefiniti di una modalità",
+      "Restablecer según el modo", "モードの初期設定に戻す" },
     { "Return to title screen", "Retour à l'écran titre", "Zurück zum Titelbildschirm",
       "Torna alla schermata del titolo", "Volver a la pantalla de título", "タイトル画面に戻る" },
     { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
@@ -937,6 +954,18 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_HD_SUBTITLES:
             SDL_strlcpy(out, sOnOff[gPortConfig.hdSubtitles != 0][l], size);
             break;
+        case ITEM_HD_CARDS:
+            SDL_strlcpy(out, sOnOff[gPortConfig.hdCards != 0][l], size);
+            break;
+        case ITEM_HD_TITLE:
+            SDL_strlcpy(out, sOnOff[gPortConfig.hdTitle != 0][l], size);
+            break;
+        case ITEM_MODE_RESET: {
+            static const char* const again[LANG_COUNT] = { "Confirm again", "Confirmer encore", "Nochmal bestätigen",
+                                                           "Conferma di nuovo", "Confirma otra vez", "もう一度決定" };
+            SDL_strlcpy(out, sModeArmed ? again[l] : sModeNames[sModePick][l], size);
+            break;
+        }
         case ITEM_DODGE:
             SDL_strlcpy(out, sOnOff[gPortConfig.dodgeButton != 0][l], size);
             break;
@@ -1160,6 +1189,28 @@ static void Change(int item, int dir) {
             break;
         case ITEM_HD_SUBTITLES:
             gPortConfig.hdSubtitles = !gPortConfig.hdSubtitles;
+            break;
+        case ITEM_HD_CARDS:
+            gPortConfig.hdCards = !gPortConfig.hdCards;
+            break;
+        case ITEM_HD_TITLE:
+            gPortConfig.hdTitle = !gPortConfig.hdTitle;
+            break;
+        case ITEM_MODE_RESET:
+            /* left/right choose the mode; confirmed twice, its presets replace the current settings */
+            if (sModeConfirmKey) {
+                if (sModeArmed) {
+                    sModeArmed = 0;
+                    PortApplyGraphicsMode(sModePick);
+                    PortConfigSave();
+                } else {
+                    sModeArmed = 1;
+                }
+            } else if (dir) {
+                sModePick = 1 + (sModePick - 1 + (dir < 0 ? PORT_MODE_COUNT - 2 : 1)) % (PORT_MODE_COUNT - 1);
+                sModeArmed = 0;
+            }
+            sModeConfirmKey = 0;
             break;
         case ITEM_DODGE:
             gPortConfig.dodgeButton = !gPortConfig.dodgeButton;
@@ -1386,6 +1437,8 @@ void PortUiOpenOptions(void) {
         return;
     sOpen = 1;
     sTitleArmed = 0;
+    sModeArmed = 0;
+    sModePick = gPortConfig.graphicsMode > PORT_MODE_CHOOSE ? gPortConfig.graphicsMode : PORT_MODE_HD;
     sOpenSound = !SDL_getenv("KHCOM_OPTIONS_SHOT");
     sCloseSound = 0;
     sFade = SDL_getenv("KHCOM_OPTIONS_SHOT") ? MENU_FADE * 2 : 0; /* test shots: no fade */
@@ -1426,6 +1479,22 @@ void PortUiOpenNewGame(void) {
     sWizStep = WIZ_VERSION;
     sWizCursor = 0;
     PortVideoApplyConfig();
+}
+
+/* The first start (graphics_mode=0 in kh_com.ini): which mode, before the title. Unattended runs keep the settings
+   as they are unless a test drives this window (KHCOM_MODE_CHOICE). */
+int PortUiNeedsModeChoice(void) {
+    if (gPortConfig.graphicsMode != PORT_MODE_CHOOSE || sOpen)
+        return 0;
+    return !(SDL_getenv("KHCOM_FAST") || SDL_getenv("KHCOM_BOT")) || SDL_getenv("KHCOM_MODE_CHOICE");
+}
+
+void PortUiOpenModeChoice(void) {
+    PortUiOpenOptions();
+    sOpenSound = 0;
+    sPage = PAGE_NEWGAME;
+    sWizStep = WIZ_MODE;
+    sWizCursor = 0;
 }
 
 void PortUiForceClose(void) {
@@ -1658,6 +1727,7 @@ int PortUiHandleEvent(const void* p) {
             case SDLK_SPACE:
             case SDLK_X:
             case SDLK_K:
+                sModeConfirmKey = sCursor == ITEM_MODE_RESET;
                 if (sCursor == ITEM_CLOSE)
                     Close();
                 else if (sCursor == ITEM_FS_RES)
@@ -1705,6 +1775,7 @@ int PortUiHandleEvent(const void* p) {
                 Change(sCursor, 1);
                 break;
             case SDL_GAMEPAD_BUTTON_SOUTH:
+                sModeConfirmKey = sCursor == ITEM_MODE_RESET;
                 if (sCursor == ITEM_CLOSE)
                     Close();
                 else if (sCursor == ITEM_FS_RES)
@@ -1992,12 +2063,69 @@ static void ShortValue(int item, char* out, size_t size) {
 
 /* ---- the new game window: a few steps, as modern games ask on first start - */
 
-static const char* const sWizAsk[3][LANG_COUNT] = {
+static const char* const sWizAsk[5][LANG_COUNT] = {
     { "Which version do you want to play?", "Quelle version veux-tu jouer ?", "Welche Version möchtest du spielen?",
       "Quale versione vuoi giocare?", "¿Qué versión quieres jugar?", "どのバージョンで遊びますか？" },
     { "Difficulty", "Difficulté", "Schwierigkeit", "Difficoltà", "Dificultad", "難易度" },
     { "Before you start", "Avant de commencer", "Bevor es losgeht", "Prima di iniziare", "Antes de empezar",
       "はじめる前に" },
+    { "How do you want to play?", "Comment veux-tu jouer ?", "Wie möchtest du spielen?", "Come vuoi giocare?",
+      "¿Cómo quieres jugar?", "どの見た目で遊びますか？" },
+    { "Which GBA?", "Quel GBA ?", "Welcher GBA?", "Quale GBA?", "¿Qué GBA?", "どちらのGBA？" },
+};
+/* the graphics mode, asked once on the first start (PortUiOpenModeChoice); Options and the launcher change it later */
+static const char* const sModeDescHd[LANG_COUNT] = {
+    "Re:Chain of Memories' cards, logo, faces, music and movies (imported by the launcher from your Kingdom Hearts HD "
+    "1.5+2.5), HD text and every improvement.",
+    "Cartes, logo, portraits, musique et vidéos de Re:Chain of Memories (importés par le lanceur depuis ton Kingdom "
+    "Hearts HD 1.5+2.5), texte HD et toutes les améliorations.",
+    "Karten, Logo, Porträts, Musik und Videos aus Re:Chain of Memories (vom Launcher aus deinem Kingdom Hearts HD "
+    "1.5+2.5 importiert), HD-Text und alle Verbesserungen.",
+    "Carte, logo, ritratti, musica e video di Re:Chain of Memories (importati dal launcher dal tuo Kingdom Hearts HD "
+    "1.5+2.5), testo HD e tutti i miglioramenti.",
+    "Cartas, logo, retratos, música y videos de Re:Chain of Memories (los importa el launcher desde tu Kingdom Hearts "
+    "HD 1.5+2.5), texto HD y todas las mejoras.",
+    "Re:Chain of Memoriesのカード・ロゴ・顔・音楽・ムービー（ランチャーがKingdom Hearts HD 1.5+2.5から取り込み）、"
+    "HDテキストとすべての改善。",
+};
+static const char* const sModeDescHdMissing[LANG_COUNT] = {
+    "Not imported yet: the launcher does it (HD mod).", "Pas encore importé : le lanceur s'en charge (mod HD).",
+    "Noch nicht importiert: das macht der Launcher (HD-Mod).", "Non ancora importato: lo fa il launcher (mod HD).",
+    "Aún sin importar: lo hace el launcher (Mod HD).", "まだ取り込まれていません：ランチャー（HD MOD）で行えます。",
+};
+static const char* const sModeDescGba[LANG_COUNT] = {
+    "The cartridge's graphics. Then choose enhanced or classic.",
+    "Les graphismes de la cartouche. Puis choisis amélioré ou classique.",
+    "Die Grafik des Moduls. Danach verbessert oder klassisch wählen.",
+    "La grafica della cartuccia. Poi scegli migliorato o classico.",
+    "Los gráficos del cartucho. Después eliges mejorado o clásico.",
+    "カートリッジのグラフィック。次に強化かクラシックを選びます。",
+};
+static const char* const sModeDescEnhanced[LANG_COUNT] = {
+    "ReKHCoM's wide view and improvements, with the HD extras off.",
+    "La vue large et les améliorations de ReKHCoM, sans les extras HD.",
+    "ReKHCoMs Breitbild und Verbesserungen, ohne die HD-Extras.",
+    "La vista larga e i miglioramenti di ReKHCoM, senza gli extra HD.",
+    "La vista amplia y las mejoras de ReKHCoM, con los extras HD apagados.",
+    "ReKHCoMのワイド表示と改善（HDの追加要素はオフ）。",
+};
+static const char* const sModeDescClassic[LANG_COUNT] = {
+    "As on the console: the 240x160 picture at a whole scale with a decorative border, every improvement off. "
+    "Almost an emulator, but native.",
+    "Comme sur la console : l'image 240x160 à une échelle entière avec une bordure décorative, toutes les "
+    "améliorations désactivées. Presque un émulateur, mais natif.",
+    "Wie auf der Konsole: das 240x160-Bild in ganzzahliger Größe mit einem Zierrahmen, alle Verbesserungen aus. "
+    "Fast ein Emulator, aber nativ.",
+    "Come sulla console: l'immagine 240x160 a scala intera con una cornice decorativa, tutti i miglioramenti "
+    "disattivati. Quasi un emulatore, ma nativo.",
+    "Como en la consola: la imagen de 240x160 a escala entera con un borde decorativo y todas las mejoras apagadas. "
+    "Casi un emulador, pero nativo.",
+    "本体と同じ：240x160の画面を整数倍で表示し、飾り枠付き。改善はすべてオフ。ほぼエミュレーター、でもネイティブ。",
+};
+static const char* const sModeLater[LANG_COUNT] = {
+    "You can change it later in Options or the launcher.", "Modifiable plus tard dans les Options ou le lanceur.",
+    "Später in den Optionen oder im Launcher änderbar.", "Puoi cambiarlo poi nelle Opzioni o nel launcher.",
+    "Puedes cambiarlo luego en Opciones o en el launcher.", "あとでオプションやランチャーで変更できます。",
 };
 static const char* const sWizConfirm[LANG_COUNT] = { "Confirm", "Confirmer", "Bestätigen", "Conferma", "Confirmar",
     "決定" };
@@ -2039,7 +2167,15 @@ static int WizOptions(int* kinds) {
 
 static int WizRows(void) {
     int kinds[6];
-    return sWizStep == WIZ_VERSION ? 2 : sWizStep == WIZ_DIFFICULTY ? 3 : WizOptions(kinds);
+    return sWizStep == WIZ_VERSION || sWizStep >= WIZ_MODE ? 2 : sWizStep == WIZ_DIFFICULTY ? 3 : WizOptions(kinds);
+}
+
+/* the first start: the graphics mode's presets, then the game goes on */
+static void ModeChosen(int mode) {
+    PortApplyGraphicsMode(mode);
+    PortConfigSave();
+    PortVideoApplyConfig();
+    Close();
 }
 
 static void WizFinish(void) {
@@ -2055,6 +2191,10 @@ static void WizKey(int key) {
         case 0: sWizCursor = (sWizCursor + rows - 1) % rows; return;
         case 1: sWizCursor = (sWizCursor + 1) % rows; return;
         case 4:
+            if (sWizStep == WIZ_MODE_GBA) {
+                sWizStep = WIZ_MODE;
+                sWizCursor = 1;
+            }
             if (sWizStep == WIZ_OPTIONS) {
                 sWizStep = sNgRecom ? WIZ_DIFFICULTY : WIZ_VERSION;
                 sWizCursor = sNgRecom ? (gPortConfig.ps2Difficulty == 1 ? 0 : gPortConfig.ps2Difficulty == 0 ? 1 : 2) : 0;
@@ -2065,6 +2205,19 @@ static void WizKey(int key) {
             return;
         default:
             break;
+    }
+    if (sWizStep == WIZ_MODE && key == 3) {
+        if (sWizCursor == 0) {
+            ModeChosen(PORT_MODE_HD);
+        } else {
+            sWizStep = WIZ_MODE_GBA;
+            sWizCursor = 0;
+        }
+        return;
+    }
+    if (sWizStep == WIZ_MODE_GBA && key == 3) {
+        ModeChosen(sWizCursor == 0 ? PORT_MODE_GBA_ENHANCED : PORT_MODE_GBA_CLASSIC);
+        return;
     }
     if (sWizStep == WIZ_VERSION && key == 3) {
         /* each version comes with its presets: the original as on the
@@ -2153,10 +2306,21 @@ static void DrawWizard(int l, int width, int height) {
     const char* labels[6];
     const char* subs[6];
     const char* values[6] = { NULL, NULL, NULL, NULL, NULL, NULL };
-    int rows = WizRows(), i, panelW = SDL_min(width - 24, 250), x0, y0, h, y, textW;
+    int rows = WizRows(), i, panelW = SDL_min(width - 24, 250), x0, y0, h, y, textW, later;
     static const int order[3] = { 1, 0, 2 };
 
-    if (sWizStep == WIZ_VERSION) {
+    if (sWizStep == WIZ_MODE) {
+        static char hd[600];
+        int imported = ItemVisible(ITEM_HD_CARDS);
+        SDL_snprintf(hd, sizeof(hd), "%s%s%s", sModeDescHd[l], imported ? "" : " ", imported ? "" : sModeDescHdMissing[l]);
+        labels[0] = sModeNames[PORT_MODE_HD][l]; subs[0] = hd;
+        static const char* const gbaMode[LANG_COUNT] = { "GBA mode", "Mode GBA", "GBA-Modus", "Modalità GBA",
+                                                         "Modo GBA", "GBAモード" };
+        labels[1] = gbaMode[l]; subs[1] = sModeDescGba[l];
+    } else if (sWizStep == WIZ_MODE_GBA) {
+        labels[0] = sModeNames[PORT_MODE_GBA_ENHANCED][l]; subs[0] = sModeDescEnhanced[l];
+        labels[1] = sModeNames[PORT_MODE_GBA_CLASSIC][l]; subs[1] = sModeDescClassic[l];
+    } else if (sWizStep == WIZ_VERSION) {
         labels[0] = sVersions[0][l]; subs[0] = sNgDescOriginal[l];
         labels[1] = sVersions[1][l]; subs[1] = sNgDescRecom[l];
     } else if (sWizStep == WIZ_DIFFICULTY) {
@@ -2199,7 +2363,8 @@ static void DrawWizard(int l, int width, int height) {
     h = 22;
     for (i = 0; i < rows; i++)
         h += 14 + DrawWrapped(subs[i], 0, 0, textW, 0, 0) * 11 + 4;
-    h += 14;
+    later = sWizStep >= WIZ_MODE ? DrawWrapped(sModeLater[l], 0, 0, panelW - 16, 0, 0) * 11 + 2 : 0;
+    h += 14 + later;
     x0 = (width - panelW) / 2;
     y0 = SDL_max(2, (height - h) / 2);
     Fill(0, 0, width, height, 0xFF000000u);
@@ -2224,7 +2389,10 @@ static void DrawWizard(int l, int width, int height) {
         y += 14;
         y += DrawWrapped(subs[i], x0 + 24, y, textW, sel ? MENU_INK : MENU_DIM, 1) * 11 + 4;
     }
-    DrawText(sWizStep == WIZ_VERSION ? sWizHelpFirst[l] : sWizHelp[l], x0 + 8, y0 + h - 12, MENU_DIM, 0xFFFFFFFFu);
+    if (sWizStep >= WIZ_MODE)
+        DrawWrapped(sModeLater[l], x0 + 8, y0 + h - 14 - later, panelW - 16, MENU_DIM, 1);
+    DrawText(sWizStep == WIZ_VERSION || sWizStep == WIZ_MODE ? sWizHelpFirst[l] : sWizHelp[l], x0 + 8, y0 + h - 12,
+             MENU_DIM, 0xFFFFFFFFu);
 }
 
 #include "port_control_diagram.inc"
@@ -2521,6 +2689,19 @@ static int HarnessOptionsAction(void) {
                 changed = 1;
             }
             w = comma ? comma + 1 : NULL;
+        }
+        if (SDL_getenv("KHCOM_WIZARD_SHOTS")) { /* tick list: the window's picture as wizard_<tick>.bmp */
+            const char* t = SDL_getenv("KHCOM_WIZARD_SHOTS");
+            while (t && *t) {
+                if (SDL_atoi(t) == sHarnessTick) {
+                    extern void PortHarnessShot(const char* name);
+                    char name[32];
+                    SDL_snprintf(name, sizeof(name), "wizard_%d.bmp", sHarnessTick);
+                    PortHarnessShot(name);
+                }
+                t = SDL_strchr(t, ',');
+                if (t) t++;
+            }
         }
         return changed;
     }

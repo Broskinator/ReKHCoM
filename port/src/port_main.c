@@ -290,6 +290,7 @@ void PortFitScreen(void) {
 static SDL_Texture* sHudTexture;
 static int sHudTexW, sHudTexH;
 static SDL_Texture* sHudOverTexture; /* HUD sprites in front of HD sprites */
+static char sHarnessShot[64];      /* PortHarnessShot: the next presented picture's file */
 static int sHudOverW, sHudOverH;
 static uint32_t* sHudBuf;
 
@@ -1695,12 +1696,17 @@ static void Present(void) {
         }
     }
     {
-        /* KHCOM_OUTPUT_SHOT=frames: save the presented window image. */
+        /* KHCOM_OUTPUT_SHOT=frames: save the presented window image; a window of ours asks for one with
+           PortHarnessShot (the game's frames stand still under it). */
         const char* out = SDL_getenv("KHCOM_OUTPUT_SHOT");
-        if (out && HarnessListHas(out, sFrameCount)) {
+        if (sHarnessShot[0] || (out && HarnessListHas(out, sFrameCount))) {
             SDL_Surface* s = SDL_RenderReadPixels(sRenderer, NULL);
             char name[64];
-            SDL_snprintf(name, sizeof(name), "out_%05u.bmp", (unsigned)sFrameCount);
+            if (sHarnessShot[0])
+                SDL_strlcpy(name, sHarnessShot, sizeof(name));
+            else
+                SDL_snprintf(name, sizeof(name), "out_%05u.bmp", (unsigned)sFrameCount);
+            sHarnessShot[0] = 0;
             if (s) {
                 SDL_SaveBMP(s, PortConfigPath(name));
                 SDL_DestroySurface(s);
@@ -1877,6 +1883,11 @@ static void Present(void);
 /* the window's renderer, for what draws outside the game's frame (port_hdmovie.c) */
 SDL_Renderer* PortRenderer(void) {
     return sRenderer;
+}
+
+/* Test harness: save the next presented picture under this name. */
+void PortHarnessShot(const char* name) {
+    SDL_strlcpy(sHarnessShot, name, sizeof(sHarnessShot));
 }
 
 static void HarnessFrame(void) {

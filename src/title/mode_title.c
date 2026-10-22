@@ -247,10 +247,15 @@ void mode_title_0() {
 #ifdef PLATFORM_PC
 void PortUiTitleHint(void);
 void PortUiOpenOptions(void);
+int PortUiNeedsModeChoice(void);
+void PortUiOpenModeChoice(void);
 #endif
 
 void mode_title_1() {
 #ifdef PLATFORM_PC
+    /* the first start: the graphics mode (HD, GBA enhanced, GBA classic) before anything else */
+    if (PortUiNeedsModeChoice())
+        PortUiOpenModeChoice();
     /* PC options: offered on the "press start" and menu screens. */
     if (sTitleState == TITLE_STATE_PRESS_START || sTitleState == TITLE_STATE_MENU) {
         PortUiTitleHint();

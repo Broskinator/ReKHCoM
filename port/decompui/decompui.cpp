@@ -248,7 +248,8 @@ static const Setting kSettings[] = {
     { "experimental_hide_touch_controls", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
-    { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 }, { "experimental_frame_skip", 1 }, { "discord_presence", 1 }, { "hd_movies", 1 }, { "hd_music", 1 }, { "hd_scenes", 0 }, { "hd_subtitles", 1 },
+    { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 }, { "experimental_frame_skip", 1 }, { "discord_presence", 1 }, { "hd_movies", 1 }, { "hd_music", 1 }, { "hd_scenes", 0 }, { "hd_subtitles", 1 }, { "hd_cards", 0 }, { "hd_title", 0 },
+    { "graphics_mode", 0 }, { "graphics_mode_applied", 0 }, { "gba_border", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
     { "dodge_button", 1 },   { "stock_button", 1 }, { "pad_layout", 0 }, { "experimental_moogle_notice", 0 }, { "hd_text", 0 },
@@ -1212,6 +1213,21 @@ static bool ZoomRow(const char* label, const char* help, int& value, bool inheri
     return true;
 }
 
+/* A graphics mode's presets, as the game's PortApplyGraphicsMode (port_config.c): set here so that what the player
+   changes afterwards in the launcher stays (the game applies a mode only when graphics_mode_applied differs). */
+static void ApplyGraphicsMode(int mode) {
+    bool hd = mode == 1, classic = mode == 3;
+    Ini("graphics_mode") = mode;
+    if (mode == 0) /* choose: the game asks on its next start */
+        return;
+    Ini("graphics_mode_applied") = mode;
+    Ini("view_mode") = classic ? 0 : 4;
+    for (const char* k : { "hd_text", "hd_cards", "hd_title", "hd_music", "hd_movies", "hd_subtitles", "hd_scenes" })
+        Ini(k) = hd;
+    Ini("dodge_button") = Ini("stock_button") = !classic;
+    Ini("gba_border") = classic ? (Ini("gba_border") ? Ini("gba_border") : 1) : 0;
+}
+
 static void PageGraphics() {
     const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
                             T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
@@ -1226,6 +1242,22 @@ static void PageGraphics() {
 
     BeginCard("display");
     Eyebrow(T("PANTALLA", "DISPLAY"));
+    {
+        const char* modes[] = { T("Escoger al empezar", "Choose on start"), T("Modo HD", "HD mode"),
+                                T("GBA mejorado", "GBA enhanced"), T("GBA clásico", "GBA classic") };
+        int mode = std::clamp(Ini("graphics_mode"), 0, 3);
+        if (CycleRow(T("Modo gráfico", "Graphics mode"),
+                     T("HD: cartas, logo, música y videos de Re:CoM (mod HD importado) y todas las mejoras. GBA mejorado: "
+                       "vista amplia y mejoras sin extras HD. GBA clásico: la imagen de GBA a escala entera con borde, "
+                       "todo apagado. Elegir un modo pone sus valores; luego puedes cambiar cualquiera.",
+                       "HD: Re:CoM's cards, logo, music and movies (imported HD mod) and every improvement. GBA enhanced: "
+                       "wide view and improvements without HD extras. GBA classic: the GBA picture at a whole scale with a "
+                       "border, everything off. Choosing a mode sets its values; you can change any of them afterwards."),
+                     mode, 4, modes)) {
+            ApplyGraphicsMode(mode);
+            changed = true;
+        }
+    }
     changed |= CycleRow(T("Vista", "View"), T("Auto adapta el encuadre a la ventana.",
                                               "Auto adapts the view to the window."),
                         Ini("view_mode"), 5, views);
