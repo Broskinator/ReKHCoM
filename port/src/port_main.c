@@ -1615,6 +1615,7 @@ static void Present(void) {
         od.x = (float)(int)((outW - od.w) / 2);
         od.y = (float)(int)((outH - od.h) / 2);
         SDL_RenderTexture(sRenderer, sOverlayTex, NULL, &od);
+        PortHdSpritesDraw(sRenderer, 2, od.x, od.y, sOverlayScale, 0, 0); /* the title's logo in the intro */
         if (!menuCanvas)
             PortHdTextDraw(sRenderer, 2, od.x, od.y, sOverlayScale);
     }

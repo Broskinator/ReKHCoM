@@ -145,6 +145,7 @@ extern const unsigned char gTitleLogoKingdomHeartsTiles[];
 extern const unsigned char gTitleLogoCrownTiles[];
 extern const unsigned char gTitleLogoDisneySquareEnixTiles[];
 extern const unsigned char gTitleLogoChainOfMemoriesTiles[];
+extern const unsigned char gTitleLogoBgTiles[];
 extern const unsigned char gBtlHpSoraFaceTiles[];
 extern const unsigned char gBtlHpSoraFaceFrame0[];
 extern const unsigned char gBtlHpSoraFaceTiles[];
@@ -358,6 +359,7 @@ static const HdSpriteDef kHdSprites[] = {
     { gTitleLogoCrownTiles, NULL, "gTitleLogoCrownTiles", -14, -46, 24, 16, 2 },
     { gTitleLogoDisneySquareEnixTiles, NULL, "gTitleLogoDisneySquareEnixTiles", -36, -60, 72, 16, 2 },
     { gTitleLogoChainOfMemoriesTiles, NULL, "gTitleLogoChainOfMemoriesTiles", -57, -16, 112, 16, 2 },
+    { gTitleLogoBgTiles, NULL, "gTitleLogoBgTiles", 0, 0, 256, 256, 2 },
     { gBtlHpSoraFaceTiles, gBtlHpSoraFaceFrame0, "gBtlHpSoraFaceTiles_0", -10, -9, 39, 32, 3 },
     { gBtlHpSoraFaceTiles, gBtlHpSoraFaceFrame1, "gBtlHpSoraFaceTiles_1", -10, -9, 39, 32, 3 },
     { gBtlHpSoraFaceTiles, gBtlHpSoraFaceFrame2, "gBtlHpSoraFaceTiles_2", -10, -9, 39, 32, 3 },

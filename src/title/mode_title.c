@@ -167,6 +167,7 @@ void PortUiIntroSkipReset(void);
 void mode_title_0() {
 #ifdef PLATFORM_PC
     PortUiIntroSkipReset(); /* the logos' skip prompt, if it was still up */
+    PortTitleLogoBg(1);     /* BG2 is the logo: HD with the HD title */
     PortTitleBands(0);
     PortSideStyle(PORT_SIDE_COLOR); /* side bars in the screen's background colour */
 #endif
@@ -479,6 +480,7 @@ void mode_title_1() {
 
 void mode_title_2() {
 #ifdef PLATFORM_PC
+    PortTitleLogoBg(0);
     PortTitleArtFade(0);
     PortTitleArtFadeFirst(0);
     PortTitleBands(0);

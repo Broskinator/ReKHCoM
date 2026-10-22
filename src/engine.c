@@ -957,7 +957,7 @@ void UpdateSpriteOam() {
             PortOamSetPosition(emitted, x, y);
             PortOamSetSource(emitted, (int)(entry - gSpriteWork->entries));
             PortOamSetHdPart(emitted, ((ObjTiles*)entry->tiles)->src, entry->sprite, partX, partY, partW, partH,
-                             affine != NULL ? 0 : entry->flags);
+                             affine != NULL ? 0 : entry->flags, ((ObjPalette*)entry->palette)->src, attr2 >> 12);
 #endif
             tiles = entry->tiles;
 

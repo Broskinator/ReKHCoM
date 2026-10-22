@@ -21,6 +21,9 @@ prueba o un chequeo reutilizable. Lo terminado se anota en PENDIENTES_VIGENTES.m
 | Trabajo por píxel que solo depende del tile | `IsoEntry` caminaba la diagonal en cada píxel | memo por tile de la coordenada (no del valor: el mapa se lee en vivo) |
 | Arte aprobado detrás de una variable de prueba | Agrabah 107/109 nunca encendidas para jugadores | `grep 'getenv("KHCOM_' port_ppu.c`: cada variable de arte aprobado debe ser "0 apaga", no "1 enciende" |
 | Quad alineado a los ejes en el renderer por software de SDL (espejado, girado 90°/180° o en parte fuera del lienzo): SDL lo convierte en copia escalada y lee fuera de la textura (cuelga) | Cartas HD: carta enemiga girando (`port_hdsprites.c`, `Quad`) | correr con `SDL_VIDEO_DRIVER=dummy` (renderer por software) combates con cartas que giran (`KHCOM_BATTLE=10:4:0`, A cada 200 cuadros); pariente a revisar: `PortHdHudDrawSprites` usa `SDL_RenderTextureRotated` con flip |
+| Triángulo muy grande en el renderer por software de SDL: no dibuja nada, sin error (logo del título en la intro, 1700 px) | `port_hdsprites.c`, `Quad` divide en una grilla | volcar la imagen justo después de dibujar (`SDL_RenderReadPixels`) con `SDL_VIDEO_DRIVER=dummy`; pariente: cualquier `SDL_RenderGeometry` de quads grandes |
+| Función de SDL nueva en `port/src` que el shim de consolas no tiene, o variable del camino con biblioteca estándar | `SDL_SetAudioStreamGain`, `sStream` (fundido antes del video HD) | `check_sources.py` compila `port/src` contra el shim (10 s) |
+| Algo que el juego dibuja en la capa de pantalla (`sScreenBg`) y no en la imagen | BG2 del logo en la intro del título | registrar `sOverlay`/`sScreenBg[b]`; `KHCOM_DBGSIDE` dice por qué rama presenta |
 
 ## Herramientas (todas en port/tools)
 - `debug_kit.py run/report`, `run_batteries.py --detach --status` (escritorio + Android; nunca matar baterías desde la sesión).

@@ -644,11 +644,21 @@ void PortSpriteTag(int entry) {
 typedef struct OamHdPart {
     uint16_t id;
     int16_t x, y, w, h;
-    uint8_t flags;
+    uint8_t flags, bank;
     const void *tiles, *frame; /* for the export (KHCOM_HDSPRITE_EXPORT) */
+    const uint16_t* palette;   /* the part's original palette (ROM), for its fade */
 } OamHdPart;
 static OamHdPart sOamHd[128];
 static uint8_t sMainHdPart[128]; /* slot queued as an HD part of the game's picture (QueueMainHdParts) */
+/* The title's logo as an affine background (BG2: its zoom in the intro, the staff roll's end), drawn HD instead
+   while the title says so (PortTitleLogoBg) and the HD title is on. */
+static int sTitleLogoBg, sTitleLogoBgHd;
+extern const unsigned char gTitleLogoBgTiles[];
+extern const unsigned char gTitleLogoBgPalette[];
+extern uint8_t gBgPaletteBank[4]; /* engine.c: the palette bank each BG's palette was loaded at */
+void PortTitleLogoBg(int on) {
+    sTitleLogoBg = on != 0;
+}
 static void QueueMainHdParts(void);
 
 void PortOamTagsReset(void) {
@@ -656,7 +666,8 @@ void PortOamTagsReset(void) {
     memset(sOamHd, 0, sizeof(sOamHd));
 }
 
-void PortOamSetHdPart(int oamIndex, const void* tiles, const void* frame, int x, int y, int w, int h, int flags) {
+void PortOamSetHdPart(int oamIndex, const void* tiles, const void* frame, int x, int y, int w, int h, int flags,
+                      const void* palette, int bank) {
     if (oamIndex < 0 || oamIndex >= 128)
         return;
     sOamHd[oamIndex].id = (uint16_t)PortHdSpriteFind(tiles, frame);
@@ -667,6 +678,8 @@ void PortOamSetHdPart(int oamIndex, const void* tiles, const void* frame, int x,
     sOamHd[oamIndex].flags = (uint8_t)flags;
     sOamHd[oamIndex].tiles = tiles;
     sOamHd[oamIndex].frame = frame;
+    sOamHd[oamIndex].palette = palette;
+    sOamHd[oamIndex].bank = (uint8_t)bank;
 }
 
 static void ExportSprites(void);
@@ -2694,6 +2707,8 @@ static void RenderLine(int y, int gy) {
                 break;
         }
     }
+    if (sTitleLogoBgHd)
+        bgOn[2] = 0; /* the title's logo: drawn HD over the picture (QueueMainHdParts) */
     for (b = 0; b < 4; b++) {
         if (!bgOn[b])
             continue;
@@ -3976,6 +3991,10 @@ static int QueueHdPart(int layer, int i, int hx, int hy, int ow, int oh, int bw,
                        int16_t pa, int16_t pb, int16_t pc, int16_t pd, int alpha) {
     const OamHdPart* part = &sOamHd[i];
     float x[4], y[4];
+    int dark = 0, white = 0;
+    /* the game fades by rewriting palettes (the title, menus): the HD picture follows its part's palette */
+    if (part->palette && !((OAM16[i * 4] >> 13) & 1))
+        PortPaletteFade(part->palette + part->bank * 16, PLTT16 + 256 + (OAM16[i * 4 + 2] >> 12) * 16, 16, &dark, &white);
     if (part->w != ow || part->h != oh)
         return 0;
     if (affine) {
@@ -3996,7 +4015,7 @@ static int QueueHdPart(int layer, int i, int hx, int hy, int ow, int oh, int bw,
         if (part->flags & 2) { float v = t; t = b; b = v; }
         x[0] = l; y[0] = t; x[1] = r; y[1] = t; x[2] = r; y[2] = b; x[3] = l; y[3] = b;
     }
-    return PortHdSpriteQueue(layer, part->id, x, y, part->x, part->y, part->w, part->h, alpha);
+    return PortHdSpriteQueue(layer, part->id, x, y, part->x, part->y, part->w, part->h, alpha, dark, white);
 }
 
 /* HD parts on the game's picture (the title's logo): queued once a frame, before the lines are drawn, and left out
@@ -4006,7 +4025,46 @@ static void QueueMainHdParts(void) {
     uint16_t bldcnt = IO16(0x50);
     int i, eva = IO16(0x52) & 31;
     PortHdSpritesBegin(0);
+    PortHdSpritesBegin(2);
     memset(sMainHdPart, 0, sizeof(sMainHdPart));
+    sTitleLogoBgHd = 0;
+    if (sTitleLogoBg && (IO16(0x00) & 0x400) && ((IO16(0x00) & 7) == 1 || (IO16(0x00) & 7) == 2)) {
+        /* BG2 maps screen (sx, sy) to texture ((X + pa sx + pb sy) / 256, (Y + pc sx + pd sy) / 256): the
+           texture's corners go back through the inverse to the canvas */
+        int id = PortHdSpriteFind(gTitleLogoBgTiles, NULL);
+        int16_t pa = (int16_t)IO16(0x20), pb = (int16_t)IO16(0x22), pc = (int16_t)IO16(0x24), pd = (int16_t)IO16(0x26);
+        float det = (float)pa * pd - (float)pb * pc;
+        if (id && det != 0) {
+            static const int kCorner[4][2] = { { 0, 0 }, { 256, 0 }, { 256, 256 }, { 0, 256 } };
+            /* a screen-layer BG (the intro) is drawn on the screen layer's canvas: the GBA's lines, centred */
+            int screen = sOverlay && sScreenBg[2];
+            float ox = screen ? (gPortOverlayW - GBA_SCREEN_W) / 2.0f : (float)gPortScreen.originX;
+            float oy = screen ? 0.0f : (float)gPortScreen.originY;
+            uint16_t bld = IO16(0x50);
+            int effect = (bld >> 6) & 3, k, alpha = 255, dark = 0, white = 0;
+            float x[4], y[4];
+            for (k = 0; k < 4; k++) {
+                float u = kCorner[k][0] * 256.0f - sAffX[0], v = kCorner[k][1] * 256.0f - sAffY[0];
+                x[k] = (pd * u - pb * v) / det + ox;
+                y[k] = (-pc * u + pa * v) / det + oy;
+            }
+            if (effect == 1 && (bld & 0x04))
+                alpha = ((IO16(0x52) & 31) > 16 ? 16 : (IO16(0x52) & 31)) * 255 / 16;
+            else if (effect == 1 && (bld & 0x400))
+                alpha = (((IO16(0x52) >> 8) & 31) > 16 ? 16 : ((IO16(0x52) >> 8) & 31)) * 255 / 16;
+            else if ((bld & 0x04) && effect == 2)
+                white = ((IO16(0x54) & 31) > 16 ? 16 : (IO16(0x54) & 31)) * 255 / 16;
+            else if ((bld & 0x04) && effect == 3)
+                dark = ((IO16(0x54) & 31) > 16 ? 16 : (IO16(0x54) & 31)) * 255 / 16;
+            {
+                int pd2 = 0, pw2 = 0; /* the title fades its palette too */
+                PortPaletteFade((const uint16_t*)gTitleLogoBgPalette, PLTT16 + (gBgPaletteBank[2] & 15) * 16, 80, &pd2, &pw2);
+                if (pd2 > dark) dark = pd2;
+                if (pw2 > white) white = pw2;
+            }
+            sTitleLogoBgHd = PortHdSpriteQueue(screen ? 2 : 0, id, x, y, 0, 0, 256, 256, alpha, dark, white);
+        }
+    }
     if (!(IO16(0x00) & 0x1000))
         return;
     for (i = 127; i >= 0; i--) {

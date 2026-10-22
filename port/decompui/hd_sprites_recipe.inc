@@ -126,6 +126,7 @@ static const char* const kHdSpriteRecipe[] = {
     "gTitleLogoCrownTiles\t2\t-\tgTitleLogoCrownTiles\t-14\t-46\t24\t16\tFORM/0505/FO0505.RTM:UK_title.imz#3\tcrop=940,4,1017,64;place=3,1,21,15;scale=8",
     "gTitleLogoDisneySquareEnixTiles\t2\t-\tgTitleLogoDisneySquareEnixTiles\t-36\t-60\t72\t16\tFORM/0505/FO0505.RTM:UK_title.imz#3\tcrop=653,12,926,60;place=0,3,68,14;scale=8",
     "gTitleLogoChainOfMemoriesTiles\t2\t-\tgTitleLogoChainOfMemoriesTiles\t-57\t-16\t112\t16\tFORM/0505/FO0505.RTM:UK_title.imz#3\tcrop=400,460,1024,512;erase=114,0,176,52;shift=176,0,624,52,-62;crop=3,0,556,52;place=0,3,112,13;scale=8",
+    "gTitleLogoBgTiles\t2\t-\tgTitleLogoBgTiles\t0\t0\t256\t256\tFORM/0505/FO0505.RTM:UK_title.imz#3\tcanvas=1024,1024;blit=4,9,597,361,60,108,890,636;blit=853,111,1019,270,76,199,306,419;blit=602,288,1019,447,306,200,873,416;blit=940,4,1017,64,428,124,528,202;blit=403,460,514,512,176,300,299,356;blit=576,460,1019,512,299,300,792,356;scale=4",
     "gBtlHpSoraFaceTiles_0\t3\tgBtlHpSoraFaceFrame0\tgBtlHpSoraFaceTiles\t-10\t-9\t39\t32\tFORM/0060/FO0060.RTM:UK_gauge.imz#0\tcrop=5,1,126,115;place=0,0,39,32;scale=8\teu,us,jp",
     "gBtlHpSoraFaceTiles_1\t3\tgBtlHpSoraFaceFrame1\tgBtlHpSoraFaceTiles\t-10\t-9\t39\t32\tFORM/0060/FO0060.RTM:UK_gauge.imz#0\tcrop=133,1,255,115;place=2,0,38,32;scale=8\teu,us,jp",
     "gBtlHpSoraFaceTiles_2\t3\tgBtlHpSoraFaceFrame2\tgBtlHpSoraFaceTiles\t-10\t-9\t39\t32\tFORM/0060/FO0060.RTM:UK_gauge.imz#0\tcrop=1,132,126,243;place=2,0,39,32;scale=8\teu,us,jp",

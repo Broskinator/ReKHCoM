@@ -51,11 +51,12 @@ typedef struct HdSpriteDraw {
     int id;
     float x[4], y[4]; /* HUD canvas corners: top-left, top-right, bottom-right, bottom-left of the part */
     float u0, v0, u1, v1;
-    uint8_t alpha;
+    uint8_t alpha, dark, white;
 } HdSpriteDraw;
-/* per layer: 0 the game's picture, 1 the HUD canvas */
-static HdSpriteDraw sDraws[2][MAX_DRAWS];
-static int sDrawCount[2];
+/* per layer: 0 the game's picture, 1 the HUD canvas, 2 the screen layer (menus, the title's logo) */
+#define HD_LAYERS 3
+static HdSpriteDraw sDraws[HD_LAYERS][MAX_DRAWS];
+static int sDrawCount[HD_LAYERS];
 
 static int GroupOn(int group) {
     switch (group) {
@@ -149,14 +150,17 @@ static int Load(int i) {
 }
 
 void PortHdSpritesBegin(int layer) {
-    sDrawCount[layer & 1] = 0;
+    if ((unsigned)layer < HD_LAYERS)
+        sDrawCount[layer] = 0;
 }
 
-int PortHdSpriteQueue(int layer, int id, const float* x, const float* y, int px, int py, int pw, int ph, int alpha) {
+int PortHdSpriteQueue(int layer, int id, const float* x, const float* y, int px, int py, int pw, int ph, int alpha,
+                      int dark, int white) {
     const HdSpriteDef* d;
     HdSpriteDraw* q;
     int k;
-    layer &= 1;
+    if ((unsigned)layer >= HD_LAYERS)
+        return 0;
     if (id < 1 || id > HD_SPRITE_COUNT || sDrawCount[layer] == MAX_DRAWS)
         return 0;
     d = &kHdSprites[id - 1];
@@ -180,6 +184,8 @@ int PortHdSpriteQueue(int layer, int id, const float* x, const float* y, int px,
     q->u1 = (float)(px + pw - d->x0) / d->w;
     q->v1 = (float)(py + ph - d->y0) / d->h;
     q->alpha = (uint8_t)alpha;
+    q->dark = (uint8_t)SDL_clamp(dark, 0, 255);
+    q->white = (uint8_t)SDL_clamp(white, 0, 255);
     return 1;
 }
 
@@ -201,6 +207,28 @@ static void Quad(SDL_Texture* t, const HdSpriteDraw* q, float ox, float oy, floa
            (v[1].position.y - v[0].position.y) * (v[3].position.x - v[0].position.x);
     if (area < 0.5f && area > -0.5f)
         return;
+    /* An axis-aligned quad is cut to the window first (texture coordinates in proportion): SDL's software
+       renderer drops a triangle that reaches far past the canvas (the title's logo in its intro zoom was not
+       drawn at all), and it saves the work of what cannot be seen. */
+    if (v[0].position.y == v[1].position.y && v[0].position.x == v[3].position.x) {
+        int ow = 0, oh = 0;
+        if (SDL_GetCurrentRenderOutputSize(sRenderer, &ow, &oh) && ow > 0 && oh > 0) {
+            float x0 = v[0].position.x, x1 = v[1].position.x, y0 = v[0].position.y, y1 = v[3].position.y;
+            float u0 = q->u0, u1 = q->u1, w0 = q->v0, w1 = q->v1;
+            float cx0 = SDL_clamp(x0, 0, (float)ow), cx1 = SDL_clamp(x1, 0, (float)ow);
+            float cy0 = SDL_clamp(y0, 0, (float)oh), cy1 = SDL_clamp(y1, 0, (float)oh);
+            if (cx0 == cx1 || cy0 == cy1)
+                return; /* entirely outside */
+            v[0].position.x = v[3].position.x = cx0;
+            v[1].position.x = v[2].position.x = cx1;
+            v[0].position.y = v[1].position.y = cy0;
+            v[2].position.y = v[3].position.y = cy1;
+            v[0].tex_coord.x = v[3].tex_coord.x = u0 + (u1 - u0) * (cx0 - x0) / (x1 - x0);
+            v[1].tex_coord.x = v[2].tex_coord.x = u0 + (u1 - u0) * (cx1 - x0) / (x1 - x0);
+            v[0].tex_coord.y = v[1].tex_coord.y = w0 + (w1 - w0) * (cy0 - y0) / (y1 - y0);
+            v[2].tex_coord.y = v[3].tex_coord.y = w0 + (w1 - w0) * (cy1 - y0) / (y1 - y0);
+        }
+    }
     /* SDL turns an axis-aligned quad into a texture copy, and the software
        renderer's scaled copy reads outside the texture when the quad is
        mirrored, turned a quarter (a card spinning) or partly off the canvas (a
@@ -214,23 +242,90 @@ static void Quad(SDL_Texture* t, const HdSpriteDraw* q, float ox, float oy, floa
         PortLog("hdsprite f=%u %s (%.1f,%.1f) (%.1f,%.1f) (%.1f,%.1f) (%.1f,%.1f) uv %.3f,%.3f-%.3f,%.3f", PortFrameCount(),
                 kHdSprites[q->id].name, v[0].position.x, v[0].position.y, v[1].position.x, v[1].position.y,
                 v[2].position.x, v[2].position.y, v[3].position.x, v[3].position.y, q->u0, q->v0, q->u1, q->v1);
-    SDL_RenderGeometry(sRenderer, t, v, 4, kIndex, 6);
+    {
+        /* A large quad goes as a grid of smaller ones: SDL's software renderer draws nothing of a triangle
+           this big (the title's logo, 1700 pixels wide in the intro). Corners and texture coordinates are
+           interpolated, exact for any affine transform. */
+        float span = SDL_max(SDL_fabsf(v[2].position.x - v[0].position.x), SDL_fabsf(v[2].position.y - v[0].position.y));
+        int n = SDL_clamp((int)(span / 256.0f) + 1, 1, 8), i, j;
+        SDL_Vertex grid[81];
+        int index[6 * 64], ni = 0;
+        if (n == 1) {
+            SDL_RenderGeometry(sRenderer, t, v, 4, kIndex, 6);
+            return;
+        }
+        for (j = 0; j <= n; j++)
+            for (i = 0; i <= n; i++) {
+                float a = (float)i / n, b = (float)j / n;
+                SDL_Vertex* g = &grid[j * (n + 1) + i];
+#define LERP2(f) ((1 - b) * ((1 - a) * v[0].f + a * v[1].f) + b * ((1 - a) * v[3].f + a * v[2].f))
+                g->position.x = LERP2(position.x);
+                g->position.y = LERP2(position.y);
+                g->tex_coord.x = LERP2(tex_coord.x);
+                g->tex_coord.y = LERP2(tex_coord.y);
+#undef LERP2
+                g->color = c;
+            }
+        for (j = 0; j < n; j++)
+            for (i = 0; i < n; i++) {
+                int p = j * (n + 1) + i;
+                index[ni++] = p; index[ni++] = p + 1; index[ni++] = p + n + 2;
+                index[ni++] = p; index[ni++] = p + n + 2; index[ni++] = p + n + 1;
+            }
+        SDL_RenderGeometry(sRenderer, t, grid, (n + 1) * (n + 1), index, ni);
+    }
 }
 
 void PortHdSpritesDraw(SDL_Renderer* renderer, int layer, float ox, float oy, float scale, int darken, int brighten) {
     int i;
     sRenderer = renderer;
-    layer &= 1;
+    if ((unsigned)layer >= HD_LAYERS)
+        return;
     for (i = 0; i < sDrawCount[layer]; i++) {
         const HdSpriteDraw* q = &sDraws[layer][i];
         HdSpriteState* st = &sState[q->id];
-        float shade = darken > 0 ? (16 - darken) / 16.0f : 1.0f;
+        /* the game's brightness fade (BLDY) and the part's palette fade, whichever is further */
+        float shade = 1.0f - SDL_max(darken > 0 ? darken / 16.0f : 0.0f, q->dark / 255.0f);
+        float white = SDL_max(brighten > 0 ? brighten / 16.0f : 0.0f, q->white / 255.0f);
         if (!st->image && !Load(q->id))
             continue;
         st->lastUsed = PortFrameCount();
         Quad(st->image, q, ox, oy, scale, (SDL_FColor){ shade, shade, shade, q->alpha / 255.0f });
-        if (brighten > 0)
-            Quad(st->white, q, ox, oy, scale, (SDL_FColor){ 1, 1, 1, q->alpha / 255.0f * brighten / 16.0f });
+        if (white > 0)
+            Quad(st->white, q, ox, oy, scale, (SDL_FColor){ 1, 1, 1, q->alpha / 255.0f * white });
+    }
+}
+
+void PortPaletteFade(const uint16_t* original, const volatile uint16_t* current, int count, int* dark, int* white) {
+    int i, so = 0, sc = 0, room = 0, err = 0, k;
+    *dark = *white = 0;
+    if (!original || count < 2)
+        return;
+    for (i = 1; i < count; i++) /* entry 0 is transparent */
+        for (k = 0; k < 15; k += 5) {
+            int o = (original[i] >> k) & 31, c = (current[i] >> k) & 31;
+            so += o;
+            sc += c;
+            room += 31 - o;
+        }
+    if (sc < so && so > 0) {
+        int f = 256 * (so - sc) / so; /* c = o (1 - f) */
+        for (i = 1; i < count; i++)
+            for (k = 0; k < 15; k += 5) {
+                int o = (original[i] >> k) & 31, c = (current[i] >> k) & 31;
+                err += SDL_abs(c - o * (256 - f) / 256);
+            }
+        if (err <= 2 * 3 * (count - 1) && f > 6)
+            *dark = SDL_min(f, 255);
+    } else if (sc > so && room > 0) {
+        int f = 256 * (sc - so) / room; /* c = o + (31 - o) f */
+        for (i = 1; i < count; i++)
+            for (k = 0; k < 15; k += 5) {
+                int o = (original[i] >> k) & 31, c = (current[i] >> k) & 31;
+                err += SDL_abs(c - (o + (31 - o) * f / 256));
+            }
+        if (err <= 2 * 3 * (count - 1) && f > 6)
+            *white = SDL_min(f, 255);
     }
 }
 
