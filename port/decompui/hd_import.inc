@@ -620,9 +620,25 @@ static void Solo(Rgba& img) {
     img = std::move(out);
 }
 
+/* src pasted over dst at (x0, y0), alpha-blended (khhd_sprites.over). */
+static void BlitOver(Rgba& dst, const Rgba& src, int x0, int y0) {
+    for (int y = std::max(y0, 0); y < std::min(y0 + src.h, dst.h); y++)
+        for (int x = std::max(x0, 0); x < std::min(x0 + src.w, dst.w); x++) {
+            const unsigned char* s = &src.px[((size_t)(y - y0) * src.w + (x - x0)) * 4];
+            unsigned char* d = dst.at(x, y);
+            double sa = s[3] / 255.0, da = d[3] / 255.0, oa = sa + da * (1 - sa);
+            for (int c = 0; c < 3; c++) {
+                double v = oa > 0 ? (s[c] * sa + d[c] * da * (1 - sa)) / std::max(oa, 1e-9) : 0;
+                d[c] = (unsigned char)std::min(255.0, std::max(0.0, std::floor(v + 0.5)));
+            }
+            d[3] = (unsigned char)std::min(255.0, std::max(0.0, std::floor(oa * 255.0 + 0.5)));
+        }
+}
+
 /* The recipe's operations on the texture, in order (khhd_sprites.apply); false on a malformed recipe. */
 static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rgba& out) {
     int place[4] = { 0, 0, boxW, boxH };
+    const Rgba source = img;
     size_t start = 0;
     while (start <= ops.size()) {
         size_t end = ops.find(';', start);
@@ -668,6 +684,19 @@ static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rg
                         memcpy(img.at(x + v[4], y), copy.at(x, y), 4);
         } else if (key == "solo") {
             Solo(img);
+        } else if (key == "canvas" && v.size() == 2) {
+            if (v[0] < 1 || v[1] < 1 || v[0] > 8192 || v[1] > 8192)
+                return false;
+            img.Resize(v[0], v[1]);
+        } else if (key == "blit" && v.size() == 8) {
+            if (v[0] < 0 || v[1] < 0 || v[2] > source.w || v[3] > source.h || v[2] <= v[0] || v[3] <= v[1] ||
+                v[6] <= v[4] || v[7] <= v[5])
+                return false;
+            Rgba part;
+            part.Resize(v[2] - v[0], v[3] - v[1]);
+            for (int y = 0; y < part.h; y++)
+                memcpy(part.at(0, y), &source.px[((size_t)(v[1] + y) * source.w + v[0]) * 4], (size_t)part.w * 4);
+            BlitOver(img, Resample(part, v[6] - v[4], v[7] - v[5]), v[4], v[5]);
         } else if (key == "tint") {
             unsigned c = (unsigned)strtoul(val.c_str(), nullptr, 16);
             for (size_t i = 0; i < img.px.size(); i += 4)
@@ -1014,6 +1043,10 @@ static bool HdModCard() {
                            "Necesita la vista amplia.",
                            "Battle cards with Re:Chain of Memories' illustrations, frames and numbers. Needs the wide view."),
                          Ini("hd_cards"));
+    changed |= ToggleRow(T("Título HD (beta)", "HD title (beta)"),
+                         T("El logo de la pantalla de título de Re:Chain of Memories (sin el \"Re:\").",
+                           "The title screen's logo from Re:Chain of Memories (without the \"Re:\")."),
+                         Ini("hd_title"));
     ImGui::EndDisabled();
     return changed;
 }

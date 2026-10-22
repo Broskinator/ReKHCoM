@@ -86,7 +86,8 @@ Pasos siguientes, en orden:
   los sprites de GBA desde la ROM) y `hdcards_parts.py` (marcos y dígitos).
 - [x] Extracción en Python: `khhd_sprites.py` (receta → `hd/sprites/<nombre>.png`, 121 piezas, 8 MB). Formatos:
   `khhd_scan.py` (todas las texturas HD del .pkg), `khhd_imgz.py` (IMGZ/IMGD de 32 bits).
-- [ ] Mismo paso en el importador del launcher (`hd_import.inc`).
+- [x] Mismo paso en el importador del launcher (`hd_import.inc`, PNG con miniz; `ReKHCoM.exe --hd-import <juego>
+  --sprites-only` para pruebas): idéntico a Python (diferencia máxima 1 por redondeo).
 - [x] Juego: `hd_cards` (ini); `engine.c` da a cada parte de OAM sus tiles/marco/caja (`PortOamSetHdPart`),
   `port_hdsprites.c` las reconoce por los tiles de la ROM y las dibuja como quads con la transformación del juego;
   lo que el cartucho dibuja delante va a una capa encima (`PortPpuHudOver`). EU/US/JP, mano, cartas enemigas
@@ -94,3 +95,13 @@ Pasos siguientes, en orden:
 - [ ] Opción en Opciones/launcher (Mejoras de Re:CoM, beta), modos GBA/HD.
 - [ ] Menú de barajas (cartas chicas, capa de pantalla) y vista GBA (sin capa HUD).
 - [ ] Pruebas: capturas con la opción apagada idénticas (`compare_present_builds.py`).
+
+## Título HD (22/10, `hd_title`, beta)
+El logo del título de GBA son sprites (`task_title_logo_2`): corazón, letras KINGDOM HEARTS, corona, Disney/Square
+Enix y la placa CHAIN OF MEMORIES. Re:CoM los tiene 1:1 en `FORM/0505/FO0505.RTM:UK_title.imz` (IMGD 3): el corazón
+plateado, KING + DOM HEARTS (compuestas con `canvas`/`blit` donde caen sobre las letras de GBA: escala 1,01/0,99 a 4x),
+la corona y Disney/Square Enix; la placa es la cinta "Re:Chain of Memories" sin el "Re:" (pedido del usuario: cortar y
+mover). En la PPU son sprites de la imagen del juego (capa 0): `QueueMainHdParts` los encola al empezar el cuadro y
+`DrawObjs` los deja fuera; se dibujan sobre la imagen terminada (se supone que van delante de todo).
+Pendiente: la intro con zoom usa el logo como fondo afín (`gTitleLogoBg`), sigue en GBA; "DESARROLLADO POR...", "PULSA
+START" y el arte de Sora no tienen equivalente 1:1.

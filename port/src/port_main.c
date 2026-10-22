@@ -1530,8 +1530,14 @@ static void Present(void) {
         worldX = dst.x;
         worldY = dst.y;
     }
-    if (!menuCanvas)
+    if (!menuCanvas) {
+        /* HD sprites of the game's picture (the title's logo), with the game's fade */
+        uint16_t bld = *(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x50);
+        int effect = (bld >> 6) & 3, amount = SDL_min(*(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x54) & 31, 16);
+        PortHdSpritesDraw(sRenderer, 0, worldX, worldY, worldScale, (bld & 0x10) && effect == 3 ? amount : 0,
+                          (bld & 0x10) && effect == 2 ? amount : 0);
         PortHdTextDraw(sRenderer, 0, worldX, worldY, worldScale);
+    }
     /* the options menu covers everything: no layer is drawn over it */
     if (PortPpuOverlayActive() && sOverlayScale > 0 && !menuCanvas) {
         SDL_FRect od;
@@ -1579,7 +1585,7 @@ static void Present(void) {
             uint16_t bld = *(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x50);
             int effect = (bld >> 6) & 3, amount = SDL_min(*(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x54) & 31, 16);
             const uint32_t* over = PortPpuHudOver();
-            PortHdSpritesDraw(sRenderer, hd.x, hd.y, (float)gPortHudScale,
+            PortHdSpritesDraw(sRenderer, 1, hd.x, hd.y, (float)gPortHudScale,
                               (bld & 0x10) && effect == 3 ? amount : 0, (bld & 0x10) && effect == 2 ? amount : 0);
             if (over) {
                 if (sHudOverTexture == NULL || sHudOverW != sHudTexW || sHudOverH != sHudTexH) {

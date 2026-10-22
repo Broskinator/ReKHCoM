@@ -121,4 +121,9 @@ static const char* const kHdSpriteRecipe[] = {
     "gCardModifiedValueDigitTiles_8\t1\tgCardValueDigitFrame8\tgCardModifiedValueDigitTiles\t3\t8\t8\t8\tCARD/9002/CA9002.RTM:card_no_tm2.dds\tcrop=510,0,573,64;solo;tint=297BFF;place=2,0,8,8;scale=8",
     "gCardValueDigitTiles_9\t1\tgCardValueDigitFrame9\tgCardValueDigitTiles\t3\t8\t8\t8\tCARD/9002/CA9002.RTM:card_no_tm2.dds\tcrop=574,0,637,64;solo;place=3,1,8,8;scale=8",
     "gCardModifiedValueDigitTiles_9\t1\tgCardValueDigitFrame9\tgCardModifiedValueDigitTiles\t3\t8\t8\t8\tCARD/9002/CA9002.RTM:card_no_tm2.dds\tcrop=574,0,637,64;solo;tint=297BFF;place=2,0,8,8;scale=8",
+    "gTitleLogoHeartTiles\t2\t-\tgTitleLogoHeartTiles\t-80\t-48\t160\t96\tFORM/0505/FO0505.RTM:UK_title.imz#3\tcrop=4,9,597,361;place=2,0,153,96;scale=8",
+    "gTitleLogoKingdomHeartsTiles\t2\t-\tgTitleLogoKingdomHeartsTiles\t-75\t-32\t152\t40\tFORM/0505/FO0505.RTM:UK_title.imz#3\tcanvas=608,160;blit=853,111,1019,270,0,2,167,162;blit=602,288,1019,447,167,3,579,160;scale=8",
+    "gTitleLogoCrownTiles\t2\t-\tgTitleLogoCrownTiles\t-14\t-46\t24\t16\tFORM/0505/FO0505.RTM:UK_title.imz#3\tcrop=940,4,1017,64;place=3,1,21,15;scale=8",
+    "gTitleLogoDisneySquareEnixTiles\t2\t-\tgTitleLogoDisneySquareEnixTiles\t-36\t-60\t72\t16\tFORM/0505/FO0505.RTM:UK_title.imz#3\tcrop=653,12,926,60;place=0,3,68,14;scale=8",
+    "gTitleLogoChainOfMemoriesTiles\t2\t-\tgTitleLogoChainOfMemoriesTiles\t-57\t-16\t112\t16\tFORM/0505/FO0505.RTM:UK_title.imz#3\tcrop=400,460,1024,512;erase=114,0,176,52;shift=176,0,624,52,-62;crop=3,0,556,52;place=0,3,112,13;scale=8",
 };

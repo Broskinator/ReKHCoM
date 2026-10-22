@@ -10,6 +10,8 @@ Recipe operations, applied in order to the texture (RGBA):
   erase=x0,y0,x1,y1  make this rectangle transparent
   shift=x0,y0,x1,y1,dx  move this rectangle dx pixels sideways (what it leaves is transparent)
   tint=RRGGBB        multiply the colours
+  canvas=w,h         start over from a transparent w x h picture (for blit)
+  blit=sx0,sy0,sx1,sy1,dx0,dy0,dx1,dy1  paste that rectangle of the texture, resized, over the picture's rectangle
   place=x0,y0,x1,y1  the picture fills only this part of the sprite's box (GBA pixels); the rest is transparent
   scale=k            the output is the sprite's box at k times the GBA's pixels (last; required)
 
@@ -129,8 +131,26 @@ def solo(img):
     return out
 
 
+def over(dst, src, x0, y0):
+    """src pasted over dst at (x0, y0), alpha-blended (the launcher's BlitOver)."""
+    h, w = src.shape[:2]
+    out = dst.astype(np.float64)
+    ys, xs = max(y0, 0), max(x0, 0)
+    ye, xe = min(y0 + h, dst.shape[0]), min(x0 + w, dst.shape[1])
+    if ye <= ys or xe <= xs:
+        return dst
+    s = src[ys - y0:ye - y0, xs - x0:xe - x0].astype(np.float64)
+    d = out[ys:ye, xs:xe]
+    sa, da = s[:, :, 3:4] / 255.0, d[:, :, 3:4] / 255.0
+    oa = sa + da * (1 - sa)
+    rgb = np.where(oa > 0, (s[:, :, :3] * sa + d[:, :, :3] * da * (1 - sa)) / np.maximum(oa, 1e-9), 0)
+    out[ys:ye, xs:xe] = np.concatenate([rgb, oa * 255.0], axis=2)
+    return np.clip(out + 0.5, 0, 255).astype(np.uint8)
+
+
 def apply(img, ops, box):
     place = None
+    source = img
     for op in ops.split(';'):
         key, _, val = op.partition('=')
         v = [int(x) if key != 'tint' else x for x in val.split(',')] if val else []
@@ -150,6 +170,11 @@ def apply(img, ops, box):
                 part[:, max(-x0, 0):part.shape[1] - max(x0 + part.shape[1] - img.shape[1], 0)]
         elif key == 'solo':
             img = solo(img)
+        elif key == 'canvas':
+            img = np.zeros((v[1], v[0], 4), dtype=np.uint8)
+        elif key == 'blit':
+            part = resample(source[v[1]:v[3], v[0]:v[2]], v[6] - v[4], v[7] - v[5])
+            img = over(img, part, v[4], v[5])
         elif key == 'tint':
             c = int(v[0], 16)
             img = img.copy()

@@ -111,6 +111,11 @@ extern const unsigned char gCardWep19Tiles[];
 extern const unsigned char gCardWep20Tiles[];
 extern const unsigned char gGimmickCardTiles[];
 extern const unsigned char gGreenRequiemCardTiles[];
+extern const unsigned char gTitleLogoChainOfMemoriesTiles[];
+extern const unsigned char gTitleLogoCrownTiles[];
+extern const unsigned char gTitleLogoDisneySquareEnixTiles[];
+extern const unsigned char gTitleLogoHeartTiles[];
+extern const unsigned char gTitleLogoKingdomHeartsTiles[];
 extern const unsigned char gYellowOperaCardTiles[];
 static const HdSpriteDef kHdSprites[] = {
     { gCardWep01Tiles, NULL, "gCardWep01Tiles", -16, -12, 32, 32, 1 },
@@ -234,4 +239,9 @@ static const HdSpriteDef kHdSprites[] = {
     { gCardModifiedValueDigitTiles, gCardValueDigitFrame8, "gCardModifiedValueDigitTiles_8", 3, 8, 8, 8, 1 },
     { gCardValueDigitTiles, gCardValueDigitFrame9, "gCardValueDigitTiles_9", 3, 8, 8, 8, 1 },
     { gCardModifiedValueDigitTiles, gCardValueDigitFrame9, "gCardModifiedValueDigitTiles_9", 3, 8, 8, 8, 1 },
+    { gTitleLogoHeartTiles, NULL, "gTitleLogoHeartTiles", -80, -48, 160, 96, 2 },
+    { gTitleLogoKingdomHeartsTiles, NULL, "gTitleLogoKingdomHeartsTiles", -75, -32, 152, 40, 2 },
+    { gTitleLogoCrownTiles, NULL, "gTitleLogoCrownTiles", -14, -46, 24, 16, 2 },
+    { gTitleLogoDisneySquareEnixTiles, NULL, "gTitleLogoDisneySquareEnixTiles", -36, -60, 72, 16, 2 },
+    { gTitleLogoChainOfMemoriesTiles, NULL, "gTitleLogoChainOfMemoriesTiles", -57, -16, 112, 16, 2 },
 };

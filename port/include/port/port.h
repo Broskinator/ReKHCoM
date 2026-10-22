@@ -154,6 +154,7 @@ typedef struct PortConfig {
     int hdScenes;              /* HD mod, full: the imported Re:CoM cutscenes replace the story scenes they match (off) */
     int hdSubtitles;           /* HD mod: the HD movies and scenes show Re:CoM's subtitles in the game's language (on) */
     int hdCards;               /* HD mod, beta: battle cards drawn with Re:CoM's HD art (port_hdsprites.c, off) */
+    int hdTitle;               /* HD mod, beta: the title screen's logo drawn with Re:CoM's HD art (port_hdsprites.c, off) */
 } PortConfig;
 
 extern PortConfig gPortConfig;

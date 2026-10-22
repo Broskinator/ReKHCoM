@@ -1,5 +1,5 @@
 # HD sprites (port_hdsprites.c, khhd_sprites.py, the launcher's importer). Tab-separated:
-# name  group(1 cards)  frame(- any)  tiles  box x0 y0 w h (GBA pixels, frame coordinates)  Re:CoM asset:texture  recipe
+# name  group(1 cards, 2 title)  frame(- any)  tiles  box x0 y0 w h (GBA pixels, frame coordinates)  Re:CoM asset:texture  recipe
 # Card illustrations: matched by eye (hdcards_gba.py sheets vs Re:CoM families); borders and digits: hdcards_parts.py.
 gCardWep01Tiles	1	-	gCardWep01Tiles	-16	-12	32	32	CARD/0001/CA0001.RTM:cw_001_tm2.dds	crop=9,0,247,256;place=3,2,29,30;scale=8
 gCardWep04Tiles	1	-	gCardWep04Tiles	-16	-12	32	32	CARD/0002/CA0002.RTM:cw_002_tm2.dds	crop=9,0,247,256;place=3,2,29,30;scale=8
@@ -122,3 +122,8 @@ gCardValueDigitTiles_8	1	gCardValueDigitFrame8	gCardValueDigitTiles	3	8	8	8	CARD
 gCardModifiedValueDigitTiles_8	1	gCardValueDigitFrame8	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=510,0,573,64;solo;tint=297BFF;place=2,0,8,8;scale=8
 gCardValueDigitTiles_9	1	gCardValueDigitFrame9	gCardValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=574,0,637,64;solo;place=3,1,8,8;scale=8
 gCardModifiedValueDigitTiles_9	1	gCardValueDigitFrame9	gCardModifiedValueDigitTiles	3	8	8	8	CARD/9002/CA9002.RTM:card_no_tm2.dds	crop=574,0,637,64;solo;tint=297BFF;place=2,0,8,8;scale=8
+gTitleLogoHeartTiles	2	-	gTitleLogoHeartTiles	-80	-48	160	96	FORM/0505/FO0505.RTM:UK_title.imz#3	crop=4,9,597,361;place=2,0,153,96;scale=8
+gTitleLogoKingdomHeartsTiles	2	-	gTitleLogoKingdomHeartsTiles	-75	-32	152	40	FORM/0505/FO0505.RTM:UK_title.imz#3	canvas=608,160;blit=853,111,1019,270,0,2,167,162;blit=602,288,1019,447,167,3,579,160;scale=8
+gTitleLogoCrownTiles	2	-	gTitleLogoCrownTiles	-14	-46	24	16	FORM/0505/FO0505.RTM:UK_title.imz#3	crop=940,4,1017,64;place=3,1,21,15;scale=8
+gTitleLogoDisneySquareEnixTiles	2	-	gTitleLogoDisneySquareEnixTiles	-36	-60	72	16	FORM/0505/FO0505.RTM:UK_title.imz#3	crop=653,12,926,60;place=0,3,68,14;scale=8
+gTitleLogoChainOfMemoriesTiles	2	-	gTitleLogoChainOfMemoriesTiles	-57	-16	112	16	FORM/0505/FO0505.RTM:UK_title.imz#3	crop=400,460,1024,512;erase=114,0,176,52;shift=176,0,624,52,-62;crop=3,0,556,52;place=0,3,112,13;scale=8

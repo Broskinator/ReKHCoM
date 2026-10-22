@@ -1,7 +1,8 @@
 /*
  * HD sprites (HD mod, beta): sprites of the cartridge drawn with Re:CoM's HD
  * art where the two are the same picture (HUD_HD_RECOM.md). The first group
- * is the battle cards: illustration, category border and value digit.
+ * is the battle cards (illustration, category border and value digit), the
+ * second the title screen's logo.
  *
  * A sprite is recognised by the ROM tiles it shows (and, for the digits that
  * share one tile set, by its frame), so no game code is touched: engine.c
@@ -52,19 +53,21 @@ typedef struct HdSpriteDraw {
     float u0, v0, u1, v1;
     uint8_t alpha;
 } HdSpriteDraw;
-static HdSpriteDraw sDraws[MAX_DRAWS];
-static int sDrawCount;
+/* per layer: 0 the game's picture, 1 the HUD canvas */
+static HdSpriteDraw sDraws[2][MAX_DRAWS];
+static int sDrawCount[2];
 
 static int GroupOn(int group) {
     switch (group) {
     case 1: return gPortConfig.hdCards;
+    case 2: return gPortConfig.hdTitle;
     default: return 0;
     }
 }
 
 int PortHdSpriteFind(const void* tiles, const void* frame) {
     int i;
-    if (!tiles || !gPortConfig.hdCards)
+    if (!tiles || (!gPortConfig.hdCards && !gPortConfig.hdTitle))
         return 0;
     for (i = 0; i < HD_SPRITE_COUNT; i++) {
         const HdSpriteDef* d = &kHdSprites[i];
@@ -144,15 +147,16 @@ static int Load(int i) {
     return 1;
 }
 
-void PortHdSpritesBegin(void) {
-    sDrawCount = 0;
+void PortHdSpritesBegin(int layer) {
+    sDrawCount[layer & 1] = 0;
 }
 
-int PortHdSpriteQueue(int id, const float* x, const float* y, int px, int py, int pw, int ph, int alpha) {
+int PortHdSpriteQueue(int layer, int id, const float* x, const float* y, int px, int py, int pw, int ph, int alpha) {
     const HdSpriteDef* d;
     HdSpriteDraw* q;
     int k;
-    if (id < 1 || id > HD_SPRITE_COUNT || sDrawCount == MAX_DRAWS)
+    layer &= 1;
+    if (id < 1 || id > HD_SPRITE_COUNT || sDrawCount[layer] == MAX_DRAWS)
         return 0;
     d = &kHdSprites[id - 1];
     /* a part outside the picture's box (another frame of these tiles) or a
@@ -166,7 +170,7 @@ int PortHdSpriteQueue(int id, const float* x, const float* y, int px, int py, in
     for (k = 0; k < 4; k++)
         if (!(x[k] > -4096.0f && x[k] < 8192.0f && y[k] > -4096.0f && y[k] < 8192.0f))
             return 0;
-    q = &sDraws[sDrawCount++];
+    q = &sDraws[layer][sDrawCount[layer]++];
     q->id = id - 1;
     memcpy(q->x, x, sizeof(q->x));
     memcpy(q->y, y, sizeof(q->y));
@@ -213,11 +217,12 @@ static void Quad(SDL_Texture* t, const HdSpriteDraw* q, float ox, float oy, floa
     SDL_RenderGeometry(sRenderer, t, v, 4, kIndex, 6);
 }
 
-void PortHdSpritesDraw(SDL_Renderer* renderer, float ox, float oy, float scale, int darken, int brighten) {
+void PortHdSpritesDraw(SDL_Renderer* renderer, int layer, float ox, float oy, float scale, int darken, int brighten) {
     int i;
     sRenderer = renderer;
-    for (i = 0; i < sDrawCount; i++) {
-        const HdSpriteDraw* q = &sDraws[i];
+    layer &= 1;
+    for (i = 0; i < sDrawCount[layer]; i++) {
+        const HdSpriteDraw* q = &sDraws[layer][i];
         HdSpriteState* st = &sState[q->id];
         float shade = darken > 0 ? (16 - darken) / 16.0f : 1.0f;
         if (!st->image && !Load(q->id))

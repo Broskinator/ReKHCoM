@@ -647,6 +647,8 @@ typedef struct OamHdPart {
     uint8_t flags;
 } OamHdPart;
 static OamHdPart sOamHd[128];
+static uint8_t sMainHdPart[128]; /* slot queued as an HD part of the game's picture (QueueMainHdParts) */
+static void QueueMainHdParts(void);
 
 void PortOamTagsReset(void) {
     memset(sOamTag, 0, sizeof(sOamTag));
@@ -2047,6 +2049,8 @@ static void DrawObjs(int gy, uint16_t dispcnt) {
             continue; /* drawn by PortPpuRenderHud */
         if (HdTextGlyph(i) && sOamTag[i].style != 2)
             continue; /* drawn by port_hdtext.c */
+        if (sMainHdPart[i])
+            continue; /* drawn by port_hdsprites.c over the picture */
         ow = sObjSize[shape][size][0];
         oh = sObjSize[shape][size][1];
         bw = ow << (affine && dbl);
@@ -3506,6 +3510,7 @@ void PortPpuRenderFrame(void) {
 
     PortPpuBeginFrame();
     LatchAffine(1);
+    QueueMainHdParts();
 
     /* Lines above the original picture: state of line 0. */
     RenderOuterRows(0, gPortScreen.originY, 0);
@@ -3870,7 +3875,7 @@ const uint32_t* PortPpuHudOver(void) {
 }
 
 /* Queue OAM slot i (shown at hx, hy on the HUD canvas, bounding box bw x bh) as an HD part. */
-static int QueueHdPart(int i, int hx, int hy, int ow, int oh, int bw, int bh, int affine,
+static int QueueHdPart(int layer, int i, int hx, int hy, int ow, int oh, int bw, int bh, int affine,
                        int16_t pa, int16_t pb, int16_t pc, int16_t pd, int alpha) {
     const OamHdPart* part = &sOamHd[i];
     float x[4], y[4];
@@ -3894,7 +3899,55 @@ static int QueueHdPart(int i, int hx, int hy, int ow, int oh, int bw, int bh, in
         if (part->flags & 2) { float v = t; t = b; b = v; }
         x[0] = l; y[0] = t; x[1] = r; y[1] = t; x[2] = r; y[2] = b; x[3] = l; y[3] = b;
     }
-    return PortHdSpriteQueue(part->id, x, y, part->x, part->y, part->w, part->h, alpha);
+    return PortHdSpriteQueue(layer, part->id, x, y, part->x, part->y, part->w, part->h, alpha);
+}
+
+/* HD parts on the game's picture (the title's logo): queued once a frame, before the lines are drawn, and left out
+   of the lines (DrawObjs). Drawn over the finished picture, so a part is meant to be in front of everything. */
+
+static void QueueMainHdParts(void) {
+    uint16_t bldcnt = IO16(0x50);
+    int i, eva = IO16(0x52) & 31;
+    PortHdSpritesBegin(0);
+    memset(sMainHdPart, 0, sizeof(sMainHdPart));
+    if (!(IO16(0x00) & 0x1000))
+        return;
+    for (i = 127; i >= 0; i--) {
+        uint16_t a0 = OAM16[i * 4 + 0], a1 = OAM16[i * 4 + 1];
+        int affine = (a0 >> 8) & 1, dbl = (a0 >> 9) & 1, mode = (a0 >> 10) & 3;
+        int shape = (a0 >> 14) & 3, size = (a1 >> 14) & 3, ow, oh, bw, bh, ox, oy, alpha = 255;
+        int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
+        if (!sOamHd[i].id || (!affine && dbl) || shape == 3 || mode >= 2 || (sHudLayer && sOamTag[i].hud) ||
+            (sOverlay && sOamTag[i].screen) || (((a0 >> 12) & 1) && (IO16(0x4C) & 0xFF00)))
+            continue; /* a sprite under a real mosaic (size > 1) keeps the cartridge's pixels */
+        ow = sObjSize[shape][size][0];
+        oh = sObjSize[shape][size][1];
+        bw = ow << (affine && dbl);
+        bh = oh << (affine && dbl);
+        oy = a0 & 0xFF;
+        ox = a1 & 0x1FF;
+        if ((sOamExt[i].x & 0x1FF) == ox && (sOamExt[i].y & 0xFF) == oy) {
+            ox = sOamExt[i].x;
+            oy = sOamExt[i].y;
+        } else {
+            if (oy >= sBottom)
+                oy -= 256;
+            if (ox >= sRight)
+                ox -= 512;
+        }
+        if (affine) {
+            const uint16_t* p = OAM16 + ((a1 >> 9) & 31) * 16;
+            pa = (int16_t)p[3];
+            pb = (int16_t)p[7];
+            pc = (int16_t)p[11];
+            pd = (int16_t)p[15];
+        }
+        /* a semi-transparent sprite blends with the first target's weight */
+        if (mode == 1 || (((bldcnt >> 6) & 3) == 1 && (bldcnt & 0x10)))
+            alpha = (eva > 16 ? 16 : eva) * 255 / 16;
+        sMainHdPart[i] = (uint8_t)QueueHdPart(0, i, ox + gPortScreen.originX, oy + gPortScreen.originY, ow, oh, bw, bh,
+                                              affine, pa, pb, pc, pd, alpha);
+    }
 }
 
 void PortPpuRenderHud(uint32_t* buf) {
@@ -3907,7 +3960,7 @@ void PortPpuRenderHud(uint32_t* buf) {
 
     sEnemyHudRect[0] = w; sEnemyHudRect[1] = h;
     PortHdHudSpriteBegin();
-    PortHdSpritesBegin();
+    PortHdSpritesBegin(1);
     sHudOverUsed = 0;
     if (gPortConfig.hdCards && (size_t)w * h > sHdCoverSize) {
         uint8_t* cover = realloc(sHdCover, (size_t)w * h);
@@ -4027,7 +4080,7 @@ void PortPpuRenderHud(uint32_t* buf) {
         }
         if (sOamHd[i].id && !hdSprite && sHdCover && (size_t)w * h <= sHdCoverSize &&
             sHudOver && (size_t)w * h <= sHudOverSize && mode != 2)
-            hdPart = QueueHdPart(i, hx, hy, ow, oh, bw, bh, affine, pa, pb, pc, pd, mode == 1 ? 0xA0 : 255);
+            hdPart = QueueHdPart(1, i, hx, hy, ow, oh, bw, bh, affine, pa, pb, pc, pd, mode == 1 ? 0xA0 : 255);
         for (sy = 0; sy < bh; sy++) {
             int py = hy + sy;
             if (py < 0 || py >= h)
