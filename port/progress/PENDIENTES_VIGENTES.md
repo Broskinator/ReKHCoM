@@ -66,8 +66,8 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
 - En main: todo lo de arriba + escenas HD 97/100 (`kHdSceneExtras`: 001/614/631 solo en modo Re:CoM), fundidos de
   0,3 s en videos HD (PC y Android), guardas de división (#40 y parientes), flujo de audio HD arreglado.
 - Método de depuración y herramientas: **DEBUG_WORKFLOW.md**. Seguirlo.
-- Falta: (1) versión v2.0 (launcher `REKHCOM_VERSION`, `rekhcom.rc`, web, CHANGELOG "## v2.0"; la PS5 compara
-  `%d.%d.%d`: usar tag **v2.0.0**, título "ReKHCoM v2.0"); (2) builds de todas las plataformas desde el commit final;
+- Falta: (1) ~~versión v2.0~~ hecho 22/10 (launcher, rc, web, CHANGELOG; tag **v2.0**: el actualizador de la PS5 lee
+  "2.0" como 2.0.0 y `build_all.py`/`build_android.py` ya aceptan vX.Y); (2) builds de todas las plataformas desde el commit final;
   (3) la lista de verificación de abajo completa; (4) revisar issues (#40 abierto: arreglado, avisar al publicar);
   (5) publicar v2.0 anunciando el mod HD, borrar releases viejos si el clasificador deja (si no, el usuario).
 - Copia del usuario: `Probar ReKHCoM v1.9.15 completo.bat` (actualizarla con cada build de Windows).
