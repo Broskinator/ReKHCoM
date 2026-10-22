@@ -92,6 +92,13 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
 - Inventario de texto del HUD que aún no es HD (números y letras) que pueda pasar a HD sin tocar mucho el HUD.
 - Estado 22/10: texturas HD halladas (226 cartas, marcos, dígitos, fuentes); 1:1 = cartas de combate y del menú de
   barajas → **Cartas HD** primero. Diseño y estado en HUD_HD_RECOM.md. La v2.0 espera a esto como beta.
+- También (usuario 22/10), si los gráficos de Re:CoM lo permiten: **pantalla de título y transiciones en HD**, y
+  nuestro **menú de Opciones en HD**.
+- **Primer arranque (juego) y launcher: elegir "Modo GBA" o "Modo HD"**, cada uno con su descripción. El Modo GBA
+  pregunta después **"GBA mejorado"** (nuestro estándar actual: vista amplia, mejoras) o **"GBA clásico"** (como en
+  un emulador: la imagen 240x160 al mayor entero que entre en la ventana, y el resto con un **borde decorativo
+  propio estilo Super Game Boy**; el borde es arte nuevo: se entrega con antes/después para aprobar). Se puede
+  cambiar luego en el launcher y en Opciones.
 - Después (pedido del usuario): datos duros de Re:CoM (dificultades, valores de cartas/enemigos, cambios respecto
   a GBA) para el modo Re:CoM, en lógica y jugabilidad, con pruebas para no meter bugs.
 
