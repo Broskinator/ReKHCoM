@@ -72,6 +72,13 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
   (5) publicar v2.0 anunciando el mod HD, borrar releases viejos si el clasificador deja (si no, el usuario).
 - Copia del usuario: `Probar ReKHCoM v1.9.15 completo.bat` (actualizarla con cada build de Windows).
 
+### TRASPASO 22/10 ~06:30 (al Claude principal se le acaban los tokens; el usuario se fue a dormir)
+- Orden: (1) Cartas HD: seguir HUD_HD_RECOM.md "Traspaso" pasos 1-7; (2) cuando Darkside esté aprobado (sesión
+  arenas-jefes, [local_d3b029d7]) y Cartas HD en beta: pedir OK al usuario y hacer los builds de la v2.0 con la lista
+  de verificación de abajo; (3) modos GBA/HD y lo demás de esta sección; (4) datos de Re:CoM para el modo Re:CoM.
+- Repetición sola del combate Android US 124 quedó esperando a que el emulador se libere: `build/android-124-alone.log`.
+- Baterías de escritorio restantes (battles/riku/monkey/skip) siguen en `run_batteries.py`; `build/pc-*` ya es HEAD.
+
 ### Estado 22/10 ~05:30 (Claude, sesión principal)
 - Hecho y en main: puntos 1-4 de abajo, arte x1 + Agrabah encendida, versión v2.0, suelo isométrico rápido, presentación
   sin copia. Comprobado en el build v2.0: combate EU/US/JP limpio, `test_hd_audio.py` 0/9, `match_hd_scenes --check`.
@@ -99,6 +106,14 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
   un emulador: la imagen 240x160 al mayor entero que entre en la ventana, y el resto con un **borde decorativo
   propio estilo Super Game Boy**; el borde es arte nuevo: se entrega con antes/después para aprobar). Se puede
   cambiar luego en el launcher y en Opciones.
+  Modo HD = todos los assets HD y todas las mejoras encendidas. GBA mejorado = las mejoras del port como hoy, con
+  los extras HD (texto HD, etc.) apagados por defecto. Al empezar partida nueva se sigue preguntando y la elección
+  se guarda por partida (como el asistente de partida nueva actual).
+  **GBA clásico (usuario 22/10): todo apagado (vista amplia, texto HD, QoL): casi un emulador, pero nativo.** Aun
+  así, al empezar partida nueva pregunta si activar lo que aplique (QoL, vista amplia); al mover el interruptor de
+  la vista amplia el fondo de esa pantalla cambia a vista amplia para que se note el cambio.
+  Decisiones por defecto mientras el usuario no diga otra cosa: Modo HD sin importación = ofrece importar primero;
+  borde estilo Super Game Boy = 3 propuestas para elegir; scratchpads de otras sesiones en %TEMP% = no tocar.
 - Después (pedido del usuario): datos duros de Re:CoM (dificultades, valores de cartas/enemigos, cambios respecto
   a GBA) para el modo Re:CoM, en lógica y jugabilidad, con pruebas para no meter bugs.
 

@@ -49,6 +49,34 @@ Tres sprites con la misma posición, matriz afín (giro/escala) y prioridad (`En
    resoluciones y zooms, PC y Android.
 5. Si falta un archivo o se apaga la opción: la carta de GBA, sin cambios.
 
+## Traspaso (22/10 ~06:30, al Claude anterior se le acaban los tokens): cómo seguir
+
+Herramientas (en el repo): `khhd_textures.py` (saca un asset + sus texturas HD), `hdhud_gba_card_sheet.py`
+(dibuja cada ilustración de carta de GBA desde la ROM: marco + tiles 4bpp crudos + paleta, símbolos de
+`build/eu/pc/rom_symbols.s`), `hdhud_gba_shots.py` (capturas GBA de combate y del menú de barajas). Material de
+trabajo (fuera del repo, no se sube: es del juego del jugador): `D:/01Claude/ReKHCoM-build/hdhud/` con `cards/` (las
+226 cartas con sus DDS HD), `families.png` (una muestra por familia), `gba_cards.tsv` (119 cartas distintas de GBA:
+gráfico, nombre, kind, categoría, número de catálogo), `gba_cards.png` (70 dibujadas), `recom.txt` (nombres de OpenKh).
+
+Pasos siguientes, en orden:
+1. 49 cartas de GBA no salen en la hoja porque sus símbolos `...Frame0/Tiles/Palette` no están en `rom_symbols.s`
+   (amigos/invocaciones Smn*, enemigos Emy*, jefes Bos*, Npc*): buscar su nombre real (assets del decomp, `asm/`,
+   `gen/*.h`) o si los tiles están comprimidos.
+2. Mapear cada carta de GBA a su archivo de Re:CoM comparando la hoja GBA con `families.png`/`cards/` (por imagen,
+   no por número: GBA llama `gCardWep04` a Three Wishes y Re:CoM `cw_002`). Guardar la tabla en
+   `port/data/hd_cards.tsv` (id de GBA → archivo de Re:CoM, rectángulo del marco en `com_card01`).
+3. Geometría: medir en GBA el marco (32x? con corona), la ventana de la ilustración y el círculo del valor; recortar
+   el marco de `com_card01` por color de categoría y los dígitos de `card_no`.
+4. Importador: `khhd_cards.py` + el mismo paso en el launcher (`port/decompui/hd_import.inc`, junto a la música y
+   los videos): DDS (DXT, decodificar con un decodificador BC chico, p. ej. bcdec) → PNG sin pérdida, recortado, solo
+   las cartas usadas, en `hd/cards/`. Comprimir al máximo sin pérdida (zlib 9; paleta si entra en 256 colores).
+5. Juego: opción `hd_cards` (juego + launcher + ini, Mejoras de Re:CoM, beta, apagada por defecto salvo Modo HD);
+   etiquetar los 3 sprites de cada carta (`EnemyCardDraw` y parientes de Sora/Riku/menú de barajas: buscar
+   `gCardValueDigitFrames` y `cardDef->gfx`), capas en `PortPpuRenderHud` y quads en la presentación (diseño arriba).
+6. Pruebas: opción apagada = capturas idénticas (`compare_present_builds.py`); encendida: combate EU/US/JP, mano con
+   cartas superpuestas, carta activa girando, menú de barajas; sin cartas faltantes ni orden roto.
+7. Proponer al usuario los tentativos (medidores, contador, recarga, fuentes HD de Re:CoM) con capturas.
+
 ## Estado
 - [x] Ubicación y formato de las texturas HD; familias identificadas; qué es 1:1.
 - [ ] Mapeo de las cartas de GBA a los archivos de Re:CoM (hoja de verificación).
