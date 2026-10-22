@@ -102,26 +102,26 @@ gCardBorderRedTiles	1	-	gCardBorderRedTiles	-16	-20	32	39	CARD/1000/CA1000.RTM:c
 gCardBorderGreenTiles	1	-	gCardBorderGreenTiles	-16	-20	32	39	CARD/1000/CA1000.RTM:com_card01_tm2.dds	crop=2,278,187,545;rot=0;crop=0,0,185,267;place=2,0,30,39;scale=8
 gCardBorderBlueTiles	1	-	gCardBorderBlueTiles	-16	-20	32	39	CARD/1000/CA1000.RTM:com_card01_tm2.dds	crop=2,550,187,821;rot=0;crop=0,0,185,267;place=2,0,30,39;scale=8
 gCardBorderBlackTiles	1	-	gCardBorderBlackTiles	-16	-20	32	39	CARD/1000/CA1000.RTM:com_card01_tm2.dds	crop=750,187,1017,373;rot=270;crop=0,0,186,267;place=2,0,30,39;scale=8
-gCardValueDigitTiles_0	1	gCardValueDigitFrame0	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=2,38,42,76,5,8,64,64;scale=8
-gCardModifiedValueDigitTiles_0	1	gCardValueDigitFrame0	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=2,38,42,76,5,8,64,64;tint=6BA5FF;scale=8
-gCardValueDigitTiles_1	1	gCardValueDigitFrame1	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=46,38,72,76,15,8,54,64;scale=8
-gCardModifiedValueDigitTiles_1	1	gCardValueDigitFrame1	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=46,38,72,76,15,8,54,64;tint=6BA5FF;scale=8
-gCardValueDigitTiles_2	1	gCardValueDigitFrame2	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=75,38,115,76,5,8,64,64;scale=8
-gCardModifiedValueDigitTiles_2	1	gCardValueDigitFrame2	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=75,38,115,76,5,8,64,64;tint=6BA5FF;scale=8
-gCardValueDigitTiles_3	1	gCardValueDigitFrame3	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=121,38,161,76,5,8,64,64;scale=8
-gCardModifiedValueDigitTiles_3	1	gCardValueDigitFrame3	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=121,38,161,76,5,8,64,64;tint=6BA5FF;scale=8
-gCardValueDigitTiles_4	1	gCardValueDigitFrame4	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=164,38,201,76,7,8,62,64;scale=8
-gCardModifiedValueDigitTiles_4	1	gCardValueDigitFrame4	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=164,38,201,76,7,8,62,64;tint=6BA5FF;scale=8
-gCardValueDigitTiles_5	1	gCardValueDigitFrame5	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=206,38,246,76,5,8,64,64;scale=8
-gCardModifiedValueDigitTiles_5	1	gCardValueDigitFrame5	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=206,38,246,76,5,8,64,64;tint=6BA5FF;scale=8
-gCardValueDigitTiles_6	1	gCardValueDigitFrame6	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=249,38,289,76,5,8,64,64;scale=8
-gCardModifiedValueDigitTiles_6	1	gCardValueDigitFrame6	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=249,38,289,76,5,8,64,64;tint=6BA5FF;scale=8
-gCardValueDigitTiles_7	1	gCardValueDigitFrame7	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=293,38,329,76,8,8,61,64;scale=8
-gCardModifiedValueDigitTiles_7	1	gCardValueDigitFrame7	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=293,38,329,76,8,8,61,64;tint=6BA5FF;scale=8
-gCardValueDigitTiles_8	1	gCardValueDigitFrame8	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=334,38,374,76,5,8,64,64;scale=8
-gCardModifiedValueDigitTiles_8	1	gCardValueDigitFrame8	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=334,38,374,76,5,8,64,64;tint=6BA5FF;scale=8
-gCardValueDigitTiles_9	1	gCardValueDigitFrame9	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=378,38,415,76,7,8,62,64;scale=8
-gCardModifiedValueDigitTiles_9	1	gCardValueDigitFrame9	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=378,38,415,76,7,8,62,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_0	1	gCardValueDigitFrame0	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=2,38,42,76,14,8,64,64;scale=8
+gCardModifiedValueDigitTiles_0	1	gCardValueDigitFrame0	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=2,38,42,76,6,0,64,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_1	1	gCardValueDigitFrame1	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=46,38,72,76,21,8,59,64;scale=8
+gCardModifiedValueDigitTiles_1	1	gCardValueDigitFrame1	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=46,38,72,76,14,0,58,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_2	1	gCardValueDigitFrame2	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=75,38,115,76,14,8,64,64;scale=8
+gCardModifiedValueDigitTiles_2	1	gCardValueDigitFrame2	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=75,38,115,76,6,0,64,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_3	1	gCardValueDigitFrame3	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=121,38,161,76,14,8,64,64;scale=8
+gCardModifiedValueDigitTiles_3	1	gCardValueDigitFrame3	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=121,38,161,76,6,0,64,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_4	1	gCardValueDigitFrame4	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=164,38,201,76,16,8,64,64;scale=8
+gCardModifiedValueDigitTiles_4	1	gCardValueDigitFrame4	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=164,38,201,76,9,0,64,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_5	1	gCardValueDigitFrame5	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=206,38,246,76,14,8,64,64;scale=8
+gCardModifiedValueDigitTiles_5	1	gCardValueDigitFrame5	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=206,38,246,76,6,0,64,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_6	1	gCardValueDigitFrame6	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=249,38,289,76,14,8,64,64;scale=8
+gCardModifiedValueDigitTiles_6	1	gCardValueDigitFrame6	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=249,38,289,76,6,0,64,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_7	1	gCardValueDigitFrame7	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=293,38,329,76,18,8,64,64;scale=8
+gCardModifiedValueDigitTiles_7	1	gCardValueDigitFrame7	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=293,38,329,76,10,0,64,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_8	1	gCardValueDigitFrame8	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=334,38,374,76,14,8,64,64;scale=8
+gCardModifiedValueDigitTiles_8	1	gCardValueDigitFrame8	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=334,38,374,76,6,0,64,64;tint=6BA5FF;scale=8
+gCardValueDigitTiles_9	1	gCardValueDigitFrame9	gCardValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=378,38,415,76,16,8,64,64;scale=8
+gCardModifiedValueDigitTiles_9	1	gCardValueDigitFrame9	gCardModifiedValueDigitTiles	3	8	8	8	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=64,64;blit=378,38,415,76,9,0,64,64;tint=6BA5FF;scale=8
 gTitleLogoHeartTiles	2	-	gTitleLogoHeartTiles	-80	-48	160	96	FORM/0505/FO0505.RTM:UK_title.imz#3	crop=4,9,597,361;place=2,0,153,96;scale=8
 gTitleLogoKingdomHeartsTiles	2	-	gTitleLogoKingdomHeartsTiles	-75	-32	152	40	FORM/0505/FO0505.RTM:UK_title.imz#3	canvas=608,160;blit=853,111,1019,270,0,2,167,162;blit=602,288,1019,447,167,3,579,160;scale=8
 gTitleLogoCrownTiles	2	-	gTitleLogoCrownTiles	-14	-46	24	16	FORM/0505/FO0505.RTM:UK_title.imz#3	crop=940,4,1017,64;place=3,1,21,15;scale=8
@@ -133,25 +133,25 @@ gBtlHpSoraFaceTiles_1	3	gBtlHpSoraFaceFrame1	gBtlHpSoraFaceTiles	-10	-9	39	32	FO
 gBtlHpSoraFaceTiles_2	3	gBtlHpSoraFaceFrame2	gBtlHpSoraFaceTiles	-10	-9	39	32	FORM/0060/FO0060.RTM:UK_gauge.imz#0	crop=1,132,126,243;place=2,0,39,32;scale=8	eu,us,jp
 gBtlHpRikuFaceTiles_0	3	gBtlHpRikuFaceFrame0	gBtlHpRikuFaceTiles	-12	-9	40	32	FORM/0061/FO0061.RTM:UK_gauge.imz#0	crop=4,1,125,115;place=2,1,38,32;scale=8	eu,us,jp
 gBtlHpRikuFaceTiles_1	3	gBtlHpRikuFaceFrame1	gBtlHpRikuFaceTiles	-12	-9	40	32	FORM/0061/FO0061.RTM:UK_gauge.imz#0	crop=133,1,255,115;place=7,2,39,32;scale=8	eu,us,jp
-gBtlPopCardBreakTiles	3	gBtlPopCardBreakFrame0	gBtlPopCardBreakTiles	-24	-8	48	16	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	crop=600,107,847,140;place=0,3,47,12;scale=8	eu,us
-gBtlPopCardBreakGermanTiles	3	gBtlPopCardBreakGermanFrame0	gBtlPopCardBreakGermanTiles	-24	-8	48	16	FORM/0002/FO0002.RTM:GR_Cockpit.imz#0	crop=591,107,856,140;place=0,3,48,12;scale=8	eu
-gBtlPopCardBreakItalianTiles	3	gBtlPopCardBreakItalianFrame0	gBtlPopCardBreakItalianTiles	-24	-8	48	16	FORM/0002/FO0002.RTM:IT_Cockpit.imz#0	crop=598,107,849,140;place=0,3,47,12;scale=8	eu
-gBtlPopCardBreakSpanishTiles	3	gBtlPopCardBreakSpanishFrame0	gBtlPopCardBreakSpanishTiles	-24	-8	48	16	FORM/0002/FO0002.RTM:SP_Cockpit.imz#0	crop=603,107,843,140;place=1,3,47,14;scale=8	eu
-gBtlPopGuardTiles	3	gBtlPopGuardFrame0	gBtlPopGuardTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	crop=656,174,789,207;place=1,3,29,12;scale=8	eu,us
-gBtlPopGuardFrenchTiles	3	gBtlPopGuardFrenchFrame0	gBtlPopGuardFrenchTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:FR_Cockpit.imz#0	crop=645,174,800,207;place=2,3,30,12;scale=8	eu
-gBtlPopGuardGermanTiles	3	gBtlPopGuardGermanFrame0	gBtlPopGuardGermanTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:GR_Cockpit.imz#0	crop=645,174,800,207;place=0,3,32,12;scale=8	eu
-gBtlPopGuardItalianTiles	3	gBtlPopGuardItalianFrame0	gBtlPopGuardItalianTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:IT_Cockpit.imz#0	crop=646,174,799,207;place=1,3,30,12;scale=8	eu
-gBtlPopGuardSpanishTiles	3	gBtlPopGuardSpanishFrame0	gBtlPopGuardSpanishTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:SP_Cockpit.imz#0	crop=632,174,813,212;place=4,3,27,12;scale=8	eu
-gBtlPopRecoverTiles	3	gBtlPopRecoverFrame0	gBtlPopRecoverTiles	-20	-8	40	16	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	crop=632,240,813,273;place=2,3,38,12;scale=8	eu,us
-gBtlPopRecoverFrenchTiles	3	gBtlPopRecoverFrenchFrame0	gBtlPopRecoverFrenchTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:FR_Cockpit.imz#0	crop=650,240,795,273;place=1,3,30,14;scale=8	eu
-gBtlPopRecoverGermanTiles	3	gBtlPopRecoverGermanFrame0	gBtlPopRecoverGermanTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:GR_Cockpit.imz#0	crop=645,240,800,273;place=3,3,28,12;scale=8	eu
-gBtlPopRecoverItalianTiles	3	gBtlPopRecoverItalianFrame0	gBtlPopRecoverItalianTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:IT_Cockpit.imz#0	crop=668,240,777,273;place=5,3,26,12;scale=8	eu
-gBtlPopRecoverSpanishTiles	3	gBtlPopRecoverSpanishFrame0	gBtlPopRecoverSpanishTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:SP_Cockpit.imz#0	crop=620,240,825,273;place=4,3,28,12;scale=8	eu
-gLvupLogoTiles	3	gLvupLogoFrame0	gLvupLogoTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	crop=553,27,892,70;place=0,4,61,16;scale=8	eu,us
-gLvupLogoFrenchTiles	3	gLvupLogoFrame0	gLvupLogoFrenchTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:FR_Cockpit.imz#0	crop=571,27,873,70;place=1,4,60,16;scale=8	eu
-gLvupLogoGermanTiles	3	gLvupLogoFrame0	gLvupLogoGermanTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:GR_Cockpit.imz#0	crop=521,27,924,70;place=1,4,60,16;scale=8	eu
-gLvupLogoItalianTiles	3	gLvupLogoFrame0	gLvupLogoItalianTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:IT_Cockpit.imz#0	crop=562,27,883,70;place=0,4,64,16;scale=8	eu
-gLvupLogoSpanishTiles	3	gLvupLogoFrame0	gLvupLogoSpanishTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:SP_Cockpit.imz#0	crop=584,22,857,80;place=1,4,60,16;scale=8	eu
+gBtlPopCardBreakTiles	3	gBtlPopCardBreakFrame0	gBtlPopCardBreakTiles	-24	-8	48	16	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=384,128;blit=600,107,847,140,-3,20,379,100;scale=8	eu,us
+gBtlPopCardBreakGermanTiles	3	gBtlPopCardBreakGermanFrame0	gBtlPopCardBreakGermanTiles	-24	-8	48	16	FORM/0002/FO0002.RTM:GR_Cockpit.imz#0	canvas=384,128;blit=591,107,856,140,-4,20,388,100;scale=8	eu
+gBtlPopCardBreakItalianTiles	3	gBtlPopCardBreakItalianFrame0	gBtlPopCardBreakItalianTiles	-24	-8	48	16	FORM/0002/FO0002.RTM:IT_Cockpit.imz#0	canvas=384,128;blit=598,107,849,140,-3,20,379,100;scale=8	eu
+gBtlPopCardBreakSpanishTiles	3	gBtlPopCardBreakSpanishFrame0	gBtlPopCardBreakSpanishTiles	-24	-8	48	16	FORM/0002/FO0002.RTM:SP_Cockpit.imz#0	canvas=384,128;blit=603,107,843,140,4,18,379,118;scale=8	eu
+gBtlPopGuardTiles	3	gBtlPopGuardFrame0	gBtlPopGuardTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=256,128;blit=656,174,789,207,4,20,236,100;scale=8	eu,us
+gBtlPopGuardFrenchTiles	3	gBtlPopGuardFrenchFrame0	gBtlPopGuardFrenchTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:FR_Cockpit.imz#0	canvas=256,128;blit=645,174,800,207,13,20,243,100;scale=8	eu
+gBtlPopGuardGermanTiles	3	gBtlPopGuardGermanFrame0	gBtlPopGuardGermanTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:GR_Cockpit.imz#0	canvas=256,128;blit=645,174,800,207,-3,20,259,100;scale=8	eu
+gBtlPopGuardItalianTiles	3	gBtlPopGuardItalianFrame0	gBtlPopGuardItalianTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:IT_Cockpit.imz#0	canvas=256,128;blit=646,174,799,207,5,20,243,100;scale=8	eu
+gBtlPopGuardSpanishTiles	3	gBtlPopGuardSpanishFrame0	gBtlPopGuardSpanishTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:SP_Cockpit.imz#0	canvas=256,128;blit=632,174,813,212,29,20,219,99;scale=8	eu
+gBtlPopRecoverTiles	3	gBtlPopRecoverFrame0	gBtlPopRecoverTiles	-20	-8	40	16	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=320,128;blit=632,240,813,273,13,20,308,100;scale=8	eu,us
+gBtlPopRecoverFrenchTiles	3	gBtlPopRecoverFrenchFrame0	gBtlPopRecoverFrenchTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:FR_Cockpit.imz#0	canvas=256,128;blit=650,240,795,273,5,18,243,118;scale=8	eu
+gBtlPopRecoverGermanTiles	3	gBtlPopRecoverGermanFrame0	gBtlPopRecoverGermanTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:GR_Cockpit.imz#0	canvas=256,128;blit=645,240,800,273,21,20,226,100;scale=8	eu
+gBtlPopRecoverItalianTiles	3	gBtlPopRecoverItalianFrame0	gBtlPopRecoverItalianTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:IT_Cockpit.imz#0	canvas=256,128;blit=668,240,777,273,36,20,212,100;scale=8	eu
+gBtlPopRecoverSpanishTiles	3	gBtlPopRecoverSpanishFrame0	gBtlPopRecoverSpanishTiles	-16	-8	32	16	FORM/0002/FO0002.RTM:SP_Cockpit.imz#0	canvas=256,128;blit=620,240,825,273,30,20,226,100;scale=8	eu
+gLvupLogoTiles	3	gLvupLogoFrame0	gLvupLogoTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=512,128;blit=553,27,892,70,-3,26,491,132;scale=8	eu,us
+gLvupLogoFrenchTiles	3	gLvupLogoFrame0	gLvupLogoFrenchTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:FR_Cockpit.imz#0	canvas=512,128;blit=571,27,873,70,5,26,483,132;scale=8	eu
+gLvupLogoGermanTiles	3	gLvupLogoFrame0	gLvupLogoGermanTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:GR_Cockpit.imz#0	canvas=512,128;blit=521,27,924,70,5,26,483,132;scale=8	eu
+gLvupLogoItalianTiles	3	gLvupLogoFrame0	gLvupLogoItalianTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:IT_Cockpit.imz#0	canvas=512,128;blit=562,27,883,70,-3,26,515,132;scale=8	eu
+gLvupLogoSpanishTiles	3	gLvupLogoFrame0	gLvupLogoSpanishTiles	-32	-8	64	16	FORM/0002/FO0002.RTM:SP_Cockpit.imz#0	canvas=512,128;blit=584,22,857,80,3,28,483,132;scale=8	eu
 # Map cards (22/10): the room synthesis cards; Re:CoM's cr_### are the same 22 illustrations (gCardRoom23, Key to
 # Rewards, has none), their borders the dark shades and the gold of com_card01 (the GBA's map borders are darker).
 gCardRoom01Tiles	1	-	gCardRoom01Tiles	-16	-12	32	32	CARD/0602/CA0602.RTM:cr_002_tm2.dds	crop=9,0,247,256;erase=0,0,238,24;place=3,2,29,30;scale=8
