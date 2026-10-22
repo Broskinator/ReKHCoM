@@ -24,6 +24,15 @@ prueba o un chequeo reutilizable. Lo terminado se anota en PENDIENTES_VIGENTES.m
 | Triángulo muy grande en el renderer por software de SDL: no dibuja nada, sin error (logo del título en la intro, 1700 px) | `port_hdsprites.c`, `Quad` divide en una grilla | volcar la imagen justo después de dibujar (`SDL_RenderReadPixels`) con `SDL_VIDEO_DRIVER=dummy`; pariente: cualquier `SDL_RenderGeometry` de quads grandes |
 | Función de SDL nueva en `port/src` que el shim de consolas no tiene, o variable del camino con biblioteca estándar | `SDL_SetAudioStreamGain`, `sStream` (fundido antes del video HD) | `check_sources.py` compila `port/src` contra el shim (10 s) |
 | Algo que el juego dibuja en la capa de pantalla (`sScreenBg`) y no en la imagen | BG2 del logo en la intro del título | registrar `sOverlay`/`sScreenBg[b]`; `KHCOM_DBGSIDE` dice por qué rama presenta |
+| Cuadro "sostenido" que el bucle del grupo da vuelta (el largo entero = último cuadro = vuelve a 0) | medidor de vida al 100 % a media rosca | todo `PortHdLayoutDraw` con un valor del juego como cuadro va con `HD_LAYOUT_HOLD`; `test_hd_menus.py --only gauge` (vida 3..100 %) |
+| Sprite de UV de ancho/alto cero tratado como vacío: es una columna estirada, o (UV un punto) una **máscara** que recorta lo que sigue | barra del medidor invisible, anillo a media rosca con poca vida | gemelo Python `seqdraw.py`; buscar en cada .lad sprites con u0==u1 o v0==v1 antes de usarlo |
+| Layout de PS2 (UV×2) con la textura remasterizada: el remaster movió piezas | cuartos del anillo y barra | usar siempre la entrada remasterizada `UK_*.lad` del .SPR; comparar UV base×2 contra la remasterizada |
+| El menú pasa el sprite del título a una copia en un BG al quedar quieto (a veces liberando sus tiles) | mapa, diario, nivel, elegir mundo, tienda, barajas | `test_hd_menus.py`: el título HD debe seguir en el cuadro quieto (registro `KHCOM_HDDRAWLOG`); `grep -n "BgHeaderMap\|LoadBgMap" src/menu src/card` junto a cada título |
+| La copia en BG tiene más prioridad que el sprite: la capa "lo que tapa" vuelve a poner los píxeles GBA encima del HD | elegir mundo, tienda | prioridad del sprite que se mantiene ≥ la del BG (`SetBgPriority`); misma prueba |
+| Tiles compartidos entre idiomas: el juego carga otro conjunto que el que nombra el frame | tienda (`gMsTopBarTiles` + frame en español) | `check_hd_sprites.py` compara las filas con los `LoadObjTiles` del código; registro `hdfind` de mismatches |
+| Dos filas HD con el mismo nombre: la segunda pisa la imagen de la primera | DIARIO / JOURNAL | `check_hd_sprites.py` (nombres únicos) |
+| Palabra partida a mitad de línea: arrastra las esquinas itálicas de la vecina | WELTEN-KARTEN | armar letra por letra con `sblit`; mirar la hoja de carteles a 1:1 |
+| Constante o función de SDL que el shim no tiene (`SDL_clamp`, `SDL_BLENDMODE_ADD`, `SDL_GetRenderClipRect`) | medidor, piezas fijas | `check_sources.py` **antes** de cada commit (con `&&`, no `;`) |
 
 ## Herramientas (todas en port/tools)
 - `debug_kit.py run/report`, `run_batteries.py --detach --status` (escritorio + Android; nunca matar baterías desde la sesión).

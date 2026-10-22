@@ -78,6 +78,24 @@ Reglas del usuario:
   esa lógica; luego CCardRevolver (pila, contador CARDS, recarga). Prueba de juego del anillo actual: daño, cura y
   >280 ok, 0 fallos; audio: test_hd_audio 0/9, test_hd_audio_flow 7/8 (el título se cortó por tiempo: revisar).
 - **22/10 ~16:30 (Claude que retomó):** medidor de vida de Re:CoM 1.5 en main (977f064cf, `port_hdlayout.c`). Inventario de los menús de Re:CoM (268 layouts, texturas en español, 28 clases decompiladas): HUD_HD_RECOM.md "Menús de Re:CoM". Sigue: un menú por vez con su lógica decompilada (orden propuesto: pausa, subida de nivel, naipe conseguido, guardar/cargar, elegir mundo, síntesis, campamento, tienda, diario, minimapa).
+- **Pendientes HD (22/10 noche, Claude; se van tachando):**
+  - [ ] TIENDA en alemán e italiano: no sale en HD (tiles compartidos `gMsTopBarTiles`, como el español). Arreglo en
+    curso en `hd_menu_titles.py`; verificar en el juego con `--language de/it`.
+  - [ ] Icono de Monstruo en US/JP: su frame está 1 px más abajo que en EU y una pieza queda fuera de la caja (sale
+    GBA). Arreglo: una fila por geometría distinta en `hd_world_icons.py`.
+  - [ ] `check_hd_sprites.py` (nombres únicos, símbolos por versión, piezas dentro de la caja, tiles que el código
+    nombra) en `check_sources.py`.
+  - [ ] Registro `KHCOM_HDDRAWLOG` (qué piezas HD se dibujan en un cuadro) y batería `test_hd_menus.py`: cada menú
+    en 5 idiomas + medidor a 3..100 %, comprobando que el HD sigue en el cuadro quieto (no solo al entrar).
+  - [ ] Contador de mazo (`gRevCount*`) y medidor del enemigo como Re:CoM: buscar capturas del HUD de combate de
+    Re:CoM en internet y reconstruirlos con Cockpit/gauge.lad y el código decompilado (CCardRevolver, CEnemyGauge).
+  - [ ] Revisar en el juego BONUS ÉLITE / PREMIUM BONUS y VER BARAJA (Riku): filas hechas, no vistas.
+  - [ ] US y JP: correr la batería de menús también en esas versiones (solo se vio EU en 5 idiomas).
+  - [ ] Pasar el gemelo Python del dibujante (`seqdraw.py`, rotación y máscaras) a `port/tools`.
+  - [ ] Batería HD de escritorio (`run_batteries.py --hd`): corría con el build anterior; repetirla con los cambios
+    de hoy al terminar.
+  - Sin equivalente en Re:CoM (se quedan GBA salvo decisión del usuario): TRANSFERT, BOUTIQUE MOG, REISEBERICHT y
+    los informes de Riku del diario, entradas de la pantalla de título (faltan letras), iconos de bonus del nivel.
 - **22/10 noche (Claude):** en main: títulos de menú HD en 5 idiomas (69 carteles), VER BARAJAS quieto
   (`PortHdStillSprite`), iconos de los 13 mundos (world_icon), **medidor de vida corregido** (a1be11b8c: bucle, barra,
   máscaras, layouts remasterizados). Todo en HUD_HD_RECOM.md. Sigue (necesita referencia visual de Re:CoM o decisión
