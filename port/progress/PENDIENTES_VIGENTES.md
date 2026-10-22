@@ -72,6 +72,27 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
   (5) publicar v2.0 anunciando el mod HD, borrar releases viejos si el clasificador deja (si no, el usuario).
 - Copia del usuario: `Probar ReKHCoM v1.9.15 completo.bat` (actualizarla con cada build de Windows).
 
+### Estado 22/10 mañana (Claude, sesión principal; el usuario durmiendo, /goal: pendientes + v2.0)
+Hecho y en main (todo con la opción apagada = imagen idéntica a antes):
+- **Cartas HD** (`hd_cards`): 97 ilustraciones, marcos rojo/verde/azul/negro y dígitos de Re:CoM; mano, enemigo, giro,
+  jefes. `port_hdsprites.c` + `PortOamSetHdPart` (engine.c) + receta `port/data/hd_sprites.tsv`.
+- **HUD de combate HD** (con `hd_cards`): retratos de Sora y Riku; CORTANAIPE/BLOQUEO/RECUPERA/¡NIVEL↑! en los 5
+  idiomas EU (Re:CoM trae la misma traducción que el cartucho). JP no (texto japonés).
+- **Título HD** (`hd_title`): logo de Re:CoM, la cinta "Chain of Memories" sin "Re:" (pedido del usuario).
+- Importador: `khhd_sprites.py` y el launcher (`--hd-import <juego> --sprites-only`), idénticos; Android copia
+  `hd/sprites`. Catálogo de sprites del juego: `KHCOM_HDSPRITE_EXPORT` + `hdsprite_catalog.py`.
+- **Modos gráficos**: al primer arranque (graphics_mode=0) el título pregunta Modo HD / Modo GBA → GBA mejorado /
+  GBA clásico; launcher "Modo gráfico" (Escoger/HD/GBA mejorado/GBA clásico); Opciones "Restablecer según el modo"
+  (confirmar dos veces), filas Cartas HD y Título HD.
+- **GBA clásico**: vista Original con borde estilo Super Game Boy (`gba_border` 1..3, 384x216, x5 a 1080p). Las 3
+  propuestas: `pruebas/Bordes GBA clasico (elegir 1, 2 o 3).png` → **espera que el usuario elija** (por defecto 1).
+  Partida nueva en clásico ofrece "Vista amplia" (el fondo muestra el ancho).
+- Bug arreglado: el renderer por software de SDL colgaba con quads alineados espejados/girados/fuera del lienzo.
+**Espera al usuario:** Darkside (sesión darkside-arte, commit f14676420 en claude/arenas, sin merge; copia de prueba
+en pruebas) y elegir borde 1/2/3.
+**Sigue (Claude):** depurar HD en todos los idiomas y plataformas (Android 64, consolas por el puente), intro del
+título (logo como fondo afín, sigue GBA), revisar issues, lista de verificación y builds v2.0 (con OK de Darkside).
+
 ### TRASPASO 22/10 ~06:30 (al Claude principal se le acaban los tokens; el usuario se fue a dormir)
 - Orden: (1) Cartas HD: seguir HUD_HD_RECOM.md "Traspaso" pasos 1-7; (2) cuando Darkside esté aprobado (sesión
   arenas-jefes, [local_d3b029d7]) y Cartas HD en beta: pedir OK al usuario y hacer los builds de la v2.0 con la lista
