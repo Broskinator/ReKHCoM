@@ -15,6 +15,11 @@ prueba o un chequeo reutilizable. Lo terminado se anota en PENDIENTES_VIGENTES.m
 | Constantes que el shim de consolas no tiene | SDL_EVENT_MOUSE_BUTTON_UP | `check_sources.py` (corre en build_android y release_check) |
 | Scripts de build que reusan paquetes viejos / línea de 32 K | Switch/Vita/PS5, PS4 | ver "fetched" en logs; rmtree de la salida antes de la VM |
 | Audio HD: pausa que tira la cola, solapamiento con la música del cartucho | menús/Opciones | `test_hd_audio_flow.py` (driver "disk", tiempo real) |
+| Fundido del juego que arranca desde la imagen vieja tras algo del port (video HD) | escena HD: el evento volvía a brillo 234 y se fundía | `KHCOM_PRESENTSHOTS` + brillo medio por cuadro (`test_hd_transition_audio.py`) |
+| Cola de audio que sigue sonando cuando el juego se congela (video, menú) | 200 ms de música del campo bajo el video y corte seco | driver "disk": volumen cada 50 ms en el borde (`test_hd_transition_audio.py`) |
+| Caché de una sola entrada compartida entre capas/llamadas: se recalcula en cada uso | suelo isométrico (`sIso`), <5 fps a x1 | `perf_x1.py` (un caso que no termina = sospechoso); buscar `static struct` con clave de puntero; `compare_ppu_builds.py` para probar que no cambia un píxel |
+| Trabajo por píxel que solo depende del tile | `IsoEntry` caminaba la diagonal en cada píxel | memo por tile de la coordenada (no del valor: el mapa se lee en vivo) |
+| Arte aprobado detrás de una variable de prueba | Agrabah 107/109 nunca encendidas para jugadores | `grep 'getenv("KHCOM_' port_ppu.c`: cada variable de arte aprobado debe ser "0 apaga", no "1 enciende" |
 
 ## Herramientas (todas en port/tools)
 - `debug_kit.py run/report`, `run_batteries.py --detach --status` (escritorio + Android; nunca matar baterías desde la sesión).

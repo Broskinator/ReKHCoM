@@ -72,6 +72,16 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
   (5) publicar v2.0 anunciando el mod HD, borrar releases viejos si el clasificador deja (si no, el usuario).
 - Copia del usuario: `Probar ReKHCoM v1.9.15 completo.bat` (actualizarla con cada build de Windows).
 
+### Bugs encontrados y cerrados el 22/10 (todos en main)
+- Escena HD: destello de la imagen del evento al terminar (53f756bc7).
+- Música del campo bajo el video HD y corte seco; salto sin fundido de imagen y sonido (53f756bc7, PC y Android).
+- Pausa del video HD muda (1c8a17352).
+- Agrabah 107/108/109 aprobadas con honores pero apagadas para jugadores (d94ce3b56).
+- Suelo isométrico: tabla única recalculada por píxel, <5 fps a x1 en 004/057/061/074 (también pesaba en Android,
+  web y consolas, un núcleo): 31 ms por cuadro, píxel a píxel igual (e1b635d65).
+- Batería: resultados del 21/10 viejos (Event_0, Pooh) ya arreglados; 0 sitios abiertos.
+- Pendiente de confirmar: timeout Android US combate 124 (Agrabah) con dos corridas en el mismo emulador; repetir solo.
+
 ### Pendientes v2.0 (en orden)
 - ~~Arte extendido a x1 en 1080p~~ **hecho 22/10**: a x1 1920x1080 todo lo aprobado ya llega al borde (Guard
   Armor, 004, 008, 057, 061, 074, Agrabah 107/108/109; `build/x1art`). Agrabah 107/108 y 109 (con honores, 21/10)
