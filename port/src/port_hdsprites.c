@@ -345,6 +345,141 @@ static void Quad(SDL_Texture* t, const HdSpriteDraw* q, float ox, float oy, floa
     }
 }
 
+/* ---- HP ring (Re:CoM's player gauge, the user's pick 22/10) ---------------------------------------------------
+   hd/sprites/gBtlHpRing.png is pl_gauge at 8 pixels a GBA pixel: a ring (green between radii 128 and 170 around
+   RING_CX, RING_CY, open at the top right) that runs into a bar along the top. Re:CoM's own fill logic is in its
+   executable, not in its data: this gauge fills with the game's HP, the bar's tip emptying first, then the ring back
+   to its lower right end. The face in it is the cartridge's (its HD picture, with its expressions): the ring's baked
+   face is cut out when it loads. The empty part is the same picture in dark grey. */
+#define RING_CX 178.7f
+#define RING_CY 179.5f
+#define RING_RMID 149.0f
+#define RING_HOLE 118.0f
+#define RING_BAR_END 577.0f
+#define RING_FACE_X 9.0f /* the ring's centre in the face frame's coordinates (GBA pixels) */
+#define RING_FACE_Y 8.0f
+static SDL_Texture *sRingFull, *sRingEmpty;
+static int sRingTried, sRingRatio = -1;
+
+static int RingLoad(void) {
+    char file[160];
+    int w, h, n, k;
+    unsigned char *px, *dark;
+    SDL_Surface* sf;
+    if (sRingFull)
+        return 1;
+    if (sRingTried || !sRenderer)
+        return 0;
+    sRingTried = 1;
+    px = stbi_load(SpritePath(file, sizeof(file), "gBtlHpRing"), &w, &h, &n, 4);
+    if (!px)
+        return 0;
+    for (k = 0; k < w * h; k++) {
+        float dx = (k % w) * 592.0f / w - RING_CX, dy = (k / w) * 360.0f / h - RING_CY;
+        if (dx * dx + dy * dy < RING_HOLE * RING_HOLE)
+            px[k * 4 + 3] = 0; /* the baked face: the game's own (HD) face shows there */
+    }
+    dark = SDL_malloc((size_t)w * h * 4);
+    if (dark) {
+        SDL_memcpy(dark, px, (size_t)w * h * 4);
+        for (k = 0; k < w * h; k++) {
+            unsigned char* c = dark + k * 4;
+            if (c[1] > c[0] + 30 && c[1] > c[2] + 30) /* the green: the empty track's dark grey */
+                c[0] = c[1] = c[2] = (unsigned char)(28 + c[1] / 16);
+        }
+    }
+    sf = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_RGBA32, px, w * 4);
+    if (sf) {
+        sRingFull = SDL_CreateTextureFromSurface(sRenderer, sf);
+        SDL_DestroySurface(sf);
+    }
+    sf = dark ? SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_RGBA32, dark, w * 4) : NULL;
+    if (sf) {
+        sRingEmpty = SDL_CreateTextureFromSurface(sRenderer, sf);
+        SDL_DestroySurface(sf);
+    }
+    SDL_free(dark);
+    stbi_image_free(px);
+    if (!sRingFull || !sRingEmpty) {
+        if (sRingFull) SDL_DestroyTexture(sRingFull);
+        if (sRingEmpty) SDL_DestroyTexture(sRingEmpty);
+        sRingFull = sRingEmpty = NULL;
+        return 0;
+    }
+    return 1;
+}
+
+int PortHdHpRing(const void* faceTiles, const void* faceFrame, int ratio) {
+    char file[160];
+    FILE* f;
+    if (!gPortConfig.hdCards || !PortHdSpriteFind(faceTiles, faceFrame))
+        return 0;
+    if (!sRingFull) {
+        if (sRingTried)
+            return 0;
+        f = fopen(SpritePath(file, sizeof(file), "gBtlHpRing"), "rb"); /* loaded when first drawn */
+        if (!f)
+            return 0;
+        fclose(f);
+    }
+    sRingRatio = SDL_clamp(ratio, 0, 256);
+    return 1;
+}
+
+/* A point of the ring picture, its centre placed at (cx, cy) on the screen, s screen pixels a picture pixel. */
+static SDL_Vertex RingVertex(float px, float py, float cx, float cy, float s, SDL_FColor c) {
+    SDL_Vertex v;
+    v.position.x = cx + (px - RING_CX) * s;
+    v.position.y = cy + (py - RING_CY) * s;
+    v.tex_coord.x = px / 592.0f;
+    v.tex_coord.y = py / 360.0f;
+    v.color = c;
+    return v;
+}
+
+static void RingDraw(float cx, float cy, float s, SDL_FColor c) {
+    static const int kQuad[6] = { 0, 1, 2, 0, 2, 3 };
+    const float ringLen = 1.5f * SDL_PI_F * RING_RMID, barLen = RING_BAR_END - RING_CX;
+    float filled = (ringLen + barLen) * sRingRatio / 256.0f, end;
+    SDL_Vertex v[4], fan[40];
+    int idx[3 * 38], n = 0, ni = 0, k, steps;
+    /* the empty track whole, then the filled part over it */
+    v[0] = RingVertex(0, 0, cx, cy, s, c);
+    v[1] = RingVertex(592, 0, cx, cy, s, c);
+    v[2] = RingVertex(592, 360, cx, cy, s, c);
+    v[3] = RingVertex(0, 360, cx, cy, s, c);
+    v[1].position.x += 0.01f; /* off the triangle path SDL's software renderer copies, and reads past (Quad) */
+    v[1].position.y += 0.01f;
+    SDL_RenderGeometry(sRenderer, sRingEmpty, v, 4, kQuad, 6);
+    if (filled <= 0)
+        return;
+    /* the ring: a fan from its lower right end (angle 0), clockwise on the screen */
+    end = SDL_min(filled, ringLen) / RING_RMID;
+    steps = SDL_clamp((int)(end / 0.13f) + 1, 1, 37);
+    fan[n++] = RingVertex(RING_CX, RING_CY, cx, cy, s, c);
+    for (k = 0; k <= steps; k++) {
+        float a = end * k / steps, r = 182.0f;
+        fan[n++] = RingVertex(RING_CX + r * SDL_cosf(a), RING_CY + r * SDL_sinf(a), cx, cy, s, c);
+        if (k > 0) {
+            idx[ni++] = 0;
+            idx[ni++] = n - 2;
+            idx[ni++] = n - 1;
+        }
+    }
+    SDL_RenderGeometry(sRenderer, sRingFull, fan, n, idx, ni);
+    /* the bar: the top right quarter, up to the HP's length */
+    if (filled > ringLen) {
+        float x = filled - ringLen >= barLen ? 592.0f : RING_CX + (filled - ringLen);
+        v[0] = RingVertex(RING_CX, 0, cx, cy, s, c);
+        v[1] = RingVertex(x, 0, cx, cy, s, c);
+        v[2] = RingVertex(x, RING_CY, cx, cy, s, c);
+        v[3] = RingVertex(RING_CX, RING_CY, cx, cy, s, c);
+        v[1].position.x += 0.01f;
+        v[1].position.y += 0.01f;
+        SDL_RenderGeometry(sRenderer, sRingFull, v, 4, kQuad, 6);
+    }
+}
+
 void PortHdSpritesDraw(SDL_Renderer* renderer, int layer, float ox, float oy, float scale, int darken, int brighten) {
     int i;
     sRenderer = renderer;
@@ -359,6 +494,15 @@ void PortHdSpritesDraw(SDL_Renderer* renderer, int layer, float ox, float oy, fl
         if (!st->image && !Load(q->id))
             continue;
         st->lastUsed = PortFrameCount();
+        if (layer == 1 && sRingRatio >= 0 && SDL_strstr(kHdSprites[q->id].name, "FaceTiles") && RingLoad()) {
+            /* the HP ring behind the face: the face frame's origin from this part's corner and its place in the
+               picture (faces are drawn unturned) */
+            const HdSpriteDef* d = &kHdSprites[q->id];
+            float fx = q->x[0] - (q->u0 * d->w + d->x0), fy = q->y[0] - (q->v0 * d->h + d->y0);
+            RingDraw(ox + (fx + RING_FACE_X) * scale, oy + (fy + RING_FACE_Y) * scale, scale / 8.0f,
+                     (SDL_FColor){ shade, shade, shade, q->alpha / 255.0f });
+            sRingRatio = -1; /* once a frame, behind its first face part */
+        }
         Quad(st->image, q, ox, oy, scale, (SDL_FColor){ shade, shade, shade, q->alpha / 255.0f });
         if (white > 0)
             Quad(st->white, q, ox, oy, scale, (SDL_FColor){ 1, 1, 1, q->alpha / 255.0f * white });
@@ -401,6 +545,10 @@ void PortPaletteFade(const uint16_t* original, const volatile uint16_t* current,
 /* Renderer gone (or the HD files re-imported): drop the textures and look the files up again. */
 void PortHdSpritesShutdown(void) {
     int i;
+    if (sRingFull) SDL_DestroyTexture(sRingFull);
+    if (sRingEmpty) SDL_DestroyTexture(sRingEmpty);
+    sRingFull = sRingEmpty = NULL;
+    sRingTried = 0;
     for (i = 0; i < HD_SPRITE_COUNT; i++) {
         Unload(i);
         sState[i].present = 0;

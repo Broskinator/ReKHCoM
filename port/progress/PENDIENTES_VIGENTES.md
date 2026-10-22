@@ -65,7 +65,12 @@ Reglas del usuario:
 - **Usuario 22/10 ~15:30:** le gustan el anillo de vida de Sora (Re:CoM `pl_gauge`) y las cartas; pidió mejorar la carta
   de recarga → **hecho**: `com_card02` (carta negra con borde plateado, 1:1) y su contador 1..19 con los dígitos blancos de
   `card_no` (`gReloadCounterWhite`, 19 composiciones). El "píxel" junto a la guarda es la cadena del llavero del arte HD.
-  **Sigue: el anillo de vida** (la lógica de llenado de Re:CoM no está extraída: se reproduce con la vida del juego).
+  **Anillo de vida: primera versión en main** (`PortHdHpRing`, `pl_gauge` sin la cara horneada, pista vacía gris,
+  se vacía desde la punta de la barra y luego el anillo; la cara HD se corre a (14,15) para que entre). La lógica de
+  Re:CoM vive en su ejecutable (el .RTM solo trae texturas: `UK_gauge.imz` tiene las piezas: cuartos de anillo gris/
+  verde/negro, barra, dígitos, HP, MAX, D-POINT). **Usuario: igualar la lógica real del HUD de Sora de Re:CoM**
+  (es compleja): buscar una implementación (mods, OpenKh, ingeniería inversa) y reimplementarla.
+- Arreglado: las muescas de la corona dejaban ver la ilustración HD (se borra su franja superior, tapada por el marco).
 - Propuesta original: `pruebas/HD tentativos (medidores contador recarga).png` (medidor de vida en anillo de
   Re:CoM, medidor del enemigo, contador CARD/S, números de recarga): no son 1:1, espera su decisión.
 - **Espera al usuario:** Darkside (arenas), OK para builds v2.0.

@@ -18,6 +18,9 @@
 #include "engine.h"
 #ifdef PLATFORM_PC
 #include "port/port.h"
+#ifdef PLATFORM_PC
+#include "port/port_hdsprites.h"
+#endif
 #endif
 #include <stddef.h>
 #include "sprite_palettes.h"
@@ -343,6 +346,18 @@ void task_btl_hpply_2(BtlHpplyWork* work) {
     s32 scale;
     ObjAffine* affine;
 
+#ifdef PLATFORM_PC
+    /* HD cards: Re:CoM's HP ring around the HD face takes the place of the gauge (port_hdsprites.c); the face
+       moves in so the ring and its bar fit in the corner */
+    {
+        BtlObj* actor = gBtlWork->actor;
+        int ratio = actor != NULL && actor->maxHp > 0 ? work->displayHp * 256 / actor->maxHp : 0;
+        if (PortHdHpRing(((ObjTiles*)work->tiles)->src, work->gfx, ratio)) {
+            DrawSprite(14, 15, work->gfx, work->tiles, work->palette, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 1);
+            return;
+        }
+    }
+#endif
     DrawSprite(4, 2, work->gfx, work->tiles, work->palette, NULL, SPRITE_PRIORITY(1) | SPRITE_FLAG_NO_MOSAIC, 1);
 
 #ifdef PLATFORM_PC

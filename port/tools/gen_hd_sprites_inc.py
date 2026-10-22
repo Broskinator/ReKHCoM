@@ -35,7 +35,8 @@ def wrapped(row, text):
 
 
 def table():
-    rows = [l.split('\t') for l in lines()]
+    # tiles '-': a picture the game draws itself (the HP ring), not a cartridge sprite to match
+    rows = [l.split('\t') for l in lines() if l.split('\t')[3] != '-']
     out = [HEADER]
     for row in rows:
         syms = [row[3]] + ([row[2]] if row[2] != '-' else [])
