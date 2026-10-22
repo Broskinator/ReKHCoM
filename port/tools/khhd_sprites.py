@@ -16,6 +16,7 @@ Recipe operations, applied in order to the texture (RGBA):
                      word, without its neighbours' slanted corners
   ink=RRGGBB[,RRGGBB]  the next blits take this colour (a top-to-bottom gradient with two), keeping their alpha;
                      ink= alone goes back to the texture's colours (Re:CoM's flat grey words, coloured as its layouts do)
+  src=asset:texture[#n]  the next blits take their rectangles from this other texture (src= alone: the row's own)
   poly=RRGGBBAA,x0,y0,x1,y1,...  fill this polygon over the picture (even-odd, pixel centres; a menu title's banner)
   place=x0,y0,x1,y1  the picture fills only this part of the sprite's box (GBA pixels); the rest is transparent
   scale=k            the output is the sprite's box at k times the GBA's pixels (last; required)
@@ -231,13 +232,13 @@ def inked(part, ink):
     return out
 
 
-def apply(img, ops, box):
+def apply(img, ops, box, load=None):
     place = None
-    source = img
+    source = own = img
     ink = []
     for op in ops.split(';'):
         key, _, val = op.partition('=')
-        v = [int(x) if key not in ('tint', 'ink', 'poly') else x for x in val.split(',')] if val else []
+        v = [int(x) if key not in ('tint', 'ink', 'poly') else x for x in val.split(',')] if val and key != 'src' else []
         if key == 'crop':
             img = img[v[1]:v[3], v[0]:v[2]]
         elif key == 'rot':
@@ -260,6 +261,10 @@ def apply(img, ops, box):
             part = source[v[1]:v[3], v[0]:v[2]]
             part = inked(resample(middle(part) if key == 'sblit' else part, v[6] - v[4], v[7] - v[5]), ink)
             img = over(img, part, v[4], v[5])
+        elif key == 'src':
+            source = load(val) if val else own
+            if source is None:
+                raise ValueError(f'missing texture {val}')
         elif key == 'ink':
             ink = [int(x, 16) for x in v]
         elif key == 'poly':
@@ -336,7 +341,19 @@ def main():
             if blob is None:
                 print(row['name'], 'MISSING', row['source'])
                 continue
-            img = apply(decode(blob, int(num or 0)), row['ops'], row['box'])
+            def load(source):
+                a, _, t = source.partition(':')
+                t, _, n = t.partition('#')
+                if a not in cache:
+                    m = hashlib.md5(a.encode()).hexdigest()
+                    cache[a] = khhd_pkg.read_asset(pkg, idx[m], with_remastered=True)[2] if m in idx else {}
+                b = cache[a].get(t)
+                return decode(b, int(n or 0)) if b is not None else None
+            try:
+                img = apply(decode(blob, int(num or 0)), row['ops'], row['box'], load)
+            except ValueError as e:
+                print(row['name'], 'MISSING', e)
+                continue
             Image.fromarray(img, 'RGBA').save(out / f"{row['name']}.png", optimize=True)
             done += 1
     print(done, 'HD sprites ->', out)

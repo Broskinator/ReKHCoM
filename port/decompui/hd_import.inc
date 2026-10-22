@@ -8,6 +8,7 @@
  * - music: Recom.hed/.pkg (OpenKh's documented format: per-asset seed, XOR on the first 0x100 bytes, zlib) holding
  *   STREAM/0001/<track>.win32.scd, an Ogg Vorbis stream whose Vorbis header is XORed with one byte. */
 #include <atomic>
+#include <functional>
 #include <mutex>
 #include <thread>
 
@@ -732,9 +733,12 @@ static void Ink(Rgba& part, const std::vector<unsigned>& ink) {
 }
 
 /* The recipe's operations on the texture, in order (khhd_sprites.apply); false on a malformed recipe. */
-static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rgba& out) {
+static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rgba& out,
+                        const std::function<bool(const std::string&, Rgba&)>& load) {
     int place[4] = { 0, 0, boxW, boxH };
-    const Rgba source = img;
+    const Rgba own = img;
+    Rgba other;
+    const Rgba* src = &own;
     std::vector<unsigned> ink;
     size_t start = 0;
     while (start <= ops.size()) {
@@ -743,7 +747,7 @@ static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rg
         start = end == std::string::npos ? ops.size() + 1 : end + 1;
         std::string key = op.substr(0, op.find('=')), val = op.find('=') == std::string::npos ? "" : op.substr(op.find('=') + 1);
         std::vector<int> v;
-        if (key != "tint" && key != "ink" && key != "poly")
+        if (key != "tint" && key != "ink" && key != "poly" && key != "src")
             for (size_t p = 0; p < val.size();) {
                 size_t q = val.find(',', p);
                 v.push_back(atoi(val.substr(p, q == std::string::npos ? std::string::npos : q - p).c_str()));
@@ -786,18 +790,25 @@ static bool ApplyRecipe(Rgba img, const std::string& ops, int boxW, int boxH, Rg
                 return false;
             img.Resize(v[0], v[1]);
         } else if ((key == "blit" || key == "sblit") && v.size() == 8) {
-            if (v[0] < 0 || v[1] < 0 || v[2] > source.w || v[3] > source.h || v[2] <= v[0] || v[3] <= v[1] ||
+            if (v[0] < 0 || v[1] < 0 || v[2] > src->w || v[3] > src->h || v[2] <= v[0] || v[3] <= v[1] ||
                 v[6] <= v[4] || v[7] <= v[5])
                 return false;
             Rgba part;
             part.Resize(v[2] - v[0], v[3] - v[1]);
             for (int y = 0; y < part.h; y++)
-                memcpy(part.at(0, y), &source.px[((size_t)(v[1] + y) * source.w + v[0]) * 4], (size_t)part.w * 4);
+                memcpy(part.at(0, y), &src->px[((size_t)(v[1] + y) * src->w + v[0]) * 4], (size_t)part.w * 4);
             if (key == "sblit")
                 Middle(part);
             Rgba sized = Resample(part, v[6] - v[4], v[7] - v[5]);
             Ink(sized, ink);
             BlitOver(img, sized, v[4], v[5]);
+        } else if (key == "src") {
+            if (val.empty())
+                src = &own;
+            else if (load(val, other))
+                src = &other;
+            else
+                return false;
         } else if (key == "ink") {
             ink.clear();
             for (size_t p = 0; p < val.size();) {
@@ -896,6 +907,23 @@ static int WriteSprites(const fs::path& hed, const fs::path& data) {
     std::ifstream pkg(fs::path(hed).replace_extension(".pkg"), std::ios::binary);
     int written = 0;
     sJob.total += (int)(sizeof(kHdSpriteRecipe) / sizeof(kHdSpriteRecipe[0]));
+    /* another texture a recipe takes letters from (src=asset:texture#n) */
+    std::map<std::string, std::map<std::string, std::vector<unsigned char>>> others;
+    auto load = [&](const std::string& source, Rgba& img) {
+        std::string asset = source.substr(0, source.find(':')), tex = source.substr(source.find(':') + 1);
+        int index = 0;
+        if (size_t hash = tex.find('#'); hash != std::string::npos) {
+            index = atoi(tex.c_str() + hash + 1);
+            tex = tex.substr(0, hash);
+        }
+        if (!others.count(asset)) {
+            std::vector<unsigned char> base;
+            auto at = offsets.find(Md5Hex(asset));
+            if (at == offsets.end() || !ReadAssetExtras(pkg, at->second, base, others[asset]))
+                others[asset].clear();
+        }
+        return others[asset].count(tex) && DecodeTexture(others[asset][tex], index, img);
+    };
     for (auto& [asset, rows] : byAsset) {
         sJob.Say(std::string(T("Gráficos HD: ", "HD graphics: ")) + asset);
         auto it = offsets.find(Md5Hex(asset));
@@ -931,7 +959,7 @@ static int WriteSprites(const fs::path& hed, const fs::path& data) {
             }
             Rgba img, out;
             if (!ok || !extras.count(tex) || !DecodeTexture(extras[tex], index, img) ||
-                !ApplyRecipe(img, f[9], atoi(f[6].c_str()), atoi(f[7].c_str()), out))
+                !ApplyRecipe(img, f[9], atoi(f[6].c_str()), atoi(f[7].c_str()), out, load))
                 continue;
             size_t len = 0;
             void* png = tdefl_write_image_to_png_file_in_memory_ex(out.px.data(), out.w, out.h, 4, &len, 10, 0);

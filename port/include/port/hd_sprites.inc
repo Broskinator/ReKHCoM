@@ -348,6 +348,42 @@ extern const unsigned char gMenuLoadTitleSpanishFrame0[];
 extern const unsigned char gJiminyTitleLocalizedTiles[];
 extern const unsigned char gJiminyTitleLocalizedFrame4[];
 #endif
+#if defined(VERSION_EU)
+extern const unsigned char gMapSaveTitleSpanishTiles[];
+extern const unsigned char gMapSaveTitleSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gMapSelectTitleSpanishTiles[];
+extern const unsigned char gMapSelectTitleSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gWorldWarpBarSpanishTiles[];
+extern const unsigned char gWorldWarpBarSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gWorldselectTitleSpanishTiles[];
+extern const unsigned char gWorldselectTitleSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gLevelUpHeaderSpanishTiles[];
+extern const unsigned char gLevelUpHeaderSpanishFrame10[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gPremireChanceTitleSpanishTiles[];
+extern const unsigned char gPremireChanceTitleSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gDeckTitleBannerSpanishTiles[];
+extern const unsigned char gDeckTitleBannerSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gMsTopBarTiles[];
+extern const unsigned char gMsTopBarSpanishFrame0[];
+#endif
+#if defined(VERSION_EU)
+extern const unsigned char gRikuDeckTitleBannerSpanishTiles[];
+extern const unsigned char gRikuDeckTitleBannerSpanishFrame0[];
+#endif
 static const HdSpriteDef kHdSprites[] = {
     { gCardWep01Tiles, NULL, "gCardWep01Tiles", -16, -12, 32, 32, 1 },
     { gCardWep04Tiles, NULL, "gCardWep04Tiles", -16, -12, 32, 32, 1 },
@@ -614,5 +650,32 @@ static const HdSpriteDef kHdSprites[] = {
 #endif
 #if defined(VERSION_EU)
     { gJiminyTitleLocalizedTiles, gJiminyTitleLocalizedFrame4, "gJiminyTitleLocalizedBanner", 0, 0, 64, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gMapSaveTitleSpanishTiles, gMapSaveTitleSpanishFrame0, "gMapSaveTitleSpanishBanner", 0, 0, 96, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gMapSelectTitleSpanishTiles, gMapSelectTitleSpanishFrame0, "gMapSelectTitleSpanishBanner", 0, 0, 128, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gWorldWarpBarSpanishTiles, gWorldWarpBarSpanishFrame0, "gWorldWarpBarSpanishBanner", 0, 0, 72, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gWorldselectTitleSpanishTiles, gWorldselectTitleSpanishFrame0, "gWorldselectTitleSpanishBanner", 0, 0, 120, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gLevelUpHeaderSpanishTiles, gLevelUpHeaderSpanishFrame10, "gLevelUpHeaderSpanishBanner", 0, 0, 80, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gPremireChanceTitleSpanishTiles, gPremireChanceTitleSpanishFrame0, "gPremireChanceTitleSpanishBanner", 0, 0, 96, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gDeckTitleBannerSpanishTiles, gDeckTitleBannerSpanishFrame0, "gDeckTitleBannerSpanishBanner", 0, 0, 104, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gMsTopBarTiles, gMsTopBarSpanishFrame0, "gMsTopBarSpanishBanner", 0, 0, 104, 16, 5 },
+#endif
+#if defined(VERSION_EU)
+    { gRikuDeckTitleBannerSpanishTiles, gRikuDeckTitleBannerSpanishFrame0, "gRikuDeckTitleBannerSpanishBanner", 0, 0, 104, 16, 5 },
 #endif
 };
