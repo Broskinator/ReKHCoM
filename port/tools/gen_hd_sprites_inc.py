@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Generate from port/data/hd_sprites.tsv: port/include/port/hd_sprites.inc (the table port_hdsprites.c matches
-sprites with) and port/decompui/hd_sprites_recipe.inc (the rows the launcher's importer follows). --check: fail if
-the committed files are not current (check_sources.py runs it).
+sprites with) and port/decompui/hd_sprites_recipe.inc (the rows the launcher's importer follows). A row limited to
+some cartridge versions (11th column, e.g. "eu,us": the European languages' tiles, or English text the Japanese
+version does not have) is compiled only into those. --check: fail if the committed files are not current
+(check_sources.py runs it).
 
     python port/tools/gen_hd_sprites_inc.py [--check]
 """
@@ -19,14 +21,30 @@ def lines():
     return [l for l in RECIPE.read_text(encoding='utf-8').splitlines() if l.strip() and not l.startswith('#')]
 
 
+def guard(row):
+    """The #if of a row limited to some cartridge versions, '' for all of them."""
+    regions = [r.strip() for r in row[10].split(',')] if len(row) > 10 and row[10].strip() else ['eu', 'us', 'jp']
+    if set(regions) >= {'eu', 'us', 'jp'}:
+        return ''
+    return '#if ' + ' || '.join(f'defined(VERSION_{r.upper()})' for r in regions)
+
+
+def wrapped(row, text):
+    g = guard(row)
+    return [g + '\n', text, '#endif\n'] if g else [text]
+
+
 def table():
     rows = [l.split('\t') for l in lines()]
-    syms = sorted({r[3] for r in rows} | {r[2] for r in rows if r[2] != '-'})
-    out = [HEADER] + [f'extern const unsigned char {s}[];\n' for s in syms]
+    out = [HEADER]
+    for row in rows:
+        syms = [row[3]] + ([row[2]] if row[2] != '-' else [])
+        out += wrapped(row, ''.join(f'extern const unsigned char {s}[];\n' for s in syms))
     out.append('static const HdSpriteDef kHdSprites[] = {\n')
-    for name, group, frame, tiles, x0, y0, w, h, *_ in rows:
+    for row in rows:
+        name, group, frame, tiles, x0, y0, w, h = row[:8]
         frame = 'NULL' if frame == '-' else frame
-        out.append(f'    {{ {tiles}, {frame}, "{name}", {x0}, {y0}, {w}, {h}, {group} }},\n')
+        out += wrapped(row, f'    {{ {tiles}, {frame}, "{name}", {x0}, {y0}, {w}, {h}, {group} }},\n')
     out.append('};\n')
     return ''.join(out)
 

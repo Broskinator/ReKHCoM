@@ -645,6 +645,7 @@ typedef struct OamHdPart {
     uint16_t id;
     int16_t x, y, w, h;
     uint8_t flags;
+    const void *tiles, *frame; /* for the export (KHCOM_HDSPRITE_EXPORT) */
 } OamHdPart;
 static OamHdPart sOamHd[128];
 static uint8_t sMainHdPart[128]; /* slot queued as an HD part of the game's picture (QueueMainHdParts) */
@@ -664,7 +665,11 @@ void PortOamSetHdPart(int oamIndex, const void* tiles, const void* frame, int x,
     sOamHd[oamIndex].w = (int16_t)w;
     sOamHd[oamIndex].h = (int16_t)h;
     sOamHd[oamIndex].flags = (uint8_t)flags;
+    sOamHd[oamIndex].tiles = tiles;
+    sOamHd[oamIndex].frame = frame;
 }
+
+static void ExportSprites(void);
 
 /* Characters the outline font draws: printable Windows-1252 codes. The codes
    below 0x20 are icons (arrows, button shapes) and stay pixel art. */
@@ -3511,6 +3516,7 @@ void PortPpuRenderFrame(void) {
     PortPpuBeginFrame();
     LatchAffine(1);
     QueueMainHdParts();
+    ExportSprites();
 
     /* Lines above the original picture: state of line 0. */
     RenderOuterRows(0, gPortScreen.originY, 0);
@@ -3604,6 +3610,92 @@ static int ObjColor(uint16_t a0, uint16_t a2, int tx, int ty, int ow, int mappin
     off = 0x10000 + (tile & 0x3FF) * 32 + (ty & 7) * 4 + ((tx & 7) >> 1);
     ci = (tx & 1) ? (VRAM8[off] >> 4) : (VRAM8[off] & 15);
     return ci ? (PLTT16[256 + (a2 >> 12) * 16 + ci] & 0x7FFF) : -1;
+}
+
+/* Development aid for the HD inventory (KHCOM_HDSPRITE_EXPORT=dir): every sprite drawn, assembled in its frame's
+   coordinates with the palette it is shown with, saved once as <dir>/<tiles address>_<frame address>.bmp;
+   port/tools/hdsprite_catalog.py names them from the ROM symbols. */
+typedef struct ExportCanvas {
+    const void *tiles, *frame;
+    uint32_t px[256 * 256]; /* frame coordinates -128..127 */
+    int used;
+} ExportCanvas;
+
+static void ExportSprites(void) {
+    static const char* dir;
+    static int checked;
+    static const void* (*seen)[2];
+    static int seenCount;
+    ExportCanvas* canvas;
+    int i, n = 0, mapping1d = (IO16(0x00) >> 6) & 1;
+    if (!checked) {
+        dir = SDL_getenv("KHCOM_HDSPRITE_EXPORT");
+        checked = 1;
+    }
+    if (!dir)
+        return;
+    if (!seen)
+        seen = calloc(8192, sizeof(*seen));
+    canvas = calloc(32, sizeof(*canvas));
+    if (!seen || !canvas) {
+        free(canvas);
+        return;
+    }
+    for (i = 0; i < 128; i++) {
+        uint16_t a0 = OAM16[i * 4 + 0], a1 = OAM16[i * 4 + 1], a2 = OAM16[i * 4 + 2];
+        int affine = (a0 >> 8) & 1, dbl = (a0 >> 9) & 1, shape = (a0 >> 14) & 3, size = (a1 >> 14) & 3;
+        int ow, oh, k, x, y, hf, vf;
+        const OamHdPart* part = &sOamHd[i];
+        ExportCanvas* c = NULL;
+        if ((!affine && dbl) || shape == 3 || !part->tiles || !part->w)
+            continue;
+        for (k = 0; k < seenCount; k++)
+            if (seen[k][0] == part->tiles && seen[k][1] == part->frame)
+                break;
+        if (k < seenCount)
+            continue;
+        for (k = 0; k < n; k++)
+            if (canvas[k].tiles == part->tiles && canvas[k].frame == part->frame)
+                c = &canvas[k];
+        if (!c) {
+            if (n == 32)
+                continue;
+            c = &canvas[n++];
+            c->tiles = part->tiles;
+            c->frame = part->frame;
+        }
+        ow = sObjSize[shape][size][0];
+        oh = sObjSize[shape][size][1];
+        /* the part's own flips: the OAM's less the entry's (affine parts have none) */
+        hf = affine ? 0 : (((a1 >> 12) & 1) ^ (part->flags & 1));
+        vf = affine ? 0 : (((a1 >> 13) & 1) ^ ((part->flags >> 1) & 1));
+        for (y = 0; y < oh; y++)
+            for (x = 0; x < ow; x++) {
+                int col = ObjColor(a0, a2, hf ? ow - 1 - x : x, vf ? oh - 1 - y : y, ow, mapping1d);
+                int lx = part->x + x + 128, ly = part->y + y + 128;
+                if (col >= 0 && lx >= 0 && ly >= 0 && lx < 256 && ly < 256) {
+                    c->px[ly * 256 + lx] = 0xFF000000u | sColorLut[col];
+                    c->used = 1;
+                }
+            }
+    }
+    for (i = 0; i < n; i++) {
+        char path[512];
+        SDL_Surface* s;
+        if (!canvas[i].used || seenCount == 8192)
+            continue;
+        seen[seenCount][0] = canvas[i].tiles;
+        seen[seenCount][1] = canvas[i].frame;
+        seenCount++;
+        SDL_snprintf(path, sizeof(path), "%s/%08x_%08x.bmp", dir, (unsigned)(uintptr_t)canvas[i].tiles,
+                     (unsigned)(uintptr_t)canvas[i].frame);
+        s = SDL_CreateSurfaceFrom(256, 256, SDL_PIXELFORMAT_ARGB8888, canvas[i].px, 256 * 4);
+        if (s) {
+            SDL_SaveBMP(s, path);
+            SDL_DestroySurface(s);
+        }
+    }
+    free(canvas);
 }
 
 /* Colour of the header asset at (tx, y), tx counted from its left edge; -1

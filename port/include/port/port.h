@@ -155,6 +155,9 @@ typedef struct PortConfig {
     int hdSubtitles;           /* HD mod: the HD movies and scenes show Re:CoM's subtitles in the game's language (on) */
     int hdCards;               /* HD mod, beta: battle cards drawn with Re:CoM's HD art (port_hdsprites.c, off) */
     int hdTitle;               /* HD mod, beta: the title screen's logo drawn with Re:CoM's HD art (port_hdsprites.c, off) */
+    int graphicsMode;          /* PORT_MODE_*: chosen on the first start (0 asks), each with its presets (PortApplyGraphicsMode) */
+    int graphicsModeApplied;   /* the mode whose presets were last applied: the launcher only changes graphics_mode */
+    int gbaBorder;             /* GBA classic: the decorative border around the GBA picture (0 none, 1..3 designs) */
 } PortConfig;
 
 extern PortConfig gPortConfig;
@@ -184,6 +187,9 @@ int PortEventBackdropProfile(void); /* current story event, -1 outside events */
 void PortConfigLoad(void);
 void PortConfigSetDataPath(const char* path);
 void PortConfigSave(void);
+/* Graphics modes (first start, launcher, Options > reset to a mode's defaults). */
+enum { PORT_MODE_CHOOSE, PORT_MODE_HD, PORT_MODE_GBA_ENHANCED, PORT_MODE_GBA_CLASSIC, PORT_MODE_COUNT };
+void PortApplyGraphicsMode(int mode);
 int PortSaveSlotSelectEnabled(void);
 void PortConfigView(int mode, int* w, int* h);
 /* Internal size and pixel scale that fill an outW x outH output (auto view). */

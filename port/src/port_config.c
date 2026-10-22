@@ -126,6 +126,9 @@ static const Key sKeys[] = {
     { "hd_subtitles", &gPortConfig.hdSubtitles, 0, 1 },
     { "hd_cards", &gPortConfig.hdCards, 0, 1 },
     { "hd_title", &gPortConfig.hdTitle, 0, 1 },
+    { "graphics_mode", &gPortConfig.graphicsMode, 0, PORT_MODE_COUNT - 1 },
+    { "graphics_mode_applied", &gPortConfig.graphicsModeApplied, 0, PORT_MODE_COUNT - 1 },
+    { "gba_border", &gPortConfig.gbaBorder, 0, 3 },
     { "invert_card_scroll", &gPortConfig.invertCardScroll, 0, 1 },
     { "game_language", &gPortConfig.gameLanguage, 0, 5 },
     { "experimental_moogle_notice", &gPortConfig.moogleNotice, 0, 1 },
@@ -375,12 +378,37 @@ void PortConfigLoad(void) {
        KHCOM_HD_HUD_DEV=1 (then kh_com.ini's hd_hud applies). */
     if (!SDL_getenv("KHCOM_HD_HUD_DEV"))
         gPortConfig.hdHud = 0;
+    /* the launcher changed the graphics mode: its presets now */
+    if (gPortConfig.graphicsMode != PORT_MODE_CHOOSE && gPortConfig.graphicsMode != gPortConfig.graphicsModeApplied)
+        PortApplyGraphicsMode(gPortConfig.graphicsMode);
 #ifndef PORT_HD2D
     /* HD-2D look: pending as well (too many scenes still wrong); forced off
        outside its own build unless KHCOM_HD2D_DEV=1. */
     if (!SDL_getenv("KHCOM_HD2D_DEV"))
         gPortConfig.hd2d = 0;
 #endif
+}
+
+/* A graphics mode's presets (the player can change any of them afterwards in Options or the launcher):
+   HD: every HD asset of the imported mod and every improvement on; GBA enhanced: the port's improvements (wide
+   view, one-button controls) with the HD extras off; GBA classic: everything off, the GBA picture at a whole scale
+   with a decorative border, almost an emulator but native. */
+void PortApplyGraphicsMode(int mode) {
+    extern void PortSetQolButtons(int on);
+    int hd = mode == PORT_MODE_HD, classic = mode == PORT_MODE_GBA_CLASSIC;
+    if (mode <= PORT_MODE_CHOOSE || mode >= PORT_MODE_COUNT)
+        return;
+    gPortConfig.graphicsMode = gPortConfig.graphicsModeApplied = mode;
+    gPortConfig.viewMode = classic ? PORT_VIEW_ORIGINAL : PORT_VIEW_AUTO;
+    gPortConfig.hdText = hd;
+    gPortConfig.hdCards = hd;
+    gPortConfig.hdTitle = hd;
+    gPortConfig.hdMusic = hd;
+    gPortConfig.hdMovies = hd;
+    gPortConfig.hdSubtitles = hd;
+    gPortConfig.hdScenes = hd;
+    PortSetQolButtons(!classic);
+    gPortConfig.gbaBorder = classic ? (gPortConfig.gbaBorder ? gPortConfig.gbaBorder : 1) : 0;
 }
 
 void PortConfigSave(void) {

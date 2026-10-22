@@ -768,7 +768,7 @@ static int WriteSprites(const fs::path& hed, const fs::path& data) {
             f.push_back(s.substr(p, q == std::string::npos ? std::string::npos : q - p));
             p = q == std::string::npos ? s.size() + 1 : q + 1;
         }
-        if (f.size() == 10)
+        if (f.size() >= 10)
             byAsset[f[8].substr(0, f[8].find(':'))].push_back(f);
     }
     std::ifstream pkg(fs::path(hed).replace_extension(".pkg"), std::ios::binary);

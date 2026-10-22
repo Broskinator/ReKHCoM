@@ -61,6 +61,7 @@ static int GroupOn(int group) {
     switch (group) {
     case 1: return gPortConfig.hdCards;
     case 2: return gPortConfig.hdTitle;
+    case 3: return gPortConfig.hdCards; /* the battle HUD's faces and words go with the cards */
     default: return 0;
     }
 }
@@ -200,13 +201,12 @@ static void Quad(SDL_Texture* t, const HdSpriteDraw* q, float ox, float oy, floa
            (v[1].position.y - v[0].position.y) * (v[3].position.x - v[0].position.x);
     if (area < 0.5f && area > -0.5f)
         return;
-    /* SDL turns an axis-aligned quad into a texture copy; mirrored or turned
-       a quarter (a card spinning), the software renderer's flipped/rotated
-       copy reads outside the texture and crashes. A hundredth of a pixel
-       keeps such a quad on the triangle path, which draws it correctly. */
-    if (!(v[0].position.y == v[1].position.y && v[0].position.x == v[3].position.x &&
-          v[1].position.x > v[0].position.x && v[3].position.y > v[0].position.y) &&
-        (v[0].position.x == v[1].position.x || v[0].position.y == v[1].position.y)) {
+    /* SDL turns an axis-aligned quad into a texture copy, and the software
+       renderer's scaled copy reads outside the texture when the quad is
+       mirrored, turned a quarter (a card spinning) or partly off the canvas (a
+       face at the HUD's edge): it crashed. A hundredth of a pixel keeps every
+       such quad on the triangle path, which clips and maps it correctly. */
+    if (v[0].position.x == v[1].position.x || v[0].position.y == v[1].position.y) {
         v[1].position.x += 0.01f;
         v[1].position.y += 0.01f;
     }
