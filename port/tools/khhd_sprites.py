@@ -20,7 +20,8 @@ Recipe operations, applied in order to the texture (RGBA):
   poly=RRGGBBAA,x0,y0,x1,y1,...  fill this polygon over the picture (even-odd, pixel centres; a menu title's banner)
   place=x0,y0,x1,y1  the picture fills only this part of the sprite's box (GBA pixels); the rest is transparent
   scale=k            the output is the sprite's box at k times the GBA's pixels (last; required)
-  raw                the whole recipe: copy the named file of a .SPR container as it is (<name><its extension>)
+  raw                the whole recipe: copy the named file of a .SPR container as it is (<name><its extension>), or
+                     its remastered entry of that name (UK_gauge.lad: the 1.5+2.5's layout, laid out on the HD texture)
 
     python port/tools/khhd_sprites.py "<install>/Image/dt/Recom.hed" <data folder> [--only name,...]
 """
@@ -326,8 +327,9 @@ def main():
             if row['ops'] == 'raw':
                 # a file of a .SPR container (the HUD's layouts, gauge.lad...), copied as it is (khhd_layout.py)
                 m = hashlib.md5(asset.encode()).hexdigest()
-                base = khhd_pkg.read_asset(pkg, idx[m], with_remastered=True)[0] if m in idx else b''
+                base, _, extra = khhd_pkg.read_asset(pkg, idx[m], with_remastered=True) if m in idx else (b'', [], {})
                 files = {n: base[o:o + s] for n, o, s in spr_entries(base)} if base else {}
+                files.update(extra)
                 if tex not in files:
                     print(row['name'], 'MISSING', row['source'])
                     continue

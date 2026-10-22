@@ -215,3 +215,15 @@ CStockFolder, CBattleCard, CCardBattle, C2DSeqNumericCtrl). **CPlayerGauge::upda
   Hecho después: inglés (EU y US), francés, alemán e italiano (69 carteles, vistos en el juego). Sin equivalente en
   Re:CoM (quedan GBA): TRANSFERT y BOUTIQUE MOG (no hay F ni Q en esa tipografía), REISEBERICHT/R-BERICHT y los
   informes de Riku del diario. Japonés: aparte.
+
+### Medidor de vida: corregido (22/10 noche, a pedido del usuario)
+- Tres fallos, ahora resueltos y vistos con la vida al 100/90/75/60/50/40/25/10/3 % y tras golpes reales:
+  (1) el cuadro de la longitud entera (470) daba la vuelta a 0 por el bucle del grupo: el medidor "sostiene" sus
+  cuadros (`HD_LAYOUT_HOLD`); (2) la barra son sprites de UV de ancho cero (una columna de la textura estirada):
+  ahora se dibujan; (3) los grupos 27-29 son **máscaras** (sprite sin textura): limitan lo que el grupo dibuja
+  después (los cuartos que giran solo se ven dentro); se recorta la geometría en software (sin clip de SDL, que el
+  shim no tiene). Se importan los layouts remasterizados `UK_gauge.lad`/`UK_Cockpit.lad` (UV del HD; el remaster
+  movió piezas del atlas) como `gHud*HdLad`.
+- Comportamiento: se llena desde las 3 en punto en sentido horario, sigue por arriba y continúa en la barra hacia la
+  derecha; el largo crece con la vida máxima (vida / 560 × 470). Gemelo de depuración en Python: el dibujante con
+  rotación y máscaras está en el scratchpad de la sesión (seqdraw.py); conviene pasarlo a port/tools si se sigue.

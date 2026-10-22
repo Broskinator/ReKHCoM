@@ -1,6 +1,6 @@
 /*
  * Re:CoM 1.5's 2D layouts (LAD) and sequences (SEQD), drawn the way its engine does, for the HD battle HUD
- * (HUD_HD_RECOM.md): the player's own gauge.lad / Cockpit.lad (imported as hd/sprites/gHud*Lad.lad, with their
+ * (HUD_HD_RECOM.md): the player's own gauge.lad / Cockpit.lad (their remastered UK_ versions, imported as hd/sprites/gHud*HdLad.lad, with their
  * whole textures as PNGs) and the logic read from Re:CoM's executable. The formats and the drawing are OpenKh's
  * (OpenKh.Kh2/Layout.cs, Sequence.cs, OpenKh.Engine/Renders/SequenceRenderer.cs: KH2 shares the engine): an
  * animation group plays its animations at a frame; each animation moves, pivots, scales, turns and tints one sprite
@@ -30,7 +30,9 @@ typedef struct HdLayoutTexture {
 static HdLayout sLayouts[HD_LAYOUT_COUNT];
 static int sLayoutTried[HD_LAYOUT_COUNT];
 static HdLayoutTexture sTextures[HD_LAYOUT_TEXTURE_COUNT];
-static const char* const kLayoutFiles[HD_LAYOUT_COUNT] = { "gHudGaugeLad", "gHudCockpitLad" };
+/* the 1.5+2.5's remastered layouts (UK_gauge.lad...): their UVs are the HD textures' own; the PS2 ones (gauge.lad)
+   doubled miss the pieces the remaster moved (the ring's quarters, the bar) */
+static const char* const kLayoutFiles[HD_LAYOUT_COUNT] = { "gHudGaugeHdLad", "gHudCockpitHdLad" };
 static const char* const kTextureFiles[HD_LAYOUT_TEXTURE_COUNT] = { "gHudGaugeTex0", "gHudGaugeTex1",
                                                                      "gHudRikuGaugeTex0", "gHudCockpitTex" };
 
@@ -144,20 +146,61 @@ static void Color(uint32_t c, float* out) {
     out[3] = ((c >> 24) & 255) / 128.0f;
 }
 
-static void DrawSprite(SDL_Renderer* r, const HdLayoutTexture* t, const unsigned char* s, const Ctx* c,
-                       const unsigned char* part, float uvScale, float ox, float oy, float scale, int blend) {
+/* The polygon in (n vertices, a convex fan) cut to the rectangle clip (Sutherland-Hodgman), positions, texture
+   coordinates and colours interpolated: what a mask lets through. Returns the vertices left in out (at most n + 4). */
+static int ClipToRect(const SDL_Vertex* in, int n, const SDL_FRect* clip, SDL_Vertex* out) {
+    SDL_Vertex a[12], b[12];
+    int e, i, m = n;
+    memcpy(a, in, sizeof(SDL_Vertex) * n);
+    for (e = 0; e < 4 && m > 0; e++) {
+        int k = 0;
+        for (i = 0; i < m; i++) {
+            const SDL_Vertex *p = &a[i], *q = &a[(i + 1) % m];
+            float dp = e == 0 ? p->position.x - clip->x : e == 1 ? clip->x + clip->w - p->position.x
+                       : e == 2 ? p->position.y - clip->y : clip->y + clip->h - p->position.y;
+            float dq = e == 0 ? q->position.x - clip->x : e == 1 ? clip->x + clip->w - q->position.x
+                       : e == 2 ? q->position.y - clip->y : clip->y + clip->h - q->position.y;
+            if (dp >= 0)
+                b[k++] = *p;
+            if ((dp >= 0) != (dq >= 0) && k < 12) {
+                float f = dp / (dp - dq);
+                SDL_Vertex v;
+                v.position.x = p->position.x + (q->position.x - p->position.x) * f;
+                v.position.y = p->position.y + (q->position.y - p->position.y) * f;
+                v.tex_coord.x = p->tex_coord.x + (q->tex_coord.x - p->tex_coord.x) * f;
+                v.tex_coord.y = p->tex_coord.y + (q->tex_coord.y - p->tex_coord.y) * f;
+                v.color.r = p->color.r + (q->color.r - p->color.r) * f;
+                v.color.g = p->color.g + (q->color.g - p->color.g) * f;
+                v.color.b = p->color.b + (q->color.b - p->color.b) * f;
+                v.color.a = p->color.a + (q->color.a - p->color.a) * f;
+                b[k++] = v;
+            }
+        }
+        m = k;
+        memcpy(a, b, sizeof(SDL_Vertex) * m);
+    }
+    memcpy(out, a, sizeof(SDL_Vertex) * m);
+    return m;
+}
+
+/* One sprite of a part. A sprite with no texture at all (its UVs one point) is a mask: its box is returned in mask
+   (1) and limits what the group draws after it, the way the gauge's ring shows only the turned quarters' part inside
+   the box (the remaster's gauge.lad: groups 27-29). */
+static int DrawSprite(SDL_Renderer* r, const HdLayoutTexture* t, const unsigned char* s, const Ctx* c,
+                      const unsigned char* part, float uvScale, float ox, float oy, float scale, int blend,
+                      const SDL_FRect* clip, SDL_FRect* mask) {
     static const int kIndex[6] = { 0, 1, 2, 1, 3, 2 };
     const unsigned char* sp = s + I32(s + 12) + I32(part + 16) * 44; /* sprites: count at 8, offset at 12 */
     float L = (float)I32(part), T = (float)I32(part + 4), R = (float)I32(part + 8), B = (float)I32(part + 12);
     float cx[4] = { L, R, L, R }, cy[4] = { T, T, B, B };
-    float u0 = I32(sp + 4) * uvScale / t->w, v0 = I32(sp + 8) * uvScale / t->h;
-    float u1 = I32(sp + 12) * uvScale / t->w, v1 = I32(sp + 16) * uvScale / t->h;
+    /* a zero-wide (or zero-tall) source is one texel column (row) stretched over the part: the gauge's bars */
+    int su0 = I32(sp + 4), sv0 = I32(sp + 8), su1 = I32(sp + 12), sv1 = I32(sp + 16);
+    float u0 = (su0 == su1 ? su0 + 0.5f : (float)su0) * uvScale / t->w, v0 = (sv0 == sv1 ? sv0 + 0.5f : (float)sv0) * uvScale / t->h;
+    float u1 = (su0 == su1 ? su1 + 0.5f : (float)su1) * uvScale / t->w, v1 = (sv0 == sv1 ? sv1 + 0.5f : (float)sv1) * uvScale / t->h;
     float tu[4] = { u0, u1, u0, u1 }, tv[4] = { v0, v0, v1, v1 };
     float cr = SDL_cosf(-c->rz), sr = SDL_sinf(-c->rz), crx = SDL_cosf(-c->rx), cry = SDL_cosf(-c->ry);
     SDL_Vertex v[4];
     int k;
-    if (I32(sp + 12) == I32(sp + 4) || I32(sp + 16) == I32(sp + 8))
-        return;
     for (k = 0; k < 4; k++) {
         float col[4], x = cx[k] + c->px, y = cy[k] + c->py, nx;
         x *= c->sx;
@@ -178,12 +221,42 @@ static void DrawSprite(SDL_Renderer* r, const HdLayoutTexture* t, const unsigned
         v[k].tex_coord.x = tu[k];
         v[k].tex_coord.y = tv[k];
     }
+    if (su0 == su1 && sv0 == sv1) {
+        float x0 = v[0].position.x, y0 = v[0].position.y, x1 = x0, y1 = y0;
+        for (k = 1; k < 4; k++) {
+            x0 = SDL_min(x0, v[k].position.x);
+            y0 = SDL_min(y0, v[k].position.y);
+            x1 = SDL_max(x1, v[k].position.x);
+            y1 = SDL_max(y1, v[k].position.y);
+        }
+        mask->x = x0;
+        mask->y = y0;
+        mask->w = x1 - x0;
+        mask->h = y1 - y0;
+        return 1;
+    }
+    SDL_SetTextureBlendMode(t->tex, blend == 1 ? SDL_BLENDMODE_ADD : SDL_BLENDMODE_BLEND);
+    if (clip) {
+        /* the quad as a fan (top-left, top-right, bottom-right, bottom-left), cut to the mask */
+        SDL_Vertex quad[4] = { v[0], v[1], v[3], v[2] }, out[8];
+        int idx[18], n = ClipToRect(quad, 4, clip, out), i;
+        if (n < 3)
+            return 0;
+        for (i = 0; i < n - 2; i++) {
+            idx[i * 3] = 0;
+            idx[i * 3 + 1] = i + 1;
+            idx[i * 3 + 2] = i + 2;
+        }
+        out[1].position.x += 0.01f; /* off SDL's software copy path, as below */
+        SDL_RenderGeometry(r, t->tex, out, n, idx, (n - 2) * 3);
+        return 0;
+    }
     /* SDL's software renderer turns an axis-aligned quad into a copy that reads past the texture (port_hdsprites.c,
        Quad): a hundredth of a pixel keeps it on the triangle path */
     v[1].position.x += 0.01f;
     v[1].position.y += 0.01f;
-    SDL_SetTextureBlendMode(t->tex, blend == 1 ? SDL_BLENDMODE_ADD : SDL_BLENDMODE_BLEND);
     SDL_RenderGeometry(r, t->tex, v, 4, kIndex, 6);
+    return 0;
 }
 
 int PortHdLayoutDraw(SDL_Renderer* renderer, int layout, int texture, int sequence, int group, int frame, float x,
@@ -191,14 +264,17 @@ int PortHdLayoutDraw(SDL_Renderer* renderer, int layout, int texture, int sequen
     const HdLayout* l = Layout(layout);
     HdLayoutTexture* t = Texture(renderer, texture);
     const unsigned char *s, *ag;
-    int size, i, count, loopStart, loopEnd;
+    int size, i, count, loopStart, loopEnd, masked = 0;
+    SDL_FRect clip = { 0, 0, 0, 0 };
     if (!l || !t || !(s = Sequence(l, sequence, &size)) || group < 0 || group >= I32(s + 40))
         return 0;
     ag = s + I32(s + 44) + group * 36;
     count = I16(ag + 2);
     loopStart = I32(ag + 8);
     loopEnd = I32(ag + 12);
-    if (I16(ag + 4) == 0) { /* looping: from LoopStart to LoopEnd (or the last frame) */
+    if (frame & HD_LAYOUT_HOLD(0)) {
+        frame &= ~HD_LAYOUT_HOLD(0); /* held: the gauge's full length is its last frame, not its loop's start */
+    } else if (I16(ag + 4) == 0) { /* looping: from LoopStart to LoopEnd (or the last frame) */
         if (loopEnd == 0)
             loopEnd = PortHdLayoutGroupFrames(layout, sequence, group);
         if (loopEnd > loopStart && frame >= loopEnd)
@@ -207,6 +283,7 @@ int PortHdLayoutDraw(SDL_Renderer* renderer, int layout, int texture, int sequen
     for (i = 0; i < count; i++) {
         const unsigned char* a = s + I32(s + 36) + (I16(ag) + i) * 144;
         int flags = I32(a), f0 = I32(a + 8), f1 = I32(a + 12), sg = I32(a + 4), p;
+        SDL_FRect box;
         const unsigned char* g;
         float delta, tt, c0[4], c1[4];
         Ctx c;
@@ -252,7 +329,11 @@ int PortHdLayoutDraw(SDL_Renderer* renderer, int layout, int texture, int sequen
             continue;
         g = s + I32(s + 28) + sg * 4;
         for (p = 0; p < I16(g + 2); p++)
-            DrawSprite(renderer, t, s, &c, s + I32(s + 20) + (I16(g) + p) * 20, 2.0f, x, y, scale, I32(a + 132));
+            if (DrawSprite(renderer, t, s, &c, s + I32(s + 20) + (I16(g) + p) * 20, 1.0f, x, y, scale, I32(a + 132),
+                           masked ? &clip : NULL, &box)) {
+                clip = box; /* the latest mask limits what follows */
+                masked = 1;
+            }
     }
     SDL_SetTextureBlendMode(t->tex, SDL_BLENDMODE_BLEND);
     return 1;
@@ -353,9 +434,12 @@ void PortHdGaugeDraw(SDL_Renderer* renderer, float ox, float oy, float scale, fl
     if (!sGauge.active || sGauge.frame != (int)PortFrameCount())
         return;
     PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, HD_LAYOUT_TEX_GAUGE, 1, sGauge.stateAnim, sGauge.stateFrame, x, y, s, 1.0f, tint);
-    PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, HD_LAYOUT_TEX_GAUGE, 1, 7, GAUGE_LEN(sGauge.maxHp), x, y, s, 1.0f, tint);
-    PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, HD_LAYOUT_TEX_GAUGE, 1, 8, GAUGE_LEN(sGauge.trail), x, y, s, 1.0f, tint);
-    PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, HD_LAYOUT_TEX_GAUGE, 1, 9, GAUGE_LEN(sGauge.hp), x, y, s, 1.0f, tint);
+    PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, HD_LAYOUT_TEX_GAUGE, 1, 7, HD_LAYOUT_HOLD(GAUGE_LEN(sGauge.maxHp)), x, y, s,
+                     1.0f, tint);
+    PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, HD_LAYOUT_TEX_GAUGE, 1, 8, HD_LAYOUT_HOLD(GAUGE_LEN(sGauge.trail)), x, y, s,
+                     1.0f, tint);
+    PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, HD_LAYOUT_TEX_GAUGE, 1, 9, HD_LAYOUT_HOLD(GAUGE_LEN(sGauge.hp)), x, y, s,
+                     1.0f, tint);
     PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, sGauge.riku ? HD_LAYOUT_TEX_RIKU_FACES : HD_LAYOUT_TEX_GAUGE_FACES, 0,
                      sGauge.faceAnim, sGauge.faceFrame, x, y, s, 1.0f, tint);
 }

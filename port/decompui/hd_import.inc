@@ -939,7 +939,14 @@ static int WriteSprites(const fs::path& hed, const fs::path& data) {
                 tex = tex.substr(0, hash);
             }
             if (f[9] == "raw") {
-                /* a file of a .SPR container (the HUD's layouts, gauge.lad...), as it is (khhd_sprites.spr_entries) */
+                /* a file of a .SPR container (the HUD's layouts, gauge.lad...), as it is (khhd_sprites.spr_entries),
+                   or its remastered entry of that name (UK_gauge.lad, laid out on the HD texture) */
+                if (ok && extras.count(tex)) {
+                    std::ofstream(outDir / (f[0] + fs::path(tex).extension().string()), std::ios::binary)
+                        .write((const char*)extras[tex].data(), (std::streamsize)extras[tex].size());
+                    written++;
+                    continue;
+                }
                 uint32_t first = ok && base.size() >= 4 ? base[0] | base[1] << 8 | base[2] << 16 | (uint32_t)base[3] << 24 : 0;
                 for (size_t pos = 0; ok && pos + 0x20 <= first && pos + 0x20 <= base.size(); pos += 0x20) {
                     const unsigned char* e = base.data() + pos;

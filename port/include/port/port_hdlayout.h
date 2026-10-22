@@ -11,6 +11,8 @@ enum { HD_LAYOUT_TEX_GAUGE_FACES, HD_LAYOUT_TEX_GAUGE, HD_LAYOUT_TEX_RIKU_FACES,
 int PortHdLayoutReady(int layout, int texture);
 /* The last frame of an animation group (0: none). */
 int PortHdLayoutGroupFrames(int layout, int sequence, int group);
+/* A frame the caller holds, not played (a gauge's length): drawn as it is, never wrapped by the group's loop. */
+#define HD_LAYOUT_HOLD(frame) ((frame) | 0x100000)
 #ifdef SDL_h_
 /* Draw an animation group of a layout's sequence at a frame, its origin at (x, y) on the screen, scale screen pixels a
    layout unit, with an opacity and a colour (RGBA, NULL: white). 0 when it is not there. */

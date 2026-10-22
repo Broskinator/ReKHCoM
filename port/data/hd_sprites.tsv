@@ -221,8 +221,8 @@ gReloadCounterWhiteTiles_17	1	gReloadCounterWhiteFrame17	gReloadCounterWhiteTile
 gReloadCounterWhiteTiles_18	1	gReloadCounterWhiteFrame18	gReloadCounterWhiteTiles	-14	-5	25	16	FORM/0002/FO0002.RTM:UK_Cockpit.imz#0	canvas=200,128;blit=378,38,415,76,72,0,200,128;blit=46,38,72,76,24,0,112,128;scale=8
 # Re:CoM 1.5's battle HUD as its own layouts draw it (22/10, user: look like the HD, play the same): the layouts as
 # they are (raw: files of the .SPR container) and their whole textures; port_hdlayout.c draws them (HUD_HD_RECOM.md).
-gHudGaugeLad	3	-	-	0	0	1	1	FORM/0002/FO0002.SPR:gauge.lad	raw
-gHudCockpitLad	3	-	-	0	0	1	1	FORM/0002/FO0002.SPR:Cockpit.lad	raw
+gHudGaugeHdLad	3	-	-	0	0	1	1	FORM/0002/FO0002.SPR:UK_gauge.lad	raw
+gHudCockpitHdLad	3	-	-	0	0	1	1	FORM/0002/FO0002.SPR:UK_Cockpit.lad	raw
 gHudGaugeTex0	3	-	-	0	0	32	32	FORM/0060/FO0060.RTM:UK_gauge.imz#0	scale=8
 gHudGaugeTex1	3	-	-	0	0	64	64	FORM/0060/FO0060.RTM:UK_gauge.imz#1	scale=8
 gHudRikuGaugeTex0	3	-	-	0	0	32	32	FORM/0061/FO0061.RTM:UK_gauge.imz#0	scale=8
