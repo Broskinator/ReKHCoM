@@ -22,6 +22,8 @@ Windows, Linux and Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, An
 - Battle start: no more frame of the small heart over the battlefield right before the white flash (widescreen).
 - Title: the first illustration (the developer credit over Sora) now fades into white at its right edge too.
 - Windows: the HD movies also play with the software renderer (they closed the game there).
+- Battle HP gauges: no division by zero when the deck menu goes back into a battle before the HP are set
+  (closed the game on Android, the web and Linux ARM; #40).
 
 ## v1.9.14 — 2026-10-21
 

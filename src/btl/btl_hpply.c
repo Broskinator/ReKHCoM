@@ -226,9 +226,23 @@ s32 task_btl_hpply_1(BtlHpplyWork* work) {
 
     switch (work->gaugeMode) {
     case BTL_HPPLY_GAUGE_MODE_SINGLE:
+#ifdef PLATFORM_PC
+        /* @bug: leaving the deck menu back into a battle, a frame can run before the maximum HP is set; the
+           cartridge's division by zero returns garbage, platforms without fault recovery close (issue #40) */
+        if (actor->maxHp <= 0) {
+            work->hpRatio = 0;
+            break;
+        }
+#endif
         work->hpRatio = (work->displayHp << 8) / actor->maxHp;
         break;
     case BTL_HPPLY_GAUGE_MODE_EXTRA_BAR:
+#ifdef PLATFORM_PC
+        if (actor->maxHp <= 280) {
+            work->hpRatio = 0;
+            break;
+        }
+#endif
         work->hpRatio = ((work->displayHp - 280) << 8) / (actor->maxHp - 280);
         break;
     case BTL_HPPLY_GAUGE_MODE_MAIN_BAR:
