@@ -77,6 +77,7 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
   sin mucho énfasis: donde ya existe la lógica de tiles de la extensión (escenas, arenas de combate), que también
   llegue al borde a zoom x1 1080p. Condición: dibujar solo lo visible del lienzo actual; nunca preparar el arte
   gigante entero (p. ej. toda la arena) cuando la resolución no lo pide (x4, x3, entero x2). Sin arte nuevo.
+  Solo para lo aprobado o aprobado con honores (LOGICA_APROBADOS.md); nada de Preliminar V1 ni sin aprobar.
 
 1. **Escenas HD: disparo real.** `PortHdScenePlay` se llama desde `event_message.c` (2942) solo en eventos con texto;
    comprobar con partidas reales (no el atajo `KHCOM_EVENT`, que no llegó a reproducirlas) que cada una de las 97 se
@@ -141,7 +142,7 @@ Cada una tiene `LEEME.md`. **Codex:** `package_preliminar_v1.py` ahora escribe e
 | **Claude** | **A. Batería Android 64 completa**: EU jefes con Riku, US/JP menús y jefes; luego otros perfiles (Android 13/15, tablet, plegable como el Mate XT) y el bot de partida (`ANDROID_64.md`) |
 | **Claude** | **B. Batería de escritorio** (`run_batteries.py`): cada `bios:` nuevo se arregla (`KIT_DEPURACION.md`) |
 | **Claude** | **C. Videos HD en Android**: rama `claude/android-hd-movies`; el emulador se cuelga en la primera textura YUV. Probar `KHCOM_HDMOVIE_RGB=1` (b4cb4730d) en el emulador; a main solo verificado (`HD_MOD.md`). Luego **D**: consolas y MP4 en Linux |
-| **Claude** | **Arte extendido a x1 1080p** (baja prioridad, barato, solo lo visible; ver sección v2.0) |
+| **Claude** | **Arte extendido a x1 1080p** (baja prioridad, barato, solo lo visible, solo aprobados/con honores; ver sección v2.0) |
 | **Claude** | **E'. Reportes nuevos (21/10 ~16:15, prioridad del usuario)**: #22 xsm2 Poco F8 Ultra y #34 Mate XT con la pre2: "The game image could not be loaded" = bug J (imagen de 64 bits sin hueco en 0x01000000), arreglado en `claude/perf-android-reloc`; xsm2 no llega a Settings para el log (la rama pone "Share log" en la caja de error). Odin 2 Portal anda bien con la pre2. Casos en la batería: grupo `issues` de `test_android_scenarios.py` (#33 evento 099, Bosque 100 Acres) y paso `android eu move` con `KHCOM_IMAGE_MOVE=1`. `mode_vsbattle` sale de la batería: arnés sin compañero de link (HARNESS_ONLY) |
 | **Claude** | **E. Issues**: #33 (Trickmaster, arreglado en pre2) y #35 (Switch lento: si sigue con la GPU, deko3d) esperan a los testers; #36 (Switch se cierra en el título): comentario listo en `build/issue36-comment.md`, sale con la próxima prueba; #25 se cierra cuando el mod HD salga en una estable |
 | **Claude** | **G. Integración de Codex**: traer sus commits (`khcom-codex` codex/preliminar-v1 y `khcom`) a main con build y prueba (al día hasta 457d10854) |
