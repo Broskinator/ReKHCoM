@@ -55,6 +55,7 @@ Reglas del usuario:
   pausa/Opciones, Minus + Plus 3 s abre Opciones), salto de cuadros (`experimental_frame_skip`, encendido en todo tras
   `test_frameskip.py` 24/24 idénticos y 1/3600 saltados en PC con VSync; RENDIMIENTO.md), Vita en GPU (SDL2 GXM de
   vdpm), cola de audio del puente en unidades de entrada.
+- **C. Videos HD en Android: hecho** (RGB por defecto, verificado en el emulador; HD_MOD.md). Rama en main.
 - **F. Discord en Linux: hecho.** VM Debian con un socket falso: handshake y SET_ACTIVITY (mundo, piso, nivel, combate).
 - #34 cerrado (confirmado). #39 (recortar relleno) respondido: idea, no bug.
 - Builds de consolas: `build_ps5.py` enlaza con archivo de respuesta (límite de 32 K) y lee bien los `.d` con rutas de

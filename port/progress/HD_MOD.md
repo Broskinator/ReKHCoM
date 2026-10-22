@@ -85,14 +85,13 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
   archivo entero (temporal + renombrar). Los videos todavía no: Android no los reproduce y pesan GB.
   Probado en el emulador Android 14: Descargas/hd → 2 pistas, idénticas por md5 (21/10). Android no deja
   elegir la raíz de Descargas: hay que elegir `hd` (el texto del botón lo dice).
-- [ ] Videos en Android (32 y 64 bits): escrito en la rama `claude/android-hd-movies` (21/10, no en main):
-  `port/portable/hdmovie_android.c` (MediaExtractor + MediaCodec a un AImageReader, textura NV12/YUV, subtítulos
-  con FreeType, cargado con dlopen: Android 7+), entrada del puente `hd_movie` en el host de 64 bits, y el
-  importador copia también videos y subtítulos. En el emulador Android 14 el audio y la decodificación andan
-  (decodificador `c2.android.avc.decoder` con `KHCOM_HDMOVIE_DECODER`), pero la primera textura YUV se cuelga en
-  `glCreateProgram` (SwiftShader y GPU del host; el decodificador goldfish igual). Falta verificar en un teléfono
-  real o con otra imagen de emulador antes de llevarlo a main. Switch (.nro), Vita (.vpk) y PS5 compilan con la
-  música HD (21/10).
+- [x] Videos en Android (32 y 64 bits), 21/10: `port/portable/hdmovie_android.c` (MediaExtractor + MediaCodec a un
+  AImageReader, subtítulos con FreeType, dlopen: Android 7+), entrada `hd_movie` del puente en el host de 64 bits, el
+  importador copia videos y subtítulos. La imagen va a RGB en la CPU (tablas, un par de píxeles por croma) y se sube
+  como textura común: las texturas YUV de SDL colgaban el emulador al crear su shader, así que quedan solo con
+  `KHCOM_HDMOVIE_YUV=1`. Verificado en el emulador Android 14 (host de 64 bits): la apertura ROP 1080p completa con
+  subtítulos, colores correctos (`KHCOM_HDMOVIE_SHOT=20`); el emulador traduce ARM y descarta cuadros, un teléfono no.
+  Prueba: `KHCOM_MOVIE=1` con `files/hd/movies/ROP.mp4`.
 - [ ] Videos en consolas: decodificador de cada una (Vita/PS4 sceAvPlayer, Switch nvdec); sin hardware
   para probar, después de Android.
 - [ ] Linux: reproducción de MP4 (la música HD ya funciona en Linux).
