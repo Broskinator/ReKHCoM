@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.9.15 — in progress
+
+- Switch: with "Hide touch controls" on, no touch button shows anywhere, pause and Options included; hold Minus +
+  Plus for three seconds to open the Options (#36).
+- Switch and PS Vita: when the console cannot draw every frame, the frame is skipped instead of slowing the game:
+  the game and the sound keep their original speed (#35, #36). Options > Experimental, on by default everywhere.
+- PS Vita: the picture is drawn by the GPU.
+- Consoles and Android 64-bit: the sound's buffer level is measured in the right units.
+
 ## v1.9.14 — 2026-10-21
 
 v1.9.13 came out only as a test prerelease; this stable release carries all of it. Windows, Linux and
