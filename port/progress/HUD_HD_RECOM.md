@@ -210,4 +210,6 @@ CStockFolder, CBattleCard, CCardBattle, C2DSeqNumericCtrl). **CPlayerGauge::upda
   mundo, tienda) el sprite sigue encima con HD (prioridad sobre ese BG).
 - Pendiente: **VER BARAJAS** solo es HD mientras entra: el menú libera sus tiles y su paleta y queda la copia en el BG3
   (mantenerlos sería alargar la vida de un objeto del juego). Camino: una pieza HD sin OAM con el fundido del BG.
-  Otros idiomas (UK/FR/GR/IT en Re:CoM; inglés también para US).
+  Hecho después: inglés (EU y US), francés, alemán e italiano (69 carteles, vistos en el juego). Sin equivalente en
+  Re:CoM (quedan GBA): TRANSFERT y BOUTIQUE MOG (no hay F ni Q en esa tipografía), REISEBERICHT/R-BERICHT y los
+  informes de Riku del diario. Japonés: aparte.
