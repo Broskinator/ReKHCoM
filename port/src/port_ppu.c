@@ -86,6 +86,11 @@ static int sBgIsoLatched[4];
 static int sEventBackdropProfile = -1; /* derived at frame start, not saved */
 static int sUseSceneProfiles;
 static int sPreliminarV1;
+/* Approved wide art is on; its variable set to 0 turns it off for before/after tests (WORKFLOW_ARTE_AMPLIO.md). */
+static int PortArtOn(const char* var) {
+    const char* v = getenv(var);
+    return v == NULL || atoi(v) != 0;
+}
 static const PortPreliminarRecipe* sPreliminarRecipe[4];
 static int sAgrabahLayer[4]; /* rebuilt from actual map data each frame */
 static int sAgrabah109Layer[4];
@@ -3047,7 +3052,7 @@ void PortPpuBeginFrame(void) {
     }
     if (sPreliminarRecipe[2] && sPreliminarRecipe[2]->v[0]==45)
         PreparePreliminarFir();
-    if (sPreliminarV1 || getenv("KHCOM_AGRABAH_WIDE")) {
+    if (sPreliminarV1 || PortArtOn("KHCOM_AGRABAH_WIDE")) {
         for (b = 2; b <= 3; b++) {
             const BgLatch* l = &sBgLatch[b];
             if (l->valid && l->width == 2 && l->height == 2) {
@@ -3065,7 +3070,7 @@ void PortPpuBeginFrame(void) {
     }
     memset(sAgrabah109Layer, 0, sizeof(sAgrabah109Layer));
     sAgrabah109ShopPal[0] = sAgrabah109ShopPal[1] = -1;
-    if (sPreliminarV1 || getenv("KHCOM_AGRABAH109_WIDE")) {
+    if (sPreliminarV1 || PortArtOn("KHCOM_AGRABAH109_WIDE")) {
         for (b = 2; b <= 3; b++) {
             const BgLatch* l = &sBgLatch[b];
             if (l->valid && l->width == 1 && l->height == 1) {
