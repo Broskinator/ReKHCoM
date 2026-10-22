@@ -31,10 +31,17 @@ def run(args, size, zoom, enabled):
     (d / "kh_com.ini").write_text(f"config_version=11\nview_mode=4\nzoom={zoom}\nhd_text=0\nvsync=0\n")
     frames = [int(f) for f in args.frames.split(",")]
     env = dict(os.environ, SDL_VIDEO_DRIVER="dummy", SDL_AUDIO_DRIVER="dummy", KHCOM_FAST="1", KHCOM_WINDOW=size,
-               KHCOM_BATTLE=f"{args.battle}:{int(args.riku)}", KHCOM_KEYS=args.keys,
+               KHCOM_KEYS=args.keys,
                KHCOM_OUTPUT_SHOT=args.frames, KHCOM_QUIT=str(max(frames) + 10))
+    if args.event is not None:
+        from test_events import event_lists
+        env["KHCOM_EVENT"] = next(f"{l}:{i}" for l, i, n in event_lists() if n.startswith(f"EVENT_{args.event:03d}_"))
+    else:
+        env["KHCOM_BATTLE"] = f"{args.battle}:{int(args.riku)}"
     if args.off:
         env[args.off] = "0" if enabled else "1"
+    if args.on:
+        env[args.on] = "1" if enabled else "0"
     rom = {"eu": "B8CP", "us": "B8CE", "jp": "B8CJ"}[args.region]
     subprocess.run([str(d / "khcom.exe"), "--rom", str(ROOT / "roms" / (rom + ".gba"))], cwd=d, env=env,
                    timeout=300, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -51,8 +58,10 @@ def run(args, size, zoom, enabled):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--battle", required=True, help="debug battle entry:stage (audit_battle_scenery.py cases)")
+    ap.add_argument("--battle", help="debug battle entry:stage (audit_battle_scenery.py cases)")
+    ap.add_argument("--event", type=int, help="a story event number instead (the same background before the fight)")
     ap.add_argument("--off", help="the extension's variable: =1 turns it off (before), =0 on (after)")
+    ap.add_argument("--on", help="the extension's variable while it waits for approval: =1 on (after), =0 off")
     ap.add_argument("--build", default="build/pc-eu")
     ap.add_argument("--region", default="eu", choices=("eu", "us", "jp"))
     ap.add_argument("--riku", action="store_true")
@@ -62,7 +71,7 @@ def main():
     ap.add_argument("--jobs", type=int, default=4)
     args = ap.parse_args()
 
-    jobs = [(s, z, e) for s, z in SIZES for e in ((False, True) if args.off else (False,))]
+    jobs = [(s, z, e) for s, z in SIZES for e in ((False, True) if args.off or args.on else (False,))]
     with ThreadPoolExecutor(args.jobs) as pool:
         results = list(pool.map(lambda j: run(args, *j), jobs))
     for d, bad in results:
@@ -74,7 +83,7 @@ def main():
     for s, z in SIZES:
         for f in frames:
             cells = []
-            for e in ((False, True) if args.off else (False,)):
+            for e in ((False, True) if args.off or args.on else (False,)):
                 p = Path(args.out) / f"{s}_z{z}" / ("after" if e else "before") / f"out_{int(f):05d}.png"
                 if p.exists():
                     im = Image.open(p).convert("RGB")

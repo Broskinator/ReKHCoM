@@ -94,6 +94,7 @@ static int PortArtOn(const char* var) {
 static const PortPreliminarRecipe* sPreliminarRecipe[4];
 static int sAgrabahLayer[4]; /* rebuilt from actual map data each frame */
 static int sAgrabah109Layer[4];
+static int sDarksideLayer[4]; /* port_darkside.c: 1 beach, 2 body; from the map blocks each frame */
 static int sAgrabah109ShopPal[2]; /* live OBJ palette slots, rebuilt per frame */
 extern const uint8_t gMapGmkAgrabah00Tiles[], gMapGmkAgrabah09Tiles[];
 extern const uint16_t gMapGmkAgrabah00Palette[], gMapGmkAgrabah01Palette[];
@@ -1039,6 +1040,11 @@ static int ExtendedWorldEntry(const BgLatch* l, int wx, int wy) {
         ok = PortPreliminarTileSource(sPreliminarRecipe[bg], &tx, &ty);
         return ok ? MapTile(l, tx, ty) : -1;
     }
+    if (sDarksideLayer[bg]) {
+        ok = PortDarksideTileSource(sDarksideLayer[bg], &tx, &ty, (l->x + GBA_SCREEN_W / 2) >> 3,
+                                    (l->y + GBA_SCREEN_H / 2) >> 3);
+        return ok ? MapTile(l, tx, ty) : -1;
+    }
     if (sAgrabah109Layer[bg]) {
         ok = PortAgrabah109TileSource(sAgrabah109Layer[bg], &tx, &ty);
         return ok ? MapTile(l, tx, ty) : -1;
@@ -1069,6 +1075,7 @@ static int ExtendedWorldEntry(const BgLatch* l, int wx, int wy) {
 static uint16_t WorldPadding(int bg, const BgLatch* l) {
     int corner, bpp8 = (IO16(8 + bg * 2) & 0x80) != 0;
     unsigned base = ((IO16(8 + bg * 2) >> 2) & 3) * 0x4000;
+    if (sDarksideLayer[bg] == 2) return TRANSPARENT; /* one Darkside: nothing beside his frame */
     if (!l->valid || sBgDockedLatched[bg] || sScreenBg[bg] ||
         (sPreliminarRecipe[bg] && bg!=3)) return TRANSPARENT;
     /* With the floor continued past the map, the layers above it end there. */
@@ -1200,10 +1207,12 @@ static int VramEntry(int bg, int gx, int gy) {
 static int ValidateBgLatch(int bg, uint16_t dispcnt) {
     static const int xs[3] = { 8, 120, 232 }, ys[3] = { 8, 80, 152 };
     BgLatch* l = &sBgLatch[bg];
-    int mode = dispcnt & 7, i, j, match = 0;
+    int mode = dispcnt & 7, i, j, match = 0, outsideBlank;
 
     if (!(dispcnt & (0x100 << bg)) || l->map == NULL || l->width == 0 || l->height == 0)
         return 0;
+    /* Darkside's body stands at the bottom of his map: below it VRAM holds the blank tile */
+    outsideBlank = PortDarksideLayer((const void* const*)l->map) == 2;
     /* Message window layers are screen UI, never part of the world. */
     for (i = 0; i < 4; i++)
         if ((const void*)l->map == gMsgwinMapBlocks[i])
@@ -1212,8 +1221,8 @@ static int ValidateBgLatch(int bg, uint16_t dispcnt) {
         return 0;
     for (i = 0; i < 3; i++) {
         for (j = 0; j < 3; j++) {
-            int we = WorldEntry(l, l->x + xs[i], l->y + ys[j]);
-            if (we >= 0 && we == VramEntry(bg, xs[i], ys[j]))
+            int we = WorldEntry(l, l->x + xs[i], l->y + ys[j]), ve = VramEntry(bg, xs[i], ys[j]);
+            if (we >= 0 ? we == ve : outsideBlank && (ve & 1023) == 0)
                 match++;
         }
     }
@@ -1455,6 +1464,17 @@ static void DrawTextBg(int bg, int gy, uint16_t dispcnt) {
                 continue;
             }
         }
+        if (sDarksideLayer[bg] && (outside || gx < 0 || gx >= GBA_SCREEN_W)) {
+            const BgLatch* l = &sBgLatch[bg];
+            int wx = l->x + gx + (hofs - l->hofs), wy = l->y + gy + (vofs - l->vofs);
+            if (sDarksideLayer[bg] == 1 ? PortDarksideShorePixel(wx, wy, &out[x])
+                                        : PortDarksideBodyPixel((const void* const*)l->map, wx, wy,
+                                                                l->x + GBA_SCREEN_W / 2, l->y + GBA_SCREEN_H / 2,
+                                                                &out[x])) {
+                sInWorld[x] = 1;
+                continue;
+            }
+        }
         if (bg == sSinglePanelBg && sBgLatch[bg].valid &&
             (outside || gx < 0 || gx >= GBA_SCREEN_W)) {
             const BgLatch* l = &sBgLatch[bg];
@@ -1689,6 +1709,19 @@ scalar_world:
    mosV lines, which the following lines of the block reuse. */
 static PPU_TLS int32_t sMosAffX[2], sMosAffY[2];
 
+/* An affine effect layer shows one copy on the GBA's 240 columns; beyond them only the copies the original picture
+   shows are drawn, whether the layer wraps or the wide view repeats the arena sideways (Darkside's smoke was three
+   clouds at 32:9). a, b: the texture x at the picture's edges. */
+static int AffineCopyShown(int px, int a, int b, int size) {
+    /* each texture pixel once: in the copy nearest the middle of the original picture */
+    int d = 2 * px - (a + b);
+    return d >= -size && d < size;
+}
+/* Layers that wrap on the GBA only by chance: one copy in the wide view. */
+static int AffineSingleCopy(int bg) {
+    return bg == 2 && sDarksideLayer[0] == 1;
+}
+
 /* Axis-aligned affine stages reuse their horizontal address calculation
    between scanlines. Cache coordinates only: VRAM and palette are still read
    on each line, so HBlank changes never reuse stale tile pixels or colours. */
@@ -1697,7 +1730,7 @@ static void DrawStraightAffine(int bg, int gy, uint16_t cnt, int32_t refX, int32
     static PPU_TLS int16_t columns[2][PORT_MAX_W];
     int key[14], a = bg - 2, w = gPortScreen.width;
     int size = 128 << (cnt >> 14), tiles = size >> 3, wrap = (cnt >> 13) & 1;
-    int py = refY >> 8, ornaments, x, i, lastTile = -1;
+    int py = refY >> 8, ornaments, single, x, i, lastTile = -1;
     uint16_t colors[8];
     uint16_t* out = sBgLine[bg];
     const uint8_t* chars = VRAM8 + ((cnt >> 2) & 3) * 0x4000;
@@ -1715,13 +1748,19 @@ static void DrawStraightAffine(int bg, int gy, uint16_t cnt, int32_t refX, int32
     }
     key[0] = refX; key[1] = w; key[2] = gPortScreen.originX;
     key[3] = sLeft; key[4] = sRight; key[5] = cnt;
-    key[6] = sBattleView; key[7] = ornaments;
+    single = AffineSingleCopy(bg);
+    key[6] = sBattleView; key[7] = ornaments | single << 1;
     for (i = 0; i < 6; i++) key[8 + i] = sArenaBands[i];
     if (!valid[a] || memcmp(keys[a], key, sizeof(key))) {
         for (x = 0; x < w; x++) {
             int gx = x - gPortScreen.originX;
             int px = (refX + 256 * gx) >> 8;
             if (gx < sLeft || gx >= sRight) { columns[a][x] = -1; continue; }
+            if (single && (gx < 0 || gx >= GBA_SCREEN_W) &&
+                !AffineCopyShown(px, refX >> 8, (refX + 256 * (GBA_SCREEN_W - 1)) >> 8, size)) {
+                columns[a][x] = -1;
+                continue;
+            }
             if (ornaments && (gx < 0 || gx >= GBA_SCREEN_W)) {
                 if (px < sArenaBands[0])
                     px = ArenaBandPixel(sArenaBands[0] - 1 - px, sArenaBands[2], sArenaBands[3], 0);
@@ -1819,6 +1858,11 @@ static void DrawAffineBg(int bg, int gy, uint16_t dispcnt) {
             else if (px >= sArenaBands[1])
                 px = ArenaBandPixel(px - sArenaBands[1],
                                     sArenaBands[4], sArenaBands[5], 1);
+        }
+        if (AffineSingleCopy(bg) && (gx < 0 || gx >= GBA_SCREEN_W) &&
+            !AffineCopyShown(px, refX >> 8, (refX + (int32_t)pa * (GBA_SCREEN_W - 1)) >> 8, size)) {
+            out[x] = TRANSPARENT;
+            continue;
         }
         if (wrap) {
             px &= size - 1;
@@ -3110,6 +3154,9 @@ void PortPpuBeginFrame(void) {
             }
         }
     }
+    for (b = 0; b < 2; b++)
+        sDarksideLayer[b] = sBgLatch[b].valid ? PortDarksideLayer((const void* const*)sBgLatch[b].map) : 0;
+    sDarksideLayer[2] = sDarksideLayer[3] = 0;
     memset(sAgrabah109Layer, 0, sizeof(sAgrabah109Layer));
     sAgrabah109ShopPal[0] = sAgrabah109ShopPal[1] = -1;
     if (sPreliminarV1 || PortArtOn("KHCOM_AGRABAH109_WIDE")) {
