@@ -6,7 +6,8 @@
   defined there, with SDL's own value (21/10: SDLK_AC_BACK and SDL_EVENT_MOUSE_BUTTON_DOWN broke the Android 64 build).
 - Java string and char literals must close on their line (21/10: a script wrote real newlines into GameActivity's
   share-log strings and the APK did not build).
-- The generated HD sprite tables (gen_hd_sprites_inc.py) match port/data/hd_sprites.tsv.
+- The generated HD sprite tables (gen_hd_sprites_inc.py) match port/data/hd_sprites.tsv, and its rows pass
+  check_hd_sprites.py.
 - port/src compiles (syntax only) for the console guests, against the shim, as build_switch.py compiles it: a
   desktop-only SDL call outside its guard otherwise shows only in a console build (22/10: the sprite export).
 
@@ -50,6 +51,13 @@ def generated_problems():
     r = subprocess.run([sys.executable, str(ROOT / 'port/tools/gen_hd_sprites_inc.py'), '--check'],
                        capture_output=True, text=True)
     return [l for l in r.stdout.splitlines() if l.strip()] if r.returncode else []
+
+
+def hd_sprite_problems():
+    """The HD sprite rows: unique names, symbols in every version, parts inside the box (check_hd_sprites.py)."""
+    import subprocess
+    r = subprocess.run([sys.executable, str(ROOT / 'port/tools/check_hd_sprites.py')], capture_output=True, text=True)
+    return [l for l in r.stdout.splitlines() if l.strip() and not l.startswith('check_hd_sprites:')] if r.returncode else []
 
 
 def jp_glyph_problems():
@@ -112,7 +120,8 @@ def java_problems():
 
 
 def main():
-    problems = shim_problems() + java_problems() + generated_problems() + jp_glyph_problems() + guest_compile_problems()
+    problems = (shim_problems() + java_problems() + generated_problems() + hd_sprite_problems() + jp_glyph_problems() +
+                guest_compile_problems())
     for p in problems:
         print(p)
     if problems:

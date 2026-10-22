@@ -3,6 +3,7 @@
 is Re:CoM's own world_icon picture (FORM/0150..0162), the same drawing. The picture's opaque box is fitted into the
 cartridge icon's ink box (from the ROM) keeping its proportions, centred; the sprite's box is its frame's OAM parts.
 The picture's box is measured here from the player's install, so the rows only name rectangles.
+A version whose frame differs gets its own row (named with its version).
 
     python port/tools/hd_world_icons.py <Recom.hed> [--write]   (without --write: print the rows)
 """
@@ -31,9 +32,10 @@ WORLDS = [('TraverseTown', 150), ('Agrabah', 151), ('OlympusColiseum', 152), ('W
 
 def main():
     hed = Path(sys.argv[1])
-    data = (ROOT / 'roms' / 'B8CP.gba').read_bytes()
-    syms = {k: int(v, 16) for k, v in re.findall(r'\.set _(\w+), (0x[0-9a-f]+)',
-                                                 (ROOT / 'build/eu/pc/rom_symbols.s').read_text())}
+    versions = [(region, (ROOT / 'roms' / f'{rom}.gba').read_bytes(),
+                 {k: int(v, 16) for k, v in re.findall(r'\.set _(\w+), (0x[0-9a-f]+)',
+                                                       (ROOT / f'build/{region}/pc/rom_symbols.s').read_text())})
+                for region, rom in (('eu', 'B8CP'), ('us', 'B8CE'), ('jp', 'B8CJ'))]
     names = khhd_pkg.names_by_md5(NAMES)
     where = {names.get(m, m): o for m, o, _, _ in khhd_pkg.entries(hed)}
     rows = []
@@ -49,19 +51,28 @@ def main():
             ys, xs = np.nonzero(a)
             crop = xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
             tiles, frame = f'gWorldIcon{world}Tiles', f'gWorldIcon{world}Frame0'
-            px, (bx, by, bw, bh) = frame_pixels(data, syms, frame, tiles)
-            ix0, iy0 = min(x for x, _ in px), min(y for _, y in px)
-            ix1, iy1 = max(x for x, _ in px) + 1, max(y for _, y in px) + 1
-            # fit (the cartridge's ink includes a one-pixel outline the picture does not have)
-            cw, ch = crop[2] - crop[0], crop[3] - crop[1]
-            iw, ih = ix1 - ix0 - 1, iy1 - iy0 - 1
-            s = min(iw / cw, ih / ch)
-            w, h = cw * s, ch * s
-            cx, cy = (ix0 + ix1) / 2, (iy0 + iy1) / 2
-            place = [round(cx - w / 2 - bx), round(cy - h / 2 - by), round(cx + w / 2 - bx), round(cy + h / 2 - by)]
-            ops = f'crop={",".join(map(str, crop))};place={",".join(map(str, place))};scale={K}'
-            rows.append('\t'.join([f'gWorldIcon{world}HD', '5', frame, tiles, str(bx), str(by), str(bw), str(bh),
-                                   f'{asset}:world_icon.imz#0', ops, 'eu,us,jp']))
+            # one row per geometry: a version whose frame differs (Monstro sits a pixel lower in US/JP) gets its own
+            shapes = {}
+            for region, rdata, rsyms in versions:
+                px, box = frame_pixels(rdata, rsyms, frame, tiles)
+                ink = (min(x for x, _ in px), min(y for _, y in px), max(x for x, _ in px) + 1,
+                       max(y for _, y in px) + 1)
+                shapes.setdefault((box, ink), []).append(region)
+            for (box, ink), regions in shapes.items():
+                bx, by, bw, bh = box
+                ix0, iy0, ix1, iy1 = ink
+                # fit (the cartridge's ink includes a one-pixel outline the picture does not have)
+                cw, ch = crop[2] - crop[0], crop[3] - crop[1]
+                iw, ih = ix1 - ix0 - 1, iy1 - iy0 - 1
+                s = min(iw / cw, ih / ch)
+                w, h = cw * s, ch * s
+                cx, cy = (ix0 + ix1) / 2, (iy0 + iy1) / 2
+                place = [round(cx - w / 2 - bx), round(cy - h / 2 - by), round(cx + w / 2 - bx),
+                         round(cy + h / 2 - by)]
+                ops = f'crop={",".join(map(str, crop))};place={",".join(map(str, place))};scale={K}'
+                suffix = '' if 'eu' in regions else regions[0].capitalize()
+                rows.append('\t'.join([f'gWorldIcon{world}HD{suffix}', '5', frame, tiles, str(bx), str(by), str(bw),
+                                       str(bh), f'{asset}:world_icon.imz#0', ops, ','.join(regions)]))
     if '--write' not in sys.argv:
         print('\n'.join(rows))
         return

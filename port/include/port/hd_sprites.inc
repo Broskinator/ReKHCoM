@@ -324,6 +324,38 @@ extern const unsigned char gReloadCounterWhiteTiles[];
 extern const unsigned char gReloadCounterWhiteFrame17[];
 extern const unsigned char gReloadCounterWhiteTiles[];
 extern const unsigned char gReloadCounterWhiteFrame18[];
+extern const unsigned char gWorldIconTraverseTownTiles[];
+extern const unsigned char gWorldIconTraverseTownFrame0[];
+extern const unsigned char gWorldIconAgrabahTiles[];
+extern const unsigned char gWorldIconAgrabahFrame0[];
+extern const unsigned char gWorldIconOlympusColiseumTiles[];
+extern const unsigned char gWorldIconOlympusColiseumFrame0[];
+extern const unsigned char gWorldIconWonderlandTiles[];
+extern const unsigned char gWorldIconWonderlandFrame0[];
+#if defined(VERSION_EU)
+extern const unsigned char gWorldIconMonstroTiles[];
+extern const unsigned char gWorldIconMonstroFrame0[];
+#endif
+#if defined(VERSION_US) || defined(VERSION_JP)
+extern const unsigned char gWorldIconMonstroTiles[];
+extern const unsigned char gWorldIconMonstroFrame0[];
+#endif
+extern const unsigned char gWorldIconHalloweenTownTiles[];
+extern const unsigned char gWorldIconHalloweenTownFrame0[];
+extern const unsigned char gWorldIconAtlanticaTiles[];
+extern const unsigned char gWorldIconAtlanticaFrame0[];
+extern const unsigned char gWorldIconNeverLandTiles[];
+extern const unsigned char gWorldIconNeverLandFrame0[];
+extern const unsigned char gWorldIconHollowBastionTiles[];
+extern const unsigned char gWorldIconHollowBastionFrame0[];
+extern const unsigned char gWorldIcon100AcreWoodTiles[];
+extern const unsigned char gWorldIcon100AcreWoodFrame0[];
+extern const unsigned char gWorldIconTwilightTownTiles[];
+extern const unsigned char gWorldIconTwilightTownFrame0[];
+extern const unsigned char gWorldIconDestinyIslandsTiles[];
+extern const unsigned char gWorldIconDestinyIslandsFrame0[];
+extern const unsigned char gWorldIconCastleOblivionTiles[];
+extern const unsigned char gWorldIconCastleOblivionFrame0[];
 #if defined(VERSION_EU)
 extern const unsigned char gMapMenuTitleSpanishTiles[];
 extern const unsigned char gMapMenuTitleSpanishFrame0[];
@@ -469,7 +501,7 @@ extern const unsigned char gPremireChanceTitleGermanTiles[];
 extern const unsigned char gPremireChanceTitleGermanFrame0[];
 #endif
 #if defined(VERSION_EU)
-extern const unsigned char gMsTopBarGermanTiles[];
+extern const unsigned char gMsTopBarTiles[];
 extern const unsigned char gMsTopBarGermanFrame0[];
 #endif
 #if defined(VERSION_EU)
@@ -521,7 +553,7 @@ extern const unsigned char gPremireChanceTitleItalianTiles[];
 extern const unsigned char gPremireChanceTitleItalianFrame0[];
 #endif
 #if defined(VERSION_EU)
-extern const unsigned char gMsTopBarItalianTiles[];
+extern const unsigned char gMsTopBarTiles[];
 extern const unsigned char gMsTopBarItalianFrame0[];
 #endif
 #if defined(VERSION_EU)
@@ -600,32 +632,6 @@ extern const unsigned char gDeckTitleBannerFrame0[];
 extern const unsigned char gRikuDeckTitleBannerTiles[];
 extern const unsigned char gRikuDeckTitleBannerFrame0[];
 #endif
-extern const unsigned char gWorldIconTraverseTownTiles[];
-extern const unsigned char gWorldIconTraverseTownFrame0[];
-extern const unsigned char gWorldIconAgrabahTiles[];
-extern const unsigned char gWorldIconAgrabahFrame0[];
-extern const unsigned char gWorldIconOlympusColiseumTiles[];
-extern const unsigned char gWorldIconOlympusColiseumFrame0[];
-extern const unsigned char gWorldIconWonderlandTiles[];
-extern const unsigned char gWorldIconWonderlandFrame0[];
-extern const unsigned char gWorldIconMonstroTiles[];
-extern const unsigned char gWorldIconMonstroFrame0[];
-extern const unsigned char gWorldIconHalloweenTownTiles[];
-extern const unsigned char gWorldIconHalloweenTownFrame0[];
-extern const unsigned char gWorldIconAtlanticaTiles[];
-extern const unsigned char gWorldIconAtlanticaFrame0[];
-extern const unsigned char gWorldIconNeverLandTiles[];
-extern const unsigned char gWorldIconNeverLandFrame0[];
-extern const unsigned char gWorldIconHollowBastionTiles[];
-extern const unsigned char gWorldIconHollowBastionFrame0[];
-extern const unsigned char gWorldIcon100AcreWoodTiles[];
-extern const unsigned char gWorldIcon100AcreWoodFrame0[];
-extern const unsigned char gWorldIconTwilightTownTiles[];
-extern const unsigned char gWorldIconTwilightTownFrame0[];
-extern const unsigned char gWorldIconDestinyIslandsTiles[];
-extern const unsigned char gWorldIconDestinyIslandsFrame0[];
-extern const unsigned char gWorldIconCastleOblivionTiles[];
-extern const unsigned char gWorldIconCastleOblivionFrame0[];
 static const HdSpriteDef kHdSprites[] = {
     { gCardWep01Tiles, NULL, "gCardWep01Tiles", -16, -12, 32, 32, 1 },
     { gCardWep04Tiles, NULL, "gCardWep04Tiles", -16, -12, 32, 32, 1 },
@@ -875,6 +881,24 @@ static const HdSpriteDef kHdSprites[] = {
     { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame16, "gReloadCounterWhiteTiles_16", -14, -5, 26, 16, 1 },
     { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame17, "gReloadCounterWhiteTiles_17", -14, -5, 25, 16, 1 },
     { gReloadCounterWhiteTiles, gReloadCounterWhiteFrame18, "gReloadCounterWhiteTiles_18", -14, -5, 25, 16, 1 },
+    { gWorldIconTraverseTownTiles, gWorldIconTraverseTownFrame0, "gWorldIconTraverseTownHD", -16, -16, 32, 39, 5 },
+    { gWorldIconAgrabahTiles, gWorldIconAgrabahFrame0, "gWorldIconAgrabahHD", -12, -20, 31, 39, 5 },
+    { gWorldIconOlympusColiseumTiles, gWorldIconOlympusColiseumFrame0, "gWorldIconOlympusColiseumHD", -16, -18, 32, 40, 5 },
+    { gWorldIconWonderlandTiles, gWorldIconWonderlandFrame0, "gWorldIconWonderlandHD", -16, -24, 32, 40, 5 },
+#if defined(VERSION_EU)
+    { gWorldIconMonstroTiles, gWorldIconMonstroFrame0, "gWorldIconMonstroHD", -20, -17, 48, 23, 5 },
+#endif
+#if defined(VERSION_US) || defined(VERSION_JP)
+    { gWorldIconMonstroTiles, gWorldIconMonstroFrame0, "gWorldIconMonstroHDUs", -20, -16, 48, 23, 5 },
+#endif
+    { gWorldIconHalloweenTownTiles, gWorldIconHalloweenTownFrame0, "gWorldIconHalloweenTownHD", -16, -18, 32, 39, 5 },
+    { gWorldIconAtlanticaTiles, gWorldIconAtlanticaFrame0, "gWorldIconAtlanticaHD", -16, -16, 32, 32, 5 },
+    { gWorldIconNeverLandTiles, gWorldIconNeverLandFrame0, "gWorldIconNeverLandHD", -16, -22, 31, 40, 5 },
+    { gWorldIconHollowBastionTiles, gWorldIconHollowBastionFrame0, "gWorldIconHollowBastionHD", -16, -24, 32, 47, 5 },
+    { gWorldIcon100AcreWoodTiles, gWorldIcon100AcreWoodFrame0, "gWorldIcon100AcreWoodHD", -16, -16, 32, 32, 5 },
+    { gWorldIconTwilightTownTiles, gWorldIconTwilightTownFrame0, "gWorldIconTwilightTownHD", -16, -16, 32, 32, 5 },
+    { gWorldIconDestinyIslandsTiles, gWorldIconDestinyIslandsFrame0, "gWorldIconDestinyIslandsHD", -16, -23, 32, 39, 5 },
+    { gWorldIconCastleOblivionTiles, gWorldIconCastleOblivionFrame0, "gWorldIconCastleOblivionHD", -16, -16, 32, 32, 5 },
 #if defined(VERSION_EU)
     { gMapMenuTitleSpanishTiles, gMapMenuTitleSpanishFrame0, "gMapMenuTitleSpanishBanner", 0, 0, 64, 16, 5 },
 #endif
@@ -984,7 +1008,7 @@ static const HdSpriteDef kHdSprites[] = {
     { gPremireChanceTitleGermanTiles, gPremireChanceTitleGermanFrame0, "gPremireChanceTitleGermanBanner", 0, 0, 120, 16, 5 },
 #endif
 #if defined(VERSION_EU)
-    { gMsTopBarGermanTiles, gMsTopBarGermanFrame0, "gMsTopBarGermanBanner", 0, 0, 104, 16, 5 },
+    { gMsTopBarTiles, gMsTopBarGermanFrame0, "gMsTopBarGermanBanner", 0, 0, 104, 16, 5 },
 #endif
 #if defined(VERSION_EU)
     { gDeckTitleBannerGermanTiles, gDeckTitleBannerGermanFrame0, "gDeckTitleBannerGermanBanner", 0, 0, 104, 16, 5 },
@@ -1023,7 +1047,7 @@ static const HdSpriteDef kHdSprites[] = {
     { gPremireChanceTitleItalianTiles, gPremireChanceTitleItalianFrame0, "gPremireChanceTitleItalianBanner", 0, 0, 120, 16, 5 },
 #endif
 #if defined(VERSION_EU)
-    { gMsTopBarItalianTiles, gMsTopBarItalianFrame0, "gMsTopBarItalianBanner", 0, 0, 112, 16, 5 },
+    { gMsTopBarTiles, gMsTopBarItalianFrame0, "gMsTopBarItalianBanner", 0, 0, 112, 16, 5 },
 #endif
 #if defined(VERSION_EU)
     { gDeckTitleBannerItalianTiles, gDeckTitleBannerItalianFrame0, "gDeckTitleBannerItalianBanner", 0, 0, 104, 16, 5 },
@@ -1082,17 +1106,4 @@ static const HdSpriteDef kHdSprites[] = {
 #if defined(VERSION_EU) || defined(VERSION_US)
     { gRikuDeckTitleBannerTiles, gRikuDeckTitleBannerFrame0, "gRikuDeckTitleBannerBanner", 0, 0, 104, 16, 5 },
 #endif
-    { gWorldIconTraverseTownTiles, gWorldIconTraverseTownFrame0, "gWorldIconTraverseTownHD", -16, -16, 32, 39, 5 },
-    { gWorldIconAgrabahTiles, gWorldIconAgrabahFrame0, "gWorldIconAgrabahHD", -12, -20, 31, 39, 5 },
-    { gWorldIconOlympusColiseumTiles, gWorldIconOlympusColiseumFrame0, "gWorldIconOlympusColiseumHD", -16, -18, 32, 40, 5 },
-    { gWorldIconWonderlandTiles, gWorldIconWonderlandFrame0, "gWorldIconWonderlandHD", -16, -24, 32, 40, 5 },
-    { gWorldIconMonstroTiles, gWorldIconMonstroFrame0, "gWorldIconMonstroHD", -20, -17, 48, 23, 5 },
-    { gWorldIconHalloweenTownTiles, gWorldIconHalloweenTownFrame0, "gWorldIconHalloweenTownHD", -16, -18, 32, 39, 5 },
-    { gWorldIconAtlanticaTiles, gWorldIconAtlanticaFrame0, "gWorldIconAtlanticaHD", -16, -16, 32, 32, 5 },
-    { gWorldIconNeverLandTiles, gWorldIconNeverLandFrame0, "gWorldIconNeverLandHD", -16, -22, 31, 40, 5 },
-    { gWorldIconHollowBastionTiles, gWorldIconHollowBastionFrame0, "gWorldIconHollowBastionHD", -16, -24, 32, 47, 5 },
-    { gWorldIcon100AcreWoodTiles, gWorldIcon100AcreWoodFrame0, "gWorldIcon100AcreWoodHD", -16, -16, 32, 32, 5 },
-    { gWorldIconTwilightTownTiles, gWorldIconTwilightTownFrame0, "gWorldIconTwilightTownHD", -16, -16, 32, 32, 5 },
-    { gWorldIconDestinyIslandsTiles, gWorldIconDestinyIslandsFrame0, "gWorldIconDestinyIslandsHD", -16, -23, 32, 39, 5 },
-    { gWorldIconCastleOblivionTiles, gWorldIconCastleOblivionFrame0, "gWorldIconCastleOblivionHD", -16, -16, 32, 32, 5 },
 };

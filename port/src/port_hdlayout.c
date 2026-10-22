@@ -13,6 +13,7 @@
 
 #include "port/port.h"
 #include "port/port_hdlayout.h"
+#include "port/port_hdsprites.h"
 #include "../decompui/third_party/stb_image.h"
 
 const char* PortHdSpritePath(char* file, size_t size, const char* name);
@@ -433,6 +434,9 @@ void PortHdGaugeDraw(SDL_Renderer* renderer, float ox, float oy, float scale, fl
     float tint[4] = { shade, shade, shade, 1.0f };
     if (!sGauge.active || sGauge.frame != (int)PortFrameCount())
         return;
+    if (PortHdDrawLogged())
+        PortLog("hd gauge %u hp %d/%d trail %d state %d face %d", (unsigned)PortFrameCount(), sGauge.hp, sGauge.maxHp,
+                sGauge.trail, sGauge.stateAnim, sGauge.faceAnim);
     PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, HD_LAYOUT_TEX_GAUGE, 1, sGauge.stateAnim, sGauge.stateFrame, x, y, s, 1.0f, tint);
     PortHdLayoutDraw(renderer, HD_LAYOUT_GAUGE, HD_LAYOUT_TEX_GAUGE, 1, 7, HD_LAYOUT_HOLD(GAUGE_LEN(sGauge.maxHp)), x, y, s,
                      1.0f, tint);

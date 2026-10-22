@@ -235,6 +235,27 @@ void PortHdSpritesBegin(int layer) {
         sDrawCount[layer] = 0;
 }
 
+/* Test aid (KHCOM_HDDRAWLOG=frame,frame,...): this frame's HD drawing is logged ("hd draw <frame> <name> layer <n>",
+   "hd gauge ..."), so test_hd_menus.py can tell an HD title still on screen from one that fell back to the cartridge. */
+int PortHdDrawLogged(void) {
+    static const char* list;
+    static int checked;
+    const char* p;
+    unsigned frame = PortFrameCount();
+    if (!checked) {
+        list = SDL_getenv("KHCOM_HDDRAWLOG");
+        checked = 1;
+    }
+    for (p = list; p && *p;) {
+        if ((unsigned)SDL_atoi(p) == frame)
+            return 1;
+        p = SDL_strchr(p, ',');
+        if (p)
+            p++;
+    }
+    return 0;
+}
+
 int PortHdSpriteQueue(int layer, int id, const float* x, const float* y, int px, int py, int pw, int ph, int alpha,
                       int dark, int white) {
     const HdSpriteDef* d;
@@ -256,6 +277,13 @@ int PortHdSpriteQueue(int layer, int id, const float* x, const float* y, int px,
     for (k = 0; k < 4; k++)
         if (!(x[k] > -4096.0f && x[k] < 8192.0f && y[k] > -4096.0f && y[k] < 8192.0f))
             return 0;
+    if (PortHdDrawLogged()) {
+        static uint32_t sLoggedAt[HD_SPRITE_COUNT];
+        if (sLoggedAt[id - 1] != PortFrameCount() + 1) {
+            sLoggedAt[id - 1] = PortFrameCount() + 1;
+            PortLog("hd draw %u %s layer %d", (unsigned)PortFrameCount(), d->name, layer);
+        }
+    }
     q = &sDraws[layer][sDrawCount[layer]++];
     q->id = id - 1;
     memcpy(q->x, x, sizeof(q->x));
