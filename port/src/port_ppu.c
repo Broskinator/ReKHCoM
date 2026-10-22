@@ -4052,8 +4052,8 @@ void PortHdStillSprite(const void* tiles, const void* frame, int x, int y, int d
     sStillHd[i].x = (int16_t)x;
     sStillHd[i].y = (int16_t)y;
     sStillHd[i].screen = sScreenDepth > 0;
-    sStillHd[i].dark = (uint8_t)SDL_clamp(dark, 0, 255);
-    sStillHd[i].white = (uint8_t)SDL_clamp(white, 0, 255);
+    sStillHd[i].dark = (uint8_t)(dark < 0 ? 0 : dark > 255 ? 255 : dark);
+    sStillHd[i].white = (uint8_t)(white < 0 ? 0 : white > 255 ? 255 : white);
 }
 
 static void QueueStillHdParts(void) {
