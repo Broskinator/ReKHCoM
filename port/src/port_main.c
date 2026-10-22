@@ -288,6 +288,8 @@ int PortTakeScreenMark(void);
 int PortPpuOverlayActive(void);
 static SDL_Texture* sOverlayTex;
 static int sOverlayTexW;
+static SDL_Texture* sScreenOverTex; /* the menu's pixels in front of its HD parts */
+static int sScreenOverTexW;
 static float sOverlayScale;
 
 void PortFitScreen(void) {
@@ -1713,7 +1715,23 @@ static void Present(void) {
         od.x = (float)(int)((outW - od.w) / 2);
         od.y = (float)(int)((outH - od.h) / 2);
         SDL_RenderTexture(sRenderer, sOverlayTex, NULL, &od);
-        PortHdSpritesDraw(sRenderer, 2, od.x, od.y, sOverlayScale, 0, 0); /* the title's logo in the intro */
+        PortHdSpritesDraw(sRenderer, 2, od.x, od.y, sOverlayScale, 0, 0); /* menus' HD parts, the title's logo */
+        if (PortPpuScreenOver()) {
+            /* what the menu draws in front of its HD parts */
+            if (sScreenOverTex == NULL || sScreenOverTexW != gPortOverlayW) {
+                if (sScreenOverTex != NULL)
+                    SDL_DestroyTexture(sScreenOverTex);
+                sScreenOverTexW = gPortOverlayW;
+                sScreenOverTex = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+                                                   sScreenOverTexW, GBA_SCREEN_H);
+                SDL_SetTextureBlendMode(sScreenOverTex, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureScaleMode(sScreenOverTex, SDL_SCALEMODE_PIXELART);
+            }
+            if (sScreenOverTex != NULL) {
+                SDL_UpdateTexture(sScreenOverTex, NULL, PortPpuScreenOver(), sScreenOverTexW * 4);
+                SDL_RenderTexture(sRenderer, sScreenOverTex, NULL, &od);
+            }
+        }
         if (!menuCanvas)
             PortHdTextDraw(sRenderer, 2, od.x, od.y, sOverlayScale);
     }

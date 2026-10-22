@@ -322,6 +322,8 @@ void PortPpuRenderHud(uint32_t* buf);
 const uint32_t* PortPpuHudOver(void);
 /* What the cartridge draws in front of the HD parts of the game's picture, canvas-sized (NULL: none this frame). */
 const uint32_t* PortPpuMainOver(void);
+/* The same for the screen layer (menus), gPortOverlayW x 160 (NULL: none this frame). */
+const uint32_t* PortPpuScreenOver(void);
 /* HD text: a dialogue glyph the PPU left out of the picture, at its place on
    the world canvas (hud 0) or the HUD canvas (hud 1), with its colours. */
 typedef struct PortTextGlyph {

@@ -457,6 +457,11 @@ int PortHarnessMode(const char* name, int arg) {
         SetActiveDeckIndex((u8)deck);
         return 1;
     }
+    /* worlds:MASK - the world cards Sora holds (gGameState.availableWorlds), for the world select */
+    if (strcmp(name, "worlds") == 0) {
+        gGameState.availableWorlds = (u16)arg;
+        return 1;
+    }
     /* movieend:ID - a movie as the final events hand over to it
        (mode_event.c EVENT_EXIT_MOVIE_ENDING: with the heap reset) */
     if (strcmp(name, "movieend") == 0) {

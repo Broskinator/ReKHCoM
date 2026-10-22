@@ -232,6 +232,58 @@ extern const unsigned char gLvupLogoFrame0[];
 extern const unsigned char gLvupLogoSpanishTiles[];
 extern const unsigned char gLvupLogoFrame0[];
 #endif
+extern const unsigned char gCardRoom01Tiles[];
+extern const unsigned char gCardRoom02Tiles[];
+extern const unsigned char gCardRoom03Tiles[];
+extern const unsigned char gCardRoom04Tiles[];
+extern const unsigned char gCardRoom05Tiles[];
+extern const unsigned char gCardRoom06Tiles[];
+extern const unsigned char gCardRoom07Tiles[];
+extern const unsigned char gCardRoom08Tiles[];
+extern const unsigned char gCardRoom09Tiles[];
+extern const unsigned char gCardRoom10Tiles[];
+extern const unsigned char gCardRoom11Tiles[];
+extern const unsigned char gCardRoom12Tiles[];
+extern const unsigned char gCardRoom13Tiles[];
+extern const unsigned char gCardRoom14Tiles[];
+extern const unsigned char gCardRoom15Tiles[];
+extern const unsigned char gCardRoom16Tiles[];
+extern const unsigned char gCardRoom17Tiles[];
+extern const unsigned char gCardRoom18Tiles[];
+extern const unsigned char gCardRoom19Tiles[];
+extern const unsigned char gCardRoom20Tiles[];
+extern const unsigned char gCardRoom21Tiles[];
+extern const unsigned char gCardRoom22Tiles[];
+extern const unsigned char gMapCardBorderRedTiles[];
+extern const unsigned char gMapCardBorderGreenTiles[];
+extern const unsigned char gMapCardBorderBlueTiles[];
+extern const unsigned char gMapCardBorderBlackTiles[];
+extern const unsigned char gWorldImageTraverseTownTiles[];
+extern const unsigned char gWorldImageTraverseTownFrame0[];
+extern const unsigned char gWorldImageWonderlandTiles[];
+extern const unsigned char gWorldImageWonderlandFrame0[];
+extern const unsigned char gWorldImageOlympusColiseumTiles[];
+extern const unsigned char gWorldImageOlympusColiseumFrame0[];
+extern const unsigned char gWorldImageAgrabahTiles[];
+extern const unsigned char gWorldImageAgrabahFrame0[];
+extern const unsigned char gWorldImageHalloweenTownTiles[];
+extern const unsigned char gWorldImageHalloweenTownFrame0[];
+extern const unsigned char gWorldImageMonstroTiles[];
+extern const unsigned char gWorldImageMonstroFrame0[];
+extern const unsigned char gWorldImageAtlanticaTiles[];
+extern const unsigned char gWorldImageAtlanticaFrame0[];
+extern const unsigned char gWorldImageNeverLandTiles[];
+extern const unsigned char gWorldImageNeverLandFrame0[];
+extern const unsigned char gWorldImageHollowBastionTiles[];
+extern const unsigned char gWorldImageHollowBastionFrame0[];
+extern const unsigned char gWorldImage100AcreWoodTiles[];
+extern const unsigned char gWorldImage100AcreWoodFrame0[];
+extern const unsigned char gWorldImageTwilightTownTiles[];
+extern const unsigned char gWorldImageTwilightTownFrame0[];
+extern const unsigned char gWorldImageDestinyIslandsTiles[];
+extern const unsigned char gWorldImageDestinyIslandsFrame0[];
+extern const unsigned char gWorldImageCastleOblivionTiles[];
+extern const unsigned char gWorldImageCastleOblivionFrame0[];
 static const HdSpriteDef kHdSprites[] = {
     { gCardWep01Tiles, NULL, "gCardWep01Tiles", -16, -12, 32, 32, 1 },
     { gCardWep04Tiles, NULL, "gCardWep04Tiles", -16, -12, 32, 32, 1 },
@@ -422,4 +474,43 @@ static const HdSpriteDef kHdSprites[] = {
 #if defined(VERSION_EU)
     { gLvupLogoSpanishTiles, gLvupLogoFrame0, "gLvupLogoSpanishTiles", -32, -8, 64, 16, 3 },
 #endif
+    { gCardRoom01Tiles, NULL, "gCardRoom01Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom02Tiles, NULL, "gCardRoom02Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom03Tiles, NULL, "gCardRoom03Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom04Tiles, NULL, "gCardRoom04Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom05Tiles, NULL, "gCardRoom05Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom06Tiles, NULL, "gCardRoom06Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom07Tiles, NULL, "gCardRoom07Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom08Tiles, NULL, "gCardRoom08Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom09Tiles, NULL, "gCardRoom09Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom10Tiles, NULL, "gCardRoom10Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom11Tiles, NULL, "gCardRoom11Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom12Tiles, NULL, "gCardRoom12Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom13Tiles, NULL, "gCardRoom13Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom14Tiles, NULL, "gCardRoom14Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom15Tiles, NULL, "gCardRoom15Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom16Tiles, NULL, "gCardRoom16Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom17Tiles, NULL, "gCardRoom17Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom18Tiles, NULL, "gCardRoom18Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom19Tiles, NULL, "gCardRoom19Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom20Tiles, NULL, "gCardRoom20Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom21Tiles, NULL, "gCardRoom21Tiles", -16, -12, 32, 32, 1 },
+    { gCardRoom22Tiles, NULL, "gCardRoom22Tiles", -16, -12, 32, 32, 1 },
+    { gMapCardBorderRedTiles, NULL, "gMapCardBorderRedTiles", -16, -20, 32, 39, 1 },
+    { gMapCardBorderGreenTiles, NULL, "gMapCardBorderGreenTiles", -16, -20, 32, 39, 1 },
+    { gMapCardBorderBlueTiles, NULL, "gMapCardBorderBlueTiles", -16, -20, 32, 39, 1 },
+    { gMapCardBorderBlackTiles, NULL, "gMapCardBorderBlackTiles", -16, -20, 32, 39, 1 },
+    { gWorldImageTraverseTownTiles, gWorldImageTraverseTownFrame0, "gWorldImageTraverseTownTiles", -43, -39, 86, 93, 4 },
+    { gWorldImageWonderlandTiles, gWorldImageWonderlandFrame0, "gWorldImageWonderlandTiles", -35, -60, 64, 106, 4 },
+    { gWorldImageOlympusColiseumTiles, gWorldImageOlympusColiseumFrame0, "gWorldImageOlympusColiseumTiles", -40, -38, 71, 86, 4 },
+    { gWorldImageAgrabahTiles, gWorldImageAgrabahFrame0, "gWorldImageAgrabahTiles", -35, -49, 64, 109, 4 },
+    { gWorldImageHalloweenTownTiles, gWorldImageHalloweenTownFrame0, "gWorldImageHalloweenTownTiles", -40, -47, 79, 117, 4 },
+    { gWorldImageMonstroTiles, gWorldImageMonstroFrame0, "gWorldImageMonstroTiles", -50, -15, 102, 39, 4 },
+    { gWorldImageAtlanticaTiles, gWorldImageAtlanticaFrame0, "gWorldImageAtlanticaTiles", -39, -27, 78, 64, 4 },
+    { gWorldImageNeverLandTiles, gWorldImageNeverLandFrame0, "gWorldImageNeverLandTiles", -42, -63, 64, 117, 4 },
+    { gWorldImageHollowBastionTiles, gWorldImageHollowBastionFrame0, "gWorldImageHollowBastionTiles", -37, -53, 64, 116, 4 },
+    { gWorldImage100AcreWoodTiles, gWorldImage100AcreWoodFrame0, "gWorldImage100AcreWoodTiles", -36, -29, 64, 64, 4 },
+    { gWorldImageTwilightTownTiles, gWorldImageTwilightTownFrame0, "gWorldImageTwilightTownTiles", -38, -25, 70, 70, 4 },
+    { gWorldImageDestinyIslandsTiles, gWorldImageDestinyIslandsFrame0, "gWorldImageDestinyIslandsTiles", -42, -48, 86, 93, 4 },
+    { gWorldImageCastleOblivionTiles, gWorldImageCastleOblivionFrame0, "gWorldImageCastleOblivionTiles", -44, -25, 78, 70, 4 },
 };

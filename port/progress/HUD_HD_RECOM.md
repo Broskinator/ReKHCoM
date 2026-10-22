@@ -116,7 +116,16 @@ caja -16 -12 32 32, arte en 3,2..29,30 como las de combate: sirve la receta `cro
 Key to Rewards (`gCardRoom23`) no tiene. GBA→cr: 01→002 02→001 03→018 04→006 05→005 06→020 07→003 08→004 09→017
 10→019 11→022 12→011 13→010 14→012 15→013 16→021 17→015 18→016 19→014 20→007 21→008 22→009 (carpetas: cr_001..009 =
 0601..0609, 010..016 = 0621..0627, 017..022 = 0641..0646). Mundos: `cl_001..013` (CARD/0301..).
-Oclusión hecha (22/10, `MainHdOver`): ya pueden entrar. Antes: la síntesis de estancias las dibuja en la capa principal, con el guante del cursor y el círculo del
+**Hecho 22/10:** las 22 cartas de mapa y sus marcos (los tonos oscuros y el dorado de `com_card01`, que Re:CoM usa
+para el mapa) en HD, también en la síntesis de estancias, que va en la capa de pantalla: las piezas HD de la capa de
+pantalla y su oclusión (`HdOverLayer`, `PortPpuScreenOver`). Antes: la síntesis de estancias las dibuja en la capa principal, con el guante del cursor y el círculo del
 valor encima; la capa principal HD se pinta sobre todo. Hace falta oclusión en la capa principal (repintar encima los
 píxeles de lo que va delante, como `sHdCover`/`sHudOver` del HUD) antes de añadirlas como grupo propio.
 Prueba: `KHCOM_MODE='60:room:10901,120:fieldfreeze,200:doorpose:0' KHCOM_KEYS='240-242:A'` (test_door_views.py).
+
+## Mundos (22/10, hecho)
+Los 13 `gWorldImage*` de la selección de mundo son los `cl_###` de Re:CoM (CARD/03xx), sobre un brillo azul opaco.
+Grupo 4 de la receta: el juego recorta la imagen HD a la silueta del sprite del cartucho al cargarla
+(`MaskBySprite`, borde suave de un píxel de GBA). Recetas por ajuste de cajas (crop = caja del objeto HD, place = caja
+del sprite de GBA). Prueba: `KHCOM_MODE=200:worlds:8191,300:mode_worldselect` (13 mundos a la vez llenan la memoria de
+sprites y faltan letras del texto: artefacto de la prueba, también sin HD).

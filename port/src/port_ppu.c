@@ -651,7 +651,9 @@ typedef struct OamHdPart {
 static OamHdPart sOamHd[128];
 static uint8_t sMainHdPart[128]; /* slot queued as an HD part of the game's picture (QueueMainHdParts) */
 static int16_t sMainHdBox[128][4]; /* its box on the canvas: x, y, w, h */
+static uint8_t sMainHdScreen[128];  /* ... on the screen layer (menus), its box in the screen layer's coordinates */
 static int sMainHdAny;             /* some part queued this frame: the occupancy is collected for MainHdOver */
+static int sScreenHdAny;           /* some part queued on the screen layer */
 /* The title's logo as an affine background (BG2: its zoom in the intro, the staff roll's end), drawn HD instead
    while the title says so (PortTitleLogoBg) and the HD title is on. */
 static int sTitleLogoBg, sTitleLogoBgHd;
@@ -2566,7 +2568,7 @@ static void ComposeOverlayLine(int gy, uint16_t dispcnt, const int* bgOn, const 
         if (x < 0 || x >= w || gx < sLeft || gx >= sRight)
             continue;
         mask = sWinMask[x];
-        if (sHdText && (mask & WIN_OBJ)) {
+        if ((sHdText || sScreenHdAny) && (mask & WIN_OBJ)) {
             int occ = 4, occLayer = 4;
             for (i = 0; i < n; i++) {
                 if ((mask & WIN_BG(order[i])) && sBgLine[order[i]][x] != TRANSPARENT) {
@@ -4031,7 +4033,8 @@ static void QueueMainHdParts(void) {
     PortHdSpritesBegin(0);
     PortHdSpritesBegin(2);
     memset(sMainHdPart, 0, sizeof(sMainHdPart));
-    sMainHdAny = 0;
+    memset(sMainHdScreen, 0, sizeof(sMainHdScreen));
+    sMainHdAny = sScreenHdAny = 0;
     sTitleLogoBgHd = 0;
     if (sTitleLogoBg && (IO16(0x00) & 0x400) && ((IO16(0x00) & 7) == 1 || (IO16(0x00) & 7) == 2)) {
         /* BG2 maps screen (sx, sy) to texture ((X + pa sx + pb sy) / 256, (Y + pc sx + pd sy) / 256): the
@@ -4078,7 +4081,7 @@ static void QueueMainHdParts(void) {
         int shape = (a0 >> 14) & 3, size = (a1 >> 14) & 3, ow, oh, bw, bh, ox, oy, alpha = 255;
         int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
         if (!sOamHd[i].id || (!affine && dbl) || shape == 3 || mode >= 2 || (sHudLayer && sOamTag[i].hud) ||
-            (sOverlay && sOamTag[i].screen) || (((a0 >> 12) & 1) && (IO16(0x4C) & 0xFF00)))
+            (((a0 >> 12) & 1) && (IO16(0x4C) & 0xFF00)))
             continue; /* a sprite under a real mosaic (size > 1) keeps the cartridge's pixels */
         ow = sObjSize[shape][size][0];
         oh = sObjSize[shape][size][1];
@@ -4105,6 +4108,20 @@ static void QueueMainHdParts(void) {
         /* a semi-transparent sprite blends with the first target's weight */
         if (mode == 1 || (((bldcnt >> 6) & 3) == 1 && (bldcnt & 0x10)))
             alpha = (eva > 16 ? 16 : eva) * 255 / 16;
+        if (sOverlay && sOamTag[i].screen) {
+            /* a menu's sprite: on the screen layer, the GBA's lines centred in its width */
+            int sx = ox + (gPortOverlayW - GBA_SCREEN_W) / 2;
+            sMainHdPart[i] = (uint8_t)QueueHdPart(2, i, sx, oy, ow, oh, bw, bh, affine, pa, pb, pc, pd, alpha);
+            if (sMainHdPart[i]) {
+                sMainHdScreen[i] = 1;
+                sMainHdBox[i][0] = (int16_t)sx;
+                sMainHdBox[i][1] = (int16_t)oy;
+                sMainHdBox[i][2] = (int16_t)bw;
+                sMainHdBox[i][3] = (int16_t)bh;
+                sScreenHdAny = 1;
+            }
+            continue;
+        }
         sMainHdPart[i] = (uint8_t)QueueHdPart(0, i, ox + gPortScreen.originX, oy + gPortScreen.originY, ow, oh, bw, bh,
                                               affine, pa, pb, pc, pd, alpha);
         if (sMainHdPart[i]) {
@@ -4129,14 +4146,52 @@ static void QueueMainHdParts(void) {
 static uint32_t* sMainOver;
 static size_t sMainOverSize;
 static int sMainOverUsed;
+static uint32_t sScreenOver[PORT_MAX_W * GBA_SCREEN_H];
+static int sScreenOverUsed;
 
 const uint32_t* PortPpuMainOver(void) {
     return sMainOverUsed ? sMainOver : NULL;
 }
 
+/* The same for the screen layer's HD parts (menus), gPortOverlayW x 160. */
+const uint32_t* PortPpuScreenOver(void) {
+    return sScreenOverUsed ? sScreenOver : NULL;
+}
+
+/* One layer's parts: where the cartridge has something in front, its final pixel goes on `over`. */
+static void HdOverLayer(int screen, int w, int h, const uint8_t* occBg, const uint16_t* occObj, const uint32_t* picture,
+                        uint32_t* over, int* used) {
+    int i;
+    for (i = 0; i < 128; i++) {
+        int prio = (OAM16[i * 4 + 2] >> 10) & 3, x0, y0, x1, y1, x, y;
+        if (!sMainHdPart[i] || sMainHdScreen[i] != screen)
+            continue;
+        x0 = sMainHdBox[i][0] < 0 ? 0 : sMainHdBox[i][0];
+        y0 = sMainHdBox[i][1] < 0 ? 0 : sMainHdBox[i][1];
+        x1 = sMainHdBox[i][0] + sMainHdBox[i][2] > w ? w : sMainHdBox[i][0] + sMainHdBox[i][2];
+        y1 = sMainHdBox[i][1] + sMainHdBox[i][3] > h ? h : sMainHdBox[i][1] + sMainHdBox[i][3];
+        for (y = y0; y < y1; y++)
+            for (x = x0; x < x1; x++) {
+                int k = y * w + x;
+                uint16_t obj = occObj[k];
+                /* 0 / 0: a window hides the sprites here; a BG of a higher priority; a sprite before this one */
+                if ((occBg[k] == 0 && obj == 0) || occBg[k] < prio || (obj != 0xFFFFu && obj < prio * 128 + i)) {
+                    if (!*used) {
+                        memset(over, 0, (size_t)w * h * 4);
+                        *used = 1;
+                    }
+                    over[k] = picture[k] | (screen ? 0 : 0xFF000000u);
+                }
+            }
+    }
+}
+
 static void MainHdOver(void) {
-    int w = gPortScreen.width, h = gPortScreen.height, i;
-    sMainOverUsed = 0;
+    int w = gPortScreen.width, h = gPortScreen.height;
+    sMainOverUsed = sScreenOverUsed = 0;
+    if (sScreenHdAny)
+        HdOverLayer(1, gPortOverlayW, GBA_SCREEN_H, sScreenOccBg, sScreenOccObj, gPortOverlay, sScreenOver,
+                    &sScreenOverUsed);
     if (!sMainHdAny)
         return;
     if ((size_t)w * h > sMainOverSize) {
@@ -4146,28 +4201,7 @@ static void MainHdOver(void) {
         sMainOver = over;
         sMainOverSize = (size_t)w * h;
     }
-    for (i = 0; i < 128; i++) {
-        int prio = (OAM16[i * 4 + 2] >> 10) & 3, x0, y0, x1, y1, x, y;
-        if (!sMainHdPart[i])
-            continue;
-        x0 = sMainHdBox[i][0] < 0 ? 0 : sMainHdBox[i][0];
-        y0 = sMainHdBox[i][1] < 0 ? 0 : sMainHdBox[i][1];
-        x1 = sMainHdBox[i][0] + sMainHdBox[i][2] > w ? w : sMainHdBox[i][0] + sMainHdBox[i][2];
-        y1 = sMainHdBox[i][1] + sMainHdBox[i][3] > h ? h : sMainHdBox[i][1] + sMainHdBox[i][3];
-        for (y = y0; y < y1; y++)
-            for (x = x0; x < x1; x++) {
-                int k = y * w + x;
-                uint16_t obj = sOccObj[k];
-                /* 0 / 0: a window hides the sprites here; a BG of a higher priority; a sprite before this one */
-                if ((sOccBg[k] == 0 && obj == 0) || sOccBg[k] < prio || (obj != 0xFFFFu && obj < prio * 128 + i)) {
-                    if (!sMainOverUsed) {
-                        memset(sMainOver, 0, (size_t)w * h * 4);
-                        sMainOverUsed = 1;
-                    }
-                    sMainOver[k] = gPortFrame[k] | 0xFF000000u;
-                }
-            }
-    }
+    HdOverLayer(0, w, h, sOccBg, sOccObj, gPortFrame, sMainOver, &sMainOverUsed);
 }
 
 void PortPpuRenderHud(uint32_t* buf) {
