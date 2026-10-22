@@ -129,3 +129,22 @@ Grupo 4 de la receta: el juego recorta la imagen HD a la silueta del sprite del 
 (`MaskBySprite`, borde suave de un píxel de GBA). Recetas por ajuste de cajas (crop = caja del objeto HD, place = caja
 del sprite de GBA). Prueba: `KHCOM_MODE=200:worlds:8191,300:mode_worldselect` (13 mundos a la vez llenan la memoria de
 sprites y faltan letras del texto: artefacto de la prueba, también sin HD).
+
+## HUD de combate de Re:CoM 1.5 PC: datos y lógica (22/10, pedido del usuario: verse como el HD, jugar igual)
+- **Composición = datos.** `FORM/0002/FO0002.SPR` es un contenedor (entradas de 0x20: offset, nombre, tamaño) con
+  `gauge.lad`, `Cockpit.lad` y `layout_card.lad` en formato **LAYD/SEQD** (el 2D de KH2; OpenKh lo documenta:
+  `docs/kh2/file/type/2ld.md`, `OpenKh.Kh2/Layout.cs`, `Sequence.cs`, `OpenKh.Engine/Renders/SequenceRenderer.cs`).
+  Lector y vista: `port/tools/khhd_layout.py dump|render` (UV en coordenadas de la textura de PS2: x2 en la HD).
+  Texturas: `FO0060 gauge.imz` (#0 caras, #1 piezas: cuartos de anillo negro/rojo/verde, barras, dígitos, HP, MAX,
+  D-POINT) y `FO0002 Cockpit.imz` (dígitos blancos con borde negro de las cartas, dígitos grises que se tiñen,
+  CARDS, el fondo del contador, coronas, LEVEL UP!, Card Break...). Colores por esquina (degradados): el verde de la
+  vida #94E707 → #23BD01.
+- **Lógica = código** (qué grupo y cuánto según la vida): no está en los datos. El .exe de Re:CoM PC trae RTTI:
+  `Gauge::CPlayerGauge`, `Gauge::CCommonGauge`, `CardBattle::CCardRevolver` (la pila de cartas),
+  `CardBattle::CStockFolder`, `CBattleCard`, `C2DSeqNumericCtrl`, `CDuelGauge`... → vtables → métodos.
+  Textos de depuración: `CPlayerGauge:: out`, `CEnemyGauge::HP/MaxHP`.
+- **Kit de referencia** (D:/01Claude/ReKHCoM-build/refs, nada se sube): OpenKh (formatos y renderer), govanify/kh2
+  (decomp de KH2: símbolos de `dk::GAUGE_PLAYER::update`, `GAUGE_DRAW`..., sin decompilar aún), KH-ReFined.
+  Falta un decompilador (Ghidra + JDK) para leer los métodos de `CPlayerGauge` / `CCardRevolver`.
+- Plan: el juego sigue igual por dentro; el dibujo del HUD usa las piezas y animaciones de los .lad con los valores
+  del juego (vida, cartas que quedan, recarga), con la lógica leída del .exe.

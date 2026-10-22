@@ -70,6 +70,9 @@ Reglas del usuario:
   Re:CoM vive en su ejecutable (el .RTM solo trae texturas: `UK_gauge.imz` tiene las piezas: cuartos de anillo gris/
   verde/negro, barra, dígitos, HP, MAX, D-POINT). **Usuario: igualar la lógica real del HUD de Sora de Re:CoM**
   (es compleja): buscar una implementación (mods, OpenKh, ingeniería inversa) y reimplementarla.
+- **HUD de combate como el 1.5 PC (usuario 22/10 ~16:00):** dígitos de cartas de `Cockpit.imz` (los de Re:CoM, no
+  `card_no`), contador CARDS de mazo restante, carta de recarga con su número, anillo con la lógica real. Hallazgos y
+  plan en HUD_HD_RECOM.md ("HUD de combate de Re:CoM 1.5 PC"). Ajustar tamaños/posiciones de todo lo HD al original.
 - Arreglado: las muescas de la corona dejaban ver la ilustración HD (se borra su franja superior, tapada por el marco).
 - Propuesta original: `pruebas/HD tentativos (medidores contador recarga).png` (medidor de vida en anillo de
   Re:CoM, medidor del enemigo, contador CARD/S, números de recarga): no son 1:1, espera su decisión.
