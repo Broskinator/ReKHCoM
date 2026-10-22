@@ -86,8 +86,10 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
    la imagen del evento a brillo 234 y se fundía 64 cuadros); saltar el video funde imagen y sonido 0,3 s (PC y
    Android); el sonido del juego y la música HD bajan en 150 ms antes del video (antes 200 ms de la música del campo
    sonaban debajo y se cortaban). Medido con el driver "disk" (`build/hdtrans`).
-3. **Mirar el proyecto reciente de 358/2 Days** que implementó escenas HD, para aprender (transiciones, sincronía).
-4. **Consolas:** el HD (videos) no existe ahí; dejar documentado qué haría falta (decodificador por consola).
+3. ~~358/2 Days~~ **hecho 22/10**: KHDays FM (melonDS, github.com/vitor251093/KHDays_FM) pausa el video HD con
+   Saltar/Continuar y sonidos de menú, y baja la música 1 s antes. Tomado: la pausa del video HD suena como los menús
+   del juego; la música ya baja antes del video (150 ms, con la pantalla en negro).
+4. ~~Consolas~~ **documentado 22/10** en HD_MOD.md (decodificador por consola, qué falta en cada host).
 5. Revisar issues abiertos al final, arreglar bugs, responder breve.
 
 ### Lista de verificación antes de publicar (no saltear)

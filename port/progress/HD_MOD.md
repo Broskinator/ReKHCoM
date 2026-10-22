@@ -94,9 +94,26 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
   `KHCOM_HDMOVIE_YUV=1`. Verificado en el emulador Android 14 (host de 64 bits): la apertura ROP 1080p completa con
   subtítulos, colores correctos (`KHCOM_HDMOVIE_SHOT=20`); el emulador traduce ARM y descarta cuadros, un teléfono no.
   Prueba: `KHCOM_MOVIE=1` con `files/hd/movies/ROP.mp4`.
-- [ ] Videos en consolas: decodificador de cada una (Vita/PS4 sceAvPlayer, Switch nvdec); sin hardware
-  para probar, después de Android.
-- [ ] Linux: reproducción de MP4 (la música HD ya funciona en Linux).
+- [ ] Videos en consolas y Linux (documentado 22/10; no entra en la v2.0: sin hardware para verificar). En esas
+  plataformas el juego pasa sus propios videos y las escenas siguen siendo las del cartucho; la música HD sí suena.
+
+  Lo que ya sirve a todas: la imagen de 32 bits pide el video al host por la entrada `hd_movie` del puente
+  (`port/ps5/shared/bridge_list.h`), la misma que usa el host de Android 64. Del lado del juego solo hace falta
+  compilar el camino `PORT_ANDROID64` de `port_hdmovie.c` también en las imágenes de consola (hoy devuelve 0) y que
+  el host implemente `H_hd_movie` (hoy 0 en `ps4_host.c`, `switch_host.c`, host PS5). El host hace lo que hace
+  `hdmovie_android.c`: abrir el MP4, decodificar H.264 + AAC, pasar NV12 a RGB con las tablas de ese archivo
+  (si la consola no tiene texturas YUV), dibujar subtítulos (FreeType ya está en los hosts por el texto HD),
+  fundidos de 0,3 s, pausa con Start, salto con su fundido, y devolver 1 (2 si se cerró la app).
+
+  | Plataforma | Decodificador | Notas |
+  |---|---|---|
+  | PS4 / PS5 | `sceAvPlayer` (OpenOrbis lo trae: `libSceAvPlayer`) | entrega NV12 y PCM; el host PS5 corre la misma imagen; verificar en consola |
+  | Switch | no hay API pública de nvdec en libnx: FFmpeg con aceleración `nvtegra` (la usan Switchfin y NXMP) | LGPL, varios MB en el .nro |
+  | Vita | `sceAvPlayer` / `sceVideodec` (AVC) | los videos de Re:CoM son 720p (ROP 1080p): hay que recodificar ROP o bajar a 960x544 al importar |
+  | Linux (i386) | empaquetar libavcodec/libavformat i386 (decenas de MB) u openh264 + minimp4 + un decodificador AAC | decisión de tamaño del usuario |
+
+  Cómo probarlo cuando haya hardware: `KHCOM_MOVIE=1` con `hd/movies/ROP.mp4`, `test_hd_scenes.py` adaptado al
+  host (log "hd movie: ..."), y el reporte de quien lo juegue.
 
 ## Otros pedidos para v1.9.21 (anotados acá para no perderlos)
 
