@@ -244,6 +244,10 @@ void PortVideoApplyConfig(void) {
     UpdateResolution();
 }
 
+static SDL_ScaleMode sPictureScaleMode = SDL_SCALEMODE_NEAREST; /* sTexture's scaling, for the layers over it */
+static SDL_Texture* sMainOverTexture; /* the picture's pixels in front of its HD sprites */
+static int sMainOverW, sMainOverH;
+
 static void EnsureTexture(void) {
     SDL_ScaleMode mode;
 
@@ -270,6 +274,7 @@ filter:
             break;
     }
     SDL_SetTextureScaleMode(sTexture, mode);
+    sPictureScaleMode = mode;
 }
 
 static int sAutoScale;
@@ -1595,6 +1600,26 @@ static void Present(void) {
         int effect = (bld >> 6) & 3, amount = SDL_min(*(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x54) & 31, 16);
         PortHdSpritesDraw(sRenderer, 0, worldX, worldY, worldScale, (bld & 0x10) && effect == 3 ? amount : 0,
                           (bld & 0x10) && effect == 2 ? amount : 0);
+        {
+            const uint32_t* over = PortPpuMainOver();
+            if (over) {
+                SDL_FRect od = { worldX, worldY, gPortScreen.width * worldScale, gPortScreen.height * worldScale };
+                if (sMainOverTexture == NULL || sMainOverW != gPortScreen.width || sMainOverH != gPortScreen.height) {
+                    if (sMainOverTexture != NULL)
+                        SDL_DestroyTexture(sMainOverTexture);
+                    sMainOverW = gPortScreen.width;
+                    sMainOverH = gPortScreen.height;
+                    sMainOverTexture = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_ARGB8888,
+                                                         SDL_TEXTUREACCESS_STREAMING, sMainOverW, sMainOverH);
+                    SDL_SetTextureBlendMode(sMainOverTexture, SDL_BLENDMODE_BLEND);
+                }
+                if (sMainOverTexture != NULL) {
+                    SDL_SetTextureScaleMode(sMainOverTexture, sPictureScaleMode); /* the picture's own scaling */
+                    SDL_UpdateTexture(sMainOverTexture, NULL, over, sMainOverW * 4);
+                    SDL_RenderTexture(sRenderer, sMainOverTexture, NULL, &od);
+                }
+            }
+        }
         PortHdTextDraw(sRenderer, 0, worldX, worldY, worldScale);
     }
     /* the options menu covers everything: no layer is drawn over it */

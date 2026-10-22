@@ -650,6 +650,8 @@ typedef struct OamHdPart {
 } OamHdPart;
 static OamHdPart sOamHd[128];
 static uint8_t sMainHdPart[128]; /* slot queued as an HD part of the game's picture (QueueMainHdParts) */
+static int16_t sMainHdBox[128][4]; /* its box on the canvas: x, y, w, h */
+static int sMainHdAny;             /* some part queued this frame: the occupancy is collected for MainHdOver */
 /* The title's logo as an affine background (BG2: its zoom in the intro, the staff roll's end), drawn HD instead
    while the title says so (PortTitleLogoBg) and the HD title is on. */
 static int sTitleLogoBg, sTitleLogoBgHd;
@@ -660,6 +662,7 @@ void PortTitleLogoBg(int on) {
     sTitleLogoBg = on != 0;
 }
 static void QueueMainHdParts(void);
+static void MainHdOver(void);
 
 void PortOamTagsReset(void) {
     memset(sOamTag, 0, sizeof(sOamTag));
@@ -2344,7 +2347,7 @@ static void ComposeLine(int y, uint16_t dispcnt, const int* bgOn, const int* bgP
        the rest of the margin has (#56). The GBA's 240x160 is untouched. */
     uint16_t marginFill = TRANSPARENT;
     int gyLine = y - gPortScreen.originY;
-    int collect = objects && (sHudLayer || sHdText || PortHd2dActive());
+    int collect = objects && (sHudLayer || sHdText || sMainHdAny || PortHd2dActive());
     int scene102Fill = gPortScreen.wide && !sBattleView && sBgLatch[3].valid &&
         sPreliminarRecipe[3] && sPreliminarRecipe[3]->v[0] == 102;
     int row = y * w;
@@ -3557,6 +3560,7 @@ void PortPpuRenderFrame(void) {
 
     /* Lines below the original picture: state after line 159. */
     RenderOuterRows(gPortScreen.originY + GBA_SCREEN_H, gPortScreen.height, 1);
+    MainHdOver();
 }
 
 /* A skipped frame (frame_skip, the device is late): the visible lines' events reach the game as in a drawn frame
@@ -4027,6 +4031,7 @@ static void QueueMainHdParts(void) {
     PortHdSpritesBegin(0);
     PortHdSpritesBegin(2);
     memset(sMainHdPart, 0, sizeof(sMainHdPart));
+    sMainHdAny = 0;
     sTitleLogoBgHd = 0;
     if (sTitleLogoBg && (IO16(0x00) & 0x400) && ((IO16(0x00) & 7) == 1 || (IO16(0x00) & 7) == 2)) {
         /* BG2 maps screen (sx, sy) to texture ((X + pa sx + pb sy) / 256, (Y + pc sx + pd sy) / 256): the
@@ -4072,10 +4077,6 @@ static void QueueMainHdParts(void) {
         int affine = (a0 >> 8) & 1, dbl = (a0 >> 9) & 1, mode = (a0 >> 10) & 3;
         int shape = (a0 >> 14) & 3, size = (a1 >> 14) & 3, ow, oh, bw, bh, ox, oy, alpha = 255;
         int16_t pa = 0x100, pb = 0, pc = 0, pd = 0x100;
-        /* the cards only on the HUD layer, where what is drawn in front of them stays in front (the deck menu
-           and the Original view keep the cartridge's: a dialogue over a card would show its HD value) */
-        if (sOamHd[i].id && PortHdSpriteGroup(sOamHd[i].id) == 1)
-            continue;
         if (!sOamHd[i].id || (!affine && dbl) || shape == 3 || mode >= 2 || (sHudLayer && sOamTag[i].hud) ||
             (sOverlay && sOamTag[i].screen) || (((a0 >> 12) & 1) && (IO16(0x4C) & 0xFF00)))
             continue; /* a sprite under a real mosaic (size > 1) keeps the cartridge's pixels */
@@ -4106,6 +4107,66 @@ static void QueueMainHdParts(void) {
             alpha = (eva > 16 ? 16 : eva) * 255 / 16;
         sMainHdPart[i] = (uint8_t)QueueHdPart(0, i, ox + gPortScreen.originX, oy + gPortScreen.originY, ow, oh, bw, bh,
                                               affine, pa, pb, pc, pd, alpha);
+        if (sMainHdPart[i]) {
+            sMainHdBox[i][0] = (int16_t)(ox + gPortScreen.originX);
+            sMainHdBox[i][1] = (int16_t)(oy + gPortScreen.originY);
+            sMainHdBox[i][2] = (int16_t)bw;
+            sMainHdBox[i][3] = (int16_t)bh;
+            if (!sMainHdAny && !sHudLayer && !sHdText) {
+                /* the lines collect the occupancy (who is in front where) for MainHdOver */
+                memset(sOccBg, 4, (size_t)gPortScreen.width * gPortScreen.height);
+                memset(sOccBgLayer, 4, (size_t)gPortScreen.width * gPortScreen.height);
+                memset(sOccObj, 0xFF, (size_t)gPortScreen.width * gPortScreen.height * 2);
+            }
+            sMainHdAny = 1;
+        }
+    }
+}
+
+/* What the cartridge draws in front of an HD part of the game's picture (a dialogue over a card, the cursor's
+   glove over a room card), or where a window hides the sprites: those pixels of the finished picture go on a
+   layer over the HD parts, so the HD picture stays behind them as the cartridge's sprite did. */
+static uint32_t* sMainOver;
+static size_t sMainOverSize;
+static int sMainOverUsed;
+
+const uint32_t* PortPpuMainOver(void) {
+    return sMainOverUsed ? sMainOver : NULL;
+}
+
+static void MainHdOver(void) {
+    int w = gPortScreen.width, h = gPortScreen.height, i;
+    sMainOverUsed = 0;
+    if (!sMainHdAny)
+        return;
+    if ((size_t)w * h > sMainOverSize) {
+        uint32_t* over = realloc(sMainOver, (size_t)w * h * 4);
+        if (!over)
+            return;
+        sMainOver = over;
+        sMainOverSize = (size_t)w * h;
+    }
+    for (i = 0; i < 128; i++) {
+        int prio = (OAM16[i * 4 + 2] >> 10) & 3, x0, y0, x1, y1, x, y;
+        if (!sMainHdPart[i])
+            continue;
+        x0 = sMainHdBox[i][0] < 0 ? 0 : sMainHdBox[i][0];
+        y0 = sMainHdBox[i][1] < 0 ? 0 : sMainHdBox[i][1];
+        x1 = sMainHdBox[i][0] + sMainHdBox[i][2] > w ? w : sMainHdBox[i][0] + sMainHdBox[i][2];
+        y1 = sMainHdBox[i][1] + sMainHdBox[i][3] > h ? h : sMainHdBox[i][1] + sMainHdBox[i][3];
+        for (y = y0; y < y1; y++)
+            for (x = x0; x < x1; x++) {
+                int k = y * w + x;
+                uint16_t obj = sOccObj[k];
+                /* 0 / 0: a window hides the sprites here; a BG of a higher priority; a sprite before this one */
+                if ((sOccBg[k] == 0 && obj == 0) || sOccBg[k] < prio || (obj != 0xFFFFu && obj < prio * 128 + i)) {
+                    if (!sMainOverUsed) {
+                        memset(sMainOver, 0, (size_t)w * h * 4);
+                        sMainOverUsed = 1;
+                    }
+                    sMainOver[k] = gPortFrame[k] | 0xFF000000u;
+                }
+            }
     }
 }
 
