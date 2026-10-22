@@ -120,3 +120,13 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
 - Texto HD: que la "a" minúscula no se confunda con la "o" y que la "r" se note más.
 - Android de 64 bits y batería: `ANDROID_64.md`.
 - Al final: todos los issues abiertos resueltos y respondidos (#22, #25, #33, #34…).
+
+## Gráficos HD (cartas, HUD de combate, logo del título) — 22/10
+- Los hace el importador (launcher de PC `Importar mod base`, o `ReKHCoM.exe --hd-import <juego> --sprites-only`;
+  referencia `port/tools/khhd_sprites.py`) desde `Recom.pkg`, con la receta `port/data/hd_sprites.tsv`: 151 PNG en
+  `hd/sprites` (~10 MB). Nada viaja con ReKHCoM.
+- Android: el launcher copia `hd/sprites` junto con la música (carpeta `hd` traída del PC).
+- Consolas (Switch, Vita, PS4, PS5): el juego los usa si `hd/sprites` está en su carpeta de datos (copiarla del PC);
+  se dibujan por el puente con el host (`SDL_RenderGeometry` del shim). Presupuesto de texturas 12 MB en Switch y
+  Vita (32 MB en el resto). Web: sin importador.
+- Opciones: `hd_cards` (cartas, retratos y palabras de combate), `hd_title` (logo del título, intro y créditos).

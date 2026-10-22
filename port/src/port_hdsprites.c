@@ -116,8 +116,14 @@ static int Load(int i) {
         return 0;
     }
     need = (size_t)w * h * 8;
-    /* the cards on screen stay; the oldest others make room (32 MB) */
-    while (sBytes + need > 32u * 1024 * 1024) {
+    /* the cards on screen stay; the oldest others make room (32 MB; 12 MB on Switch and PS Vita, whose memory is
+       shared with the game's image and the host's own copy of each texture) */
+#ifdef PORT_GBA_RELOC
+    const size_t budget = 12u * 1024 * 1024;
+#else
+    const size_t budget = 32u * 1024 * 1024;
+#endif
+    while (sBytes + need > budget) {
         int victim = -1;
         for (k = 0; k < HD_SPRITE_COUNT; k++)
             if (sState[k].image && sState[k].lastUsed != PortFrameCount() &&
