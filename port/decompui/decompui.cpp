@@ -1257,6 +1257,12 @@ static void PageGraphics() {
             ApplyGraphicsMode(mode);
             changed = true;
         }
+        const char* borders[] = { T("No", "Off"), "1", "2", "3" };
+        if (Ini("view_mode") == 0)
+            changed |= CycleRow(T("Borde (vista Original)", "Border (Original view)"),
+                                T("Un marco decorativo alrededor de la imagen de GBA, como el del Super Game Boy.",
+                                  "A decorative frame around the GBA picture, like the Super Game Boy's."),
+                                Ini("gba_border"), 4, borders);
     }
     changed |= CycleRow(T("Vista", "View"), T("Auto adapta el encuadre a la ventana.",
                                               "Auto adapts the view to the window."),

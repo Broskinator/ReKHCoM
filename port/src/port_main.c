@@ -19,6 +19,7 @@
 #include "port/port_aspect.h"
 #include "port/port_hd2d.h"
 #include "port/port_hdsprites.h"
+#include "../decompui/third_party/stb_image.h"
 #include "port/port_ui.h"
 #include "port/port_state.h"
 #if defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(PORT_ANDROID64) || defined(PORT_TOUCH)
@@ -387,9 +388,65 @@ static void UpdateResolution(void) {
         PortPpuSetResolution(w, h);
 }
 
+/* GBA classic (gba_border 1..3): the GBA picture inside a decorative border of 384x216 GBA pixels, the picture's
+   hole at (72, 28) (gen_gba_borders.py), both at the largest whole scale that fits the window. */
+#include "port/gba_borders_png.inc"
+#define BORDER_W 384
+#define BORDER_H 216
+static SDL_Texture* sBorderTex;
+static int sBorderShown; /* which border sBorderTex holds */
+
+static int ClassicBorder(void) {
+    return gPortConfig.viewMode == PORT_VIEW_ORIGINAL && gPortConfig.gbaBorder >= 1 && gPortConfig.gbaBorder <= 3 &&
+           gPortScreen.width == GBA_SCREEN_W && gPortScreen.height == GBA_SCREEN_H && sFitScale == 0 && sAutoScale == 0;
+}
+
+static void DrawClassicBorder(const SDL_FRect* picture) {
+    float s = picture->w / GBA_SCREEN_W;
+    SDL_FRect r;
+    if (!ClassicBorder())
+        return;
+    if (!sBorderTex || sBorderShown != gPortConfig.gbaBorder) {
+        int w, h, n, i = gPortConfig.gbaBorder - 1;
+        unsigned char* px = stbi_load_from_memory(kGbaBorders[i], (int)kGbaBorderSizes[i], &w, &h, &n, 4);
+        if (sBorderTex)
+            SDL_DestroyTexture(sBorderTex);
+        sBorderTex = NULL;
+        if (px) {
+            SDL_Surface* surf = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_RGBA32, px, w * 4);
+            if (surf) {
+                sBorderTex = SDL_CreateTextureFromSurface(sRenderer, surf);
+                SDL_DestroySurface(surf);
+            }
+            stbi_image_free(px);
+        }
+        if (sBorderTex) {
+            SDL_SetTextureScaleMode(sBorderTex, SDL_SCALEMODE_NEAREST);
+            SDL_SetTextureBlendMode(sBorderTex, SDL_BLENDMODE_BLEND);
+        }
+        sBorderShown = gPortConfig.gbaBorder;
+    }
+    if (!sBorderTex)
+        return;
+    r.x = picture->x - 72 * s;
+    r.y = picture->y - 28 * s;
+    r.w = BORDER_W * s;
+    r.h = BORDER_H * s;
+    SDL_RenderTexture(sRenderer, sBorderTex, NULL, &r);
+}
+
 static void OutputRect(int outW, int outH, SDL_FRect* dst) {
     float sw = (float)gPortScreen.width, sh = (float)gPortScreen.height;
     float scale;
+
+    if (ClassicBorder() && outW >= BORDER_W && outH >= BORDER_H) {
+        scale = (float)(int)SDL_min(outW / (float)BORDER_W, outH / (float)BORDER_H);
+        dst->w = sw * scale;
+        dst->h = sh * scale;
+        dst->x = (float)(int)((outW - BORDER_W * scale) / 2 + 72 * scale);
+        dst->y = (float)(int)((outH - BORDER_H * scale) / 2 + 28 * scale);
+        return;
+    }
 
     if (sFitScale > 0) {
         dst->w = sw * sFitScale;
@@ -1526,6 +1583,7 @@ static void Present(void) {
                                    GBA_SCREEN_W, GBA_SCREEN_H };
             DrawBlurredReflection(&backdrop, outW, outH);
         }
+        DrawClassicBorder(&dst);
         SDL_RenderTexture(sRenderer, sTexture, NULL, &dst);
         worldScale = dst.w / gPortScreen.width;
         worldX = dst.x;

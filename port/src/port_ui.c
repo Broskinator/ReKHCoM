@@ -92,6 +92,7 @@ enum {
     ITEM_HD_CARDS,     /* HD cards, faces and battle words (port_hdsprites.c), once imported */
     ITEM_HD_TITLE,     /* the title's HD logo */
     ITEM_MODE_RESET,   /* a graphics mode's defaults (PortApplyGraphicsMode), confirmed twice */
+    ITEM_GBA_BORDER,   /* GBA classic: the decorative border around the GBA picture (Original view) */
     ITEM_TITLE,        /* back to the title screen, as the game's own Continue screen does */
     ITEM_UNSTOCK,
     ITEM_PS2_MODE,
@@ -211,6 +212,7 @@ static int ItemVisible(int item) {
         case ITEM_HD_SUBTITLES: return HdImported("hd/subs/ROP.us.txt");
         case ITEM_HD_CARDS: return HdImported("hd/sprites/gCardWep01Tiles.png");
         case ITEM_HD_TITLE: return HdImported("hd/sprites/gTitleLogoHeartTiles.png");
+        case ITEM_GBA_BORDER: return gPortConfig.viewMode == PORT_VIEW_ORIGINAL;
         /* the version and its difficulty are chosen at New Game and stay
            with the save, as in the original: no switch for them here */
         case ITEM_PS2_MODE:
@@ -298,6 +300,8 @@ static const char* const sLabels[ITEM_COUNT][LANG_COUNT] = {
     { "HD title logo", "Logo de titre HD", "HD-Titellogo", "Logo del titolo HD", "Logo del título HD", "HDタイトルロゴ" },
     { "Reset to a mode's defaults", "Réglages d'un mode", "Standard eines Modus", "Predefiniti di una modalità",
       "Restablecer según el modo", "モードの初期設定に戻す" },
+    { "Border (Original view)", "Bordure (vue originale)", "Rahmen (Originalansicht)", "Cornice (vista originale)",
+      "Borde (vista Original)", "枠（オリジナル表示）" },
     { "Return to title screen", "Retour à l'écran titre", "Zurück zum Titelbildschirm",
       "Torna alla schermata del titolo", "Volver a la pantalla de título", "タイトル画面に戻る" },
     { "Return stocked cards", "Rendre les cartes en réserve", "Vorratskarten zurücknehmen",
@@ -960,6 +964,12 @@ static void ValueText(int item, char* out, size_t size) {
         case ITEM_HD_TITLE:
             SDL_strlcpy(out, sOnOff[gPortConfig.hdTitle != 0][l], size);
             break;
+        case ITEM_GBA_BORDER:
+            if (gPortConfig.gbaBorder)
+                SDL_snprintf(out, size, "%d", gPortConfig.gbaBorder);
+            else
+                SDL_strlcpy(out, sOnOff[0][l], size);
+            break;
         case ITEM_MODE_RESET: {
             static const char* const again[LANG_COUNT] = { "Confirm again", "Confirmer encore", "Nochmal bestätigen",
                                                            "Conferma di nuovo", "Confirma otra vez", "もう一度決定" };
@@ -1195,6 +1205,9 @@ static void Change(int item, int dir) {
             break;
         case ITEM_HD_TITLE:
             gPortConfig.hdTitle = !gPortConfig.hdTitle;
+            break;
+        case ITEM_GBA_BORDER:
+            gPortConfig.gbaBorder = Wrap(gPortConfig.gbaBorder + (dir ? dir : 1), 4);
             break;
         case ITEM_MODE_RESET:
             /* left/right choose the mode; confirmed twice, its presets replace the current settings */
