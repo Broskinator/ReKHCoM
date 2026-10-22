@@ -84,4 +84,23 @@ static const struct { unsigned short eventId; const char* movie; } kHdScenes[] =
     { EVENT_183_RIKU_B3F_E2_3, "zz_event_595" },
     { EVENT_188_RIKU_B2F_E1_2, "zz_event_604" },
     { EVENT_194_RIKU_B1F_LAST2, "zz_event_615" },
+    /* 22/10, by dialogue in the five cartridge languages, the scenes' order and wordless pairs (HD_MOD.md); left out:
+       zz_event_001 (the prologue, inside the opening the ROP movie replaces), 614 and 631 (Re:CoM only) */
+    { EVENT_014_2F_DEMO, "zz_event_023" }, /* wordless in both, between 013 and 015 */
+    { EVENT_020_4F_DEMO, "zz_event_043" }, /* wordless in both, between 019 and 021 */
+    { EVENT_035_8F_DEMO, "zz_event_084" }, /* Larxene taunts Naminé */
+    { EVENT_037_9F_GOAL, "zz_event_092" }, /* dialogue 0.60 */
+    { EVENT_042_10F_DEMO, "zz_event_104" }, /* Vexen's rash act, Axel */
+    { EVENT_043_11F_ENTRANCE, "zz_event_111" }, /* the card made of memories from the other side of the heart */
+    { EVENT_046_11F_TWILIGHT_TOWN_E1_2, "zz_event_113" }, /* dialogue, between 045 and 047 */
+    { EVENT_049_11F_GOAL_2, "zz_event_116" }, /* dialogue 0.59, between 048 and 050 */
+    { EVENT_052_12F_ENTRANCE, "zz_event_121" }, /* "Sora, you shouldn't talk to Donald and Goofy like-" / "Keep it to yourself!" */
+    { EVENT_055_12F_DESTINY_ISLAND_E2, "zz_event_122" }, /* the one-line island collapse */
+    { EVENT_062_12F_GOAL, "zz_event_132" }, /* wordless in both, between 061 and 063 */
+    { EVENT_070_13F_CASTLE_OBLIVION_LAST5, "zz_event_138" }, /* Marluxia: the world of nothingness */
+    { EVENT_071_13F_CASTLE_OBLIVION_LAST6, "zz_event_139" }, /* wordless in both, after 070 */
+    { EVENT_161_RIKU_B10F_GOAL_2, "zz_event_522" }, /* the darkness coursing through Riku, the provocation */
+    { EVENT_172_RIKU_B4F_GOAL_2, "zz_event_583" }, /* Lexaeus beaten, between 171 and 173 */
+    { EVENT_181_RIKU_B3F_E2_2, "zz_event_593" }, /* "Sora?!", before 594/182 and 595/183 */
+    { EVENT_192_RIKU_B1F_E0, "zz_event_612" }, /* Ansem: at the heart of darkness */
 };

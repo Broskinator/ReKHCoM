@@ -54,7 +54,9 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
   o carpeta elegida (instalación o archivos sueltos .mp4/.scd/.ogg); `ReKHCoM.exe --hd-import`.
 - [x] Videos HD en el juego (Windows, Media Foundation): apertura, final de Sora, final de Riku.
 - [x] Música HD (`port_hdmusic.c`): 43 canciones de GBA → pistas de Re:CoM, sigue pausa/parada/fundidos.
-- [x] Mod completo (`hd_scenes`): 72 eventos → escenas (filas confiables de #25,
+- [x] Mod completo (`hd_scenes`), 22/10: 97 de las 100 escenas asignadas (`match_hd_scenes.py`: diálogo en los
+  cinco idiomas del cartucho contra los subtítulos de cada escena, más el orden de las escenas y los pares mudos);
+  fuera: zz_event_001 (prólogo, dentro de la apertura que reemplaza ROP), 614 y 631 (solo Re:CoM). Antes: 72 eventos → escenas (filas confiables de #25,
   `port/src/port_hdscenes.inc`); al terminar, el evento se cierra con el salto de escena del juego.
   Audio en inglés (el PC no trae otras pistas).
 - [x] Subtítulos (`hd_subtitles`, encendido): sí vienen, en `Recom.pkg` como `FORM/5xxx/FO5xxx.BIN`

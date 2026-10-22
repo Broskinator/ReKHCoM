@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Which story event each Re:CoM HD scene belongs to, by its dialogue: the movie's Spanish subtitles
-(hd/subs/<movie>.es.txt, from the player's import) against every event's Spanish text
-(assets/eu/text/msg_localized_text.txt, gEvent<NNN>Text<MM>Spanish = EVENT_<NNN>). The Re:CoM script rewrites lines,
+"""Which story event each Re:CoM HD scene belongs to, by its dialogue: the movie's subtitles
+(hd/subs/<movie>.<lang>.txt) against every event's text in the same language, for the five languages the EU
+cartridge has (assets/eu/text/msg_localized_text.txt, gEvent<NNN>Text<MM><Language> = EVENT_<NNN>); the scores
+are averaged over the languages the movie has. The Re:CoM script rewrites lines,
 so each subtitle line counts by its best similarity to any line of the event.
 
     python port/tools/match_hd_scenes.py --subs D:/ReKHCoM-build/hd-completo/subs [--check]
@@ -24,12 +25,16 @@ def norm(text):
     return ' '.join(re.findall(r'[a-z0-9]+', text))
 
 
-def event_texts():
+# the movie's subtitle language -> the GBA label suffix of the same language (EU cartridge: English has none)
+LANGS = {'uk': '', 'fr': 'French', 'de': 'German', 'it': 'Italian', 'es': 'Spanish'}
+
+
+def event_texts(suffix):
     src = (ROOT / 'assets/eu/text/msg_localized_text.txt').read_text(encoding='utf-8')
     events = {}
-    for label, body in re.findall(r'@gEvent(\d+)Text\d+Spanish\n(.*?)(?=\n@|\Z)', src, re.S):
+    for label, body in re.findall(r'@gEvent(\d+)Text\d+' + suffix + r'\n(.*?)(?=\n@|\Z)', src, re.S):
         line = norm(body)
-        if len(line) > 8:
+        if len(line) > 3:
             events.setdefault(int(label), []).append(line)
     return events
 
@@ -40,7 +45,7 @@ def movie_lines(path):
         parts = raw.split(' ', 2)
         if len(parts) == 3 and parts[0].isdigit():
             line = norm(parts[2])
-            if len(line) > 8:
+            if len(line) > 3:
                 out.append(line)
     return out
 
@@ -65,19 +70,41 @@ def main():
             names[int(m.group(2))] = m.group(1)
     current = dict((m, e) for e, m in re.findall(r'\{ (EVENT_\w+), "(zz_event_\d+)" \}',
                                                   (ROOT / 'port/src/port_hdscenes.inc').read_text(encoding='utf-8')))
-    events = event_texts()
-    for sub in sorted(Path(args.subs).glob('zz_event_*.es.txt')):
-        movie = sub.name.split('.')[0]
-        lines = movie_lines(sub)
-        ranked = sorted(((score(lines, el), n) for n, el in events.items()), reverse=True)[:3]
+    from concurrent.futures import ProcessPoolExecutor
+    movies = sorted({p.name.split('.')[0] for p in Path(args.subs).glob('zz_event_*.txt')})
+    with ProcessPoolExecutor(6) as pool:
+        results = list(pool.map(rank_movie, movies, [args.subs] * len(movies)))
+    for movie, used, ranked in results:
+        if not used:
+            print(f'{movie} no subtitles in the cartridge languages')
+            continue
         best = names.get(ranked[0][1], ranked[0][1])
         mark = ''
         if args.check and movie in current:
             mark = 'ok' if current[movie] == best else f'TABLE SAYS {current[movie]}'
         elif args.check:
             mark = 'NEW'
-        print(f'{movie} {len(lines):3d} lines  ' + '  '.join(f'{names.get(n, n)} {s:.2f}' for s, n in ranked) + f'  {mark}')
+        print(f'{movie} {used} langs  ' + '  '.join(f'{names.get(n, n)} {s:.2f}' for s, n in ranked) + f'  {mark}')
 
+
+_TEXTS = None
+
+
+def rank_movie(movie, subs):
+    """(movie, languages used, the five best (score, event)) for one movie."""
+    global _TEXTS
+    if _TEXTS is None:
+        _TEXTS = {lang: event_texts(suffix) for lang, suffix in LANGS.items()}
+    totals, used = {}, 0
+    for lang in LANGS:
+        sub = Path(subs) / f'{movie}.{lang}.txt'
+        lines = movie_lines(sub) if sub.exists() else []
+        if not lines:
+            continue
+        used += 1
+        for n, el in _TEXTS[lang].items():
+            totals[n] = totals.get(n, 0) + score(lines, el)
+    return movie, used, sorted(((t / used, n) for n, t in totals.items()), reverse=True)[:5] if used else []
 
 if __name__ == '__main__':
     main()

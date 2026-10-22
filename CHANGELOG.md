@@ -18,7 +18,8 @@ Windows, Linux and Steam Deck are stable; Android, Switch, PS Vita, PS4, PS5, An
   playing under the Options as the cartridge's song does, and waits in place when the game holds its sound.
 - HD movies and scenes: our scene pause works on them (Start/Escape: back to the game or skip, after asking);
   they no longer end by themselves when the dialogue's button was still pressed.
-- HD scenes: 80 story events now play their Re:CoM scene (8 more, and one corrected), matched by their dialogue.
+- HD scenes: 97 of Re:CoM's 100 scenes now replace their story event (25 more, one corrected), matched by their
+  dialogue in five languages and their order; the other three exist only in Re:CoM or are part of the opening.
 - Options: the HD mod's settings are under "Re:CoM improvements"; the New Game window offers HD music and movies,
   and, for Re:CoM, the HD scenes.
 - Battle start: no more frame of the small heart over the battlefield right before the white flash (widescreen).
