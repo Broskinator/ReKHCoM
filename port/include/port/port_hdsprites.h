@@ -9,6 +9,9 @@
 int PortHdSpriteFind(const void* tiles, const void* frame);
 /* 1 when some frame of these ROM tiles has its HD picture (the option on, the file there). */
 int PortHdSpriteAny(const void* tiles);
+/* Show this HD picture this frame at (x, y) of the GBA screen, though no OAM entry draws it (a menu title the menu
+   keeps as a BG copy, its tiles released), in a fade (dark: to black, white: to white, 0..255). */
+void PortHdStillSprite(const void* tiles, const void* frame, int x, int y, int dark, int white);
 /* Its group (1 cards, 2 title, 3 battle HUD, 4 worlds, 5 menu titles). */
 int PortHdSpriteGroup(int id);
 /* The sprite's box in its frame's coordinates (GBA pixels). */

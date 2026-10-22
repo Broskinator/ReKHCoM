@@ -4027,6 +4027,52 @@ static int QueueHdPart(int layer, int i, int hx, int hy, int ow, int oh, int bw,
 /* HD parts on the game's picture (the title's logo): queued once a frame, before the lines are drawn, and left out
    of the lines (DrawObjs). Drawn over the finished picture, so a part is meant to be in front of everything. */
 
+/* HD pictures the game shows with no OAM entry: a menu title its menu has moved to a BG copy once it slid in, its
+   tiles released (PortHdStillSprite). Queued with the next picture and drawn over it whole, in the fade it was given. */
+typedef struct StillHd {
+    int id;
+    int16_t x, y;
+    uint8_t screen, dark, white;
+} StillHd;
+static StillHd sStillHd[4];
+static int sStillHdCount;
+
+void PortHdStillSprite(const void* tiles, const void* frame, int x, int y, int dark, int white) {
+    int id = PortHdSpriteFind(tiles, frame), i;
+    if (!id)
+        return;
+    for (i = 0; i < sStillHdCount && sStillHd[i].id != id; i++)
+        ;
+    if (i == sStillHdCount) {
+        if (sStillHdCount == (int)(sizeof(sStillHd) / sizeof(sStillHd[0])))
+            return;
+        sStillHdCount++;
+    }
+    sStillHd[i].id = id;
+    sStillHd[i].x = (int16_t)x;
+    sStillHd[i].y = (int16_t)y;
+    sStillHd[i].screen = sScreenDepth > 0;
+    sStillHd[i].dark = (uint8_t)SDL_clamp(dark, 0, 255);
+    sStillHd[i].white = (uint8_t)SDL_clamp(white, 0, 255);
+}
+
+static void QueueStillHdParts(void) {
+    int i;
+    for (i = 0; i < sStillHdCount; i++) {
+        const StillHd* s = &sStillHd[i];
+        int layer = sOverlay && s->screen ? 2 : 0, x0, y0, w, h;
+        float ox = layer == 2 ? (gPortOverlayW - GBA_SCREEN_W) / 2.0f : (float)gPortScreen.originX;
+        float oy = layer == 2 ? 0.0f : (float)gPortScreen.originY, x[4], y[4];
+        PortHdSpriteBox(s->id, &x0, &y0, &w, &h);
+        x[0] = x[3] = ox + s->x + x0;
+        x[1] = x[2] = x[0] + w;
+        y[0] = y[1] = oy + s->y + y0;
+        y[2] = y[3] = y[0] + h;
+        PortHdSpriteQueue(layer, s->id, x, y, x0, y0, w, h, 255, s->dark, s->white);
+    }
+    sStillHdCount = 0;
+}
+
 static void QueueMainHdParts(void) {
     uint16_t bldcnt = IO16(0x50);
     int i, eva = IO16(0x52) & 31;
@@ -4073,6 +4119,7 @@ static void QueueMainHdParts(void) {
             sTitleLogoBgHd = PortHdSpriteQueue(screen ? 2 : 0, id, x, y, 0, 0, 256, 256, alpha, dark, white);
         }
     }
+    QueueStillHdParts();
     if (!(IO16(0x00) & 0x1000))
         return;
     for (i = 127; i >= 0; i--) {
