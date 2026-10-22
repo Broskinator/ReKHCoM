@@ -82,6 +82,19 @@ vida sin división por cero (#40); salto de cuadros (encendido en todo); Switch 
 - Después de la v2.0: las 160 filas de la imagen GBA en varios núcleos (RENDIMIENTO.md) para 60 fps a x1.
 - Disco: C: ~5 GB libres por `pagefile.sys` 38,7 GB (falta de RAM: emulador + VM + baterías); se achica al reiniciar.
 
+### Nuevo 22/10 (usuario): HUD HD y cartas HD desde el Re:CoM del 1.5+2.5 del jugador
+- La v2.0 sale cuando el arte de Darkside esté aprobado (sesión arenas-jefes); mientras, esto.
+- Extraer de la instalación del jugador (D:/SteamLibrary/steamapps/common/KINGDOM HEARTS -HD 1.5+2.5 ReMIX-) los
+  gráficos del HUD de Re:CoM que coincidan con los de GBA, para el HUD HD (`hd_hud`, hoy piloto con piezas hechas a
+  mano/IA), y las **cartas** en una opción aparte nueva: **Cartas HD**. Nada se distribuye: lo importa el launcher,
+  como los videos y la música.
+- Investigar documentación (OpenKh, decomp/ingeniería inversa de Re:CoM) de los formatos de textura y de la lógica.
+- Inventario de texto del HUD que aún no es HD (números y letras) que pueda pasar a HD sin tocar mucho el HUD.
+- Estado 22/10: texturas HD halladas (226 cartas, marcos, dígitos, fuentes); 1:1 = cartas de combate y del menú de
+  barajas → **Cartas HD** primero. Diseño y estado en HUD_HD_RECOM.md. La v2.0 espera a esto como beta.
+- Después (pedido del usuario): datos duros de Re:CoM (dificultades, valores de cartas/enemigos, cambios respecto
+  a GBA) para el modo Re:CoM, en lógica y jugabilidad, con pruebas para no meter bugs.
+
 ### Bugs encontrados y cerrados el 22/10 (todos en main)
 - Escena HD: destello de la imagen del evento al terminar (53f756bc7).
 - Música del campo bajo el video HD y corte seco; salto sin fundido de imagen y sonido (53f756bc7, PC y Android).
