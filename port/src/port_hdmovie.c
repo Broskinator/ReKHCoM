@@ -160,6 +160,12 @@ static int MoviePause(SDL_Renderer* renderer, SDL_Surface* shot, SDL_AudioStream
     extern int PortUiHandleEvent(const void* event);
     extern void PortUiDraw(uint32_t* frame, int width, int height);
     extern int PortUiActive(void);
+    extern void PortMenuSoundBegin(void);
+    extern void PortMenuSoundDecide(int confirm);
+    extern void PortMenuSoundFrame(void);
+    extern void PortMenuSoundEnd(void);
+    extern void PortAudioMenuFrame(void);
+    extern int PortUiTakeMenuSound(int open);
     int cw = gPortScreen.width, ch = gPortScreen.height, x, y;
     uint32_t *base, *work;
     SDL_Surface* argb = shot ? SDL_ConvertSurface(shot, SDL_PIXELFORMAT_ARGB8888) : NULL;
@@ -188,6 +194,11 @@ static int MoviePause(SDL_Renderer* renderer, SDL_Surface* shot, SDL_AudioStream
     if (audio)
         SDL_PauseAudioStreamDevice(audio);
     PortUiOpenHdMoviePause();
+    /* the pause sounds as the game's menus do (its cursor and choices, as over the game's own scenes) */
+    PortAudioMovieHold(0);
+    PortMenuSoundBegin();
+    if (PortUiTakeMenuSound(1))
+        PortMenuSoundDecide(0);
     {
         /* test harness (KHCOM_HDMOVIE_PAUSETEST): the pause is walked to "skip" and "yes" by key presses */
         static const SDL_Keycode walk[] = { SDLK_DOWN, SDLK_RETURN, SDLK_UP, SDLK_RETURN };
@@ -208,6 +219,8 @@ static int MoviePause(SDL_Renderer* renderer, SDL_Surface* shot, SDL_AudioStream
             else
                 PortUiHandleEvent(&e);
         }
+        PortMenuSoundFrame();
+        PortAudioMenuFrame();
         SDL_memcpy(work, base, (size_t)cw * ch * 4);
         PortUiDraw(work, cw, ch);
         SDL_UpdateTexture(layer, NULL, work, cw * 4);
@@ -226,6 +239,9 @@ static int MoviePause(SDL_Renderer* renderer, SDL_Surface* shot, SDL_AudioStream
         SDL_Delay(16);
     }
     }
+    PortMenuSoundEnd();
+    (void)PortUiTakeMenuSound(0);
+    PortAudioMovieHold(1); /* the pause's last sound fades, the movie has the sound again */
     SDL_DestroyTexture(layer);
     SDL_free(base);
     SDL_free(work);
