@@ -7,6 +7,8 @@
 - Java string and char literals must close on their line (21/10: a script wrote real newlines into GameActivity's
   share-log strings and the APK did not build).
 - The generated HD sprite tables (gen_hd_sprites_inc.py) match port/data/hd_sprites.tsv.
+- port/src compiles (syntax only) for the console guests, against the shim, as build_switch.py compiles it: a
+  desktop-only SDL call outside its guard otherwise shows only in a console build (22/10: the sprite export).
 
 Exit code 1 and one line per problem. release_check.py and build_android.py run it first.
 """
@@ -50,6 +52,28 @@ def generated_problems():
     return [l for l in r.stdout.splitlines() if l.strip()] if r.returncode else []
 
 
+def guest_compile_problems():
+    import subprocess
+    cc = ROOT.parent / 'toolchain/llvm-mingw-20261006-ucrt-x86_64/bin/clang.exe'
+    if not cc.is_file():
+        return []
+    sys.path.insert(0, str(ROOT / 'port/ps5'))
+    sys.path.insert(0, str(ROOT / 'port/switch'))
+    import build_ps5
+    import build_switch
+    flags = [str(x) for x in build_switch.common_flags() if not str(x).startswith('-mcpu')]
+    flags += ['-w', '-std=gnu11', '-DSTBI_NO_THREAD_LOCALS', f'-I{ROOT / "port/ps5/third_party/stb"}', f'-I{ROOT / "port/src"}',
+              f'-I{ROOT / "port/android/native"}', '-DPLATFORM_PC', '-DVERSION_EU', '-DPORT_TOUCH']
+    flags += [str(i) for i in build_ps5.game_includes('eu')]
+    out = []
+    for f in sorted((ROOT / 'port/src').glob('*.c')):
+        if f.stem in build_ps5.PORT_EXCLUDED or f.name in build_ps5.PORT_PATCHES:
+            continue
+        r = subprocess.run([str(cc), '-fsyntax-only', *flags, str(f)], capture_output=True, text=True)
+        out += [f'{f.relative_to(ROOT)} (console guest): {l}' for l in r.stderr.splitlines() if ': error:' in l][:3]
+    return out
+
+
 def java_problems():
     out = []
     for f in sorted((ROOT / 'port/android/app/src').rglob('*.java')):
@@ -81,7 +105,7 @@ def java_problems():
 
 
 def main():
-    problems = shim_problems() + java_problems() + generated_problems()
+    problems = shim_problems() + java_problems() + generated_problems() + guest_compile_problems()
     for p in problems:
         print(p)
     if problems:

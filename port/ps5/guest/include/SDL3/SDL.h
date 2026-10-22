@@ -207,6 +207,7 @@ bool SDL_PauseAudioStreamDevice(SDL_AudioStream* stream);
 bool SDL_ResumeAudioStreamDevice(SDL_AudioStream* stream);
 bool SDL_ClearAudioStream(SDL_AudioStream* stream);
 bool SDL_SetAudioStreamFrequencyRatio(SDL_AudioStream* stream, float ratio);
+bool SDL_SetAudioStreamGain(SDL_AudioStream* stream, float gain);
 bool SDL_SetAudioStreamFormat(SDL_AudioStream* stream, const SDL_AudioSpec* srcSpec, const SDL_AudioSpec* dstSpec);
 bool SDL_GetAudioStreamFormat(SDL_AudioStream* stream, SDL_AudioSpec* srcSpec, SDL_AudioSpec* dstSpec);
 bool SDL_PutAudioStreamData(SDL_AudioStream* stream, const void* buf, int len);

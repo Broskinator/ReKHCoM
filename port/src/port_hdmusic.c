@@ -373,8 +373,12 @@ void PortHdMusicHold(void) {
 
 /* The track's output level on top of its own (PortAudioMovieHold fades it out before an HD movie). */
 void PortHdMusicGain(float gain) {
+#if __STDC_HOSTED__
     if (sStream)
         SDL_SetAudioStreamGain(sStream, gain);
+#else
+    (void)gain; /* the bridge's player has no output level */
+#endif
 }
 #else
 void PortHdMusicHold(void) {

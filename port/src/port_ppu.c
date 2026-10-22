@@ -3615,6 +3615,7 @@ static int ObjColor(uint16_t a0, uint16_t a2, int tx, int ty, int ow, int mappin
 /* Development aid for the HD inventory (KHCOM_HDSPRITE_EXPORT=dir): every sprite drawn, assembled in its frame's
    coordinates with the palette it is shown with, saved once as <dir>/<tiles address>_<frame address>.bmp;
    port/tools/hdsprite_catalog.py names them from the ROM symbols. */
+#ifdef PORT_PPU_THREADS /* the desktop builds, where SDL is at hand */
 typedef struct ExportCanvas {
     const void *tiles, *frame;
     uint32_t px[256 * 256]; /* frame coordinates -128..127 */
@@ -3697,6 +3698,10 @@ static void ExportSprites(void) {
     }
     free(canvas);
 }
+#else
+static void ExportSprites(void) {
+}
+#endif
 
 /* Colour of the header asset at (tx, y), tx counted from its left edge; -1
    when transparent or not drawable. Neither cursor OAM nor the finished

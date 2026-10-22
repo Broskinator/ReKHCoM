@@ -594,6 +594,8 @@ void SDL_DestroyAudioStream(SDL_AudioStream* s) { s->open = false; h_audio_clear
 bool SDL_PauseAudioStreamDevice(SDL_AudioStream* s) { (void)s; return true; }
 bool SDL_ResumeAudioStreamDevice(SDL_AudioStream* s) { (void)s; return true; }
 bool SDL_ClearAudioStream(SDL_AudioStream* s) { (void)s; h_audio_clear(); return true; }
+/* the fade before an HD movie (PortAudioMovieHold): the hosts have no output level; the movie just starts */
+bool SDL_SetAudioStreamGain(SDL_AudioStream* s, float gain) { (void)s; (void)gain; return true; }
 bool SDL_SetAudioStreamFrequencyRatio(SDL_AudioStream* s, float ratio) {
     if (ratio != s->ratio) { s->ratio = ratio; SetRatio(s); }
     return true;
