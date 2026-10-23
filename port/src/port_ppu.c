@@ -4455,6 +4455,11 @@ void PortPpuRenderHud(uint32_t* buf) {
                 if (hdSprite) continue;
                 if (hdPart) {
                     sHdCover[py * w + px] = 1;
+                    /* This HD sprite is in front of native pixels queued earlier.
+                       The shared over-layer is drawn after every HD sprite, so
+                       remove those older pixels wherever this sprite now wins. */
+                    if (sHudOverUsed)
+                        sHudOver[py * w + px] = 0;
                     continue;
                 }
                 if (tag->hdHudPart == 5 && px >= 31 && PortHdHudPlayerFrameReady()) {

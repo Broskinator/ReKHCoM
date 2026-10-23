@@ -25,3 +25,9 @@ A faithful remaster requires asset extraction and inventory, a reviewed visual s
 Added a locally generated Kingdom Key card illustration (gCardWep01Tiles.png), separate from the original frame and value. Enable hd_cards=1 together with hd_portraits=1, keeping filter=0. Missing replacement card artwork retains the original. The illustration was revised after a battle capture exposed unwanted opaque padding. Direct3D11 and software battle runs completed, with card and normal/hurt portrait draw logs verified at frames 160 and 240. The final padding and overlap were visually checked at frame 160. Other cards and world graphics remain original.
 
 port/artwork/card-inventory.json records 224 card-catalogue entries referencing 201 distinct textures, including small menu versions. Only the Kingdom Key battle texture has a local HD pilot replacement. Inventory data is symbol/layout metadata; the generated or extracted artwork is not included in Git.
+
+## Card-overlap correction
+
+The card preview exposed a stale foreground-layer bug in PortPpuRenderHud. Native frame pixels collected over an earlier HD sprite were retained in sHudOver even after a nearer HD sprite covered them. Since the shared native over-layer is presented after all HD quads, the older red frame appeared across the nearer illustration. A winning HD pixel now clears any older native over-pixel at the same coordinate, preserving later native frames and values.
+
+Regression: port/tools/test_hd_card_overlap.py creates isolated configurations and checks the exact red-line locations against the native blue reference at a fixed 1280x720 output. Native, Direct3D11 HD, software HD and L/R card-cycling runs passed. The visible red line is removed with filter=0; no artwork regeneration was needed for this correction. This check covers the reported opaque-card scene, not all sprite blending modes or the complete game.
