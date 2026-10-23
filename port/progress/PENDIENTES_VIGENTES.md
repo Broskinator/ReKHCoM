@@ -119,6 +119,14 @@ Reglas del usuario:
   subtítulos). Baterías v2.0 desde cero (`run_batteries.py --detach`, build/batteries.log; build/pc-eu estaba
   configurado sin los .c nuevos y no enlazaba: reconfigurado). Después: `run_batteries.py --hd --detach`.
   Ojo: `python` en el PATH ahora es el venv de hermes (sin numpy): usar `py -3`.
+- **23/10 ~03:30 (Claude):** carpetas del HD ordenadas (262fdb5c9): `hd/movies` (ROP, RSE, RRE), `hd/scenes`
+  (todas las zz_event, también las de los finales), `hd/music`, `hd/subs`, `hd/sprites`. El launcher de PC mueve
+  las escenas de una importación vieja (renombrar), el de Android copia también `scenes`, el juego busca primero en
+  `hd/scenes` y si no en `hd/movies`. test_hd_scenes: nuevo 97/97 (Re:CoM 97/97, finales 3/3), viejo 97/97
+  (`hd-completo` queda con el orden viejo a propósito: prueba el respaldo). La pre1 de la raíz ya tiene el orden
+  nuevo y el programa con este cambio. Espacio: borradas pruebas viejas (eventtest, batt-hdoff, ppuverify, mx_*,
+  las de Codex del 18/10): C: de 13,9 a 25,3 GB libres; se guardan codex-evidence y preliminar-v1 (revisión de arte).
+  Baterías v2.0 corriendo (scenes EU/US/JP ok; sigue events).
 - **Vita (reporte dentro de #44):** "bastante lenta"; sin undub aunque estén las ROM US y JP en la carpeta; texto HD
   no seleccionable. Ninguna versión de Vita reportada a velocidad completa.
 - **Switch rendimiento (#35, deko3d):** el host ya presenta por GPU; lo caro es la PPU en CPU y en un solo núcleo
