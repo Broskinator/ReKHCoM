@@ -525,8 +525,9 @@ int PortHarnessMode(const char* name, int arg) {
     }
     /* noharm: the player cannot be hurt for the rest of the battle (the
        no-damage challenges), as the game's own invincibility frames do */
-    if (strcmp(name, "noharm") == 0 && gBtlWork != NULL && gBtlWork->actor != NULL) {
-        gBtlWork->actor->invincibleTimer = 0x7FFF;
+    if (strcmp(name, "noharm") == 0) {
+        if (gBtlWork != NULL && gBtlWork->actor != NULL) /* outside a battle: nothing to do */
+            gBtlWork->actor->invincibleTimer = 0x7FFF;
         return 1;
     }
     /* battleid:ID|WORLD<<8 - any battle in a given world, as PortRematchBegin
