@@ -321,6 +321,14 @@ static void Quad(SDL_Texture* t, const HdSpriteDraw* q, float ox, float oy, floa
        drawn at all), and it saves the work of what cannot be seen. */
     if (v[0].position.y == v[1].position.y && v[0].position.x == v[3].position.x) {
         int ow = 0, oh = 0;
+        /* Corners on whole pixels: pieces of one picture meet on a shared edge, and with the canvas on a half pixel
+           (the title's logo at x4.5) that edge ran through the pixel centres; the hundredth-of-a-pixel tilt below
+           then left that row to neither piece and the background showed as a thin line (23/10). Rounded, shared
+           edges stay shared. */
+        for (k = 0; k < 4; k++) {
+            v[k].position.x = SDL_roundf(v[k].position.x);
+            v[k].position.y = SDL_roundf(v[k].position.y);
+        }
         if (SDL_GetCurrentRenderOutputSize(sRenderer, &ow, &oh) && ow > 0 && oh > 0) {
             float x0 = v[0].position.x, x1 = v[1].position.x, y0 = v[0].position.y, y1 = v[3].position.y;
             float u0 = q->u0, u1 = q->u1, w0 = q->v0, w1 = q->v1;
