@@ -114,6 +114,14 @@ def scenarios(groups, only, riku, from_battle=0):
         keys = ','.join(f'{f}-{f + 3}:A' for f in range(30, 2400, 40))
         for name, env in ISSUES.items():
             out.append((name, 2400, 200, f'{env}\nKHCOM_KEYS={keys}'))
+    if 'story' in groups:
+        # every story event that starts a battle and goes on into another event once won (test_event_battles.py;
+        # issue #46: Android closed right after Agrabah's first event battle)
+        import test_event_battles as teb
+        for event, battle, after in teb.chains():
+            e = teb.env_for(event)
+            out.append((f'story-{event:03d}-{battle}', teb.FRAMES, 900,
+                        f'KHCOM_MODE={e["KHCOM_MODE"]}\nKHCOM_KEYS={e["KHCOM_KEYS"]}'))
     if 'bot' in groups:
         out.append(('bot-playthrough', 60000, 1500, 'KHCOM_BOT=1\nKHCOM_SHOTS=5000,15000,30000,45000,60000'))
     if only:
@@ -209,7 +217,7 @@ def main():
     p.add_argument('--serial', required=True)
     p.add_argument('--regions', nargs='+', choices=CODES, default=['us'])
     p.add_argument('--groups', nargs='+', default=['menus', 'fixtures', 'bosses'],
-                   choices=['menus', 'fixtures', 'bosses', 'battles', 'issues', 'bot'])
+                   choices=['menus', 'fixtures', 'bosses', 'battles', 'issues', 'story', 'bot'])
     p.add_argument('--only', default='')
     p.add_argument('--riku', action='store_true')
     p.add_argument('--from-battle', type=int, default=0, help='skip battle entries below this index')

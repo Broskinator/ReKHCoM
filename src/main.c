@@ -457,6 +457,13 @@ int PortHarnessMode(const char* name, int arg) {
         SetActiveDeckIndex((u8)deck);
         return 1;
     }
+    /* eventplay:N - a story event requested as the game does (RequestEventMode), not from the debug event menu: an
+       event that starts a battle goes on into it and, once won, into the event after it (issue #46) */
+    if (strcmp(name, "eventplay") == 0) {
+        extern void RequestEventMode(u16 eventId);
+        RequestEventMode((u16)arg);
+        return 1;
+    }
     /* worlds:MASK - the world cards Sora holds (gGameState.availableWorlds), for the world select */
     if (strcmp(name, "worlds") == 0) {
         gGameState.availableWorlds = (u16)arg;
