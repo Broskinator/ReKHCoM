@@ -61,6 +61,20 @@ static int CurrentSong(void) {
 #define STB_VORBIS_NO_INTEGER_CONVERSION
 #include "../third_party/stb/stb_vorbis.c"
 
+
+/* hd/music/<track>.<ext> in the data folder (KHCOM_HD_MUSIC=<folder>: the audio tests' shared copy, test_hd_audio.py) */
+static const char* MusicPath(char* out, size_t size, const char* track, const char* ext) {
+    const char* dir = SDL_getenv("KHCOM_HD_MUSIC");
+    char name[160];
+    if (dir) {
+        SDL_snprintf(out, size, "%s/%s.%s", dir, track, ext);
+        return out;
+    }
+    SDL_snprintf(name, sizeof(name), "hd/music/%s.%s", track, ext);
+    SDL_snprintf(out, size, "%s", PortConfigPath(name));
+    return out;
+}
+
 static SDL_AudioStream* sStream;
 static stb_vorbis* sVorbis;
 static int sRate;
@@ -105,9 +119,7 @@ static void* TakeLoaded(int song, size_t* size, int* pending) {
         SDL_free(data);
         sLoaderSong = -1;
     }
-    SDL_snprintf(sLoaderPath, sizeof(sLoaderPath), "%s", PortConfigPath(""));
-    SDL_snprintf(sLoaderPath + SDL_strlen(sLoaderPath), sizeof(sLoaderPath) - SDL_strlen(sLoaderPath), "hd/music/%s.ogg",
-                 kTracks[song]);
+    MusicPath(sLoaderPath, sizeof(sLoaderPath), kTracks[song], "ogg");
     SDL_SetAtomicInt(&sLoaderDone, 0);
     sLoaderSong = song;
     sLoader = SDL_CreateThread(LoaderMain, "hd music", NULL);
@@ -156,8 +168,7 @@ static int Open(int song) {
     }
     sLoopStart = 0;
     sLoopEnd = stb_vorbis_stream_length_in_samples(sVorbis);
-    SDL_snprintf(name, sizeof(name), "hd/music/%s.loop", kTracks[song]);
-    loop = fopen(PortConfigPath(name), "r");
+    loop = fopen(MusicPath(name, sizeof(name), kTracks[song], "loop"), "r");
     if (loop != NULL) {
         unsigned a, b;
         if (fscanf(loop, "%u %u", &a, &b) == 2 && a < b && b <= sLoopEnd) {

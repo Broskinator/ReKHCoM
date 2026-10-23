@@ -175,9 +175,33 @@ def run(region, name, frames, timeout, env):
         status = 'LOGGED-CRASH'
     elif status == 'ok' and 'harness: no mode' in private('cat', 'files/kh_com.log').stdout.decode(errors='replace'):
         status = 'BAD-SCENARIO'
-    elif status == 'timeout':
+    if status != 'ok':
+        keep_evidence(region, name, status, log)
+    if status == 'timeout':
         adb('shell', 'am', 'force-stop', PKG)
     return status, detail, log[-300:]
+
+
+def keep_evidence(region, name, status, log):
+    """A case that is not ok is a bug until it is explained (DEBUG_WORKFLOW.md): its game log, host log, logcat and the
+    screen as it was, in build/android-scenarios/cases/<region>-<name>/ (22/10: US 124 timed out with nothing kept, and
+    became issue #46)."""
+    d = OUT / 'cases' / re.sub(r'[^\w.-]+', '_', f'{region}-{name}')
+    d.mkdir(parents=True, exist_ok=True)
+    (d / 'status.txt').write_text(status + '
+')
+    (d / 'kh_com.log').write_text(log, encoding='utf-8', errors='replace')
+    (d / 'kh_com_host.log').write_bytes(private('cat', 'files/kh_com_host.log').stdout)
+    (d / 'logcat.txt').write_bytes(adb('logcat', '-d').stdout)
+    shot = adb('exec-out', 'screencap', '-p', check=False).stdout
+    if shot:
+        (d / 'screen.png').write_bytes(shot)
+    if status == 'timeout':  # where the game thread is: its native stack
+        pid = adb('shell', 'pidof', PKG + ':game', check=False).stdout.decode().strip()
+        if pid:
+            (d / 'stack.txt').write_bytes(adb('shell', 'run-as', PKG, 'cat', f'/proc/{pid}/stack', check=False).stdout +
+                                          adb('shell', 'debuggerd', '-b', pid, check=False).stdout)
+    print(f'  evidence: {d}', flush=True)
 
 
 def main():

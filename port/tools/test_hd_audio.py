@@ -30,7 +30,15 @@ SCENARIOS = {
     'battle': {'KHCOM_BATTLE': '0:1:0'},
     'boss': {'KHCOM_BATTLE': '10:1:0'},
     'levelup': {'KHCOM_BATTLE': '0:1:0', 'KHCOM_MODE': '400:levelup'},
+    # issue #44: Sora's voices (field and battle attacks, with and without undub) and the save point's sound
+    'savepoint': {'KHCOM_MODE': '60:room:10901,200:mapsave'},
+    'fieldattack': {'KHCOM_MODE': '60:room:10901'},
+    'undubbattle': {'KHCOM_BATTLE': '0:1:0', 'KHCOM_CONFIG': 'undub=1'},
+    'undubfield': {'KHCOM_MODE': '60:room:10901', 'KHCOM_CONFIG': 'undub=1'},
 }
+# the HD music must really play in a case, or nothing was checked (22/10: the cases ran without it and passed, #44)
+SILENT_OK = {'deck', 'status'}
+HD_MUSIC = os.environ.get('KHCOM_HD_MUSIC', 'D:/01Claude/ReKHCoM-build/hd-completo/music')
 
 
 def run(exe_dir, name):
@@ -40,9 +48,9 @@ def run(exe_dir, name):
     d.mkdir(parents=True)
     for f in ('khcom.exe', 'SDL3.dll'):
         shutil.copy2(exe_dir / f, d / f)
-    (d / 'kh_com.ini').write_text('config_version=2\nview_mode=4\n')
+    (d / 'kh_com.ini').write_text('config_version=2\nview_mode=4\nhd_music=1\n')
     env = dict(os.environ, SDL_VIDEO_DRIVER='dummy', SDL_AUDIO_DRIVER='dummy', KHCOM_FAST='1', KHCOM_AUDIOCHECK='1',
-               KHCOM_KEYS=PRESSES, KHCOM_QUIT='1400', **SCENARIOS[name])
+               KHCOM_HD_MUSIC=HD_MUSIC, KHCOM_KEYS=PRESSES, KHCOM_QUIT='1400', **SCENARIOS[name])
     try:
         subprocess.run([str(d / 'khcom.exe'), '--language', 'es', '--rom', str(ROOT / 'roms/B8CP.gba')], cwd=d, env=env,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=300)
@@ -50,6 +58,8 @@ def run(exe_dir, name):
         return ['timed out'], True
     log = (d / 'kh_com.log').read_text(encoding='utf-8', errors='replace') if (d / 'kh_com.log').exists() else ''
     bad = [l for l in log.splitlines() if l.startswith('audio check:')]
+    if log and 'hd music: song' not in log and name not in SILENT_OK:
+        bad.append('the HD music never played: nothing was checked')
     shutil.rmtree(d, ignore_errors=True)
     return bad, bool(log)
 

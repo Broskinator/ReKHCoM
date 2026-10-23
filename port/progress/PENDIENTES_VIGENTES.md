@@ -81,7 +81,9 @@ Reglas del usuario:
 - **Issues abiertos (22/10 21:00, usuario: leerlos todos y replicar hasta arreglarlos):** #46 Android se cierra al
   ganar el primer combate del evento de Agrabah (US 124 ya se cortaba por tiempo en la batería: era este bug); #44
   efectos/voces mudos con la música HD (v1.9.15-pre1); #45 voces undub que suenan en inglés (ataque en el campo, 2º
-  golpe aéreo); #42 finales HD: solo créditos; #43 Switch: cortes en cartas superpuestas. Pedidos datos de equipo en
+  golpe aéreo) [#44: **arreglado en main** (31cbfd92d, posterior a la pre1 del reporter); `test_hd_audio.py` ahora
+  toca la música HD de verdad (`KHCOM_HD_MUSIC`; antes corría sin ella y pasaba sin probar nada) y suma punto de
+  guardado, ataque en el campo y voces undub: 0/13]; #42 finales HD: solo créditos; #43 Switch: cortes en cartas superpuestas. Pedidos datos de equipo en
   #46, #42, #43. #40 arreglado (avisar al publicar).
 - **Pendientes HD (22/10 noche, Claude; se van tachando):**
   - [x] TIENDA en alemán e italiano (22/10 20:35): MOGRY-LADEN y NEGOZIO MOGURI en HD (`--language de/it`, registro
