@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "port/port.h"
+#include "port/port_scale2x.h"
 #include "mode.h"
 #include "port/port_aspect.h"
 #include "port/port_hd2d.h"
@@ -248,6 +249,50 @@ void PortVideoApplyConfig(void) {
 static SDL_ScaleMode sPictureScaleMode = SDL_SCALEMODE_NEAREST; /* sTexture's scaling, for the layers over it */
 static SDL_Texture* sMainOverTexture; /* the picture's pixels in front of its HD sprites */
 static int sMainOverW, sMainOverH;
+
+/* Optional edge-aware reconstruction; source coordinates stay in game pixels. */
+static SDL_Texture* sUpscaleTexture;
+static uint32_t* sUpscalePixels;
+static int sUpscaleW, sUpscaleH;
+
+static void UploadUpscale(const uint32_t* pixels) {
+    int w = gPortScreen.width, h = gPortScreen.height;
+    if (gPortConfig.filter != PORT_FILTER_SCALE2X) return;
+    if (w != sUpscaleW || h != sUpscaleH) {
+        SDL_DestroyTexture(sUpscaleTexture);
+        SDL_free(sUpscalePixels);
+        sUpscaleTexture = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_XRGB8888,
+                                           SDL_TEXTUREACCESS_STREAMING, w*2, h*2);
+        sUpscalePixels = SDL_malloc((size_t)w*h*16);
+        sUpscaleW = w; sUpscaleH = h;
+    }
+    if (!sUpscaleTexture || !sUpscalePixels) return; /* original remains available */
+    PortScale2x(pixels, w, h, sUpscalePixels);
+    SDL_UpdateTexture(sUpscaleTexture, NULL, sUpscalePixels, w*8);
+    SDL_SetTextureScaleMode(sUpscaleTexture, SDL_SCALEMODE_LINEAR);
+}
+
+static SDL_Texture* PictureSource(const SDL_FRect* src, SDL_FRect* scaled) {
+    if (src) *scaled = *src;
+    if (gPortConfig.filter == PORT_FILTER_SCALE2X && sUpscaleTexture && sUpscalePixels) {
+        if (src) { scaled->x *= 2; scaled->y *= 2; scaled->w *= 2; scaled->h *= 2; }
+        return sUpscaleTexture;
+    }
+    return sTexture;
+}
+static bool DrawPicture(SDL_Renderer* renderer, SDL_Texture* texture,
+                        const SDL_FRect* src, const SDL_FRect* dst) {
+    SDL_FRect scaled;
+    texture = PictureSource(src, &scaled);
+    return SDL_RenderTexture(renderer, texture, src ? &scaled : NULL, dst);
+}
+static bool DrawPictureRotated(SDL_Renderer* renderer, SDL_Texture* texture,
+        const SDL_FRect* src, const SDL_FRect* dst, double angle,
+        const SDL_FPoint* center, SDL_FlipMode flip) {
+    SDL_FRect scaled;
+    texture = PictureSource(src, &scaled);
+    return SDL_RenderTextureRotated(renderer, texture, src ? &scaled : NULL, dst, angle, center, flip);
+}
 
 static void EnsureTexture(void) {
     SDL_ScaleMode mode;
@@ -941,7 +986,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
     if (sSideStyle != 2) {
         /* the picture's edge column, stretched to the window's edge */
         SDL_FRect es = { (float)edgeX, (float)sy, 1, GBA_SCREEN_H }, ed = { x0, y, x1 - x0, GBA_SCREEN_H * scale };
-        SDL_RenderTexture(sRenderer, sTexture, &es, &ed);
+        DrawPicture(sRenderer, sTexture, &es, &ed);
         return;
     }
     {
@@ -990,7 +1035,7 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                 SDL_FRect d = { side < 0 ? pos - w : pos, by, w, 8 * scale };
                 SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                            : SDL_SCALEMODE_PIXELART);
-                SDL_RenderTextureRotated(sRenderer, sTexture, &src, &d, 0, NULL, flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
+                DrawPictureRotated(sRenderer, sTexture, &src, &d, 0, NULL, flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
             }
         }
     }
@@ -1479,6 +1524,7 @@ static void Present(void) {
     }
     PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
     SDL_UpdateTexture(sTexture, NULL, sComposite, gPortScreen.width * 4);
+    UploadUpscale(sComposite);
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
     SDL_RenderClear(sRenderer);
@@ -1522,7 +1568,7 @@ static void Present(void) {
             DrawBlurredReflection(&src, outW, outH);
         SDL_SetTextureScaleMode(sTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                  : SDL_SCALEMODE_PIXELART);
-        SDL_RenderTexture(sRenderer, sTexture, &src, &dst);
+        DrawPicture(sRenderer, sTexture, &src, &dst);
         if (moviePrompt)
             DrawSkipLayer(&normal);
         if (!menuCanvas && sSideStyle == 8 && sFitScale <= 0) {
@@ -1665,7 +1711,7 @@ static void Present(void) {
             DrawBlurredReflection(&backdrop, outW, outH);
         }
         DrawClassicBorder(&dst);
-        SDL_RenderTexture(sRenderer, sTexture, NULL, &dst);
+        DrawPicture(sRenderer, sTexture, NULL, &dst);
         worldScale = dst.w / gPortScreen.width;
         worldX = dst.x;
         worldY = dst.y;
@@ -1794,7 +1840,7 @@ static void Present(void) {
         if (!menuCanvas && PortUiScenePauseRect(r)) {
             SDL_FRect ps = { (float)r[0], (float)r[1], (float)r[2], (float)r[3] };
             SDL_FRect pd = { worldX + r[0] * worldScale, worldY + r[1] * worldScale, r[2] * worldScale, r[3] * worldScale };
-            SDL_RenderTexture(sRenderer, sTexture, &ps, &pd);
+            DrawPicture(sRenderer, sTexture, &ps, &pd);
         }
     }
     DrawScanlines(&dst, outW);
@@ -2220,6 +2266,8 @@ static void Quit(void) {
     PortHdHudShutdown();
     PortHdSpritesShutdown();
     PortHdLayoutShutdown();
+    SDL_DestroyTexture(sUpscaleTexture);
+    SDL_free(sUpscalePixels);
     SDL_Quit();
     exit(0);
 }

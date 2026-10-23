@@ -555,6 +555,7 @@ static const char* const sFilters[PORT_FILTER_COUNT][LANG_COUNT] = {
     { "Sharp", "Net", "Scharf", "Nitido", "Nítido", "シャープ" },
     { "Pixel art", "Pixel art", "Pixel-Art", "Pixel art", "Pixel art", "ドット絵" },
     { "Smooth", "Lisse", "Weich", "Morbido", "Suave", "なめらか" },
+    { "Scale2x", "Scale2x", "Scale2x", "Scale2x", "Scale2x", "Scale2x" },
 };
 static const char* const sHudSizes[3][LANG_COUNT] = {
     { "Original", "Original", "Original", "Originale", "Original", "オリジナル" },

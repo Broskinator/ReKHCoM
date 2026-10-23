@@ -76,6 +76,7 @@ enum PortFilter {
     PORT_FILTER_NEAREST,
     PORT_FILTER_SHARP,    /* nearest at integer scale, then smooth to fit */
     PORT_FILTER_LINEAR,
+    PORT_FILTER_SCALE2X,  /* edge-aware 2x reconstruction of the game picture */
     PORT_FILTER_COUNT
 };
 

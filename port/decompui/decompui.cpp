@@ -1232,7 +1232,7 @@ static void PageGraphics() {
     const char* views[] = { T("Original 240x160", "Original 240x160"), T("Panorámica 284x160", "Wide 284x160"),
                             T("Ampliada 320x180", "Extended 320x180"), T("Máxima 384x216", "Maximum 384x216"),
                             T("Auto (llenar ventana)", "Auto (fill window)") };
-    const char* filters[] = { T("Nítido", "Sharp"), "Pixel art", T("Suave", "Smooth") };
+    const char* filters[] = { T("Nítido", "Sharp"), "Pixel art", T("Suave", "Smooth"), "Scale2x" };
     const char* huds[] = { T("Original", "Original"), T("Grande", "Large"), T("Más grande", "Larger") };
     const char* narrow[] = { T("Píxel exacto", "Exact pixels"), T("Llenar altura", "Fill height") };
     const char* onoff[] = { T("No", "Off"), T("Sí", "On") };
@@ -1279,9 +1279,7 @@ static void PageGraphics() {
                        T("Escala de píxeles: x4 amplía cada píxel cuatro veces. Menos aumento muestra más mundo y exige más al PC.",
                          "Pixel scale: x4 enlarges each pixel four times. Lower scales show more world and cost more CPU."),
                        Ini("zoom"), false);
-#ifdef REKHCOM_SHOW_EXTRA_OPTIONS /* filter: an internal setting */
-    changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), 3, filters);
-#endif
+    changed |= CycleRow(T("Filtro", "Filter"), nullptr, Ini("filter"), (int)(sizeof(filters) / sizeof(filters[0])), filters);
     changed |= CycleRow(T("Tamaño del HUD", "HUD size"), nullptr, Ini("hud_size"), 3, huds);
     changed |= CycleRow(T("Escenas tamaño GBA", "GBA-size scenes"), nullptr, Ini("narrow_fit"), 2, narrow);
     ImGui::EndChild();
