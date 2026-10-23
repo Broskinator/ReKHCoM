@@ -44,9 +44,12 @@ def chains():
 def env_for(event):
     """The harness settings of one chain: Riku's events (149..) from Riku's side."""
     room = 'roomriku:10001' if event >= 149 else 'room:10001'
-    keys = ','.join(f'{f}-{f + 3}:A' for f in range(450, FRAMES, 40))
-    mode = ','.join([f'60:{room}', '400:noharm', f'400:eventplay:{event}'] +
-                    [f'{f}:battlewin' for f in range(1000, FRAMES, 150)] + [f'{f}:noharm' for f in range(1000, FRAMES, 600)])
+    keys = ','.join(f'{f}-{f + 3}:A' for f in range(160, FRAMES, 40))
+    # the event before the field's first random encounter (frame ~270); then, in whatever battle is on, the enemies
+    # leave (battlewin) or a boss falls (bosskill), the player unharmed
+    mode = ','.join([f'60:{room}', f'120:eventplay:{event}'] +
+                    [f'{f}:battlewin' for f in range(1000, FRAMES, 200)] +
+                    [f'{f}:bosskill' for f in range(1100, FRAMES, 200)] + [f'{f}:noharm' for f in range(700, FRAMES, 300)])
     return {'KHCOM_MODE': mode, 'KHCOM_KEYS': keys}
 
 
