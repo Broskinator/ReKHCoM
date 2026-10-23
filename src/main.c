@@ -749,12 +749,17 @@ int PortHarnessMode(const char* name, int arg) {
        would; the unhittable parts wait, as for the player (Guard Armor's torso
        until its limbs are gone: hit all at once, its pieces were released after
        BeginBossDefeat zeroed the count, which wrapped to 250 and never closed) */
-    if (strcmp(name, "bosskill") == 0 && gBtlWork != NULL
-        && strcmp(PortHarnessModeName(), "mode_battle") == 0) {
-        BtlObj* obj = ListPoolFirst(&gBtlWork->pool);
+    if (strcmp(name, "bosskill") == 0) {
+        /* outside a battle there is nothing to hit (a list of them spans a whole story chain) */
+        BtlObj* obj = gBtlWork != NULL && strcmp(PortHarnessModeName(), "mode_battle") == 0
+                          ? ListPoolFirst(&gBtlWork->pool) : NULL;
         while (obj != NULL) {
             if (obj != gBtlWork->actor && obj->hp > 0 && obj->maxHp > 0 && !(obj->flags & BTLOBJ_FLAG_UNHITTABLE)) {
+                /* no knockback, as the game's delayed damage (battle_runtime.c): a stale
+                   knockbackLift threw a Bandit up for thousands of frames */
                 obj->damage = obj->hp;
+                obj->knockbackSpeed = 0;
+                obj->knockbackLift = 0;
                 obj->flags |= BTLOBJ_FLAG_DAMAGE_PENDING;
             }
             obj = ListPoolNext(&obj->node);

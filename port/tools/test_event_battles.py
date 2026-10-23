@@ -2,7 +2,7 @@
 """Every story event that starts a battle and goes on into another event once it is won (34 chains: Leon, Guard Armor,
 the Organization, each world's bosses, Agrabah's and Halloween Town's event battles, Riku's...), played as the game
 plays them: a room of the right side (Sora or Riku), the event requested as the field does (KHCOM_MODE eventplay),
-its dialogues advanced, the battle won (battlewin) and the next event reached. A chain passes when the log shows
+its dialogues advanced, the battle won (bosskill) and the next event reached. A chain passes when the log shows
 the battle and then an event, with no stray access recovered (bios:, which closes Android, the web and Linux ARM) and
 no crash. Issue #46 (22/10): Android closed right after Agrabah's first event battle; the debug battle menu and the
 debug event menu never take this road.
@@ -45,11 +45,11 @@ def env_for(event):
     """The harness settings of one chain: Riku's events (149..) from Riku's side."""
     room = 'roomriku:10001' if event >= 149 else 'room:10001'
     keys = ','.join(f'{f}-{f + 3}:A' for f in range(160, FRAMES, 40))
-    # the event before the field's first random encounter (frame ~270); then, in whatever battle is on, the enemies
-    # leave (battlewin) or a boss falls (bosskill), the player unharmed
-    mode = ','.join([f'60:{room}', f'120:eventplay:{event}'] +
-                    [f'{f}:battlewin' for f in range(1000, FRAMES, 200)] +
-                    [f'{f}:bosskill' for f in range(1100, FRAMES, 200)] + [f'{f}:noharm' for f in range(700, FRAMES, 300)])
+    # the event before the field's first random encounter (frame ~270); then, in whatever battle is on, every enemy
+    # that can be hit falls to a real hit (bosskill: no battlewin, whose warp left boss parts behind), the player
+    # unharmed
+    mode = ','.join([f'60:{room}', f'120:eventplay:{event}'] + [f'{f}:bosskill' for f in range(1000, FRAMES, 150)] +
+                    [f'{f}:noharm' for f in range(700, FRAMES, 300)])
     return {'KHCOM_MODE': mode, 'KHCOM_KEYS': keys}
 
 
