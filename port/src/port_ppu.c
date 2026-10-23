@@ -4278,7 +4278,7 @@ void PortPpuRenderHud(uint32_t* buf) {
     PortHdHudSpriteBegin();
     PortHdSpritesBegin(1);
     sHudOverUsed = 0;
-    if (gPortConfig.hdCards && (size_t)w * h > sHdCoverSize) {
+    if ((gPortConfig.hdCards || gPortConfig.hdPortraits) && (size_t)w * h > sHdCoverSize) {
         uint8_t* cover = realloc(sHdCover, (size_t)w * h);
         uint32_t* over = realloc(sHudOver, (size_t)w * h * 4);
         if (cover) { sHdCover = cover; sHdCoverSize = (size_t)w * h; }
