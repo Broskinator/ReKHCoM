@@ -842,6 +842,96 @@ extern const unsigned char gWizardSmallCardTiles[];
 extern const unsigned char gWizardSmallCardFrame0[];
 extern const unsigned char gWyvernSmallCardTiles[];
 extern const unsigned char gWyvernSmallCardFrame0[];
+extern const unsigned char gSor1bb00Tiles[];
+extern const unsigned char gSor1bb00Frame0[];
+extern const unsigned char gSor1bb01Tiles[];
+extern const unsigned char gSor1bb01Frame0[];
+extern const unsigned char gSor1bb01Tiles[];
+extern const unsigned char gSor1bb01Frame1[];
+extern const unsigned char gSor1bb01Tiles[];
+extern const unsigned char gSor1bb01Frame2[];
+extern const unsigned char gSor1bb01Tiles[];
+extern const unsigned char gSor1bb01Frame3[];
+extern const unsigned char gSor1bb01Tiles[];
+extern const unsigned char gSor1bb01Frame4[];
+extern const unsigned char gSor1bb01Tiles[];
+extern const unsigned char gSor1bb01Frame5[];
+extern const unsigned char gSor1bb01Tiles[];
+extern const unsigned char gSor1bb01Frame6[];
+extern const unsigned char gSor1bb01Tiles[];
+extern const unsigned char gSor1bb01Frame7[];
+extern const unsigned char gSor1ff00Tiles[];
+extern const unsigned char gSor1ff00Frame0[];
+extern const unsigned char gSor1ff01Tiles[];
+extern const unsigned char gSor1ff01Frame0[];
+extern const unsigned char gSor1ff01Tiles[];
+extern const unsigned char gSor1ff01Frame1[];
+extern const unsigned char gSor1ff01Tiles[];
+extern const unsigned char gSor1ff01Frame2[];
+extern const unsigned char gSor1ff01Tiles[];
+extern const unsigned char gSor1ff01Frame3[];
+extern const unsigned char gSor1ff01Tiles[];
+extern const unsigned char gSor1ff01Frame4[];
+extern const unsigned char gSor1ff01Tiles[];
+extern const unsigned char gSor1ff01Frame5[];
+extern const unsigned char gSor1ff01Tiles[];
+extern const unsigned char gSor1ff01Frame6[];
+extern const unsigned char gSor1ff01Tiles[];
+extern const unsigned char gSor1ff01Frame7[];
+extern const unsigned char gSor1fl00Tiles[];
+extern const unsigned char gSor1fl00Frame0[];
+extern const unsigned char gSor1fl01Tiles[];
+extern const unsigned char gSor1fl01Frame0[];
+extern const unsigned char gSor1fl01Tiles[];
+extern const unsigned char gSor1fl01Frame1[];
+extern const unsigned char gSor1fl01Tiles[];
+extern const unsigned char gSor1fl01Frame2[];
+extern const unsigned char gSor1fl01Tiles[];
+extern const unsigned char gSor1fl01Frame3[];
+extern const unsigned char gSor1fl01Tiles[];
+extern const unsigned char gSor1fl01Frame4[];
+extern const unsigned char gSor1fl01Tiles[];
+extern const unsigned char gSor1fl01Frame5[];
+extern const unsigned char gSor1fl01Tiles[];
+extern const unsigned char gSor1fl01Frame6[];
+extern const unsigned char gSor1fl01Tiles[];
+extern const unsigned char gSor1fl01Frame7[];
+extern const unsigned char gSor1ll00Tiles[];
+extern const unsigned char gSor1ll00Frame0[];
+extern const unsigned char gSor1ll01Tiles[];
+extern const unsigned char gSor1ll01Frame0[];
+extern const unsigned char gSor1ll01Tiles[];
+extern const unsigned char gSor1ll01Frame1[];
+extern const unsigned char gSor1ll01Tiles[];
+extern const unsigned char gSor1ll01Frame2[];
+extern const unsigned char gSor1ll01Tiles[];
+extern const unsigned char gSor1ll01Frame3[];
+extern const unsigned char gSor1ll01Tiles[];
+extern const unsigned char gSor1ll01Frame4[];
+extern const unsigned char gSor1ll01Tiles[];
+extern const unsigned char gSor1ll01Frame5[];
+extern const unsigned char gSor1ll01Tiles[];
+extern const unsigned char gSor1ll01Frame6[];
+extern const unsigned char gSor1ll01Tiles[];
+extern const unsigned char gSor1ll01Frame7[];
+extern const unsigned char gSor1bl00Tiles[];
+extern const unsigned char gSor1bl00Frame0[];
+extern const unsigned char gSor1bl01Tiles[];
+extern const unsigned char gSor1bl01Frame0[];
+extern const unsigned char gSor1bl01Tiles[];
+extern const unsigned char gSor1bl01Frame1[];
+extern const unsigned char gSor1bl01Tiles[];
+extern const unsigned char gSor1bl01Frame2[];
+extern const unsigned char gSor1bl01Tiles[];
+extern const unsigned char gSor1bl01Frame3[];
+extern const unsigned char gSor1bl01Tiles[];
+extern const unsigned char gSor1bl01Frame4[];
+extern const unsigned char gSor1bl01Tiles[];
+extern const unsigned char gSor1bl01Frame5[];
+extern const unsigned char gSor1bl01Tiles[];
+extern const unsigned char gSor1bl01Frame6[];
+extern const unsigned char gSor1bl01Tiles[];
+extern const unsigned char gSor1bl01Frame7[];
 static const HdSpriteDef kHdSprites[] = {
     { gCardWep01Tiles, NULL, "gCardWep01Tiles", -16, -12, 32, 32, 1 },
     { gCardWep04Tiles, NULL, "gCardWep04Tiles", -16, -12, 32, 32, 1 },
@@ -1421,4 +1511,49 @@ static const HdSpriteDef kHdSprites[] = {
     { gWishingStarSmallCardTiles, gWishingStarSmallCardFrame0, "gWishingStarSmallCardHD", -8, -20, 16, 32, 6 },
     { gWizardSmallCardTiles, gWizardSmallCardFrame0, "gWizardSmallCardHD", -8, -20, 16, 32, 6 },
     { gWyvernSmallCardTiles, gWyvernSmallCardFrame0, "gWyvernSmallCardHD", -8, -20, 16, 32, 6 },
+    { gSor1bb00Tiles, gSor1bb00Frame0, "gSor1bb00Frame0", -16, -48, 32, 56, 7 },
+    { gSor1bb01Tiles, gSor1bb01Frame0, "gSor1bb01Frame0", -16, -48, 32, 56, 7 },
+    { gSor1bb01Tiles, gSor1bb01Frame1, "gSor1bb01Frame1", -16, -48, 32, 56, 7 },
+    { gSor1bb01Tiles, gSor1bb01Frame2, "gSor1bb01Frame2", -16, -48, 32, 56, 7 },
+    { gSor1bb01Tiles, gSor1bb01Frame3, "gSor1bb01Frame3", -16, -48, 32, 56, 7 },
+    { gSor1bb01Tiles, gSor1bb01Frame4, "gSor1bb01Frame4", -16, -48, 32, 56, 7 },
+    { gSor1bb01Tiles, gSor1bb01Frame5, "gSor1bb01Frame5", -16, -48, 32, 56, 7 },
+    { gSor1bb01Tiles, gSor1bb01Frame6, "gSor1bb01Frame6", -16, -48, 32, 56, 7 },
+    { gSor1bb01Tiles, gSor1bb01Frame7, "gSor1bb01Frame7", -16, -48, 32, 56, 7 },
+    { gSor1ff00Tiles, gSor1ff00Frame0, "gSor1ff00Frame0", -16, -48, 32, 56, 7 },
+    { gSor1ff01Tiles, gSor1ff01Frame0, "gSor1ff01Frame0", -16, -48, 32, 56, 7 },
+    { gSor1ff01Tiles, gSor1ff01Frame1, "gSor1ff01Frame1", -16, -47, 32, 56, 7 },
+    { gSor1ff01Tiles, gSor1ff01Frame2, "gSor1ff01Frame2", -16, -47, 32, 56, 7 },
+    { gSor1ff01Tiles, gSor1ff01Frame3, "gSor1ff01Frame3", -16, -47, 32, 56, 7 },
+    { gSor1ff01Tiles, gSor1ff01Frame4, "gSor1ff01Frame4", -16, -48, 32, 56, 7 },
+    { gSor1ff01Tiles, gSor1ff01Frame5, "gSor1ff01Frame5", -16, -47, 32, 56, 7 },
+    { gSor1ff01Tiles, gSor1ff01Frame6, "gSor1ff01Frame6", -16, -47, 32, 56, 7 },
+    { gSor1ff01Tiles, gSor1ff01Frame7, "gSor1ff01Frame7", -16, -47, 32, 56, 7 },
+    { gSor1fl00Tiles, gSor1fl00Frame0, "gSor1fl00Frame0", -16, -48, 32, 56, 7 },
+    { gSor1fl01Tiles, gSor1fl01Frame0, "gSor1fl01Frame0", -16, -48, 32, 56, 7 },
+    { gSor1fl01Tiles, gSor1fl01Frame1, "gSor1fl01Frame1", -16, -48, 32, 56, 7 },
+    { gSor1fl01Tiles, gSor1fl01Frame2, "gSor1fl01Frame2", -16, -48, 32, 56, 7 },
+    { gSor1fl01Tiles, gSor1fl01Frame3, "gSor1fl01Frame3", -16, -48, 32, 56, 7 },
+    { gSor1fl01Tiles, gSor1fl01Frame4, "gSor1fl01Frame4", -16, -43, 32, 48, 7 },
+    { gSor1fl01Tiles, gSor1fl01Frame5, "gSor1fl01Frame5", -24, -43, 40, 48, 7 },
+    { gSor1fl01Tiles, gSor1fl01Frame6, "gSor1fl01Frame6", -16, -42, 32, 48, 7 },
+    { gSor1fl01Tiles, gSor1fl01Frame7, "gSor1fl01Frame7", -16, -43, 32, 48, 7 },
+    { gSor1ll00Tiles, gSor1ll00Frame0, "gSor1ll00Frame0", -15, -47, 32, 56, 7 },
+    { gSor1ll01Tiles, gSor1ll01Frame0, "gSor1ll01Frame0", -16, -48, 32, 56, 7 },
+    { gSor1ll01Tiles, gSor1ll01Frame1, "gSor1ll01Frame1", -24, -48, 40, 56, 7 },
+    { gSor1ll01Tiles, gSor1ll01Frame2, "gSor1ll01Frame2", -16, -48, 32, 56, 7 },
+    { gSor1ll01Tiles, gSor1ll01Frame3, "gSor1ll01Frame3", -16, -48, 32, 56, 7 },
+    { gSor1ll01Tiles, gSor1ll01Frame4, "gSor1ll01Frame4", -16, -48, 32, 56, 7 },
+    { gSor1ll01Tiles, gSor1ll01Frame5, "gSor1ll01Frame5", -24, -48, 40, 56, 7 },
+    { gSor1ll01Tiles, gSor1ll01Frame6, "gSor1ll01Frame6", -16, -48, 32, 56, 7 },
+    { gSor1ll01Tiles, gSor1ll01Frame7, "gSor1ll01Frame7", -16, -48, 32, 56, 7 },
+    { gSor1bl00Tiles, gSor1bl00Frame0, "gSor1bl00Frame0", -16, -48, 32, 56, 7 },
+    { gSor1bl01Tiles, gSor1bl01Frame0, "gSor1bl01Frame0", -16, -46, 32, 48, 7 },
+    { gSor1bl01Tiles, gSor1bl01Frame1, "gSor1bl01Frame1", -16, -46, 32, 48, 7 },
+    { gSor1bl01Tiles, gSor1bl01Frame2, "gSor1bl01Frame2", -16, -45, 32, 48, 7 },
+    { gSor1bl01Tiles, gSor1bl01Frame3, "gSor1bl01Frame3", -16, -44, 32, 48, 7 },
+    { gSor1bl01Tiles, gSor1bl01Frame4, "gSor1bl01Frame4", -16, -44, 32, 56, 7 },
+    { gSor1bl01Tiles, gSor1bl01Frame5, "gSor1bl01Frame5", -16, -44, 32, 56, 7 },
+    { gSor1bl01Tiles, gSor1bl01Frame6, "gSor1bl01Frame6", -16, -48, 32, 56, 7 },
+    { gSor1bl01Tiles, gSor1bl01Frame7, "gSor1bl01Frame7", -16, -48, 32, 56, 7 },
 };

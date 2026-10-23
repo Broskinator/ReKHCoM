@@ -248,7 +248,7 @@ static const Setting kSettings[] = {
     { "experimental_hide_touch_controls", 0 },
     { "config_version", PORT_ZOOM_CONFIG_VERSION }, { "view_mode", 4 },   { "zoom", PORT_ZOOM_DEFAULT },         { "scale_mode", 0 },
     { "filter", 0 },         { "fullscreen", 0 },  { "vsync", 1 },        { "hud_size", 1 },
-    { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 }, { "experimental_frame_skip", 1 }, { "discord_presence", 1 }, { "hd_movies", 1 }, { "hd_music", 1 }, { "hd_scenes", 0 }, { "hd_subtitles", 1 }, { "hd_cards", 0 }, { "hd_portraits", 0 }, { "hd_title", 0 },
+    { "narrow_fit", 1 },     { "scanlines", 0 },   { "color_correction", 0 }, { "show_fps", 0 }, { "experimental_frame_skip", 1 }, { "discord_presence", 1 }, { "hd_movies", 1 }, { "hd_music", 1 }, { "hd_scenes", 0 }, { "hd_subtitles", 1 }, { "hd_cards", 0 }, { "hd_portraits", 0 }, { "hd_world_sprites", 0 }, { "hd_title", 0 },
     { "graphics_mode", 0 }, { "graphics_mode_applied", 0 }, { "gba_border", 0 },
     { "window_scale", 4 },   { "fullscreen_width", 0 }, { "fullscreen_height", 0 },
     { "master_volume", 100 }, { "music_volume", 100 }, { "sfx_volume", 100 },
@@ -1279,6 +1279,10 @@ static void PageGraphics() {
                        T("Escala de píxeles: x4 amplía cada píxel cuatro veces. Menos aumento muestra más mundo y exige más al PC.",
                          "Pixel scale: x4 enlarges each pixel four times. Lower scales show more world and cost more CPU."),
                        Ini("zoom"), false);
+    changed |= CycleRow(T("Sprites del mundo HD (piloto)", "HD world sprites (pilot)"),
+                        T("Prototipo parcial: poses sin textura conservan el original.",
+                          "Partial prototype: poses without replacement art keep the original sprite."),
+                        Ini("hd_world_sprites"), 2, onoff);
     changed |= CycleRow(T("Retratos HD (piloto)", "HD portraits (pilot)"),
                         T("Texturas de retratos redibujadas. Cobertura actual: tres expresiones de Sora.",
                           "Redrawn portrait textures. Current coverage: Sora's three expressions."),

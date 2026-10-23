@@ -17,6 +17,7 @@
  */
 #include <SDL3/SDL.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "port/port.h"
@@ -61,6 +62,7 @@ static int sDrawCount[HD_LAYERS];
 
 static int GroupOn(int group) {
     switch (group) {
+    case 7: return gPortConfig.hdWorldSprites;
     case 1: return gPortConfig.hdCards;
     case 2: return gPortConfig.hdTitle;
     case 3: return gPortConfig.hdCards || gPortConfig.hdPortraits; /* the battle HUD's faces and words go with the cards */
@@ -84,9 +86,11 @@ const char* PortHdSpritePath(char* file, size_t size, const char* name) {
     return PortConfigPath(file);
 }
 
+static int Load(int i);
+
 int PortHdSpriteFind(const void* tiles, const void* frame) {
     int i;
-    if (!tiles || (!gPortConfig.hdCards && !gPortConfig.hdTitle && !gPortConfig.hdPortraits))
+    if (!tiles || (!gPortConfig.hdCards && !gPortConfig.hdTitle && !gPortConfig.hdPortraits && !gPortConfig.hdWorldSprites))
         return 0;
     for (i = 0; i < HD_SPRITE_COUNT; i++) {
         const HdSpriteDef* d = &kHdSprites[i];
@@ -98,6 +102,11 @@ int PortHdSpriteFind(const void* tiles, const void* frame) {
             f = fopen(SpritePath(file, sizeof(file), d->name), "rb");
             sState[i].present = f ? 2 : 1;
             if (f) fclose(f);
+        }
+        /* Validate a world replacement before suppressing the native sprite.
+           Malformed art/fitting metadata must keep the playable character visible. */
+        if (d->group == 7 && sState[i].present == 2) {
+            if (!sRenderer || (!sState[i].image && !Load(i))) return 0;
         }
         return sState[i].present == 2 ? i + 1 : 0;
     }
@@ -135,6 +144,46 @@ static void Unload(int i) {
     sState[i].bytes = 0;
 }
 
+/* Optional .fit sidecar: source pixel box, then destination logical box.
+ * Art is placed inside the original frame canvas, keeping its game anchor.
+ * Existing imported artwork without a sidecar follows its original path. */
+static int FitSprite(int id, unsigned char** pixels, int* width, int* height) {
+    char file[512], image[480];
+    FILE* f;
+    SDL_Rect src, dst;
+    SDL_Surface *input, *output;
+    unsigned char* fitted;
+    int w = kHdSprites[id].w * 16, h = kHdSprites[id].h * 16, y;
+    SDL_snprintf(file, sizeof(file), "%s.fit", SpritePath(image, sizeof(image), kHdSprites[id].name));
+    f = fopen(file, "r");
+    if (!f) return 1;
+    y = fscanf(f, "%d %d %d %d %d %d %d %d", &src.x,&src.y,&src.w,&src.h,&dst.x,&dst.y,&dst.w,&dst.h);
+    fclose(f);
+    if (y != 8 || src.x < 0 || src.y < 0 || src.w <= 0 || src.h <= 0 ||
+        src.w > *width || src.h > *height || src.x > *width-src.w || src.y > *height-src.h ||
+        dst.x < 0 || dst.y < 0 || dst.w <= 0 || dst.h <= 0 ||
+        dst.w > kHdSprites[id].w || dst.h > kHdSprites[id].h ||
+        dst.x > kHdSprites[id].w-dst.w || dst.y > kHdSprites[id].h-dst.h || w > 4096 || h > 4096)
+        return 0;
+    dst.x *= 16; dst.y *= 16; dst.w *= 16; dst.h *= 16;
+    input = SDL_CreateSurfaceFrom(*width,*height,SDL_PIXELFORMAT_RGBA32,*pixels,*width*4);
+    output = SDL_CreateSurface(w,h,SDL_PIXELFORMAT_RGBA32);
+    if (!input || !output) { SDL_DestroySurface(input); SDL_DestroySurface(output); return 0; }
+    SDL_ClearSurface(output,0,0,0,0);
+    SDL_SetSurfaceBlendMode(input,SDL_BLENDMODE_NONE);
+    if (!SDL_BlitSurfaceScaled(input,&src,output,&dst,SDL_SCALEMODE_LINEAR)) {
+        SDL_DestroySurface(input); SDL_DestroySurface(output); return 0;
+    }
+    fitted = malloc((size_t)w*h*4);
+    if (fitted) {
+        for (y=0;y<h;y++) memcpy(fitted+(size_t)y*w*4,(unsigned char*)output->pixels+(size_t)y*output->pitch,(size_t)w*4);
+    }
+    SDL_DestroySurface(input); SDL_DestroySurface(output);
+    if (!fitted) return 0;
+    stbi_image_free(*pixels); *pixels=fitted; *width=w; *height=h;
+    return 1;
+}
+
 static int Load(int i) {
     char file[160];
     int w, h, n, k;
@@ -146,6 +195,12 @@ static int Load(int i) {
         if (px) stbi_image_free(px);
         sState[i].present = 1;
         PortLog("HD sprites: %s unreadable, the cartridge's sprite stays", file);
+        return 0;
+    }
+    if (!FitSprite(i, &px, &w, &h)) {
+        stbi_image_free(px);
+        sState[i].present = 1;
+        PortLog("HD sprites: invalid fitting metadata for %s", kHdSprites[i].name);
         return 0;
     }
     need = (size_t)w * h * 8;

@@ -1,0 +1,2157 @@
+[
+  {
+    "name": "gSor1bb00Frame0",
+    "frame": "gSor1bb00Frame0",
+    "tiles": "gSor1bb00Tiles",
+    "direction": "bb",
+    "action": "idle",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        4
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bb01Frame0",
+    "frame": "gSor1bb01Frame0",
+    "tiles": "gSor1bb01Tiles",
+    "direction": "bb",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bb01Frame1",
+    "frame": "gSor1bb01Frame1",
+    "tiles": "gSor1bb01Tiles",
+    "direction": "bb",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bb01Frame2",
+    "frame": "gSor1bb01Frame2",
+    "tiles": "gSor1bb01Tiles",
+    "direction": "bb",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bb01Frame3",
+    "frame": "gSor1bb01Frame3",
+    "tiles": "gSor1bb01Tiles",
+    "direction": "bb",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bb01Frame4",
+    "frame": "gSor1bb01Frame4",
+    "tiles": "gSor1bb01Tiles",
+    "direction": "bb",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bb01Frame5",
+    "frame": "gSor1bb01Frame5",
+    "tiles": "gSor1bb01Tiles",
+    "direction": "bb",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bb01Frame6",
+    "frame": "gSor1bb01Frame6",
+    "tiles": "gSor1bb01Tiles",
+    "direction": "bb",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bb01Frame7",
+    "frame": "gSor1bb01Frame7",
+    "tiles": "gSor1bb01Tiles",
+    "direction": "bb",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ff00Frame0",
+    "frame": "gSor1ff00Frame0",
+    "tiles": "gSor1ff00Tiles",
+    "direction": "ff",
+    "action": "idle",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        4
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ff01Frame0",
+    "frame": "gSor1ff01Frame0",
+    "tiles": "gSor1ff01Tiles",
+    "direction": "ff",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ff01Frame1",
+    "frame": "gSor1ff01Frame1",
+    "tiles": "gSor1ff01Tiles",
+    "direction": "ff",
+    "action": "walk",
+    "box": [
+      -16,
+      -47,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ff01Frame2",
+    "frame": "gSor1ff01Frame2",
+    "tiles": "gSor1ff01Tiles",
+    "direction": "ff",
+    "action": "walk",
+    "box": [
+      -16,
+      -47,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ff01Frame3",
+    "frame": "gSor1ff01Frame3",
+    "tiles": "gSor1ff01Tiles",
+    "direction": "ff",
+    "action": "walk",
+    "box": [
+      -16,
+      -47,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ff01Frame4",
+    "frame": "gSor1ff01Frame4",
+    "tiles": "gSor1ff01Tiles",
+    "direction": "ff",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ff01Frame5",
+    "frame": "gSor1ff01Frame5",
+    "tiles": "gSor1ff01Tiles",
+    "direction": "ff",
+    "action": "walk",
+    "box": [
+      -16,
+      -47,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ff01Frame6",
+    "frame": "gSor1ff01Frame6",
+    "tiles": "gSor1ff01Tiles",
+    "direction": "ff",
+    "action": "walk",
+    "box": [
+      -16,
+      -47,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ff01Frame7",
+    "frame": "gSor1ff01Frame7",
+    "tiles": "gSor1ff01Tiles",
+    "direction": "ff",
+    "action": "walk",
+    "box": [
+      -16,
+      -47,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1fl00Frame0",
+    "frame": "gSor1fl00Frame0",
+    "tiles": "gSor1fl00Tiles",
+    "direction": "fl",
+    "action": "idle",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        4
+      ]
+    ]
+  },
+  {
+    "name": "gSor1fl01Frame0",
+    "frame": "gSor1fl01Frame0",
+    "tiles": "gSor1fl01Tiles",
+    "direction": "fl",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1fl01Frame1",
+    "frame": "gSor1fl01Frame1",
+    "tiles": "gSor1fl01Tiles",
+    "direction": "fl",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1fl01Frame2",
+    "frame": "gSor1fl01Frame2",
+    "tiles": "gSor1fl01Tiles",
+    "direction": "fl",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1fl01Frame3",
+    "frame": "gSor1fl01Frame3",
+    "tiles": "gSor1fl01Tiles",
+    "direction": "fl",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1fl01Frame4",
+    "frame": "gSor1fl01Frame4",
+    "tiles": "gSor1fl01Tiles",
+    "direction": "fl",
+    "action": "walk",
+    "box": [
+      -16,
+      -43,
+      32,
+      48
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1fl01Frame5",
+    "frame": "gSor1fl01Frame5",
+    "tiles": "gSor1fl01Tiles",
+    "direction": "fl",
+    "action": "walk",
+    "box": [
+      -24,
+      -43,
+      40,
+      48
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1fl01Frame6",
+    "frame": "gSor1fl01Frame6",
+    "tiles": "gSor1fl01Tiles",
+    "direction": "fl",
+    "action": "walk",
+    "box": [
+      -16,
+      -42,
+      32,
+      48
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1fl01Frame7",
+    "frame": "gSor1fl01Frame7",
+    "tiles": "gSor1fl01Tiles",
+    "direction": "fl",
+    "action": "walk",
+    "box": [
+      -16,
+      -43,
+      32,
+      48
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ll00Frame0",
+    "frame": "gSor1ll00Frame0",
+    "tiles": "gSor1ll00Tiles",
+    "direction": "ll",
+    "action": "idle",
+    "box": [
+      -15,
+      -47,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        4
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ll01Frame0",
+    "frame": "gSor1ll01Frame0",
+    "tiles": "gSor1ll01Tiles",
+    "direction": "ll",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ll01Frame1",
+    "frame": "gSor1ll01Frame1",
+    "tiles": "gSor1ll01Tiles",
+    "direction": "ll",
+    "action": "walk",
+    "box": [
+      -24,
+      -48,
+      40,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ll01Frame2",
+    "frame": "gSor1ll01Frame2",
+    "tiles": "gSor1ll01Tiles",
+    "direction": "ll",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ll01Frame3",
+    "frame": "gSor1ll01Frame3",
+    "tiles": "gSor1ll01Tiles",
+    "direction": "ll",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ll01Frame4",
+    "frame": "gSor1ll01Frame4",
+    "tiles": "gSor1ll01Tiles",
+    "direction": "ll",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ll01Frame5",
+    "frame": "gSor1ll01Frame5",
+    "tiles": "gSor1ll01Tiles",
+    "direction": "ll",
+    "action": "walk",
+    "box": [
+      -24,
+      -48,
+      40,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ll01Frame6",
+    "frame": "gSor1ll01Frame6",
+    "tiles": "gSor1ll01Tiles",
+    "direction": "ll",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1ll01Frame7",
+    "frame": "gSor1ll01Frame7",
+    "tiles": "gSor1ll01Tiles",
+    "direction": "ll",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bl00Frame0",
+    "frame": "gSor1bl00Frame0",
+    "tiles": "gSor1bl00Tiles",
+    "direction": "bl",
+    "action": "idle",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        4
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bl01Frame0",
+    "frame": "gSor1bl01Frame0",
+    "tiles": "gSor1bl01Tiles",
+    "direction": "bl",
+    "action": "walk",
+    "box": [
+      -16,
+      -46,
+      32,
+      48
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bl01Frame1",
+    "frame": "gSor1bl01Frame1",
+    "tiles": "gSor1bl01Tiles",
+    "direction": "bl",
+    "action": "walk",
+    "box": [
+      -16,
+      -46,
+      32,
+      48
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bl01Frame2",
+    "frame": "gSor1bl01Frame2",
+    "tiles": "gSor1bl01Tiles",
+    "direction": "bl",
+    "action": "walk",
+    "box": [
+      -16,
+      -45,
+      32,
+      48
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bl01Frame3",
+    "frame": "gSor1bl01Frame3",
+    "tiles": "gSor1bl01Tiles",
+    "direction": "bl",
+    "action": "walk",
+    "box": [
+      -16,
+      -44,
+      32,
+      48
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bl01Frame4",
+    "frame": "gSor1bl01Frame4",
+    "tiles": "gSor1bl01Tiles",
+    "direction": "bl",
+    "action": "walk",
+    "box": [
+      -16,
+      -44,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bl01Frame5",
+    "frame": "gSor1bl01Frame5",
+    "tiles": "gSor1bl01Tiles",
+    "direction": "bl",
+    "action": "walk",
+    "box": [
+      -16,
+      -44,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bl01Frame6",
+    "frame": "gSor1bl01Frame6",
+    "tiles": "gSor1bl01Tiles",
+    "direction": "bl",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  },
+  {
+    "name": "gSor1bl01Frame7",
+    "frame": "gSor1bl01Frame7",
+    "tiles": "gSor1bl01Tiles",
+    "direction": "bl",
+    "action": "walk",
+    "box": [
+      -16,
+      -48,
+      32,
+      56
+    ],
+    "anim_origin": [
+      64,
+      64
+    ],
+    "steps": [
+      [
+        0,
+        7
+      ],
+      [
+        1,
+        7
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        7
+      ],
+      [
+        4,
+        7
+      ],
+      [
+        5,
+        7
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        7
+      ]
+    ]
+  }
+]

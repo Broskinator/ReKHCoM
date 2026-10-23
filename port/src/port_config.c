@@ -126,6 +126,7 @@ static const Key sKeys[] = {
     { "hd_subtitles", &gPortConfig.hdSubtitles, 0, 1 },
     { "hd_cards", &gPortConfig.hdCards, 0, 1 },
     { "hd_portraits", &gPortConfig.hdPortraits, 0, 1 },
+    { "hd_world_sprites", &gPortConfig.hdWorldSprites, 0, 1 },
     { "hd_title", &gPortConfig.hdTitle, 0, 1 },
     { "graphics_mode", &gPortConfig.graphicsMode, 0, PORT_MODE_COUNT - 1 },
     { "graphics_mode_applied", &gPortConfig.graphicsModeApplied, 0, PORT_MODE_COUNT - 1 },
