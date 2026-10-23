@@ -139,14 +139,14 @@ public class LauncherActivity extends Activity {
             if(!temp.renameTo(target))throw new IOException("No se pudo guardar la partida");
         }finally{if(temp.exists())temp.delete();}
     }
-    /* HD mod (port/progress/HD_MOD.md): the PC launcher's hd folder → files/hd: music (.ogg + .loop), movies (.mp4)
+    /* HD mod (port/progress/HD_MOD.md): the PC launcher's hd folder → files/hd: music (.ogg + .loop), movies and scenes (.mp4)
        their subtitles (.txt) and the HD cards/title/HUD pictures (sprites/*.png), whichever are there. Each file lands whole (temp + rename); one already there with
        the same size is kept (a second import only adds what is new). */
-    private static final String[][] HD_PARTS={{"music","[A-Za-z0-9_]+[.](ogg|loop)"},{"movies","[A-Za-z0-9_]+[.]mp4"},{"subs","[A-Za-z0-9_]+[.][a-z]{2}[.]txt"},{"sprites","[A-Za-z0-9_]+[.]png"}};
+    private static final String[][] HD_PARTS={{"music","[A-Za-z0-9_]+[.](ogg|loop)"},{"movies","[A-Za-z0-9_]+[.]mp4"},{"scenes","[A-Za-z0-9_]+[.]mp4"},{"subs","[A-Za-z0-9_]+[.][a-z]{2}[.]txt"},{"sprites","[A-Za-z0-9_]+[.]png"}};
     private String importHd(Uri tree)throws Exception{
         android.content.ContentResolver resolver=getContentResolver();
         String root=android.provider.DocumentsContract.getTreeDocumentId(tree);
-        if(child(resolver,tree,root,"music")==null&&child(resolver,tree,root,"movies")==null&&child(resolver,tree,root,"sprites")==null){String hd=child(resolver,tree,root,"hd");if(hd!=null)root=hd;}
+        if(child(resolver,tree,root,"music")==null&&child(resolver,tree,root,"movies")==null&&child(resolver,tree,root,"scenes")==null&&child(resolver,tree,root,"sprites")==null){String hd=child(resolver,tree,root,"hd");if(hd!=null)root=hd;}
         java.util.List<String[]> files=new java.util.ArrayList<>(); // document id, folder, name, size
         long total=0,copied=0;
         for(String[] part:HD_PARTS){
@@ -156,7 +156,7 @@ public class LauncherActivity extends Activity {
                 while(c!=null&&c.moveToNext()){String name=c.getString(1);if(name!=null&&name.matches(part[1])){files.add(new String[]{c.getString(0),part[0],name,Long.toString(c.getLong(2))});total+=c.getLong(2);}}
             }
         }
-        if(files.isEmpty())throw new IOException(t("no hay una carpeta hd con music, movies, subs o sprites dentro","there is no hd folder with music, movies, subs or sprites inside"));
+        if(files.isEmpty())throw new IOException(t("no hay una carpeta hd con music, movies, scenes, subs o sprites dentro","there is no hd folder with music, movies, scenes, subs or sprites inside"));
         int tracks=0,movies=0;
         for(String[] f:files){
             File dir=new File(getFilesDir(),"hd/"+f[1]);if(!dir.isDirectory()&&!dir.mkdirs())throw new IOException("hd/"+f[1]);

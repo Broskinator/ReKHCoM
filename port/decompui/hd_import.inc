@@ -1,6 +1,7 @@
 /* HD mod importer (port/progress/HD_MOD.md): takes the Re:Chain of Memories movies and soundtrack from the player's
  * own KINGDOM HEARTS -HD 1.5+2.5 ReMIX- (Steam or Epic, found by itself or chosen), or from a folder with those files
- * loose, and writes plain files the game plays: hd/movies/<name>.mp4, hd/subs/<movie>.<lang>.txt,
+ * loose, and writes plain files the game plays: hd/movies/<name>.mp4 (opening, credits, endings), hd/scenes/
+ * zz_event_<n>.mp4 (the story scenes), hd/subs/<movie>.<lang>.txt,
  * hd/music/<track>.ogg + .loop and hd/sprites/<sprite>.png (HD cards, port_hdsprites.c).
  *
  * Formats (port/tools/khhd_pkg.py, khhd_scd.py and khhd_import.py are the Python reference):
@@ -1004,12 +1005,31 @@ static void WriteTrack(const fs::path& folder, const std::string& name, const st
 }
 
 /* source: an installation, or a folder with the movies and/or the soundtrack loose (.mp4, .scd or .ogg). */
+/* The story scenes go to hd/scenes (23/10); an import made before keeps them in hd/movies: they move over once
+   (a rename, nothing copied). The game still finds a scene left in hd/movies. */
+static void MoveScenes(const fs::path& hdDir) {
+    std::error_code ec;
+    fs::path from = hdDir / "movies", to = hdDir / "scenes";
+    if (!fs::is_directory(from, ec))
+        return;
+    for (const auto& f : fs::directory_iterator(from, ec)) {
+        std::string name = f.path().filename().string();
+        if (f.path().extension() != ".mp4" || name.rfind("zz_event_", 0) != 0)
+            continue;
+        fs::create_directories(to, ec);
+        if (!fs::exists(to / name, ec))
+            fs::rename(f.path(), to / name, ec);
+    }
+}
+
 static void Run(fs::path source, fs::path data, bool movies, bool scenes, bool music, bool sprites) {
     std::error_code ec;
-    fs::path outMovies = data / "hd" / "movies", outMusic = data / "hd" / "music";
+    fs::path outMovies = data / "hd" / "movies", outScenes = data / "hd" / "scenes", outMusic = data / "hd" / "music";
+    MoveScenes(data / "hd");
     int imported = 0;
     if (movies || scenes) {
         fs::create_directories(outMovies, ec);
+        fs::create_directories(outScenes, ec);
         fs::path folder = MovieFolder(source);
         if (folder.empty())
             folder = source;
@@ -1024,7 +1044,7 @@ static void Run(fs::path source, fs::path data, bool movies, bool scenes, bool m
         sJob.total += (int)list.size();
         for (const fs::path& f : list) {
             sJob.Say(std::string(T("Copiando ", "Copying ")) + f.filename().string());
-            if (CopyMovie(f, outMovies / f.filename()))
+            if (CopyMovie(f, (f.filename().string().rfind("zz_event_", 0) == 0 ? outScenes : outMovies) / f.filename()))
                 imported++;
             sJob.done++;
         }
@@ -1139,18 +1159,22 @@ static fs::path PickFolder() {
 /* The launcher card: find or choose the source, import, and the three switches. */
 static bool HdModCard() {
     static fs::path source;
-    static bool searched;
+    static bool searched, sScenesMoved;
     bool changed = false;
     if (!searched) {
         searched = true;
         source = hd::FindInstall();
     }
+    if (!sScenesMoved) {
+        sScenesMoved = true;
+        hd::MoveScenes(sRoot / "hd");
+    }
     fs::path movies = sRoot / "hd" / "movies", music = sRoot / "hd" / "music";
-    int haveMovies = hd::Count(movies, ".mp4"), haveTracks = hd::Count(music, ".ogg");
+    int haveScenes = hd::Count(sRoot / "hd" / "scenes", ".mp4");
+    int haveMovies = hd::Count(movies, ".mp4") + haveScenes, haveTracks = hd::Count(music, ".ogg");
     int haveSprites = hd::Count(sRoot / "hd" / "sprites", ".png");
     std::error_code ec;
     bool haveBase = fs::exists(movies / "ROP.mp4", ec);
-    int haveScenes = haveMovies - (int)haveBase - (int)fs::exists(movies / "RSE.mp4", ec) - (int)fs::exists(movies / "RRE.mp4", ec);
 
     Eyebrow(T("MOD HD (BETA) · KINGDOM HEARTS 1.5+2.5", "HD MOD (BETA) · KINGDOM HEARTS 1.5+2.5"));
     ImGui::TextWrapped("%s", T("Usa los videos y la banda sonora de Re:Chain of Memories de tu Kingdom Hearts HD 1.5+2.5 ReMIX "

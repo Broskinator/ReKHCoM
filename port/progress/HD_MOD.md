@@ -33,7 +33,9 @@ escenas del 1.5 según #25 (por confirmar mirando). RLP: bucle del menú de tít
 1. **Importar (launcher, Windows primero):** detectar la instalación (bibliotecas de Steam en
    `libraryfolders.vdf`, Epic en sus manifiestos, o carpeta elegida, o carpeta con MP4/OGG ya
    sueltos). Copiar y descifrar a `<datos de ReKHCoM>/hd/movies/*.mp4` (mod base: ROP, RSE, RRE,
-   ~1,2 GB; mod completo: las escenas, ~7 GB) y convertir la música a `hd/music/*.ogg`. Lo importado
+   ~1,2 GB) y `hd/scenes/zz_event_*.mp4` (las escenas: las de los finales con el mod base, todas con el completo, ~7 GB;
+   desde el 23/10; una importación anterior las tenía en `hd/movies`, el launcher las mueve y el juego las
+   busca en las dos) y convertir la música a `hd/music/*.ogg`. Lo importado
    es estándar: para Android se copia la carpeta `hd` al teléfono (el launcher de Android puede
    importarla con el selector de carpetas).
 2. **Juego:** al pedir un video de GBA, si existe el MP4 importado y la opción está activa, se

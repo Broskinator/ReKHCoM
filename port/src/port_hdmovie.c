@@ -1,6 +1,6 @@
 /*
  * HD movies (port/progress/HD_MOD.md): the Re:Chain of Memories movies of the player's own KINGDOM HEARTS -HD
- * 1.5+2.5 ReMIX-, imported by the launcher as hd/movies/<name>.mp4, play in place of the cartridge's movies.
+ * 1.5+2.5 ReMIX-, imported by the launcher as hd/movies/<name>.mp4 (the story scenes: hd/scenes), play in place of the cartridge's movies.
  *
  * mode_movie.c calls PortHdMoviePlay when a movie starts: if the movie has an imported file and hd_movies is on, the
  * whole movie plays here (the window's renderer, an audio stream of its own) and the game goes on as when its own
@@ -19,7 +19,24 @@
 #include "port/port.h"
 
 #if defined(_WIN32) || defined(__ANDROID__) || defined(PORT_ANDROID64)
+#include <stdio.h>
+#include <string.h>
 static int PlayFile(const char* name);
+
+/* Re:CoM's story scenes (zz_event_*) live in hd/scenes, the opening, credits and endings in hd/movies; a scene
+   imported before 23/10 sits in hd/movies and is still found there. */
+static void MoviePath(const char* name, char* out, size_t size) {
+    if (strncmp(name, "zz_event_", 9) == 0) {
+        FILE* f;
+        snprintf(out, size, "%s%s.mp4", PortConfigPath("hd/scenes/"), name);
+        f = fopen(out, "rb");
+        if (f) {
+            fclose(f);
+            return;
+        }
+    }
+    snprintf(out, size, "%s%s.mp4", PortConfigPath("hd/movies/"), name);
+}
 
 /* include/evt/mode_movie.h: MOVIE_OPENING 1, MOVIE_6F_GOAL, MOVIE_12F_E2, MOVIE_ENDING, MOVIE_RIKU_ENDING */
 static const char* MovieFile(int movieId) {
@@ -433,7 +450,7 @@ static void DrawSubs(Subs* s, SDL_Renderer* renderer, LONGLONG clock, const SDL_
     SDL_RenderTexture(renderer, s->texture, NULL, &dst);
 }
 
-/* Plays hd/movies/<name>.mp4 to the end (or until skipped). 0: nothing imported or it could not be opened. */
+/* Plays hd/movies/<name>.mp4 (a scene: hd/scenes, MoviePath) to the end (or until skipped). 0: nothing imported or it could not be opened. */
 static int PlayFile(const char* name) {
     char path[1024];
     WCHAR wpath[1024];
@@ -458,9 +475,7 @@ static int PlayFile(const char* name) {
 
     if (name == NULL || renderer == NULL)
         return 0;
-    SDL_snprintf(path, sizeof(path), "%s", PortConfigPath("hd/movies/"));
-    SDL_strlcat(path, name, sizeof(path));
-    SDL_strlcat(path, ".mp4", sizeof(path));
+    MoviePath(name, path, sizeof(path));
     if (GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES)
         return 0;
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, 1024);
@@ -823,12 +838,12 @@ void HdMovieLog(const char* fmt, ...) {
 }
 #endif
 
-/* Plays hd/movies/<name>.mp4 to the end (or until skipped). 0: nothing imported or it could not be opened. */
+/* Plays hd/movies/<name>.mp4 (a scene: hd/scenes, MoviePath) to the end (or until skipped). 0: nothing imported or it could not be opened. */
 static int PlayFile(const char* name) {
     char path[512], subs[2][512], font[512];
     const char* order[2];
     int i, played;
-    SDL_snprintf(path, sizeof(path), "%s%s.mp4", PortConfigPath("hd/movies/"), name);
+    MoviePath(name, path, sizeof(path));
     SubsOrder(order);
     for (i = 0; i < 2; i++)
         SDL_snprintf(subs[i], sizeof(subs[i]), "%s%s.%s.txt", PortConfigPath("hd/subs/"), name, order[i]);

@@ -117,7 +117,7 @@ def main():
     numbers = event_numbers(args.version)
     scenes, extras, endings = scene_map()
     menu = {name: (l, i) for l, i, name in event_lists()}
-    have = {p.stem for p in Path(args.hd, "movies").glob("*.mp4")}
+    have = {p.stem for d in ("movies", "scenes") for p in Path(args.hd, d).glob("*.mp4")}
 
     lines, cases = [], []
     if args.only:

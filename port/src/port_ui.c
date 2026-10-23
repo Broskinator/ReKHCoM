@@ -208,7 +208,8 @@ static int ItemVisible(int item) {
         case ITEM_HD_MOVIES: return HdImported("hd/movies/ROP.mp4");
         case ITEM_HD_MUSIC: return HdImported("hd/music/Title.ogg");
         case ITEM_HD_SCENES:
-        case ITEM_PS2_HDSCENES: return HdImported("hd/movies/zz_event_011.mp4");
+        case ITEM_PS2_HDSCENES: /* hd/scenes since 23/10; an older import keeps them in hd/movies */
+            return HdImported("hd/scenes/zz_event_011.mp4") || HdImported("hd/movies/zz_event_011.mp4");
         case ITEM_HD_SUBTITLES: return HdImported("hd/subs/ROP.us.txt");
         case ITEM_HD_CARDS: return HdImported("hd/sprites/gCardWep01Tiles.png");
         case ITEM_HD_TITLE: return HdImported("hd/sprites/gTitleLogoHeartTiles.png");
