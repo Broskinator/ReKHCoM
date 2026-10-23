@@ -218,8 +218,7 @@ static int ItemVisible(int item) {
            with the save, as in the original: no switch for them here */
         case ITEM_PS2_MODE:
         case ITEM_PS2_MENU: return 0;
-        /* settings of our own, not the player's to tune */
-        case ITEM_FILTER:
+        case ITEM_FILTER: return 1; /* allow comparing the graphics filter during play */
         case ITEM_CARDS: return 0;
         case ITEM_NG_VERSION: return 1;
         case ITEM_NG_DIFFICULTY: return sNgRecom;

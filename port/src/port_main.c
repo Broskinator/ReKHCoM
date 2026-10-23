@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include "port/port.h"
-#include "port/port_scale2x.h"
+#include "port/port_scale2x_sdl.h"
 #include "mode.h"
 #include "port/port_aspect.h"
 #include "port/port_hd2d.h"
@@ -250,52 +250,42 @@ static SDL_ScaleMode sPictureScaleMode = SDL_SCALEMODE_NEAREST; /* sTexture's sc
 static SDL_Texture* sMainOverTexture; /* the picture's pixels in front of its HD sprites */
 static int sMainOverW, sMainOverH;
 
-/* Optional edge-aware reconstruction; source coordinates stay in game pixels. */
-static SDL_Texture* sUpscaleTexture;
-static uint32_t* sUpscalePixels;
-static int sUpscaleW, sUpscaleH;
+/* Keep independently composited pixel layers aligned with the game picture. */
+enum { UPSCALE_PICTURE, UPSCALE_MAIN_OVER, UPSCALE_MENU, UPSCALE_MENU_OVER,
+       UPSCALE_HUD, UPSCALE_HUD_OVER, UPSCALE_NOTICE, UPSCALE_SKIP,
+       UPSCALE_MARGIN_LEFT, UPSCALE_MARGIN_RIGHT, UPSCALE_FADE_LEFT, UPSCALE_FADE_RIGHT, UPSCALE_COUNT };
+static PortUpscaleLayer sUpscale[UPSCALE_COUNT];
 
-static void UploadUpscale(const uint32_t* pixels) {
-    int w = gPortScreen.width, h = gPortScreen.height;
-    if (gPortConfig.filter != PORT_FILTER_SCALE2X) return;
-    if (w != sUpscaleW || h != sUpscaleH) {
-        SDL_DestroyTexture(sUpscaleTexture);
-        SDL_free(sUpscalePixels);
-        sUpscaleTexture = SDL_CreateTexture(sRenderer, SDL_PIXELFORMAT_XRGB8888,
-                                           SDL_TEXTUREACCESS_STREAMING, w*2, h*2);
-        sUpscalePixels = SDL_malloc((size_t)w*h*16);
-        sUpscaleW = w; sUpscaleH = h;
-    }
-    if (!sUpscaleTexture || !sUpscalePixels) return; /* original remains available */
-    PortScale2x(pixels, w, h, sUpscalePixels);
-    SDL_UpdateTexture(sUpscaleTexture, NULL, sUpscalePixels, w*8);
-    SDL_SetTextureScaleMode(sUpscaleTexture, SDL_SCALEMODE_LINEAR);
+static void UploadLayer(int id, const uint32_t* pixels, int w, int h, int alpha) {
+    PortUpscaleUpload(&sUpscale[id], sRenderer, pixels, w, h,
+        alpha ? SDL_PIXELFORMAT_ARGB8888 : SDL_PIXELFORMAT_XRGB8888,
+        gPortConfig.filter == PORT_FILTER_SCALE2X);
 }
-
-static SDL_Texture* PictureSource(const SDL_FRect* src, SDL_FRect* scaled) {
-    if (src) *scaled = *src;
-    if (gPortConfig.filter == PORT_FILTER_SCALE2X && sUpscaleTexture && sUpscalePixels) {
-        if (src) { scaled->x *= 2; scaled->y *= 2; scaled->w *= 2; scaled->h *= 2; }
-        return sUpscaleTexture;
-    }
-    return sTexture;
+static bool DrawLayer(int id, SDL_Texture* texture, const SDL_FRect* src, const SDL_FRect* dst) {
+    SDL_FRect scaled;
+    texture = PortUpscaleSource(&sUpscale[id], texture, src, &scaled,
+                                gPortConfig.filter == PORT_FILTER_SCALE2X);
+    return SDL_RenderTexture(sRenderer, texture, src ? &scaled : NULL, dst);
 }
 static bool DrawPicture(SDL_Renderer* renderer, SDL_Texture* texture,
                         const SDL_FRect* src, const SDL_FRect* dst) {
-    SDL_FRect scaled;
-    texture = PictureSource(src, &scaled);
-    return SDL_RenderTexture(renderer, texture, src ? &scaled : NULL, dst);
+    return DrawLayer(UPSCALE_PICTURE, texture, src, dst);
 }
 static bool DrawPictureRotated(SDL_Renderer* renderer, SDL_Texture* texture,
         const SDL_FRect* src, const SDL_FRect* dst, double angle,
         const SDL_FPoint* center, SDL_FlipMode flip) {
     SDL_FRect scaled;
-    texture = PictureSource(src, &scaled);
+    texture = PortUpscaleSource(&sUpscale[UPSCALE_PICTURE], texture, src, &scaled,
+                                gPortConfig.filter == PORT_FILTER_SCALE2X);
     return SDL_RenderTextureRotated(renderer, texture, src ? &scaled : NULL, dst, angle, center, flip);
 }
 
 static void EnsureTexture(void) {
     SDL_ScaleMode mode;
+    if (gPortConfig.filter != PORT_FILTER_SCALE2X) {
+        int i;
+        for (i = 0; i < UPSCALE_COUNT; ++i) PortUpscaleFree(&sUpscale[i]);
+    }
 
     if (sTexture != NULL && sTexW == gPortScreen.width && sTexH == gPortScreen.height)
         goto filter;
@@ -694,7 +684,7 @@ static int UniformPicture(const SDL_FRect* src, uint32_t* color) {
    give it: at a scale like 6.75 the scaler alone breaks ties between two
    columns differently for a texture placed elsewhere, shifting a margin's
    stipple by a pixel every few columns. */
-static void RenderMarginColumns(SDL_Texture* tex, int fw, int side, float picX, float y, float scale, float limit) {
+static void RenderMarginColumns(int layer, SDL_Texture* tex, int fw, int side, float picX, float y, float scale, float limit) {
     int xx;
     for (xx = 0; xx < fw; xx++) {
         int c = side < 0 ? xx - fw : GBA_SCREEN_W + xx;
@@ -713,7 +703,7 @@ static void RenderMarginColumns(SDL_Texture* tex, int fw, int side, float picX, 
         d.y = y;
         d.w = b - a;
         d.h = GBA_SCREEN_H * scale;
-        SDL_RenderTexture(sRenderer, tex, &src, &d);
+        DrawLayer(layer, tex, &src, &d);
     }
 }
 
@@ -778,11 +768,12 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
             }
         }
         SDL_UpdateTexture(sFadeSideTexture, NULL, pixels, fw * 4);
+        UploadLayer(UPSCALE_FADE_LEFT + (side > 0), pixels, fw, GBA_SCREEN_H, 0);
         /* on the picture's own pixel grid, anchored at its edge (see the
            menu style below), so the margin's columns and rows line up */
         SDL_SetTextureScaleMode(sFadeSideTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                            : SDL_SCALEMODE_PIXELART);
-        RenderMarginColumns(sFadeSideTexture, fw, side, side < 0 ? x1 : x0 - GBA_SCREEN_W * scale, y, scale, x1);
+        RenderMarginColumns(UPSCALE_FADE_LEFT + (side > 0), sFadeSideTexture, fw, side, side < 0 ? x1 : x0 - GBA_SCREEN_W * scale, y, scale, x1);
         return;
     }
     SDL_SetTextureScaleMode(sTexture, SDL_SCALEMODE_NEAREST);
@@ -936,9 +927,10 @@ static void SideBar(int sx, int sy, int side, float y, float scale, float x0, fl
                 }
             }
         SDL_UpdateTexture(sMenuSideTexture, NULL, strip, fw * 4);
+        UploadLayer(UPSCALE_MARGIN_LEFT + (side > 0), strip, fw, GBA_SCREEN_H, 0);
         SDL_SetTextureScaleMode(sMenuSideTexture, gPortConfig.filter == PORT_FILTER_LINEAR ? SDL_SCALEMODE_LINEAR
                                                                                            : SDL_SCALEMODE_PIXELART);
-        RenderMarginColumns(sMenuSideTexture, fw, side, side < 0 ? x1 : x0 - GBA_SCREEN_W * scale, y, scale, x1);
+        RenderMarginColumns(UPSCALE_MARGIN_LEFT + (side > 0), sMenuSideTexture, fw, side, side < 0 ? x1 : x0 - GBA_SCREEN_W * scale, y, scale, x1);
         return;
     }
     if (sSideStyle == 1) {
@@ -1364,12 +1356,13 @@ static void DrawSkipLayer(const SDL_FRect* normal) {
     if (!PortUiDrawSkipLayer(buf, bufW, bufH, r))
         return;
     SDL_UpdateTexture(tex, NULL, buf, bufW * 4);
+    UploadLayer(UPSCALE_SKIP, buf, bufW, bufH, 0);
     src.x = (float)r[0]; src.y = (float)r[1]; src.w = (float)r[2]; src.h = (float)r[3];
     dst.x = normal->x + (r[0] - gPortScreen.originX) * sc;
     dst.y = normal->y + (r[1] - gPortScreen.originY) * sc;
     dst.w = r[2] * sc;
     dst.h = r[3] * sc;
-    SDL_RenderTexture(sRenderer, tex, &src, &dst);
+    DrawLayer(UPSCALE_SKIP, tex, &src, &dst);
 }
 
 /* The title bar on the left margin: its own piece of the header asset.
@@ -1524,7 +1517,7 @@ static void Present(void) {
     }
     PortUiDraw(sComposite, gPortScreen.width, gPortScreen.height);
     SDL_UpdateTexture(sTexture, NULL, sComposite, gPortScreen.width * 4);
-    UploadUpscale(sComposite);
+    UploadLayer(UPSCALE_PICTURE, sComposite, gPortScreen.width, gPortScreen.height, 0);
     SDL_GetCurrentRenderOutputSize(sRenderer, &outW, &outH);
     SDL_SetRenderDrawColor(sRenderer, 0, 0, 0, 255);
     SDL_RenderClear(sRenderer);
@@ -1738,7 +1731,8 @@ static void Present(void) {
                 if (sMainOverTexture != NULL) {
                     SDL_SetTextureScaleMode(sMainOverTexture, sPictureScaleMode); /* the picture's own scaling */
                     SDL_UpdateTexture(sMainOverTexture, NULL, over, sMainOverW * 4);
-                    SDL_RenderTexture(sRenderer, sMainOverTexture, NULL, &od);
+                    UploadLayer(UPSCALE_MAIN_OVER, over, sMainOverW, sMainOverH, 1);
+                    DrawLayer(UPSCALE_MAIN_OVER, sMainOverTexture, NULL, &od);
                 }
             }
         }
@@ -1757,11 +1751,12 @@ static void Present(void) {
             SDL_SetTextureScaleMode(sOverlayTex, SDL_SCALEMODE_PIXELART);
         }
         SDL_UpdateTexture(sOverlayTex, NULL, gPortOverlay, sOverlayTexW * 4);
+        UploadLayer(UPSCALE_MENU, gPortOverlay, sOverlayTexW, GBA_SCREEN_H, 1);
         od.w = sOverlayTexW * sOverlayScale;
         od.h = GBA_SCREEN_H * sOverlayScale;
         od.x = (float)(int)((outW - od.w) / 2);
         od.y = (float)(int)((outH - od.h) / 2);
-        SDL_RenderTexture(sRenderer, sOverlayTex, NULL, &od);
+        DrawLayer(UPSCALE_MENU, sOverlayTex, NULL, &od);
         PortHdSpritesDraw(sRenderer, 2, od.x, od.y, sOverlayScale, 0, 0); /* menus' HD parts, the title's logo */
         if (PortPpuScreenOver()) {
             /* what the menu draws in front of its HD parts */
@@ -1776,7 +1771,8 @@ static void Present(void) {
             }
             if (sScreenOverTex != NULL) {
                 SDL_UpdateTexture(sScreenOverTex, NULL, PortPpuScreenOver(), sScreenOverTexW * 4);
-                SDL_RenderTexture(sRenderer, sScreenOverTex, NULL, &od);
+                UploadLayer(UPSCALE_MENU_OVER, PortPpuScreenOver(), sScreenOverTexW, GBA_SCREEN_H, 1);
+                DrawLayer(UPSCALE_MENU_OVER, sScreenOverTex, NULL, &od);
             }
         }
         if (!menuCanvas)
@@ -1797,12 +1793,13 @@ static void Present(void) {
         GrowPixelBuffer(&sHudBuf, &sHudCapacity, (size_t)gPortHudW * gPortHudH);
         PortPpuRenderHud(sHudBuf);
         SDL_UpdateTexture(sHudTexture, NULL, sHudBuf, sHudTexW * 4);
+        UploadLayer(UPSCALE_HUD, sHudBuf, sHudTexW, sHudTexH, 1);
         hd.w = (float)(sHudTexW * gPortHudScale);
         hd.h = (float)(sHudTexH * gPortHudScale);
         hd.x = (float)((outW - (int)hd.w) / 2);
         hd.y = (float)((outH - (int)hd.h) / 2);
         PortHdHudDraw(sRenderer, outW, outH);
-        SDL_RenderTexture(sRenderer, sHudTexture, NULL, &hd);
+        DrawLayer(UPSCALE_HUD, sHudTexture, NULL, &hd);
         {
             /* HD sprites (cards), then what the cartridge draws in front of them */
             uint16_t bld = *(volatile uint16_t*)(uintptr_t)(GBA_IO + 0x50);
@@ -1823,7 +1820,8 @@ static void Present(void) {
                 }
                 if (sHudOverTexture != NULL) {
                     SDL_UpdateTexture(sHudOverTexture, NULL, over, sHudOverW * 4);
-                    SDL_RenderTexture(sRenderer, sHudOverTexture, NULL, &hd);
+                    UploadLayer(UPSCALE_HUD_OVER, over, sHudOverW, sHudOverH, 1);
+                    DrawLayer(UPSCALE_HUD_OVER, sHudOverTexture, NULL, &hd);
                 }
             }
         }
@@ -1867,7 +1865,8 @@ static void Present(void) {
             }
             if (sNoticeTex != NULL) {
                 SDL_UpdateTexture(sNoticeTex, NULL, sNoticeBuf, 256 * 4);
-                SDL_RenderTexture(sRenderer, sNoticeTex, &src, &nd);
+                UploadLayer(UPSCALE_NOTICE, sNoticeBuf, 256, 14, 1);
+                DrawLayer(UPSCALE_NOTICE, sNoticeTex, &src, &nd);
             }
         }
     }
@@ -2266,8 +2265,10 @@ static void Quit(void) {
     PortHdHudShutdown();
     PortHdSpritesShutdown();
     PortHdLayoutShutdown();
-    SDL_DestroyTexture(sUpscaleTexture);
-    SDL_free(sUpscalePixels);
+    {
+        int i;
+        for (i = 0; i < UPSCALE_COUNT; ++i) PortUpscaleFree(&sUpscale[i]);
+    }
     SDL_Quit();
     exit(0);
 }
