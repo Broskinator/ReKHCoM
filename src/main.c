@@ -718,6 +718,19 @@ int PortHarnessMode(const char* name, int arg) {
         MosaicStartIn(16, 15);
         return 1;
     }
+    /* btllog: every battle object (kind, HP, flags) and the enemy counts, to see
+       what keeps a battle open (test_event_battles.py) */
+    if (strcmp(name, "btllog") == 0 && gBtlWork != NULL) {
+        BtlObj* obj = ListPoolFirst(&gBtlWork->pool);
+        PortLog("btllog: enemies %d pending %d", gBtlWork->enemyCount, gBtlWork->pendingEnemies);
+        while (obj != NULL) {
+            PortLog("btllog: kind %d hp %d/%d flags %08x%08x kindFlags %04x self %d parent %d at %d,%d,%d", obj->kind,
+                    obj->hp, obj->maxHp, (unsigned)(obj->flags >> 32), (unsigned)obj->flags, obj->kindFlags,
+                    obj->self == obj, obj->parent != NULL, obj->x >> 8, obj->y >> 8, obj->z >> 8);
+            obj = ListPoolNext(&obj->node);
+        }
+        return 1;
+    }
     /* battlewin: every enemy leaves as Oogie Boogie's helpers do, so the game
        ends the battle by its own route (white fade, rewards, back to the room) */
     if (strcmp(name, "battlewin") == 0 && gBtlWork != NULL
@@ -731,13 +744,16 @@ int PortHarnessMode(const char* name, int arg) {
         }
         return 1;
     }
-    /* bosskill: every enemy takes a hit worth all its HP through the game's own
-       damage route (ApplyBtlObjHit), so it is defeated as a real hit would */
+    /* bosskill: every enemy that can be hit takes a hit worth all its HP through
+       the game's own damage route (ApplyBtlObjHit), so it is defeated as a real hit
+       would; the unhittable parts wait, as for the player (Guard Armor's torso
+       until its limbs are gone: hit all at once, its pieces were released after
+       BeginBossDefeat zeroed the count, which wrapped to 250 and never closed) */
     if (strcmp(name, "bosskill") == 0 && gBtlWork != NULL
         && strcmp(PortHarnessModeName(), "mode_battle") == 0) {
         BtlObj* obj = ListPoolFirst(&gBtlWork->pool);
         while (obj != NULL) {
-            if (obj != gBtlWork->actor && obj->hp > 0 && obj->maxHp > 0) {
+            if (obj != gBtlWork->actor && obj->hp > 0 && obj->maxHp > 0 && !(obj->flags & BTLOBJ_FLAG_UNHITTABLE)) {
                 obj->damage = obj->hp;
                 obj->flags |= BTLOBJ_FLAG_DAMAGE_PENDING;
             }
