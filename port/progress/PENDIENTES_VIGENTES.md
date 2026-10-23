@@ -128,10 +128,10 @@ Reglas del usuario:
   las de Codex del 18/10): C: de 13,9 a 25,3 GB libres; se guardan codex-evidence y preliminar-v1 (revisión de arte).
   Baterías v2.0 corriendo (scenes EU/US/JP ok; sigue events).
 - **Comentarios del usuario sobre la v2.0-pre1 (23/10, en orden; se van tachando):**
-  - [ ] **Bug:** abrir Opciones en la transición de una escena HD al juego y volver dejó la pantalla negra con la
+  - [x] **Bug (arreglado ac3e2c4f1 + hermanos):** abrir Opciones en la transición de una escena HD al juego y volver dejó la pantalla negra con la
     pausa de escena abierta e invisible (memoria del proceso: modo Event, sScenePause=1, sOpen=0, sReturn=0); START la
     cerró. El evento abre la pausa al soltar un toque corto de START (event_message.c UpdateEventSeq).
-  - [ ] Logo HD del título con líneas finas: bordes de piezas en medio píxel + la inclinación de 0,01 px
+  - [x] Logo HD del título con líneas finas (arreglado y visto a 1080p): bordes de piezas en medio píxel + la inclinación de 0,01 px
     (port_hdsprites.c Quad); arreglo hecho (esquinas a píxel entero), falta verificar en el título estático.
   - [ ] "Elige un mundo": la imagen grande del mundo se ve mal (máscara del sprite GBA, bordes pixelados); en
     "Naipes mundo" los iconos HD se ven bien: usar el mismo arte/transparencia, o volver al pixel si no se puede.
@@ -154,6 +154,14 @@ Reglas del usuario:
     chica), para que el mod corra también en Android. La compresión va integrada en el importador (el jugador no instala nada).
   - [ ] Ripear más assets aprendiendo de otros mods (MelonMIX HD y similares, "voltron" de repos): qué assets de
     Re:CoM sirven y cómo los usan.
+  - [ ] v2.0: pasada de rendimiento para todas las consolas, solo lo medible y sin riesgo (medir antes/después,
+    pruebas píxel a píxel).
+  - [ ] Instalador: barra de progreso al importar/comprimir el HD; instalar en PC en `X:/Games/ReKHCoM` (opcional)
+    con todo lo necesario; ofrecer "Añadir a Steam" (instalador y launcher).
+  - [ ] Online (estudio preliminar + alpha): llevar el modo cable link (espera latencia cero) a online moderno
+    manteniendo su lógica; rollback si aplica; "voltron" de lógica de juegos online y de decomps que añadieron online
+    (y cómo, p. ej. con Steam / AppID 480 "Spacewar"); reconstruir en alpha la lógica del multijugador de KHCoM.
+  - Todo esto antes de publicar la v2.0 (usuario 23/10 ~05:00, se fue a dormir: seguir sin pedir decisiones).
   - [ ] Barra de vida de los enemigos como Re:CoM (CEnemyGauge decompilado, con su lógica como la de Sora).
   - [ ] **Bug:** un cuadro negro en medio del primer combate de Agrabah con HUD HD (el usuario dejará savestate);
     el HD debe ir igual de fluido que sin HD.

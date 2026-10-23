@@ -2963,7 +2963,12 @@ u8 UpdateEventSeq(EventSeqWork* work, void* task) {
     }
 #endif
 
+#ifdef PLATFORM_PC
+    /* holding START skips the scene, but not the START of START + SELECT (the options) */
+    if ((GetKeysHeld() & START_BUTTON) != 0 && !sPortStartVoid && sPortStartSerial == PortUiOpenSerial()) {
+#else
     if ((GetKeysHeld() & START_BUTTON) != 0) {
+#endif
         switch (work->eventId) {
         case EVENT_068_13F_CASTLE_OBLIVION_LAST3:
         case EVENT_083_MONSTORO_E3_FAILURE_1:
