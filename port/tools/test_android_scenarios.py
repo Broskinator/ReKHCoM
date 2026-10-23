@@ -188,8 +188,7 @@ def keep_evidence(region, name, status, log):
     became issue #46)."""
     d = OUT / 'cases' / re.sub(r'[^\w.-]+', '_', f'{region}-{name}')
     d.mkdir(parents=True, exist_ok=True)
-    (d / 'status.txt').write_text(status + '
-')
+    (d / 'status.txt').write_text(status + chr(10))
     (d / 'kh_com.log').write_text(log, encoding='utf-8', errors='replace')
     (d / 'kh_com_host.log').write_bytes(private('cat', 'files/kh_com_host.log').stdout)
     (d / 'logcat.txt').write_bytes(adb('logcat', '-d').stdout)
