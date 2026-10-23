@@ -127,6 +127,40 @@ Reglas del usuario:
   nuevo y el programa con este cambio. Espacio: borradas pruebas viejas (eventtest, batt-hdoff, ppuverify, mx_*,
   las de Codex del 18/10): C: de 13,9 a 25,3 GB libres; se guardan codex-evidence y preliminar-v1 (revisión de arte).
   Baterías v2.0 corriendo (scenes EU/US/JP ok; sigue events).
+- **Comentarios del usuario sobre la v2.0-pre1 (23/10, en orden; se van tachando):**
+  - [ ] **Bug:** abrir Opciones en la transición de una escena HD al juego y volver dejó la pantalla negra con la
+    pausa de escena abierta e invisible (memoria del proceso: modo Event, sScenePause=1, sOpen=0, sReturn=0); START la
+    cerró. El evento abre la pausa al soltar un toque corto de START (event_message.c UpdateEventSeq).
+  - [ ] Logo HD del título con líneas finas: bordes de piezas en medio píxel + la inclinación de 0,01 px
+    (port_hdsprites.c Quad); arreglo hecho (esquinas a píxel entero), falta verificar en el título estático.
+  - [ ] "Elige un mundo": la imagen grande del mundo se ve mal (máscara del sprite GBA, bordes pixelados); en
+    "Naipes mundo" los iconos HD se ven bien: usar el mismo arte/transparencia, o volver al pixel si no se puede.
+  - [ ] "Naipes mapa": la carta grande ya es HD; las chicas de la grilla siguen en pixel: hacerlas HD.
+  - [ ] "Estado": las cartas de aliados (Donald, Goofy) siguen en pixel: hacerlas HD.
+  - [ ] Diario (Historia): la imagen del mundo es la misma versión mala que "Elige un mundo" (mismo arreglo).
+  - [ ] Opcional: mejorar los fondos de esos menús (p. ej. "Naipes mundo").
+  - [ ] Diario > Historia: el submenú no tiene las mejoras de vista ancha de los demás (el usuario marcó el margen
+    izquierdo, el borde derecho y la barra de arriba a la derecha que se corta): dejarlo como los otros submenús.
+  - [ ] Imagen de mundo HD (Elige un mundo, Diario): reemplazar las feas por el arte de "Naipes mundo" que se ve bien.
+  - [ ] Anillo de vida HD: bordes lisos (antialias) en la cara y el final de la barra.
+  - [ ] Números de las cartas HD quizá muy chicos: comparar con Re:CoM (referencias/capturas del HD).
+  - [ ] Cara HD de Sora al recibir daño: el pelo sale cortado.
+  - [ ] Editar baraja (Quitar/Añadir naipes): al cambiar con L/R los textos HD aparecen un cuadro antes del fundido;
+    el número de la carta grande parpadea al cambiar de carta; el título "QUITAR NAIPES" en HD como los demás.
+  - [ ] Pequeños cortes de audio al cambiar de menú: la música HD sin fundido de entrada/salida como el juego;
+    revisar la lógica general del mod HD y depurar.
+  - [ ] Importar HD con calidad a elegir (herramientas libres, "voltron" de repos): Fuente (tal cual), Buena
+    (comprimido con la menor pérdida posible), Optimizada para Android / ahorro (resolución y bitrate de pantalla
+    chica), para que el mod corra también en Android. La compresión va integrada en el importador (el jugador no instala nada).
+  - [ ] Ripear más assets aprendiendo de otros mods (MelonMIX HD y similares, "voltron" de repos): qué assets de
+    Re:CoM sirven y cómo los usan.
+  - [ ] Barra de vida de los enemigos como Re:CoM (CEnemyGauge decompilado, con su lógica como la de Sora).
+  - [ ] **Bug:** un cuadro negro en medio del primer combate de Agrabah con HUD HD (el usuario dejará savestate);
+    el HD debe ir igual de fluido que sin HD.
+  - [ ] Sonido al moverse en la elección HD/GBA del primer arranque (como en Opciones).
+  - [ ] Ajustes: "Intros HD" (apertura, créditos, finales; encendido por defecto salvo modo GBA Original),
+    "Escenas HD", "HUD HD" (logo del título + cartas + HUD de combate en un solo interruptor).
+  - [ ] Nueva partida: preguntar "Escenas HD" y "HUD HD" (con una línea que explique qué es el HUD).
 - **Vita (reporte dentro de #44):** "bastante lenta"; sin undub aunque estén las ROM US y JP en la carpeta; texto HD
   no seleccionable. Ninguna versión de Vita reportada a velocidad completa.
 - **Switch rendimiento (#35, deko3d):** el host ya presenta por GPU; lo caro es la PPU en CPU y en un solo núcleo
