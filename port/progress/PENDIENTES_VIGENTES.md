@@ -84,9 +84,7 @@ Reglas del usuario:
   golpe aéreo) [**arreglado**: el mapa de Undub no tenía el primer instrumento del grupo de voces (SONG_VO_SR_ATTACK00
   seguía con la muestra inglesa); `check_undub.py` lo halla, `test_undub.py` compara las 83 voces EU/US con el JP: 83/83] [#44: **arreglado en main** (31cbfd92d, posterior a la pre1 del reporter); `test_hd_audio.py` ahora
   toca la música HD de verdad (`KHCOM_HD_MUSIC`; antes corría sin ella y pasaba sin probar nada) y suma punto de
-  guardado, ataque en el campo y voces undub: 0/13]; #42 finales HD: solo créditos [los finales HD (EVENT_073 → zz_event_151, EVENT_195 → zz_event_621) son del mod
-  de escenas (`hd_scenes`, apagado por defecto); con solo "videos HD" RSE/RRE son el video de créditos de Re:CoM.
-  Decisión del usuario: ¿finales HD también con solo videos HD?]; #43 Switch: cortes en cartas superpuestas [en PC
+  guardado, ataque en el campo y voces undub: 0/13]; #42 finales HD: solo créditos [**arreglado en main** (38ee801ce): con "videos HD" el importador copia también zz_event_151/621/631 y el juego los toca (IsEnding en port_hdmovie.c) aunque `hd_scenes` esté apagado; `test_hd_scenes.py --movies-only` 4/4, mod completo 97/97; respondido en el issue (reimportar videos)]; #43 Switch: cortes en cartas superpuestas [en PC
   no se reproduce: la oclusión del HUD no oculta ni un píxel en 3 combates (registro de prueba) y la imagen en modo
   reubicable (como Switch) es idéntica a la de PC (105/105 cuadros): el fallo está en el camino GPU del host de Switch
   (`port/switch/host/switch_host.c`, H_gfx_draw); espera versión y si las cartas HD están encendidas]. Pedidos datos de equipo en
