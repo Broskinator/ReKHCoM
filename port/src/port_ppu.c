@@ -1754,6 +1754,15 @@ scalar_world:
 /* Affine BG mosaic: the reference point of the first line of each block of
    mosV lines, which the following lines of the block reuse. */
 static PPU_TLS int32_t sMosAffX[2], sMosAffY[2];
+/* The line after the last one drawn: a frame's first line (the wide view's rows above the GBA picture start inside
+   a block) takes its own reference, never the one a previous drawn frame left (with frame skipping, an older
+   frame's: the card-break mosaic's top rows, issue #43). */
+static PPU_TLS int sMosNextGy[2] = { 0x7FFFFFFF, 0x7FFFFFFF };
+static int MosaicBlockStart(int a, int gy, int mosV) {
+    int start = ((gy % mosV) + mosV) % mosV == 0 || gy != sMosNextGy[a];
+    sMosNextGy[a] = gy + 1;
+    return start;
+}
 
 /* An affine effect layer shows one copy on the GBA's 240 columns; beyond them only the copies the original picture
    shows are drawn, whether the layer wraps or the wide view repeats the arena sideways (Darkside's smoke was three
@@ -1854,7 +1863,7 @@ static void DrawAffineBg(int bg, int gy, uint16_t dispcnt) {
 
     (void)dispcnt;
     if (mosV > 1) {
-        if (((gy % mosV) + mosV) % mosV == 0) {
+        if (MosaicBlockStart(a, gy, mosV)) {
             sMosAffX[a] = refX;
             sMosAffY[a] = refY;
         }
@@ -1944,7 +1953,7 @@ static void DrawBitmapBg(int mode, int gy, uint16_t dispcnt) {
     /* Bitmap modes use BG2's affine engine, including its screen-space
        mosaic. Reuse the first line's reference point within each block. */
     if (mosV > 1) {
-        if (((gy % mosV) + mosV) % mosV == 0) {
+        if (MosaicBlockStart(0, gy, mosV)) {
             sMosAffX[0] = refX;
             sMosAffY[0] = refY;
         }
