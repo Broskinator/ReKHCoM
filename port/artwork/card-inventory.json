@@ -1,0 +1,3138 @@
+[
+  {
+    "id": "gCardWep01Tiles",
+    "frame": "gCardWep01Frame0",
+    "palette": "gCardWep01Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "pilot"
+  },
+  {
+    "id": "gKingdomKeySmallCardTiles",
+    "frame": "gKingdomKeySmallCardFrame0",
+    "palette": "gKingdomKeySmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep04Tiles",
+    "frame": "gCardWep04Frame0",
+    "palette": "gCardWep04Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gThreeWishesSmallCardTiles",
+    "frame": "gThreeWishesSmallCardFrame0",
+    "palette": "gThreeWishesSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep05Tiles",
+    "frame": "gCardWep05Frame0",
+    "palette": "gCardWep05Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCrabclawSmallCardTiles",
+    "frame": "gCrabclawSmallCardFrame0",
+    "palette": "gCrabclawSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep06Tiles",
+    "frame": "gCardWep06Frame0",
+    "palette": "gCardWep06Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gPumpkinheadSmallCardTiles",
+    "frame": "gPumpkinheadSmallCardFrame0",
+    "palette": "gPumpkinheadSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep07Tiles",
+    "frame": "gCardWep07Frame0",
+    "palette": "gCardWep07Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gFairyHarpSmallCardTiles",
+    "frame": "gFairyHarpSmallCardFrame0",
+    "palette": "gFairyHarpSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep08Tiles",
+    "frame": "gCardWep08Frame0",
+    "palette": "gCardWep08Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gWishingStarSmallCardTiles",
+    "frame": "gWishingStarSmallCardFrame0",
+    "palette": "gWishingStarSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep09Tiles",
+    "frame": "gCardWep09Frame0",
+    "palette": "gCardWep09Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gSpellbinderSmallCardTiles",
+    "frame": "gSpellbinderSmallCardFrame0",
+    "palette": "gSpellbinderSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep10Tiles",
+    "frame": "gCardWep10Frame0",
+    "palette": "gCardWep10Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMetalChocoboSmallCardTiles",
+    "frame": "gMetalChocoboSmallCardFrame0",
+    "palette": "gMetalChocoboSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep03Tiles",
+    "frame": "gCardWep03Frame0",
+    "palette": "gCardWep03Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gOlympiaSmallCardTiles",
+    "frame": "gOlympiaSmallCardFrame0",
+    "palette": "gOlympiaSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep11Tiles",
+    "frame": "gCardWep11Frame0",
+    "palette": "gCardWep11Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gLionheartSmallCardTiles",
+    "frame": "gLionheartSmallCardFrame0",
+    "palette": "gLionheartSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep12Tiles",
+    "frame": "gCardWep12Frame0",
+    "palette": "gCardWep12Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gLadyLuckSmallCardTiles",
+    "frame": "gLadyLuckSmallCardFrame0",
+    "palette": "gLadyLuckSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep13Tiles",
+    "frame": "gCardWep13Frame0",
+    "palette": "gCardWep13Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gDivineRoseSmallCardTiles",
+    "frame": "gDivineRoseSmallCardFrame0",
+    "palette": "gDivineRoseSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep14Tiles",
+    "frame": "gCardWep14Frame0",
+    "palette": "gCardWep14Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gOathkeeperSmallCardTiles",
+    "frame": "gOathkeeperSmallCardFrame0",
+    "palette": "gOathkeeperSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep15Tiles",
+    "frame": "gCardWep15Frame0",
+    "palette": "gCardWep15Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gOblivionSmallCardTiles",
+    "frame": "gOblivionSmallCardFrame0",
+    "palette": "gOblivionSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep18Tiles",
+    "frame": "gCardWep18Frame0",
+    "palette": "gCardWep18Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gDiamondDustSmallCardTiles",
+    "frame": "gDiamondDustSmallCardFrame0",
+    "palette": "gDiamondDustSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep19Tiles",
+    "frame": "gCardWep19Frame0",
+    "palette": "gCardWep19Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gOneWingedAngelSmallCardTiles",
+    "frame": "gOneWingedAngelSmallCardFrame0",
+    "palette": "gOneWingedAngelSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep16Tiles",
+    "frame": "gCardWep16Frame0",
+    "palette": "gCardWep16Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gUltimaWeaponSmallCardTiles",
+    "frame": "gUltimaWeaponSmallCardFrame0",
+    "palette": "gUltimaWeaponSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardMgc01Tiles",
+    "frame": "gCardMgc01Frame0",
+    "palette": "gCardMgc01Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gFireSmallCardTiles",
+    "frame": "gFireSmallCardFrame0",
+    "palette": "gFireSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardMgc02Tiles",
+    "frame": "gCardMgc02Frame0",
+    "palette": "gCardMgc02Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gBlizzardSmallCardTiles",
+    "frame": "gBlizzardSmallCardFrame0",
+    "palette": "gBlizzardSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardMgc03Tiles",
+    "frame": "gCardMgc03Frame0",
+    "palette": "gCardMgc03Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gThunderSmallCardTiles",
+    "frame": "gThunderSmallCardFrame0",
+    "palette": "gThunderSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardMgc04Tiles",
+    "frame": "gCardMgc04Frame0",
+    "palette": "gCardMgc04Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCureSmallCardTiles",
+    "frame": "gCureSmallCardFrame0",
+    "palette": "gCureSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardMgc05Tiles",
+    "frame": "gCardMgc05Frame0",
+    "palette": "gCardMgc05Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gGravitySmallCardTiles",
+    "frame": "gGravitySmallCardFrame0",
+    "palette": "gGravitySmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardMgc06Tiles",
+    "frame": "gCardMgc06Frame0",
+    "palette": "gCardMgc06Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gStopSmallCardTiles",
+    "frame": "gStopSmallCardFrame0",
+    "palette": "gStopSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardMgc07Tiles",
+    "frame": "gCardMgc07Frame0",
+    "palette": "gCardMgc07Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gAeroSmallCardTiles",
+    "frame": "gAeroSmallCardFrame0",
+    "palette": "gAeroSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn02Tiles",
+    "frame": "gCardSmn02Frame0",
+    "palette": "gDonaldPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gDonaldDuckSmallCardTiles",
+    "frame": "gDonaldDuckSmallCardFrame0",
+    "palette": "gDonaldDuckSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn01Tiles",
+    "frame": "gCardSmn01Frame0",
+    "palette": "gGoofyPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gGoofySmallCardTiles",
+    "frame": "gGoofySmallCardFrame0",
+    "palette": "gGoofySmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn03Tiles",
+    "frame": "gCardSmn03Frame0",
+    "palette": "gCardSmn03Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gSimbaSmallCardTiles",
+    "frame": "gSimbaSmallCardFrame0",
+    "palette": "gSimbaSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn04Tiles",
+    "frame": "gCardSmn04Frame0",
+    "palette": "gCardSmn04Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gGenieSmallCardTiles",
+    "frame": "gGenieSmallCardFrame0",
+    "palette": "gGenieSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn05Tiles",
+    "frame": "gCardSmn05Frame0",
+    "palette": "gBanbPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gBambiSmallCardTiles",
+    "frame": "gBambiSmallCardFrame0",
+    "palette": "gBambiSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn06Tiles",
+    "frame": "gCardSmn06Frame0",
+    "palette": "gCardSmn06Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gDumboSmallCardTiles",
+    "frame": "gDumboSmallCardFrame0",
+    "palette": "gDumboSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn07Tiles",
+    "frame": "gCardSmn07Frame0",
+    "palette": "gTinkPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gTinkerBellSmallCardTiles",
+    "frame": "gTinkerBellSmallCardFrame0",
+    "palette": "gTinkerBellSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn08Tiles",
+    "frame": "gCardSmn08Frame0",
+    "palette": "gMushuPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMushuSmallCardTiles",
+    "frame": "gMushuSmallCardFrame0",
+    "palette": "gMushuSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn09Tiles",
+    "frame": "gCardSmn09Frame0",
+    "palette": "gCardSmn09Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCloudSmallCardTiles",
+    "frame": "gCloudSmallCardFrame0",
+    "palette": "gCloudSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn10Tiles",
+    "frame": "gCardSmn10Frame0",
+    "palette": "gAladdinPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gAladdinSmallCardTiles",
+    "frame": "gAladdinSmallCardFrame0",
+    "palette": "gAladdinSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn11Tiles",
+    "frame": "gCardSmn11Frame0",
+    "palette": "gArielPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gArielSmallCardTiles",
+    "frame": "gArielSmallCardFrame0",
+    "palette": "gArielSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn12Tiles",
+    "frame": "gCardSmn12Frame0",
+    "palette": "gJackPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gJackSmallCardTiles",
+    "frame": "gJackSmallCardFrame0",
+    "palette": "gJackSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn13Tiles",
+    "frame": "gCardSmn13Frame0",
+    "palette": "gPeterPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gPeterPanSmallCardTiles",
+    "frame": "gPeterPanSmallCardFrame0",
+    "palette": "gPeterPanSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn14Tiles",
+    "frame": "gCardSmn14Frame0",
+    "palette": "gBeastPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gTheBeastSmallCardTiles",
+    "frame": "gTheBeastSmallCardFrame0",
+    "palette": "gTheBeastSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardItm01Tiles",
+    "frame": "gCardItm01Frame0",
+    "palette": "gCardItm01Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gPotionSmallCardTiles",
+    "frame": "gPotionSmallCardFrame0",
+    "palette": "gPotionSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardItm02Tiles",
+    "frame": "gCardItm02Frame0",
+    "palette": "gCardItm02Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gHiPotionSmallCardTiles",
+    "frame": "gHiPotionSmallCardFrame0",
+    "palette": "gHiPotionSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardItm03Tiles",
+    "frame": "gCardItm03Frame0",
+    "palette": "gCardItm03Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMegaPotionSmallCardTiles",
+    "frame": "gMegaPotionSmallCardFrame0",
+    "palette": "gMegaPotionSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardItm04Tiles",
+    "frame": "gCardItm04Frame0",
+    "palette": "gCardItm04Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gEtherSmallCardTiles",
+    "frame": "gEtherSmallCardFrame0",
+    "palette": "gEtherSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardItm05Tiles",
+    "frame": "gCardItm05Frame0",
+    "palette": "gCardItm05Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMegaEtherSmallCardTiles",
+    "frame": "gMegaEtherSmallCardFrame0",
+    "palette": "gMegaEtherSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardItm06Tiles",
+    "frame": "gCardItm06Frame0",
+    "palette": "gCardItm06Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gElixirSmallCardTiles",
+    "frame": "gElixirSmallCardFrame0",
+    "palette": "gElixirSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardItm07Tiles",
+    "frame": "gCardItm07Frame0",
+    "palette": "gCardItm07Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMegalixirSmallCardTiles",
+    "frame": "gMegalixirSmallCardFrame0",
+    "palette": "gMegalixirSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy00Tiles",
+    "frame": "gCardEmy00Frame0",
+    "palette": "gEmy00Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gShadowSmallCardTiles",
+    "frame": "gShadowSmallCardFrame0",
+    "palette": "gShadowSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy14Tiles",
+    "frame": "gCardEmy14Frame0",
+    "palette": "gEmy14Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gSoldierSmallCardTiles",
+    "frame": "gSoldierSmallCardFrame0",
+    "palette": "gSoldierSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy38Tiles",
+    "frame": "gCardEmy38Frame0",
+    "palette": "gEmy38Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gLargeBodySmallCardTiles",
+    "frame": "gLargeBodySmallCardFrame0",
+    "palette": "gLargeBodySmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy01Tiles",
+    "frame": "gCardEmy01Frame0",
+    "palette": "gEmy01Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gRedNocturneSmallCardTiles",
+    "frame": "gRedNocturneSmallCardFrame0",
+    "palette": "gRedNocturneSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gBlueRhapsodyCardTiles",
+    "frame": "gBlueRhapsodyCardFrame0",
+    "palette": "gEmy02Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gRedNocturneSmallCardTiles",
+    "frame": "gRedNocturneSmallCardFrame0",
+    "palette": "gBlueRhapsodySmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gYellowOperaCardTiles",
+    "frame": "gYellowOperaCardFrame0",
+    "palette": "gEmy03Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gRedNocturneSmallCardTiles",
+    "frame": "gRedNocturneSmallCardFrame0",
+    "palette": "gYellowOperaSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gGreenRequiemCardTiles",
+    "frame": "gGreenRequiemCardFrame0",
+    "palette": "gEmy04Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gRedNocturneSmallCardTiles",
+    "frame": "gRedNocturneSmallCardFrame0",
+    "palette": "gGreenRequiemSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy15Tiles",
+    "frame": "gCardEmy15Frame0",
+    "palette": "gEmy15Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gPowerwildSmallCardTiles",
+    "frame": "gPowerwildSmallCardFrame0",
+    "palette": "gPowerwildSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy16Tiles",
+    "frame": "gCardEmy16Frame0",
+    "palette": "gEmy16Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gBouncywildSmallCardTiles",
+    "frame": "gBouncywildSmallCardFrame0",
+    "palette": "gBouncywildSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy18Tiles",
+    "frame": "gCardEmy18Frame0",
+    "palette": "gEmy18Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gAirSoldierSmallCardTiles",
+    "frame": "gAirSoldierSmallCardFrame0",
+    "palette": "gAirSoldierSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy19Tiles",
+    "frame": "gCardEmy19Frame0",
+    "palette": "gEmy19Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gBanditSmallCardTiles",
+    "frame": "gBanditSmallCardFrame0",
+    "palette": "gBanditSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy39Tiles",
+    "frame": "gCardEmy39Frame0",
+    "palette": "gEmy39Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gFatBanditSmallCardTiles",
+    "frame": "gFatBanditSmallCardFrame0",
+    "palette": "gFatBanditSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy21Tiles",
+    "frame": "gCardEmy21Frame0",
+    "palette": "gEmy21Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gBarrelSpiderSmallCardTiles",
+    "frame": "gBarrelSpiderSmallCardFrame0",
+    "palette": "gBarrelSpiderSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy22Tiles",
+    "frame": "gCardEmy22Frame0",
+    "palette": "gEmy22Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gSearchGhostSmallCardTiles",
+    "frame": "gSearchGhostSmallCardFrame0",
+    "palette": "gSearchGhostSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy06Tiles",
+    "frame": "gCardEmy06Frame0",
+    "palette": "gEmy06Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gSeaNeonSmallCardTiles",
+    "frame": "gSeaNeonSmallCardFrame0",
+    "palette": "gSeaNeonSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy23Tiles",
+    "frame": "gCardEmy23Frame0",
+    "palette": "gEmy23Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gScrewdiverSmallCardTiles",
+    "frame": "gScrewdiverSmallCardFrame0",
+    "palette": "gScrewdiverSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy41Tiles",
+    "frame": "gCardEmy41Frame0",
+    "palette": "gEmy41Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gAquatankSmallCardTiles",
+    "frame": "gAquatankSmallCardFrame0",
+    "palette": "gAquatankSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy25Tiles",
+    "frame": "gCardEmy25Frame0",
+    "palette": "gEmy25Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gWightKnightSmallCardTiles",
+    "frame": "gWightKnightSmallCardFrame0",
+    "palette": "gWightKnightSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy26Tiles",
+    "frame": "gCardEmy26Frame0",
+    "palette": "gEmy26Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gGargoyleSmallCardTiles",
+    "frame": "gGargoyleSmallCardFrame0",
+    "palette": "gGargoyleSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy27Tiles",
+    "frame": "gCardEmy27Frame0",
+    "palette": "gEmy27Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gPirateSmallCardTiles",
+    "frame": "gPirateSmallCardFrame0",
+    "palette": "gPirateSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy28Tiles",
+    "frame": "gCardEmy28Frame0",
+    "palette": "gEmy28Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gAirPirateSmallCardTiles",
+    "frame": "gAirPirateSmallCardFrame0",
+    "palette": "gAirPirateSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy29Tiles",
+    "frame": "gCardEmy29Frame0",
+    "palette": "gEmy29Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gDarkballSmallCardTiles",
+    "frame": "gDarkballSmallCardFrame0",
+    "palette": "gDarkballSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy44Tiles",
+    "frame": "gCardEmy44Frame0",
+    "palette": "gEmy44Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gDefenderSmallCardTiles",
+    "frame": "gDefenderSmallCardFrame0",
+    "palette": "gDefenderSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy30Tiles",
+    "frame": "gCardEmy30Frame0",
+    "palette": "gEmy30Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gWyvernSmallCardTiles",
+    "frame": "gWyvernSmallCardFrame0",
+    "palette": "gWyvernSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy31Tiles",
+    "frame": "gCardEmy31Frame0",
+    "palette": "gEmy31Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gWizardSmallCardTiles",
+    "frame": "gWizardSmallCardFrame0",
+    "palette": "gWizardSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy37Tiles",
+    "frame": "gCardEmy37Frame0",
+    "palette": "gEmy37Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gNeoshadowSmallCardTiles",
+    "frame": "gNeoshadowSmallCardFrame0",
+    "palette": "gNeoshadowSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy07Tiles",
+    "frame": "gCardEmy07Frame0",
+    "palette": "gEmy07Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gWhiteMushroomSmallCardTiles",
+    "frame": "gWhiteMushroomSmallCardFrame0",
+    "palette": "gWhiteMushroomSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy08Tiles",
+    "frame": "gCardEmy08Frame0",
+    "palette": "gEmy07bPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gBlackFungusSmallCardTiles",
+    "frame": "gBlackFungusSmallCardFrame0",
+    "palette": "gBlackFungusSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy83Tiles",
+    "frame": "gCardEmy83Frame0",
+    "palette": "gEmy83Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCreeperPlantSmallCardTiles",
+    "frame": "gCreeperPlantSmallCardFrame0",
+    "palette": "gCreeperPlantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy81Tiles",
+    "frame": "gCardEmy81Frame0",
+    "palette": "gEmy81Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gTornadoStepSmallCardTiles",
+    "frame": "gTornadoStepSmallCardFrame0",
+    "palette": "gTornadoStepSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardEmy82Tiles",
+    "frame": "gCardEmy82Frame0",
+    "palette": "gEmy82Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCrescendoSmallCardTiles",
+    "frame": "gCrescendoSmallCardFrame0",
+    "palette": "gCrescendoSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos01Tiles",
+    "frame": "gCardBos01Frame0",
+    "palette": "gBoss01objPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gGuardArmorSmallCardTiles",
+    "frame": "gGuardArmorSmallCardFrame0",
+    "palette": "gGuardArmorSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos00Tiles",
+    "frame": "gCardBos00Frame0",
+    "palette": "gBoss00ObjPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gDarksideSmallCardTiles",
+    "frame": "gDarksideSmallCardFrame0",
+    "palette": "gDarksideSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardNpcAw04Tiles",
+    "frame": "gCardNpcAw04Frame0",
+    "palette": "gTrumpHPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSoldierHeartSmallCardTiles",
+    "frame": "gCardSoldierHeartSmallCardFrame0",
+    "palette": "gCardSoldierHeartSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardNpcAw03Tiles",
+    "frame": "gCardNpcAw03Frame0",
+    "palette": "gTrumpSPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSoldierSpadeSmallCardTiles",
+    "frame": "gCardSoldierSpadeSmallCardFrame0",
+    "palette": "gCardSoldierSpadeSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos11Tiles",
+    "frame": "gCardBos11Frame0",
+    "palette": "gCardBos11Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gHadesSmallCardTiles",
+    "frame": "gHadesSmallCardFrame0",
+    "palette": "gHadesSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos05Tiles",
+    "frame": "gCardBos05Frame0",
+    "palette": "gCardBos05Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gJafarSmallCardTiles",
+    "frame": "gJafarSmallCardFrame0",
+    "palette": "gJafarSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos02Tiles",
+    "frame": "gCardBos02Frame0",
+    "palette": "gBoss02objPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gOogieBoogieSmallCardTiles",
+    "frame": "gOogieBoogieSmallCardFrame0",
+    "palette": "gOogieBoogieSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos06Tiles",
+    "frame": "gCardBos06Frame0",
+    "palette": "gCardBos06Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gUrsulaSmallCardTiles",
+    "frame": "gUrsulaSmallCardFrame0",
+    "palette": "gUrsulaSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos10Tiles",
+    "frame": "gCardBos10Frame0",
+    "palette": "gCardBos10Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gHookSmallCardTiles",
+    "frame": "gHookSmallCardFrame0",
+    "palette": "gHookSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos07Tiles",
+    "frame": "gCardBos07Frame0",
+    "palette": "gCardBos07Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gDragonMaleficentSmallCardTiles",
+    "frame": "gDragonMaleficentSmallCardFrame0",
+    "palette": "gDragonMaleficentSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos12Tiles",
+    "frame": "gCardBos12Frame0",
+    "palette": "gCardBos12Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gRikuSmallCardTiles",
+    "frame": "gRikuSmallCardFrame0",
+    "palette": "gRikuSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos13Tiles",
+    "frame": "gCardBos13Frame0",
+    "palette": "gCardBos13Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gAxelSmallCardTiles",
+    "frame": "gAxelSmallCardFrame0",
+    "palette": "gAxelSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos14Tiles",
+    "frame": "gCardBos14Frame0",
+    "palette": "gCardBos14Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gLarxeneSmallCardTiles",
+    "frame": "gLarxeneSmallCardFrame0",
+    "palette": "gLarxeneSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos15Tiles",
+    "frame": "gCardBos15Frame0",
+    "palette": "gCardBos15Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gVexenSmallCardTiles",
+    "frame": "gVexenSmallCardFrame0",
+    "palette": "gVexenSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos16Tiles",
+    "frame": "gCardBos16Frame0",
+    "palette": "gCardBos16Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMarluxiaSmallCardTiles",
+    "frame": "gMarluxiaSmallCardFrame0",
+    "palette": "gMarluxiaSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos08Tiles",
+    "frame": "gCardBos08Frame0",
+    "palette": "gCardBos08Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMarluxia2SmallCardTiles",
+    "frame": "gMarluxia2SmallCardFrame0",
+    "palette": "gMarluxia2SmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos17Tiles",
+    "frame": "gCardBos17Frame0",
+    "palette": "gCardBos17Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gLexaeusSmallCardTiles",
+    "frame": "gLexaeusSmallCardFrame0",
+    "palette": "gLexaeusSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos18Tiles",
+    "frame": "gCardBos18Frame0",
+    "palette": "gCardBos18Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gAnsemSmallCardTiles",
+    "frame": "gAnsemSmallCardFrame0",
+    "palette": "gAnsemSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardWep20Tiles",
+    "frame": "gCardWep20Frame0",
+    "palette": "gCardWep20Palette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gSoulEaterSmallCardTiles",
+    "frame": "gSoulEaterSmallCardFrame0",
+    "palette": "gSoulEaterSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn15Tiles",
+    "frame": "gCardSmn15Frame0",
+    "palette": "gMickeyPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gTheKingSmallCardTiles",
+    "frame": "gTheKingSmallCardFrame0",
+    "palette": "gTheKingSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn09Tiles",
+    "frame": "gCardSmn09Frame0",
+    "palette": "gCardSmn09aPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCloudSmallCardTiles",
+    "frame": "gCloudSmallCardFrame0",
+    "palette": "gCloudASmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardSmn09Tiles",
+    "frame": "gCardSmn09Frame0",
+    "palette": "gCardSmn09bPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCloudSmallCardTiles",
+    "frame": "gCloudSmallCardFrame0",
+    "palette": "gCloudBSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos10Tiles",
+    "frame": "gCardBos10Frame0",
+    "palette": "gCardBos10aPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gHookASmallCardTiles",
+    "frame": "gHookASmallCardFrame0",
+    "palette": "gHookVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos10Tiles",
+    "frame": "gCardBos10Frame0",
+    "palette": "gCardBos10bPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gHookBSmallCardTiles",
+    "frame": "gHookBSmallCardFrame0",
+    "palette": "gHookVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos10Tiles",
+    "frame": "gCardBos10Frame0",
+    "palette": "gCardBos10cPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gHookCSmallCardTiles",
+    "frame": "gHookCSmallCardFrame0",
+    "palette": "gHookVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos10Tiles",
+    "frame": "gCardBos10Frame0",
+    "palette": "gCardBos10dPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gHookSmallCardTiles",
+    "frame": "gHookSmallCardFrame0",
+    "palette": "gHookVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos15Tiles",
+    "frame": "gCardBos15Frame0",
+    "palette": "gCardBos15aPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gVexenASmallCardTiles",
+    "frame": "gVexenASmallCardFrame0",
+    "palette": "gVexenVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos15Tiles",
+    "frame": "gCardBos15Frame0",
+    "palette": "gCardBos15bPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gVexenBSmallCardTiles",
+    "frame": "gVexenBSmallCardFrame0",
+    "palette": "gVexenVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos16Tiles",
+    "frame": "gCardBos16Frame0",
+    "palette": "gCardBos16aPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMarluxiaASmallCardTiles",
+    "frame": "gMarluxiaASmallCardFrame0",
+    "palette": "gMarluxiaVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos16Tiles",
+    "frame": "gCardBos16Frame0",
+    "palette": "gCardBos16bPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMarluxiaBSmallCardTiles",
+    "frame": "gMarluxiaBSmallCardFrame0",
+    "palette": "gMarluxiaVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos16Tiles",
+    "frame": "gCardBos16Frame0",
+    "palette": "gCardBos16cPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gMarluxiaCSmallCardTiles",
+    "frame": "gMarluxiaCSmallCardFrame0",
+    "palette": "gMarluxiaVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos17Tiles",
+    "frame": "gCardBos17Frame0",
+    "palette": "gCardBos17aPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gLexaeusASmallCardTiles",
+    "frame": "gLexaeusASmallCardFrame0",
+    "palette": "gLexaeusVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos17Tiles",
+    "frame": "gCardBos17Frame0",
+    "palette": "gCardBos17bPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gLexaeusBSmallCardTiles",
+    "frame": "gLexaeusBSmallCardFrame0",
+    "palette": "gLexaeusVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos17Tiles",
+    "frame": "gCardBos17Frame0",
+    "palette": "gCardBos17cPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gLexaeusSmallCardTiles",
+    "frame": "gLexaeusSmallCardFrame0",
+    "palette": "gLexaeusCSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos18Tiles",
+    "frame": "gCardBos18Frame0",
+    "palette": "gCardBos18aPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gAnsemASmallCardTiles",
+    "frame": "gAnsemASmallCardFrame0",
+    "palette": "gAnsemVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gCardBos18Tiles",
+    "frame": "gCardBos18Frame0",
+    "palette": "gCardBos18bPalette",
+    "native_size": [
+      32,
+      32
+    ],
+    "origin": [
+      -16,
+      -12
+    ],
+    "hd_status": "original"
+  },
+  {
+    "id": "gAnsemBSmallCardTiles",
+    "frame": "gAnsemBSmallCardFrame0",
+    "palette": "gAnsemVariantSmallCardPalette",
+    "native_size": [
+      16,
+      32
+    ],
+    "origin": [
+      -8,
+      -20
+    ],
+    "hd_status": "original"
+  }
+]

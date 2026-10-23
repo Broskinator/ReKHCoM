@@ -19,3 +19,9 @@ Windows EU game and launcher build. An isolated battle drew the normal portrait 
 The three portraits are a prototype, not complete HD coverage. Playable characters need consistent high-resolution artwork for every animation frame and direction, matched to original frame bounds, anchors and palette variants. Enemies need the same treatment. Environments need reconstructed tile/background artwork and a high-resolution replacement path that preserves scrolling, tile reuse, palette effects, occlusion and battle transitions. Cards, UI art, title art and movies need their own reviewed assets. The current port already maps HUD/card replacement PNGs, but it does not provide a complete high-resolution replacement system for all dynamic world graphics.
 
 A faithful remaster requires asset extraction and inventory, a reviewed visual style, replacement rendering for world assets, then systematic coverage and scene testing. Enlarging the final framebuffer cannot complete those steps.
+
+## Second artwork pack
+
+Added a locally generated Kingdom Key card illustration (gCardWep01Tiles.png), separate from the original frame and value. Enable hd_cards=1 together with hd_portraits=1, keeping filter=0. Missing replacement card artwork retains the original. The illustration was revised after a battle capture exposed unwanted opaque padding. Direct3D11 and software battle runs completed, with card and normal/hurt portrait draw logs verified at frames 160 and 240. The final padding and overlap were visually checked at frame 160. Other cards and world graphics remain original.
+
+port/artwork/card-inventory.json records 224 card-catalogue entries referencing 201 distinct textures, including small menu versions. Only the Kingdom Key battle texture has a local HD pilot replacement. Inventory data is symbol/layout metadata; the generated or extracted artwork is not included in Git.
