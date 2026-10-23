@@ -113,6 +113,17 @@ Reglas del usuario:
 - Propuesta original: `pruebas/HD tentativos (medidores contador recarga).png` (medidor de vida en anillo de
   Re:CoM, medidor del enemigo, contador CARD/S, números de recarga): no son 1:1, espera su decisión.
 - **Espera al usuario:** Darkside (arenas), OK para builds v2.0.
+- **23/10 madrugada (Claude):** v2.0-pre1 local para el usuario en la raíz (`ReKHCoM-v2.0-pre1`, `Probar ReKHCoM v2.0
+  pre1.bat`): paquete de `package_release.py` (build/pc, pc-us, pc-jp reconfigurados), limpia (sin partidas ni ini),
+  ROMs EU/US/JP y HD importado de cero con khhd_import.py --scenes + khhd_sprites.py (103 videos, música, 300 sprites,
+  subtítulos). Baterías v2.0 desde cero (`run_batteries.py --detach`, build/batteries.log; build/pc-eu estaba
+  configurado sin los .c nuevos y no enlazaba: reconfigurado). Después: `run_batteries.py --hd --detach`.
+  Ojo: `python` en el PATH ahora es el venv de hermes (sin numpy): usar `py -3`.
+- **Vita (reporte dentro de #44):** "bastante lenta"; sin undub aunque estén las ROM US y JP en la carpeta; texto HD
+  no seleccionable. Ninguna versión de Vita reportada a velocidad completa.
+- **Switch rendimiento (#35, deko3d):** el host ya presenta por GPU; lo caro es la PPU en CPU y en un solo núcleo
+  (PORT_PPU_THREADS es solo de escritorio; el invitado no tiene hilos ni TLS). Opciones: hilos en el invitado (host
+  libnx + shim) o la PPU en shaders (deko3d/SDL GPU): proyecto grande, sin hardware para medir.
 
 ## v2.0 — próxima estable (pedido del usuario 22/10: "stable nueva con 2.0 y anunciar la inclusión del HD")
 
