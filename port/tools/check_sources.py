@@ -8,6 +8,8 @@
   share-log strings and the APK did not build).
 - The generated HD sprite tables (gen_hd_sprites_inc.py) match port/data/hd_sprites.tsv, and its rows pass
   check_hd_sprites.py.
+- every port/tools/*.py parses (22/10: a newline written as a real line break broke the Android harness and was
+  pushed; KNOWN_BROKEN lists the ones waiting on their owner).
 - port/src compiles (syntax only) for the console guests, against the shim, as build_switch.py compiles it: a
   desktop-only SDL call outside its guard otherwise shows only in a console build (22/10: the sprite export).
 
@@ -58,6 +60,24 @@ def hd_sprite_problems():
     import subprocess
     r = subprocess.run([sys.executable, str(ROOT / 'port/tools/check_hd_sprites.py')], capture_output=True, text=True)
     return [l for l in r.stdout.splitlines() if l.strip() and not l.startswith('check_hd_sprites:')] if r.returncode else []
+
+
+# Codex's scene review script: lines scrambled by a merge (18/10), used by nothing; PENDIENTES_VIGENTES.md asks Codex
+KNOWN_BROKEN = {'scene_wide_review.py'}
+
+
+def tool_problems():
+    """Every port/tools/*.py must at least parse."""
+    import ast
+    out = []
+    for f in sorted((ROOT / 'port/tools').glob('*.py')):
+        if f.name in KNOWN_BROKEN:
+            continue
+        try:
+            ast.parse(f.read_text(encoding='utf-8'), str(f))
+        except SyntaxError as e:
+            out.append(f'{f.relative_to(ROOT)}:{e.lineno}: does not parse ({e.msg})')
+    return out
 
 
 def jp_glyph_problems():
@@ -120,7 +140,8 @@ def java_problems():
 
 
 def main():
-    problems = (shim_problems() + java_problems() + generated_problems() + hd_sprite_problems() + jp_glyph_problems() +
+    problems = (shim_problems() + java_problems() + generated_problems() + hd_sprite_problems() + tool_problems() +
+                jp_glyph_problems() +
                 guest_compile_problems())
     for p in problems:
         print(p)
