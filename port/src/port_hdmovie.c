@@ -78,12 +78,18 @@ static void PlayExtras(int eventId, int before) {
             PlayFile(kHdSceneExtras[i].movie);
 }
 
+/* The endings' scenes come with the HD movies (the importer copies them with ROP / RSE / RRE): they lead into the
+   credits, so with hd_movies on and hd_scenes off the endings still match the opening (issue #42). */
+static int IsEnding(int eventId) {
+    return eventId == EVENT_073_13F_CAPSULE_ROOM_ENDING || eventId == EVENT_195_RIKU_ENDING;
+}
+
 int PortHdScenePlay(int eventId) {
     size_t i;
-    if (!gPortConfig.hdScenes)
-        return 0;
     eventId &= 0x7FFF; /* the debug menu's events carry 0x8000 (mode_event.c) */
     PortLog("hd scene: event %d", eventId);
+    if (!gPortConfig.hdScenes && !(gPortConfig.hdMovies && IsEnding(eventId)))
+        return 0;
     for (i = 0; i < sizeof(kHdScenes) / sizeof(kHdScenes[0]); i++)
         if (kHdScenes[i].eventId == eventId) {
             int played;

@@ -5,7 +5,8 @@ Each mapped event starts from the debug event menu (KHCOM_EVENT, as test_events.
 hd_scenes on and the player's imported hd folder linked in. The case passes when the log shows the game asking for
 the event's scene ("hd scene: event N") and the movie opening ("hd movie: <name>"); every movie is stopped after
 KHCOM_HDMOVIE_SECONDS. With --recom the Re:CoM-only scenes (kHdSceneExtras) must play next to their neighbour, and
-without it they must not.
+without it they must not. With --movies-only (hd_movies on, hd_scenes off) only the endings' scenes (IsEnding in
+port_hdmovie.c, issue #42) may play, and they must.
 
     python port/tools/test_hd_scenes.py --hd D:/01Claude/ReKHCoM-build/hd-completo [--build build/pc-eu] [--recom] [--jobs 6]
 """
@@ -54,7 +55,8 @@ def scene_map():
     scenes = re.findall(r"\{\s*(EVENT_\w+),\s*\"(\w+)\"\s*\}", inc)
     src = (ROOT / "port" / "src" / "port_hdmovie.c").read_text(encoding="utf-8")
     extras = re.findall(r"\{\s*(EVENT_\w+),\s*\"(\w+)\",\s*(\d)\s*\}", src)
-    return scenes, extras
+    endings = re.findall(r"eventId == (EVENT_\w+)", src[src.index("static int IsEnding"):src.index("int PortHdScenePlay")])
+    return scenes, extras, endings
 
 
 def link(target, link_path):
@@ -64,7 +66,7 @@ def link(target, link_path):
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def run(exe_dir, work, hd, version, list_id, index, frames, timeout, recom):
+def run(exe_dir, work, hd, version, list_id, index, frames, timeout, recom, movies_only):
     d = work / f"{list_id}_{index:03d}"
     if d.exists():
         if (d / "hd").exists():
@@ -73,7 +75,8 @@ def run(exe_dir, work, hd, version, list_id, index, frames, timeout, recom):
     d.mkdir(parents=True)
     case_bin.place(exe_dir, work, d)
     link(hd, d / "hd")
-    (d / "kh_com.ini").write_text("config_version=2\nview_mode=0\nhd_movies=1\nhd_scenes=1\nhd_subtitles=1\n")
+    (d / "kh_com.ini").write_text("config_version=2\nview_mode=0\nhd_movies=1\nhd_scenes=" + ("0" if movies_only else "1") +
+                                     "\nhd_subtitles=1\n")
     keys = ",".join(f"{f}-{f + 3}:A" for f in range(30, frames, 40))
     env = dict(os.environ, SDL_VIDEO_DRIVER="dummy", SDL_AUDIO_DRIVER="dummy", KHCOM_FAST="1",
                KHCOM_EVENT=f"{list_id}:{index}", KHCOM_KEYS=keys, KHCOM_QUIT=str(frames))
@@ -101,6 +104,7 @@ def main():
     ap.add_argument("--version", default="eu", choices=("eu", "us", "jp"))
     ap.add_argument("--build", help="folder with khcom.exe (default build/pc-<version>)")
     ap.add_argument("--recom", action="store_true", help="Re:CoM mode (KHCOM_RECOM=1): the extra scenes play too")
+    ap.add_argument("--movies-only", action="store_true", help="hd_scenes off: only the endings' scenes play")
     ap.add_argument("--frames", type=int, default=900)
     ap.add_argument("--jobs", type=int, default=6)
     ap.add_argument("--timeout", type=int, default=300)
@@ -108,10 +112,10 @@ def main():
     args = ap.parse_args()
 
     exe_dir = ROOT / (args.build or f"build/pc-{args.version}")
-    work = ROOT / "build" / "hdscenes" / (args.version + ("_recom" if args.recom else ""))
+    work = ROOT / "build" / "hdscenes" / (args.version + ("_recom" if args.recom else "") + ("_movies" if args.movies_only else ""))
     work.mkdir(parents=True, exist_ok=True)
     numbers = event_numbers(args.version)
-    scenes, extras = scene_map()
+    scenes, extras, endings = scene_map()
     menu = {name: (l, i) for l, i, name in event_lists()}
     have = {p.stem for p in Path(args.hd, "movies").glob("*.mp4")}
 
@@ -129,7 +133,7 @@ def main():
     results = {}
     with ThreadPoolExecutor(args.jobs) as pool:
         futs = {pool.submit(run, exe_dir, work, Path(args.hd), args.version, *menu[ev], args.frames, args.timeout,
-                            args.recom): (ev, movie) for ev, movie in cases}
+                            args.recom, args.movies_only): (ev, movie) for ev, movie in cases}
         for k, f in enumerate(as_completed(futs), 1):
             results[futs[f]] = f.result()
             print(f"[{k}/{len(futs)}] {futs[f][0]}", flush=True)
@@ -140,6 +144,8 @@ def main():
         for xev, xmovie, before in extras:
             if xev == ev and args.recom:
                 want = [xmovie] + want if before == "1" else want + [xmovie]
+        if args.movies_only and ev not in endings:
+            want = []
         problems = []
         if numbers[ev] not in asked:
             problems.append(f"scene never asked (asked: {asked})")
