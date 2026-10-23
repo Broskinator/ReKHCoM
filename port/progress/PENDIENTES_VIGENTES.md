@@ -135,8 +135,8 @@ Reglas del usuario:
     (port_hdsprites.c Quad); arreglo hecho (esquinas a píxel entero), falta verificar en el título estático.
   - [x] (3de66108c) "Elige un mundo": la imagen grande del mundo se ve mal (máscara del sprite GBA, bordes pixelados); en
     "Naipes mundo" los iconos HD se ven bien: usar el mismo arte/transparencia, o volver al pixel si no se puede.
-  - [ ] "Naipes mapa": la carta grande ya es HD; las chicas de la grilla siguen en pixel: hacerlas HD.
-  - [ ] "Estado": las cartas de aliados (Donald, Goofy) siguen en pixel: hacerlas HD.
+  - [x] (cartas chicas, grupo 6) "Naipes mapa": la carta grande ya es HD; las chicas de la grilla siguen en pixel: hacerlas HD.
+  - [x] (cartas chicas, grupo 6) "Estado": las cartas de aliados (Donald, Goofy) siguen en pixel: hacerlas HD.
   - [x] (3de66108c, mismas filas) Diario (Historia): la imagen del mundo es la misma versión mala que "Elige un mundo" (mismo arreglo).
   - [ ] Opcional: mejorar los fondos de esos menús (p. ej. "Naipes mundo").
   - [ ] Diario > Historia: el submenú no tiene las mejoras de vista ancha de los demás (el usuario marcó el margen
