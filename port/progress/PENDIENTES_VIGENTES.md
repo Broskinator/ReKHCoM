@@ -133,15 +133,15 @@ Reglas del usuario:
     cerró. El evento abre la pausa al soltar un toque corto de START (event_message.c UpdateEventSeq).
   - [x] Logo HD del título con líneas finas (arreglado y visto a 1080p): bordes de piezas en medio píxel + la inclinación de 0,01 px
     (port_hdsprites.c Quad); arreglo hecho (esquinas a píxel entero), falta verificar en el título estático.
-  - [ ] "Elige un mundo": la imagen grande del mundo se ve mal (máscara del sprite GBA, bordes pixelados); en
+  - [x] (3de66108c) "Elige un mundo": la imagen grande del mundo se ve mal (máscara del sprite GBA, bordes pixelados); en
     "Naipes mundo" los iconos HD se ven bien: usar el mismo arte/transparencia, o volver al pixel si no se puede.
   - [ ] "Naipes mapa": la carta grande ya es HD; las chicas de la grilla siguen en pixel: hacerlas HD.
   - [ ] "Estado": las cartas de aliados (Donald, Goofy) siguen en pixel: hacerlas HD.
-  - [ ] Diario (Historia): la imagen del mundo es la misma versión mala que "Elige un mundo" (mismo arreglo).
+  - [x] (3de66108c, mismas filas) Diario (Historia): la imagen del mundo es la misma versión mala que "Elige un mundo" (mismo arreglo).
   - [ ] Opcional: mejorar los fondos de esos menús (p. ej. "Naipes mundo").
   - [ ] Diario > Historia: el submenú no tiene las mejoras de vista ancha de los demás (el usuario marcó el margen
     izquierdo, el borde derecho y la barra de arriba a la derecha que se corta): dejarlo como los otros submenús.
-  - [ ] Imagen de mundo HD (Elige un mundo, Diario): reemplazar las feas por el arte de "Naipes mundo" que se ve bien.
+  - [x] (3de66108c) Imagen de mundo HD (Elige un mundo, Diario): reemplazar las feas por el arte de "Naipes mundo" que se ve bien.
   - [ ] Anillo de vida HD: bordes lisos (antialias) en la cara y el final de la barra.
   - [ ] Números de las cartas HD quizá muy chicos: comparar con Re:CoM (referencias/capturas del HD).
   - [ ] Cara HD de Sora al recibir daño: el pelo sale cortado.
@@ -164,7 +164,9 @@ Reglas del usuario:
   - Todo esto antes de publicar la v2.0 (usuario 23/10 ~05:00, se fue a dormir: seguir sin pedir decisiones).
   - [ ] Barra de vida de los enemigos como Re:CoM (CEnemyGauge decompilado, con su lógica como la de Sora).
   - [ ] **Bug:** un cuadro negro en medio del primer combate de Agrabah con HUD HD (el usuario dejará savestate);
-    el HD debe ir igual de fluido que sin HD.
+    el HD debe ir igual de fluido que sin HD. Descartado en PC (23/10): combate de Agrabah con cartas/HUD/texto HD, 2451 cuadros normales y 817 con salto
+    forzado, ninguna caída aislada de brillo; los savestates del usuario son del evento 000 (slot1) y de editar
+    baraja (slot2), no del combate. Falta un savestate del combate o probar con Direct3D 11 real.
   - [ ] Sonido al moverse en la elección HD/GBA del primer arranque (como en Opciones).
   - [ ] Ajustes: "Intros HD" (apertura, créditos, finales; encendido por defecto salvo modo GBA Original),
     "Escenas HD", "HUD HD" (logo del título + cartas + HUD de combate en un solo interruptor).
